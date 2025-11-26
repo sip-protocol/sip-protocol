@@ -22,6 +22,7 @@ import { sha256 } from '@noble/hashes/sha256'
 import { hkdf } from '@noble/hashes/hkdf'
 import { bytesToHex, hexToBytes, randomBytes, utf8ToBytes } from '@noble/hashes/utils'
 import { xchacha20poly1305 } from '@noble/ciphers/chacha.js'
+import { ValidationError, CryptoError, ErrorCode } from './errors'
 
 /**
  * Privacy configuration for an intent
@@ -61,7 +62,12 @@ export function getPrivacyConfig(
 
     case 'compliant':
       if (!viewingKey) {
-        throw new Error('Viewing key required for compliant mode')
+        throw new ValidationError(
+          'viewingKey is required for compliant mode',
+          'viewingKey',
+          undefined,
+          ErrorCode.MISSING_REQUIRED
+        )
       }
       return {
         level,
@@ -71,7 +77,12 @@ export function getPrivacyConfig(
       }
 
     default:
-      throw new Error(`Unknown privacy level: ${level}`)
+      throw new ValidationError(
+        `unknown privacy level: ${level}`,
+        'level',
+        { received: level },
+        ErrorCode.INVALID_PRIVACY_LEVEL
+      )
   }
 }
 
@@ -235,8 +246,10 @@ export function decryptWithViewing(
 ): TransactionData {
   // Verify viewing key hash matches (optional but helpful error message)
   if (encrypted.viewingKeyHash !== viewingKey.hash) {
-    throw new Error(
-      'Viewing key hash mismatch - this key cannot decrypt this transaction'
+    throw new CryptoError(
+      'Viewing key hash mismatch - this key cannot decrypt this transaction',
+      ErrorCode.DECRYPTION_FAILED,
+      { operation: 'decryptWithViewing' }
     )
   }
 
@@ -261,10 +274,15 @@ export function decryptWithViewing(
 
   try {
     plaintext = cipher.decrypt(ciphertext)
-  } catch {
-    throw new Error(
+  } catch (e) {
+    throw new CryptoError(
       'Decryption failed - authentication tag verification failed. ' +
-      'Either the viewing key is incorrect or the data has been tampered with.'
+      'Either the viewing key is incorrect or the data has been tampered with.',
+      ErrorCode.DECRYPTION_FAILED,
+      {
+        cause: e instanceof Error ? e : undefined,
+        operation: 'decryptWithViewing',
+      }
     )
   }
 
@@ -281,12 +299,21 @@ export function decryptWithViewing(
       typeof data.amount !== 'string' ||
       typeof data.timestamp !== 'number'
     ) {
-      throw new Error('Invalid transaction data format')
+      throw new ValidationError(
+        'invalid transaction data format',
+        'transactionData',
+        { received: data },
+        ErrorCode.INVALID_INPUT
+      )
     }
     return data
   } catch (e) {
     if (e instanceof SyntaxError) {
-      throw new Error('Decryption succeeded but data is malformed JSON')
+      throw new CryptoError(
+        'Decryption succeeded but data is malformed JSON',
+        ErrorCode.DECRYPTION_FAILED,
+        { cause: e, operation: 'decryptWithViewing' }
+      )
     }
     throw e
   }

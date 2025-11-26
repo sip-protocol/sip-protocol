@@ -14,6 +14,7 @@ import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 import type { Commitment, HexString, Hash } from '@sip-protocol/types'
 import { commit, verifyOpening } from './commitment'
+import { ValidationError, ErrorCode } from './errors'
 
 /**
  * Create a Pedersen commitment to a value
@@ -47,7 +48,12 @@ export function verifyCommitment(
   expectedValue: bigint,
 ): boolean {
   if (!commitment.blindingFactor) {
-    throw new Error('Cannot verify commitment without blinding factor')
+    throw new ValidationError(
+      'cannot verify commitment without blinding factor',
+      'commitment.blindingFactor',
+      undefined,
+      ErrorCode.MISSING_REQUIRED
+    )
   }
 
   return verifyOpening(commitment.value, expectedValue, commitment.blindingFactor)

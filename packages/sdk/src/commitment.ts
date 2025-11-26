@@ -24,7 +24,7 @@ import { secp256k1 } from '@noble/curves/secp256k1'
 import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils'
 import type { HexString } from '@sip-protocol/types'
-import { ValidationError } from './errors'
+import { ValidationError, CryptoError, ErrorCode } from './errors'
 import { isValidHex } from './validation'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -122,7 +122,11 @@ function generateH(): typeof G {
   }
 
   // This should never happen with a properly chosen domain separator
-  throw new Error('Failed to generate H point - this should never happen')
+  throw new CryptoError(
+    'Failed to generate H point - this should never happen',
+    ErrorCode.CRYPTO_FAILED,
+    { context: { domain: H_DOMAIN } }
+  )
 }
 
 // ─── Core Functions ──────────────────────────────────────────────────────────

@@ -20,13 +20,29 @@
  * ```
  */
 
-// Errors
+// Errors and Error Utilities
 export {
+  // Error codes
+  ErrorCode,
+  // Base error
   SIPError,
+  // Specialized errors
+  ValidationError,
+  CryptoError,
+  ProofError,
+  IntentError,
+  NetworkError,
+  // Legacy errors (now extend proper parent classes)
   ProofNotImplementedError,
   EncryptionNotImplementedError,
-  ValidationError,
+  // Utility functions
+  isSIPError,
+  hasErrorCode,
+  wrapError,
+  getErrorMessage,
 } from './errors'
+
+export type { SerializedError } from './errors'
 
 // Main client
 export { SIP, createSIP } from './sip'

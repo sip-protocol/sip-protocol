@@ -21,6 +21,7 @@ import type {
   ProofResult,
 } from './interface'
 import { ProofGenerationError } from './interface'
+import { ProofError, ErrorCode } from '../errors'
 
 /**
  * Noir circuit artifacts paths
@@ -122,9 +123,11 @@ export class NoirProofProvider implements ProofProvider {
     // const noir = new Noir(circuit, backend)
     // ```
 
-    throw new Error(
+    throw new ProofError(
       'NoirProofProvider not yet implemented. ' +
       'Circuits must be compiled first. See issues #14, #15, #16.',
+      ErrorCode.PROOF_NOT_IMPLEMENTED,
+      { context: { issues: ['#14', '#15', '#16'] } }
     )
   }
 
@@ -211,15 +214,19 @@ export class NoirProofProvider implements ProofProvider {
     // return verified
     // ```
 
-    throw new Error('Noir proof verification not yet implemented.')
+    throw new ProofError(
+      'Noir proof verification not yet implemented.',
+      ErrorCode.PROOF_NOT_IMPLEMENTED
+    )
   }
 
   // ─── Private Methods ───────────────────────────────────────────────────────
 
   private ensureReady(): void {
     if (!this._isReady) {
-      throw new Error(
+      throw new ProofError(
         'NoirProofProvider not initialized. Call initialize() first.',
+        ErrorCode.PROOF_PROVIDER_NOT_READY
       )
     }
   }

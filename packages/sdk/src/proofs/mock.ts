@@ -24,6 +24,7 @@ import type {
   ProofResult,
 } from './interface'
 import { ProofGenerationError } from './interface'
+import { ProofError, ErrorCode } from '../errors'
 
 /**
  * Mock proof marker - all mock proofs start with this prefix
@@ -221,7 +222,10 @@ export class MockProofProvider implements ProofProvider {
 
   private ensureReady(): void {
     if (!this._isReady) {
-      throw new Error('MockProofProvider not initialized. Call initialize() first.')
+      throw new ProofError(
+        'MockProofProvider not initialized. Call initialize() first.',
+        ErrorCode.PROOF_PROVIDER_NOT_READY
+      )
     }
   }
 
