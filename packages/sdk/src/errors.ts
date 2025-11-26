@@ -23,13 +23,10 @@ export class SIPError extends Error {
  *
  * @example
  * ```typescript
- * try {
- *   const proof = createFundingProof(amount, commitment)
- * } catch (e) {
- *   if (e instanceof ProofNotImplementedError) {
- *     console.log('Real ZK proofs not yet available')
- *   }
- * }
+ * // Use ProofProvider for proof generation
+ * const provider = new NoirProofProvider(config)
+ * await provider.initialize()
+ * const result = await provider.generateFundingProof(params)
  * ```
  */
 export class ProofNotImplementedError extends SIPError {

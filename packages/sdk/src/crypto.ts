@@ -1,18 +1,18 @@
 /**
  * Cryptographic utilities for SIP Protocol
  *
- * IMPORTANT: ZK proof generation requires real Noir circuits.
- * Proof functions will throw ProofNotImplementedError until
- * real implementations are available (#14, #15, #16).
+ * For ZK proofs, use ProofProvider:
+ * @see ./proofs/interface.ts for the proof provider interface
+ * @see ./proofs/mock.ts for testing
+ * @see ./proofs/noir.ts for production (Noir circuits)
  *
  * For Pedersen commitments, use the dedicated commitment module:
  * @see ./commitment.ts for secure Pedersen commitment implementation
  */
 
 import { sha256 } from '@noble/hashes/sha256'
-import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils'
-import type { Commitment, ZKProof, HexString, Hash } from '@sip-protocol/types'
-import { ProofNotImplementedError } from './errors'
+import { bytesToHex, randomBytes } from '@noble/hashes/utils'
+import type { Commitment, HexString, Hash } from '@sip-protocol/types'
 import { commit, verifyOpening } from './commitment'
 
 /**
@@ -51,76 +51,6 @@ export function verifyCommitment(
   }
 
   return verifyOpening(commitment.value, expectedValue, commitment.blindingFactor)
-}
-
-/**
- * Create a funding proof (ZK proof of sufficient funds)
- *
- * Proves: balance >= minimum_required without revealing balance.
- *
- * @throws {ProofNotImplementedError} Real Noir circuit implementation required
- * @see docs/specs/FUNDING-PROOF.md for specification (~22,000 constraints)
- */
-export function createFundingProof(
-  _inputAmount: bigint,
-  _inputCommitment: Commitment,
-): ZKProof {
-  throw new ProofNotImplementedError(
-    'funding',
-    'docs/specs/FUNDING-PROOF.md',
-  )
-}
-
-/**
- * Create a validity proof (ZK proof of intent authorization)
- *
- * Proves: intent is authorized by sender without revealing sender identity.
- *
- * @throws {ProofNotImplementedError} Real Noir circuit implementation required
- * @see docs/specs/VALIDITY-PROOF.md for specification (~72,000 constraints)
- */
-export function createValidityProof(
-  _intentId: string,
-  _senderCommitment: Commitment,
-): ZKProof {
-  throw new ProofNotImplementedError(
-    'validity',
-    'docs/specs/VALIDITY-PROOF.md',
-  )
-}
-
-/**
- * Create a fulfillment proof (ZK proof of correct execution)
- *
- * Proves: solver delivered output >= minimum to correct recipient.
- *
- * @throws {ProofNotImplementedError} Real Noir circuit implementation required
- * @see docs/specs/FULFILLMENT-PROOF.md for specification (~22,000 constraints)
- */
-export function createFulfillmentProof(
-  _intentId: string,
-  _outputAmount: bigint,
-): ZKProof {
-  throw new ProofNotImplementedError(
-    'fulfillment',
-    'docs/specs/FULFILLMENT-PROOF.md',
-  )
-}
-
-/**
- * Verify a ZK proof
- *
- * Verifies proof validity using the appropriate verification circuit.
- *
- * @throws {ProofNotImplementedError} Real Noir verifier implementation required
- */
-export function verifyProof(_proof: ZKProof): boolean {
-  // TODO: Implement real verification when circuits are ready (#14, #15, #16)
-  // For now, throw error to prevent false security assumptions
-  throw new ProofNotImplementedError(
-    'funding', // Generic - could be any proof type
-    'docs/specs/',
-  )
 }
 
 /**

@@ -68,13 +68,10 @@ export {
 export type { PrivacyConfig } from './privacy'
 
 // Crypto utilities (legacy - use commitment module for new code)
+// For ZK proofs, use ProofProvider from './proofs'
 export {
   createCommitment,
   verifyCommitment,
-  createFundingProof,
-  createValidityProof,
-  createFulfillmentProof,
-  verifyProof,
   generateIntentId,
   hash,
   generateRandomBytes,
