@@ -230,3 +230,32 @@ export type {
   OneClickStatusResponse,
   DefuseAssetId,
 } from '@sip-protocol/types'
+
+// Zcash
+export { ZcashRPCClient, ZcashRPCError, createZcashClient } from './zcash'
+export { ZcashErrorCode } from '@sip-protocol/types'
+
+export type {
+  ZcashConfig,
+  ZcashNetwork,
+  ZcashAddressType,
+  ZcashReceiverType,
+  ZcashAddressInfo,
+  ZcashNewAccount,
+  ZcashAccountAddress,
+  ZcashPoolBalance,
+  ZcashAccountBalance,
+  ZcashPool,
+  ZcashUnspentNote,
+  ZcashSendRecipient,
+  ZcashPrivacyPolicy,
+  ZcashShieldedSendParams,
+  ZcashOperationStatus,
+  ZcashOperationTxResult,
+  ZcashOperationError,
+  ZcashOperation,
+  ZcashBlockHeader,
+  ZcashBlock,
+  ZcashBlockchainInfo,
+  ZcashNetworkInfo,
+} from '@sip-protocol/types'

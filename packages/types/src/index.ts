@@ -94,3 +94,34 @@ export type {
   OneClickConfig,
   SolverRelayConfig,
 } from './near-intents'
+
+// Zcash
+export { ZcashErrorCode } from './zcash'
+export type {
+  ZcashConfig,
+  ZcashNetwork,
+  ZcashAddressType,
+  ZcashReceiverType,
+  ZcashAddressInfo,
+  ZcashNewAccount,
+  ZcashAccountAddress,
+  ZcashPoolBalance,
+  ZcashAccountBalance,
+  ZcashPool,
+  ZcashUnspentNote,
+  ZcashSendRecipient,
+  ZcashPrivacyPolicy,
+  ZcashShieldedSendParams,
+  ZcashOperationStatus,
+  ZcashOperationTxResult,
+  ZcashOperationError,
+  ZcashOperation,
+  ZcashBlockHeader,
+  ZcashBlock,
+  ZcashRPCRequest,
+  ZcashRPCResponse,
+  ZcashRPCError,
+  ZcashErrorCodeType,
+  ZcashBlockchainInfo,
+  ZcashNetworkInfo,
+} from './zcash'
