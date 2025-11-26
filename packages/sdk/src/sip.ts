@@ -15,7 +15,7 @@ import {
   type StealthMetaAddress,
   type ViewingKey,
 } from '@sip-protocol/types'
-import { IntentBuilder, createShieldedIntent, trackIntent } from './intent'
+import { IntentBuilder, createShieldedIntent, trackIntent, hasRequiredProofs } from './intent'
 import {
   generateStealthMetaAddress,
   encodeStealthMetaAddress,
@@ -23,6 +23,7 @@ import {
 } from './stealth'
 import { generateViewingKey, deriveViewingKey } from './privacy'
 import type { ChainId, HexString } from '@sip-protocol/types'
+import type { ProofProvider } from './proofs'
 
 /**
  * SIP SDK configuration
@@ -34,6 +35,23 @@ export interface SIPConfig {
   defaultPrivacy?: PrivacyLevel
   /** RPC endpoints for chains */
   rpcEndpoints?: Partial<Record<ChainId, string>>
+  /**
+   * Proof provider for ZK proof generation
+   *
+   * If not provided, proof generation will not be available.
+   * Use MockProofProvider for testing, NoirProofProvider for production.
+   *
+   * @example
+   * ```typescript
+   * import { MockProofProvider } from '@sip-protocol/sdk'
+   *
+   * const sip = new SIP({
+   *   network: 'testnet',
+   *   proofProvider: new MockProofProvider(),
+   * })
+   * ```
+   */
+  proofProvider?: ProofProvider
 }
 
 /**
@@ -61,12 +79,35 @@ export class SIP {
     spendingPrivateKey: HexString
     viewingPrivateKey: HexString
   }
+  private proofProvider?: ProofProvider
 
   constructor(config: SIPConfig) {
     this.config = {
       ...config,
       defaultPrivacy: config.defaultPrivacy ?? PrivacyLevel.SHIELDED,
     }
+    this.proofProvider = config.proofProvider
+  }
+
+  /**
+   * Get the configured proof provider
+   */
+  getProofProvider(): ProofProvider | undefined {
+    return this.proofProvider
+  }
+
+  /**
+   * Set or update the proof provider
+   */
+  setProofProvider(provider: ProofProvider): void {
+    this.proofProvider = provider
+  }
+
+  /**
+   * Check if proof provider is available and ready
+   */
+  hasProofProvider(): boolean {
+    return !!(this.proofProvider && this.proofProvider.isReady)
   }
 
   /**

@@ -80,6 +80,24 @@ export {
   generateRandomBytes,
 } from './crypto'
 
+// Proof providers
+export {
+  MockProofProvider,
+  NoirProofProvider,
+  ProofGenerationError,
+} from './proofs'
+
+export type {
+  ProofProvider,
+  ProofFramework,
+  FundingProofParams,
+  ValidityProofParams,
+  FulfillmentProofParams,
+  OracleAttestation,
+  ProofResult,
+  NoirProviderConfig,
+} from './proofs'
+
 // Re-export types for convenience
 export {
   PrivacyLevel,
