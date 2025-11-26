@@ -66,6 +66,13 @@ export enum ErrorCode {
   RPC_ERROR = 'SIP_6003',
   API_ERROR = 'SIP_6004',
   RATE_LIMITED = 'SIP_6005',
+
+  // Wallet errors (7xxx)
+  WALLET_ERROR = 'SIP_7000',
+  WALLET_NOT_CONNECTED = 'SIP_7001',
+  WALLET_CONNECTION_FAILED = 'SIP_7002',
+  WALLET_SIGNING_FAILED = 'SIP_7003',
+  WALLET_TRANSACTION_FAILED = 'SIP_7004',
 }
 
 // ─── Serialized Error Type ───────────────────────────────────────────────────

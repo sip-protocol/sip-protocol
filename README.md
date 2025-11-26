@@ -1,128 +1,267 @@
-# SIP Protocol
+<div align="center">
 
-**Shielded Intents Protocol** — The privacy layer for cross-chain transactions.
+<pre>
+███████╗██╗██████╗
+██╔════╝██║██╔══██╗
+███████╗██║██████╔╝
+╚════██║██║██╔═══╝
+███████║██║██║
+╚══════╝╚═╝╚═╝
+</pre>
+
+# Shielded Intents Protocol
+
+> **Privacy is not a feature. It's a right.**
+
+**The privacy layer for cross-chain transactions via NEAR Intents + Zcash**
+
+*One toggle to shield them all • Stealth addresses • Zero-knowledge proofs • Selective disclosure • Multi-chain support*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![NEAR](https://img.shields.io/badge/NEAR-Intents-00C08B?logo=near&logoColor=white)](https://near.org/)
+[![Zcash](https://img.shields.io/badge/Zcash-Shielded-F4B728?logo=zcash&logoColor=black)](https://z.cash/)
+[![pnpm](https://img.shields.io/badge/pnpm-Monorepo-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+</div>
 
 ---
 
-## Overview
+## Table of Contents
 
-SIP (Shielded Intents Protocol) brings HTTPS-level privacy to cross-chain transactions. Just as HTTPS encrypted the web without changing how users browse, SIP adds privacy to blockchain intents without changing how users swap.
+- [What is SIP?](#-what-is-sip)
+- [Quick Preview](#-quick-preview)
+- [The Problem](#-the-problem)
+- [The Solution](#-the-solution)
+- [Key Features](#-key-features)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [Architecture](#%EF%B8%8F-architecture)
+- [Packages](#-packages)
+- [Roadmap](#-roadmap)
+- [Tech Stack](#%EF%B8%8F-tech-stack)
+- [Development](#-development)
+- [Contributing](#-contributing)
+- [Security](#-security)
+- [License](#-license)
+- [Acknowledgments](#-acknowledgments)
+
+---
+
+## 🛡️ What is SIP?
+
+SIP (Shielded Intents Protocol) brings **HTTPS-level privacy** to cross-chain transactions. Just as HTTPS encrypted the web without changing how users browse, SIP adds privacy to blockchain intents without changing how users swap.
 
 ```
-HTTP  → HTTPS  (Web privacy upgrade)
-Intents → SIP   (Blockchain privacy upgrade)
+HTTP    → HTTPS   (Web privacy upgrade)
+Intents → SIP     (Blockchain privacy upgrade)
 ```
 
-### The Problem
+**Stop exposing your financial activity. Start swapping privately.**
 
-Current cross-chain solutions expose everything:
-- **Sender address** — Everyone knows who's swapping
-- **Transaction amounts** — Everyone sees how much
-- **Recipient address** — Everyone knows where funds go
-- **Transaction history** — Permanent public record
+---
 
-This isn't just inconvenient — it's a security risk. Public transactions enable:
-- Front-running and MEV extraction
-- Targeted phishing attacks
-- Price discrimination
-- Surveillance and censorship
+## 🎥 Quick Preview
 
-### The Solution
+### The Privacy Upgrade
 
-SIP wraps cross-chain intents in a privacy layer:
+<table>
+<tr>
+<th width="50%">❌ Public Intent (Everyone sees everything)</th>
+<th width="50%">✅ Shielded Intent (Solvers see only what they need)</th>
+</tr>
+<tr>
+<td valign="top">
 
 ```typescript
-// Before: Public intent (everyone sees everything)
 {
-  from: "0x1234...",      // Visible
-  inputAmount: 10,        // Visible
-  outputToken: "ETH",     // Visible
-  recipient: "0x5678..."  // Visible
+  from: "0x1234...",
+  inputAmount: 10,
+  inputToken: "SOL",
+  outputToken: "ETH",
+  recipient: "0x5678..."
 }
+```
 
-// After: Shielded intent (solvers see only what they need)
+**Exposed:**
+- 🔴 Your wallet address
+- 🔴 Exact amounts
+- 🔴 Recipient address
+- 🔴 Full transaction history
+
+</td>
+<td valign="top">
+
+```typescript
 {
   intentId: "abc123",
-  outputToken: "ETH",           // Solvers need this to quote
-  minOutput: 0.004,             // Solvers need this to quote
-  inputCommitment: "0xabc...",  // Hidden: cryptographic commitment
-  recipientStealth: "0xdef...", // Hidden: one-time stealth address
-  proof: "0x123..."             // ZK proof: "I have sufficient funds"
+  outputToken: "ETH",
+  minOutput: 0.004,
+  inputCommitment: "0xabc...",
+  recipientStealth: "0xdef...",
+  proof: "0x123..."
 }
 ```
 
-## Features
+**Protected:**
+- ✅ Sender hidden (commitment)
+- ✅ Amount hidden (ZK proof)
+- ✅ Recipient hidden (stealth address)
+- ✅ Unlinkable transactions
 
-- **One-click privacy** — Toggle between public and shielded modes
-- **Multi-chain support** — Works across Solana, Ethereum, NEAR, and more
-- **Three privacy levels**:
-  - `transparent` — Standard public transactions
-  - `shielded` — Full privacy via Zcash shielded pool
-  - `compliant` — Privacy with viewing key for institutional audit
-- **Stealth addresses** — One-time addresses prevent linkability
-- **Viewing keys** — Selective disclosure for compliance
+</td>
+</tr>
+</table>
 
-## Architecture
+**Result:** Solvers can fulfill your intent without knowing who you are or where the funds are going.
+
+---
+
+## 🎯 The Problem
+
+Current cross-chain solutions expose **everything** about your transactions. This isn't just inconvenient — it's a security risk.
+
+### What's Exposed
+
+| Data Point | Visibility | Risk |
+|------------|------------|------|
+| **Sender Address** | Public | Targeted phishing, social engineering |
+| **Transaction Amount** | Public | Front-running, MEV extraction |
+| **Recipient Address** | Public | Surveillance, address clustering |
+| **Transaction History** | Permanent | Financial profiling, discrimination |
+
+### Real-World Consequences
+
+| Attack Vector | How It Works | Impact |
+|---------------|--------------|--------|
+| **Front-Running** | Bots see your pending swap, execute first | You get worse price |
+| **MEV Extraction** | Validators reorder txs to profit | Value extracted from you |
+| **Phishing** | Attackers identify high-value wallets | Direct theft attempts |
+| **Surveillance** | Exchanges/govts track all activity | Privacy violation |
+| **Price Discrimination** | Services see your balance | Higher fees for wealthy users |
+
+**The blockchain is a public ledger. Without privacy, it's a surveillance system.**
+
+---
+
+## 💡 The Solution
+
+SIP wraps cross-chain intents in a **cryptographic privacy layer** using battle-tested technology from Zcash and cutting-edge stealth address schemes.
+
+### How It Works
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         USER                                │
-│                          │                                  │
-│               ┌──────────▼──────────┐                       │
-│               │    SIP SDK          │                       │
-│               │  • Privacy toggle   │                       │
-│               │  • Stealth address  │                       │
-│               │  • Proof generation │                       │
-│               └──────────┬──────────┘                       │
-│                          │                                  │
-│               ┌──────────▼──────────┐                       │
-│               │  Shielded Intent    │                       │
-│               │  Layer              │                       │
-│               └──────────┬──────────┘                       │
-│                          │                                  │
-│               ┌──────────▼──────────┐                       │
-│               │  Intent Router      │                       │
-│               │  (NEAR Intents)     │                       │
-│               └──────────┬──────────┘                       │
-│                          │                                  │
-│         ┌────────────────┼────────────────┐                 │
-│         │                │                │                 │
-│    ┌────▼────┐     ┌─────▼─────┐    ┌────▼────┐            │
-│    │ Solana  │     │  Zcash    │    │Ethereum │            │
-│    │         │     │ (Privacy  │    │         │            │
-│    │         │     │ Backbone) │    │         │            │
-│    └─────────┘     └───────────┘    └─────────┘            │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                          USER                                    │
+│                            │                                     │
+│                            ▼                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                      SIP SDK                             │    │
+│  │  ┌─────────────┐ ┌─────────────┐ ┌─────────────────┐    │    │
+│  │  │ Privacy     │ │ Stealth     │ │ ZK Proof        │    │    │
+│  │  │ Toggle      │ │ Address Gen │ │ Generation      │    │    │
+│  │  └─────────────┘ └─────────────┘ └─────────────────┘    │    │
+│  └─────────────────────────┬───────────────────────────────┘    │
+│                            │                                     │
+│                            ▼                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │              SHIELDED INTENT LAYER                       │    │
+│  │  • Pedersen commitments (hide amounts)                   │    │
+│  │  • Stealth addresses (hide recipients)                   │    │
+│  │  • ZK proofs (prove validity without revealing data)     │    │
+│  └─────────────────────────┬───────────────────────────────┘    │
+│                            │                                     │
+│                            ▼                                     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │                 NEAR INTENTS ROUTER                      │    │
+│  │  • Intent matching                                       │    │
+│  │  • Solver network                                        │    │
+│  │  • Cross-chain execution                                 │    │
+│  └─────────────────────────┬───────────────────────────────┘    │
+│                            │                                     │
+│            ┌───────────────┼───────────────┐                    │
+│            ▼               ▼               ▼                    │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐            │
+│  │    Solana    │ │    Zcash     │ │   Ethereum   │            │
+│  │              │ │  (Privacy    │ │              │            │
+│  │              │ │   Backbone)  │ │              │            │
+│  └──────────────┘ └──────────────┘ └──────────────┘            │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-## Quick Start
+### Core Mechanisms
 
-### Installation
+| Mechanism | Purpose | Technology |
+|-----------|---------|------------|
+| **Pedersen Commitments** | Hide transaction amounts | `value * G + blinding * H` |
+| **Stealth Addresses** | One-time recipient addresses | EIP-5564 style, secp256k1 |
+| **ZK Proofs** | Prove validity without revealing data | Zcash proving system |
+| **Viewing Keys** | Selective disclosure for compliance | Derived key pairs |
+
+---
+
+## ✨ Key Features
+
+### 🔒 **One-Click Privacy**
+Toggle between public and shielded modes with a single switch. No complex setup, no key management headaches.
+
+### 🌐 **Multi-Chain Support**
+Works across Solana, Ethereum, NEAR, and more. Privacy shouldn't be chain-specific.
+
+### 📊 **Three Privacy Levels**
+
+| Level | Description | Use Case |
+|-------|-------------|----------|
+| `TRANSPARENT` | Standard public transaction | When privacy isn't needed |
+| `SHIELDED` | Full privacy via Zcash pool | Personal transactions |
+| `COMPLIANT` | Privacy + viewing key | Institutional/regulatory |
+
+### 👻 **Stealth Addresses**
+Every transaction uses a fresh one-time address. No address reuse, no transaction linkability.
+
+### 🔑 **Viewing Keys**
+Selective disclosure for audits and compliance. Prove your transaction history without exposing it to everyone.
+
+### 🛡️ **MEV Protection**
+Hidden amounts and recipients mean front-runners can't extract value from your trades.
+
+### ⚡ **Zero UX Friction**
+Same swap interface you're used to. Privacy happens under the hood.
+
+---
+
+## 📦 Installation
 
 ```bash
+# npm
 npm install @sip-protocol/sdk
-# or
+
+# pnpm
 pnpm add @sip-protocol/sdk
-# or
+
+# yarn
 yarn add @sip-protocol/sdk
 ```
 
-### Basic Usage
+---
+
+## 🚀 Quick Start
+
+### 1. Initialize the SDK
 
 ```typescript
 import { SIP, PrivacyLevel } from '@sip-protocol/sdk';
 
-// Initialize
 const sip = new SIP({
   network: 'mainnet', // or 'testnet'
 });
+```
 
-// Create a shielded swap intent
+### 2. Create a Shielded Intent
+
+```typescript
 const intent = await sip.createIntent({
   input: {
     chain: 'solana',
@@ -135,19 +274,23 @@ const intent = await sip.createIntent({
   },
   privacy: PrivacyLevel.SHIELDED,
 });
-
-// Get quotes from solvers
-const quotes = await intent.getQuotes();
-
-// Execute with best quote
-const result = await intent.execute(quotes[0]);
-
-console.log(result.status);    // 'fulfilled'
-console.log(result.txHash);    // null (shielded!)
-console.log(result.proof);     // ZK proof of execution
 ```
 
-### Privacy Levels
+### 3. Get Quotes & Execute
+
+```typescript
+// Solvers compete to fill your intent
+const quotes = await intent.getQuotes();
+
+// Execute with the best quote
+const result = await intent.execute(quotes[0]);
+
+console.log(result.status);  // 'fulfilled'
+console.log(result.txHash);  // null (shielded!)
+console.log(result.proof);   // ZK proof of execution
+```
+
+### 4. Choose Your Privacy Level
 
 ```typescript
 // Public mode (standard intent, no privacy)
@@ -157,26 +300,129 @@ privacy: PrivacyLevel.TRANSPARENT
 privacy: PrivacyLevel.SHIELDED
 
 // Privacy + audit capability (for institutions)
-privacy: PrivacyLevel.COMPLIANT
+privacy: PrivacyLevel.COMPLIANT,
 viewingKey: generateViewingKey()
 ```
 
-## Documentation
+---
 
-- [Specification](docs/spec/SIP-SPEC.md) — Full protocol specification
-- [Architecture](docs/ARCHITECTURE.md) — Technical deep-dive
-- [Integration Guide](docs/guides/INTEGRATION.md) — How to integrate SIP
-- [API Reference](docs/API.md) — SDK API documentation
+## 🏗️ Architecture
 
-## Packages
+### Component Overview
 
-| Package | Description |
-|---------|-------------|
-| [`@sip-protocol/sdk`](packages/sdk) | Core SDK for creating shielded intents |
-| [`@sip-protocol/types`](packages/types) | TypeScript type definitions |
-| [`apps/demo`](apps/demo) | Reference implementation and demo app |
+```
+sip-protocol/
+├── apps/
+│   └── demo/                 # Next.js demo application
+│       ├── src/app/          # App router pages
+│       └── src/components/   # UI components
+├── packages/
+│   ├── sdk/                  # @sip-protocol/sdk
+│   │   ├── src/stealth.ts    # Stealth address generation
+│   │   ├── src/intent.ts     # Intent builder
+│   │   ├── src/privacy.ts    # Viewing key management
+│   │   ├── src/crypto.ts     # Pedersen commitments
+│   │   └── src/sip.ts        # Main client class
+│   └── types/                # @sip-protocol/types
+│       ├── src/intent.ts     # ShieldedIntent interface
+│       ├── src/privacy.ts    # PrivacyLevel enum
+│       └── src/stealth.ts    # Stealth address types
+└── docs/                     # Documentation
+```
 
-## Development
+### Data Flow
+
+```
+User Input → Privacy Layer → Intent Creation → Solver Network → Execution
+     │              │              │                 │             │
+     │              ▼              │                 │             │
+     │       ┌──────────┐         │                 │             │
+     │       │ Generate │         │                 │             │
+     │       │ Stealth  │         │                 │             │
+     │       │ Address  │         │                 │             │
+     │       └──────────┘         │                 │             │
+     │              │              │                 │             │
+     │              ▼              │                 │             │
+     │       ┌──────────┐         │                 │             │
+     │       │ Create   │         │                 │             │
+     │       │ Pedersen │         │                 │             │
+     │       │Commitment│         │                 │             │
+     │       └──────────┘         │                 │             │
+     │              │              │                 │             │
+     │              ▼              │                 │             │
+     │       ┌──────────┐         │                 │             │
+     │       │ Generate │         │                 │             │
+     │       │ ZK Proof │         │                 │             │
+     │       └──────────┘         │                 │             │
+     │              │              │                 │             │
+     └──────────────┴──────────────┴─────────────────┴─────────────┘
+```
+
+---
+
+## 📚 Packages
+
+| Package | Description | Status |
+|---------|-------------|--------|
+| [`@sip-protocol/sdk`](packages/sdk) | Core SDK for creating shielded intents | ✅ Active |
+| [`@sip-protocol/types`](packages/types) | TypeScript type definitions | ✅ Active |
+| [`apps/demo`](apps/demo) | Reference implementation and demo app | ✅ Active |
+
+---
+
+## 🗺️ Roadmap
+
+### Phase 1: Foundation ✅ **Complete**
+
+- ✅ Core type definitions (ShieldedIntent, PrivacyLevel, StealthAddress)
+- ✅ SDK architecture (SIP client, IntentBuilder)
+- ✅ Stealth address generation (secp256k1, EIP-5564 style)
+- ✅ Pedersen commitment implementation
+- ✅ Demo application with comparison view
+- ✅ Monorepo setup (pnpm + Turborepo)
+
+### Phase 2: Core Protocol 🔄 **In Progress**
+
+- ✅ Zcash testnet RPC client
+- ✅ Shielded transaction support
+- ✅ Solver interface design
+- ⏳ NEAR 1Click API integration
+- ⏳ End-to-end shielded flow
+- ⏳ Mock ZK proof generation
+
+### Phase 3: Integration 📋 **Planned**
+
+- [ ] Real ZK proof generation
+- [ ] Solver network integration
+- [ ] Multi-chain execution
+- [ ] Viewing key verification
+- [ ] Transaction status tracking
+
+### Phase 4: Production 🚀 **Future**
+
+- [ ] Security audit
+- [ ] Mainnet deployment
+- [ ] SDK v1.0 release
+- [ ] Documentation site
+- [ ] Additional chain support
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology | Purpose |
+|----------|------------|---------|
+| **Framework** | Next.js 14 (App Router) | Demo application |
+| **Language** | TypeScript (strict mode) | Type safety |
+| **Styling** | Tailwind CSS + shadcn/ui | UI components |
+| **State** | Zustand | Client state management |
+| **Monorepo** | pnpm + Turborepo | Package management |
+| **Cryptography** | @noble/curves, @noble/hashes | Stealth addresses, commitments |
+| **Deployment** | Vercel | Hosting |
+
+---
+
+## 💻 Development
 
 ### Prerequisites
 
@@ -200,14 +446,15 @@ pnpm dev
 ### Commands
 
 ```bash
-pnpm dev        # Start development server
+pnpm dev        # Start development server (port 3000)
 pnpm build      # Build all packages
-pnpm test       # Run tests
 pnpm lint       # Lint code
 pnpm typecheck  # Type check
 ```
 
-## Contributing
+---
+
+## 🤝 Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
@@ -219,7 +466,9 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 - Security audits
 - Chain integrations
 
-## Security
+---
+
+## 🔐 Security
 
 SIP is experimental software. Use at your own risk.
 
@@ -227,19 +476,32 @@ If you discover a security vulnerability, please report it responsibly:
 - Email: security@sip-protocol.xyz
 - Do NOT open public issues for security vulnerabilities
 
-## License
+---
+
+## 📄 License
 
 [MIT License](LICENSE) — see LICENSE file for details.
 
-## Acknowledgments
+---
+
+## 🙏 Acknowledgments
 
 SIP builds on the shoulders of giants:
-- [Zcash](https://z.cash) — Privacy-preserving cryptocurrency
+
+- [Zcash](https://z.cash) — Privacy-preserving cryptocurrency and proving system
 - [NEAR Protocol](https://near.org) — Intent-centric blockchain infrastructure
+- [EIP-5564](https://eips.ethereum.org/EIPS/eip-5564) — Stealth address standard
+- [@noble/curves](https://github.com/paulmillr/noble-curves) — Audited cryptographic primitives
 - The broader privacy and cryptography research community
 
 ---
 
-<p align="center">
-  <strong>Privacy is not a feature. It's a right.</strong>
-</p>
+<div align="center">
+
+**Built for the [NEAR AI Intents Hackathon](https://near.org/)**
+
+*Privacy is not a feature. It's a right.*
+
+[Documentation](docs/) · [Demo](apps/demo) · [Report Bug](https://github.com/RECTOR-LABS/sip-protocol/issues)
+
+</div>

@@ -274,3 +274,40 @@ export type {
   ZcashBlockchainInfo,
   ZcashNetworkInfo,
 } from '@sip-protocol/types'
+
+// Wallet Adapters
+export {
+  BaseWalletAdapter,
+  MockWalletAdapter,
+  WalletError,
+  notConnectedError,
+  featureNotSupportedError,
+  walletRegistry,
+  registerWallet,
+  createWalletFactory,
+  isPrivateWalletAdapter,
+  WalletErrorCode,
+} from './wallet'
+
+export type {
+  WalletConnectionState,
+  Signature,
+  UnsignedTransaction,
+  SignedTransaction,
+  TransactionReceipt,
+  WalletEventType,
+  WalletEvent,
+  WalletEventHandler,
+  WalletConnectEvent,
+  WalletDisconnectEvent,
+  WalletAccountChangedEvent,
+  WalletChainChangedEvent,
+  WalletErrorEvent,
+  WalletAdapter as IWalletAdapter,
+  PrivateWalletAdapter,
+  WalletShieldedSendParams,
+  WalletShieldedSendResult,
+  WalletInfo,
+  WalletAdapterFactory,
+  WalletRegistryEntry,
+} from './wallet'

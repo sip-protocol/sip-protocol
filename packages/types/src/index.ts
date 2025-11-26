@@ -125,3 +125,36 @@ export type {
   ZcashBlockchainInfo,
   ZcashNetworkInfo,
 } from './zcash'
+
+// Wallet Adapters
+export { WalletErrorCode } from './wallet'
+export type {
+  // Core types
+  WalletConnectionState,
+  Signature,
+  UnsignedTransaction,
+  SignedTransaction,
+  TransactionReceipt,
+  // Events
+  WalletEventType,
+  WalletEventBase,
+  WalletConnectEvent,
+  WalletDisconnectEvent,
+  WalletAccountChangedEvent,
+  WalletChainChangedEvent,
+  WalletErrorEvent,
+  WalletEvent,
+  WalletEventHandler,
+  // Adapter interfaces
+  WalletAdapter,
+  PrivateWalletAdapter,
+  // Privacy params
+  ShieldedSendParams as WalletShieldedSendParams,
+  ShieldedSendResult as WalletShieldedSendResult,
+  // Error types
+  WalletErrorCodeType,
+  // Registry
+  WalletInfo,
+  WalletAdapterFactory,
+  WalletRegistryEntry,
+} from './wallet'
