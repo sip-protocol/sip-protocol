@@ -1,16 +1,21 @@
-# SIP Specification v0.1
+# SIP Specification v0.2
 
 > Shielded Intents Protocol — Privacy layer for cross-chain transactions
 
-**Status**: Draft
+**Status**: Specification Complete (M1)
 **Authors**: RECTOR Labs
 **Created**: 2025-11-26
+**Updated**: 2025-11-26
 
 ---
 
 ## Abstract
 
 SIP (Shielded Intents Protocol) extends intent-based cross-chain transaction systems with privacy-preserving capabilities. It enables users to execute cross-chain swaps and transfers without exposing sender identity, transaction amounts, or recipient addresses to public observation.
+
+This specification defines the complete cryptographic protocol including zero-knowledge proofs, stealth addresses, commitment schemes, and viewing keys for selective disclosure.
+
+---
 
 ## Motivation
 
@@ -21,7 +26,7 @@ Current cross-chain intent systems (e.g., NEAR Intents) provide excellent UX for
 3. **Target identification**: Large holders become visible targets
 4. **Privacy leakage**: Even privacy-focused assets (e.g., Zcash) lose privacy when bridging
 
-### The Specific Problem
+### The ZachXBT Vulnerability
 
 As documented by blockchain investigator ZachXBT, the current NEAR Intents + Zcash integration has a privacy vulnerability:
 
@@ -29,160 +34,477 @@ As documented by blockchain investigator ZachXBT, the current NEAR Intents + Zca
 - The same address is reused for all refunds
 - This creates linkability between shielded and unshielded funds
 
-SIP addresses these issues by introducing shielded intents with proper privacy guarantees.
+**SIP addresses these issues by introducing shielded intents with proper privacy guarantees.**
 
 ---
 
-## Specification
+## 1. Protocol Overview
 
-### 1. Shielded Intent Format
+### 1.1 Components
+
+| Component | Purpose | Specification |
+|-----------|---------|---------------|
+| **Privacy Levels** | User-selectable privacy | [PRIVACY-LEVELS.md](specs/PRIVACY-LEVELS.md) |
+| **Stealth Addresses** | Recipient unlinkability | [STEALTH-ADDRESS.md](specs/STEALTH-ADDRESS.md) |
+| **Pedersen Commitments** | Amount hiding | Section 3 |
+| **Funding Proof** | Balance verification | [FUNDING-PROOF.md](specs/FUNDING-PROOF.md) |
+| **Validity Proof** | Intent authorization | [VALIDITY-PROOF.md](specs/VALIDITY-PROOF.md) |
+| **Fulfillment Proof** | Execution verification | [FULFILLMENT-PROOF.md](specs/FULFILLMENT-PROOF.md) |
+| **Viewing Keys** | Selective disclosure | [VIEWING-KEY.md](specs/VIEWING-KEY.md) |
+
+### 1.2 ZK Framework
+
+**Decision**: Noir (Aztec)
+
+Selected for backend-agnostic architecture, developer experience, and universal setup. See [ZK-ARCHITECTURE.md](specs/ZK-ARCHITECTURE.md) for full evaluation.
+
+---
+
+## 2. Privacy Levels
+
+SIP defines three privacy levels:
+
+### 2.1 TRANSPARENT
+
+Standard intent with no privacy enhancements.
+
+```
+Visibility: ALL fields public
+Proofs required: None
+Use case: Maximum compatibility
+```
+
+### 2.2 SHIELDED
+
+Full privacy via cryptographic hiding.
+
+```
+Hidden: Sender, input amount, recipient
+Visible: Output requirements (for solver quoting)
+Proofs required: Funding, Validity, Fulfillment
+Use case: Personal privacy
+```
+
+### 2.3 COMPLIANT
+
+Shielded with selective disclosure capability.
+
+```
+Hidden from public: Same as SHIELDED
+Visible to auditor: All details (with viewing key)
+Proofs required: All SHIELDED proofs + ViewingProof (on demand)
+Use case: Institutional/regulatory compliance
+```
+
+**Full specification**: [PRIVACY-LEVELS.md](specs/PRIVACY-LEVELS.md)
+
+---
+
+## 3. Cryptographic Primitives
+
+### 3.1 Elliptic Curve
+
+| Parameter | Value |
+|-----------|-------|
+| Curve | secp256k1 |
+| Generator | G (standard) |
+| Order | n = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 |
+
+### 3.2 Hash Functions
+
+| Purpose | Function | Rationale |
+|---------|----------|-----------|
+| ZK circuits | Poseidon | ZK-friendly (~300 constraints) |
+| Shared secrets | SHA-256 | Standard, widely supported |
+| Encryption keys | HKDF-SHA256 | Key derivation standard |
+
+### 3.3 Pedersen Commitment
+
+```
+C = value × G + blinding × H
+```
+
+Where:
+- `G`, `H` are independent generators on secp256k1
+- `value` is the committed amount
+- `blinding` is a random scalar
+
+**Properties**:
+- **Hiding**: Cannot determine `value` from `C`
+- **Binding**: Cannot find different `(value', blinding')` producing same `C`
+- **Homomorphic**: `C₁ + C₂ = Commit(v₁ + v₂, b₁ + b₂)`
+
+### 3.4 Encryption
+
+| Purpose | Algorithm |
+|---------|-----------|
+| Transaction data | ChaCha20-Poly1305 |
+| Key wrapping | ChaCha20-Poly1305 |
+| Nonce | 12 bytes random |
+
+---
+
+## 4. Data Structures
+
+### 4.1 Shielded Intent
 
 ```typescript
 interface ShieldedIntent {
-  // Public fields (visible to solvers)
-  intentId: string
-  version: "sip-v1"
-  outputAsset: Asset
-  minOutputAmount: bigint
-  maxSlippage: number
-  expiry: number
+  // Protocol
+  version: "sip-v0.2";
+  privacyLevel: PrivacyLevel;
 
-  // Private fields (hidden from solvers)
-  inputCommitment: Commitment
-  senderCommitment: Commitment
-  recipientStealth: StealthAddress
+  // Commitments
+  senderCommitment: Commitment;     // Pedersen(H(address), blinding)
+  inputCommitment: Commitment;      // Pedersen(amount, blinding)
+
+  // Public requirements (for solver)
+  inputAsset: AssetId;
+  outputAsset: AssetId;
+  minOutputAmount: bigint;
+
+  // Recipient
+  recipientStealth: StealthAddress;
 
   // Proofs
-  fundingProof: ZKProof
-  validityProof: ZKProof
+  fundingProof: Proof;
+  validityProof: Proof;
 
-  // Metadata
-  privacyLevel: PrivacyLevel
-  viewingKeyHash?: Hash
+  // Anti-replay
+  nullifier: Hash;
+
+  // Timing
+  timestamp: number;
+  expiry: number;
+
+  // Compliance (COMPLIANT mode only)
+  encryptedViewingData?: EncryptedBlob;
+  auditorKeyHash?: Hash;
+}
+```
+
+### 4.2 Stealth Address
+
+```typescript
+interface StealthAddress {
+  address: CompressedPoint;         // One-time address
+  ephemeralPublicKey: CompressedPoint;  // For recipient scanning
+  viewTag: number;                  // Optimization (1 byte)
+}
+```
+
+### 4.3 Stealth Meta-Address
+
+```typescript
+interface StealthMetaAddress {
+  spendingKey: CompressedPoint;     // P = p·G
+  viewingKey: CompressedPoint;      // Q = q·G
+  chain: ChainId;
 }
 
-type PrivacyLevel = "transparent" | "shielded" | "compliant"
+// Encoding: sip:{chain}:{spendingKey}:{viewingKey}
+// Example: sip:ethereum:0x02abc...:0x03def...
 ```
 
-### 2. Privacy Levels
+---
 
-#### 2.1 Transparent Mode
-Standard intent with no privacy. Equivalent to current NEAR Intents behavior.
+## 5. Proof Specifications
 
-#### 2.2 Shielded Mode
-Full privacy via Zcash shielded pool:
-- Sender identity hidden
-- Transaction amounts hidden
-- Recipient uses stealth address
-- No on-chain linkability
+### 5.1 Funding Proof
 
-#### 2.3 Compliant Mode
-Shielded mode with viewing key:
-- Same privacy as shielded mode
-- Viewing key allows selective disclosure
-- Suitable for institutional use
+**Purpose**: Prove `balance ≥ minimum_required` without revealing balance.
 
-### 3. Stealth Addresses
-
-Stealth addresses prevent address reuse and linkability.
-
-#### 3.1 Generation
-
+**Relation**:
 ```
-1. Recipient publishes stealth meta-address (P, Q)
-2. Sender generates ephemeral keypair (r, R = r*G)
-3. Sender computes shared secret: S = r * P
-4. Sender derives stealth address: A = Q + hash(S)*G
-5. Sender publishes R alongside transaction
-6. Recipient scans: for each R, compute S = p * R, check if A matches
+R = {
+  (commitment_hash, minimum_required, asset_id;
+   balance, blinding, address, signature)
+   :
+   balance ≥ minimum_required
+   ∧ C = Pedersen(balance, blinding)
+   ∧ H(C || asset_id) = commitment_hash
+   ∧ Verify(signature, address, H(C))
+}
 ```
 
-#### 3.2 Properties
-- One-time use per transaction
-- Unlinkable to recipient's main address
-- Recipient can derive private key to spend
+**Constraints**: ~22,000 (dominated by ECDSA)
 
-### 4. Commitment Scheme
+**Full specification**: [FUNDING-PROOF.md](specs/FUNDING-PROOF.md)
 
-Input amounts and sender identity are hidden using Pedersen commitments:
+### 5.2 Validity Proof
+
+**Purpose**: Prove intent is authorized without revealing sender.
+
+**Relation**:
+```
+R = {
+  (intent_hash, sender_commitment, nullifier, timestamp, expiry;
+   sender_address, sender_blinding, sender_secret, signature, nonce)
+   :
+   sender_commitment = Pedersen(H(sender_address), sender_blinding)
+   ∧ Verify(signature, sender_address, intent_hash)
+   ∧ nullifier = Poseidon(sender_secret, intent_hash, nonce)
+   ∧ timestamp < expiry
+   ∧ DeriveAddress(sender_secret) = sender_address
+}
+```
+
+**Constraints**: ~72,000 (dominated by Keccak256 address derivation)
+
+**Full specification**: [VALIDITY-PROOF.md](specs/VALIDITY-PROOF.md)
+
+### 5.3 Fulfillment Proof
+
+**Purpose**: Prove solver delivered output correctly.
+
+**Relation**:
+```
+R = {
+  (intent_hash, output_commitment, recipient_stealth,
+   min_output_amount, solver_id, fulfillment_time, expiry;
+   output_amount, output_blinding, oracle_attestation, solver_secret)
+   :
+   output_amount ≥ min_output_amount
+   ∧ output_commitment = Pedersen(output_amount, output_blinding)
+   ∧ VerifyAttestation(oracle_attestation, recipient_stealth, output_amount)
+   ∧ DeriveId(solver_secret) = solver_id
+   ∧ fulfillment_time ≤ expiry
+}
+```
+
+**Constraints**: ~22,000
+
+**Cross-chain verification**: Oracle attestation (v1), ZK light client (future)
+
+**Full specification**: [FULFILLMENT-PROOF.md](specs/FULFILLMENT-PROOF.md)
+
+---
+
+## 6. Stealth Address Protocol
+
+### 6.1 Key Generation (Recipient)
 
 ```
-Commitment = value * G + blinding * H
+p ← random_scalar()           // Spending private
+P ← p · G                     // Spending public
+q ← random_scalar()           // Viewing private
+Q ← q · G                     // Viewing public
+meta_address ← (P, Q)
 ```
 
-This allows:
-- Hiding the actual value
-- Proving properties about the value (e.g., > 0, sufficient funds)
-- Verifying without revealing
+### 6.2 Address Generation (Sender)
 
-### 5. Proof Requirements
+```
+r ← random_scalar()           // Ephemeral private
+R ← r · G                     // Ephemeral public
+S ← r · P                     // Shared secret (ECDH)
+h ← SHA256(S)
+view_tag ← h[0]               // First byte
+A ← Q + h · G                 // Stealth address
+```
 
-#### 5.1 Funding Proof
-Proves: "I have sufficient funds to fulfill this intent"
-- Without revealing: exact balance, source of funds
+### 6.3 Scanning (Recipient)
 
-#### 5.2 Validity Proof
-Proves: "This intent is well-formed and authorized"
-- Without revealing: sender identity, input details
+```
+S' ← p · R
+h' ← SHA256(S')
+if h'[0] ≠ view_tag: return NOT_MINE
+A' ← Q + h' · G
+if A' ≠ A: return NOT_MINE
+return MINE
+```
 
-### 6. Solver Interface
+### 6.4 Key Derivation (Recipient)
 
-Solvers interact with shielded intents via a modified interface:
+```
+a ← q + h (mod n)             // Stealth private key
+// Verify: a · G = Q + h · G = A ✓
+```
+
+**Full specification**: [STEALTH-ADDRESS.md](specs/STEALTH-ADDRESS.md)
+
+---
+
+## 7. Viewing Key System
+
+### 7.1 Key Hierarchy
+
+```
+Master Viewing Key (MVK)
+├── Full Viewing Key (FVK)    // ALL transactions
+├── Auditor Key (AK)          // Time-bounded access
+└── Transaction Key (TVK)     // Single transaction
+```
+
+### 7.2 Derivation
+
+```
+mvk = HKDF(seed, "sip-viewing-v1", "master-viewing-key")
+fvk = HKDF(mvk, "sip-fvk", "full-viewing-key")
+ak  = HKDF(mvk, "sip-auditor", auditor_id || start || end)
+tvk = HKDF(mvk, "sip-tvk", intent_hash)
+```
+
+### 7.3 Encryption
+
+```
+Encrypt(viewing_key, tx_data):
+  nonce ← random(12)
+  ciphertext ← ChaCha20-Poly1305(viewing_key, nonce, tx_data, aad=intent_hash)
+  return nonce || ciphertext
+```
+
+### 7.4 ViewingProof
+
+ZK proof that decrypted data matches on-chain commitments:
+- Proves authenticity without revealing viewing key
+- Enables verifiable selective disclosure
+
+**Full specification**: [VIEWING-KEY.md](specs/VIEWING-KEY.md)
+
+---
+
+## 8. Nullifier System
+
+### 8.1 Purpose
+
+Prevent replay attacks by tracking unique nullifiers.
+
+### 8.2 Derivation
+
+```
+nullifier = Poseidon(sender_secret, intent_hash, nonce)
+```
+
+### 8.3 Verification
+
+```
+Before accepting intent:
+1. Verify all proofs
+2. Check nullifier ∉ NullifierSet
+3. Add nullifier to NullifierSet
+```
+
+### 8.4 Properties
+
+- **Deterministic**: Same inputs → same nullifier
+- **Unlinkable**: Cannot determine sender from nullifier
+- **Binding**: Cannot create different intent with same nullifier
+
+---
+
+## 9. Solver Interface
+
+### 9.1 Intent Visibility
+
+```
+Solver sees:
+├── Intent exists
+├── Input asset type
+├── Output asset type
+├── Minimum output amount
+├── Recipient stealth address
+├── Expiry time
+└── Proof that sender has sufficient funds ✓
+
+Solver CANNOT see:
+├── Sender identity
+├── Exact input amount
+└── Sender's other transactions
+```
+
+### 9.2 Interface
 
 ```typescript
 interface SIPSolver {
-  // Solvers see limited information
-  canFulfill(intent: ShieldedIntent): Promise<Quote>
+  // Evaluate and quote
+  evaluateIntent(intent: ShieldedIntent): Promise<Quote>;
 
-  // Fulfillment happens through shielded channel
-  fulfill(
+  // Execute fulfillment
+  fulfillIntent(
     intent: ShieldedIntent,
-    quote: Quote,
-    fulfillmentProof: ZKProof
-  ): Promise<FulfillmentResult>
-}
-```
-
-### 7. Viewing Keys
-
-For compliant mode, viewing keys enable selective disclosure:
-
-```typescript
-interface ViewingKey {
-  // Derive from master key
-  derive(masterKey: MasterKey, path: string): ViewingKey
-
-  // Decrypt transaction for authorized viewer
-  decrypt(encryptedTx: EncryptedTransaction): Transaction
-
-  // Generate proof of transaction for auditor
-  generateProof(tx: Transaction): ViewingProof
+    quote: Quote
+  ): Promise<{
+    fulfillmentProof: Proof;
+    attestation: OracleAttestation;
+  }>;
 }
 ```
 
 ---
 
-## Security Considerations
+## 10. Security Analysis
 
-### Threat Model
-- Malicious solvers attempting to front-run
-- Chain analysis firms attempting to link transactions
-- Compromised infrastructure
+### 10.1 Threat Model
 
-### Mitigations
-- Stealth addresses prevent linkability
-- Commitment scheme hides amounts
-- ZK proofs prevent forgery
-- Viewing keys enable selective disclosure without full deanonymization
+| Threat | Mitigation |
+|--------|------------|
+| **Front-running** | Commitment hides actual amounts |
+| **Sender identification** | Sender commitment + ZK proof |
+| **Recipient linkability** | Stealth addresses (one-time) |
+| **Transaction graph analysis** | Fresh blinding per transaction |
+| **Replay attacks** | Nullifier set |
+| **Malicious solver** | Fulfillment proof required |
+| **Oracle collusion** | Threshold signatures (3-of-5) |
+
+### 10.2 Cryptographic Assumptions
+
+1. **Discrete Logarithm**: Hard on secp256k1
+2. **DDH (Decisional Diffie-Hellman)**: For stealth address unlinkability
+3. **Hash Security**: SHA-256, Poseidon collision resistance
+4. **Proof Soundness**: Noir/UltraPlonk soundness
+
+### 10.3 Trust Assumptions
+
+| Component | Trust Model |
+|-----------|-------------|
+| ZK Proofs | Cryptographic (universal setup) |
+| Cross-chain | Oracle network (threshold) |
+| Viewing keys | User-controlled disclosure |
 
 ---
 
-## Reference Implementation
+## 11. Reference Implementation
 
-See `packages/sdk` for TypeScript reference implementation.
+| Component | Location |
+|-----------|----------|
+| SDK | `packages/sdk/` |
+| Types | `packages/types/` |
+| Demo | `apps/demo/` |
+| Stealth addresses | `packages/sdk/src/stealth.ts` |
+| Privacy handling | `packages/sdk/src/privacy.ts` |
+
+---
+
+## 12. Specification Documents
+
+| Document | Description |
+|----------|-------------|
+| [ZK-ARCHITECTURE.md](specs/ZK-ARCHITECTURE.md) | Framework selection (Noir) |
+| [FUNDING-PROOF.md](specs/FUNDING-PROOF.md) | Balance verification proof |
+| [VALIDITY-PROOF.md](specs/VALIDITY-PROOF.md) | Intent authorization proof |
+| [FULFILLMENT-PROOF.md](specs/FULFILLMENT-PROOF.md) | Execution verification proof |
+| [STEALTH-ADDRESS.md](specs/STEALTH-ADDRESS.md) | One-time address protocol |
+| [VIEWING-KEY.md](specs/VIEWING-KEY.md) | Selective disclosure system |
+| [PRIVACY-LEVELS.md](specs/PRIVACY-LEVELS.md) | Privacy level definitions |
 
 ---
 
 ## Changelog
 
+- **v0.2** (2025-11-26): Complete specification with formal proofs
+  - Added ZK framework decision (Noir)
+  - Added Funding Proof specification
+  - Added Validity Proof specification
+  - Added Fulfillment Proof specification
+  - Added Stealth Address protocol
+  - Added Viewing Key system
+  - Added Privacy Levels formal definition
+  - Added Nullifier system
+  - Added security analysis
+
 - **v0.1** (2025-11-26): Initial draft
+
+---
+
+*SIP Specification v0.2 — Milestone 1 Complete*
