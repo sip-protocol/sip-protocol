@@ -1,0 +1,6 @@
+[package]
+name = "validity_proof"
+type = "bin"
+authors = ["SIP Protocol Team"]
+
+[dependencies]
