@@ -44,6 +44,7 @@ export {
   deserializeIntent,
   getIntentSummary,
 } from './intent'
+export type { CreateIntentOptions } from './intent'
 
 // Stealth addresses
 export {

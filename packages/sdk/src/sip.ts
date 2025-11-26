@@ -157,16 +157,38 @@ export class SIP {
 
   /**
    * Create a new intent builder
+   *
+   * The builder is automatically configured with the SIP client's proof provider
+   * (if one is set), so proofs will be generated automatically when `.build()` is called.
+   *
+   * @example
+   * ```typescript
+   * const intent = await sip.intent()
+   *   .input('near', 'NEAR', 100n)
+   *   .output('zcash', 'ZEC', 95n)
+   *   .privacy(PrivacyLevel.SHIELDED)
+   *   .build()
+   * ```
    */
   intent(): IntentBuilder {
-    return new IntentBuilder()
+    const builder = new IntentBuilder()
+    if (this.proofProvider) {
+      builder.withProvider(this.proofProvider)
+    }
+    return builder
   }
 
   /**
    * Create a shielded intent directly
+   *
+   * Uses the SIP client's configured proof provider (if any) to generate proofs
+   * automatically for SHIELDED and COMPLIANT privacy levels.
    */
   async createIntent(params: CreateIntentParams): Promise<TrackedIntent> {
-    const intent = createShieldedIntent(params, this.wallet?.address)
+    const intent = await createShieldedIntent(params, {
+      senderAddress: this.wallet?.address,
+      proofProvider: this.proofProvider,
+    })
     return trackIntent(intent)
   }
 

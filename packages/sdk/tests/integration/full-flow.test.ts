@@ -82,10 +82,10 @@ describe('SIP Protocol Full Flow', () => {
   })
 
   describe('Intent Builder', () => {
-    it('should build shielded intent using builder pattern', () => {
+    it('should build shielded intent using builder pattern', async () => {
       const sip = createSIP('testnet')
 
-      const intent = sip
+      const intent = await sip
         .intent()
         .input('near' as ChainId, 'NEAR', 10n)
         .output('zcash' as ChainId, 'ZEC', 95n)
@@ -104,7 +104,7 @@ describe('SIP Protocol Full Flow', () => {
       const sip = createSIP('testnet')
       const builder = new IntentBuilder()
 
-      const intent = builder
+      const intent = await builder
         .input('near' as ChainId, 'NEAR', 100n)
         .output('zcash' as ChainId, 'ZEC', 9500n)
         .privacy(PrivacyLevel.SHIELDED)
@@ -119,7 +119,7 @@ describe('SIP Protocol Full Flow', () => {
     it('should get quotes for intent', async () => {
       const sip = createSIP('testnet')
 
-      const intent = sip
+      const intent = await sip
         .intent()
         .input('near' as ChainId, 'NEAR', 100n)
         .output('zcash' as ChainId, 'ZEC', 9500n)
@@ -136,7 +136,7 @@ describe('SIP Protocol Full Flow', () => {
     it('should execute intent with quote', async () => {
       const sip = createSIP('testnet')
 
-      const intent = sip
+      const intent = await sip
         .intent()
         .input('near' as ChainId, 'NEAR', 100n)
         .output('zcash' as ChainId, 'ZEC', 9500n)
@@ -188,10 +188,10 @@ describe('SIP Protocol Full Flow', () => {
   })
 
   describe('Privacy Levels', () => {
-    it('should handle transparent privacy level', () => {
+    it('should handle transparent privacy level', async () => {
       const sip = createSIP('testnet')
 
-      const intent = sip
+      const intent = await sip
         .intent()
         .input('near' as ChainId, 'NEAR', 100n)
         .output('zcash' as ChainId, 'ZEC', 9500n)
@@ -203,10 +203,10 @@ describe('SIP Protocol Full Flow', () => {
       expect(hasRequiredProofs(intent)).toBe(true) // Transparent always has "required" proofs
     })
 
-    it('should handle shielded privacy level', () => {
+    it('should handle shielded privacy level', async () => {
       const sip = createSIP('testnet')
 
-      const intent = sip
+      const intent = await sip
         .intent()
         .input('near' as ChainId, 'NEAR', 100n)
         .output('zcash' as ChainId, 'ZEC', 9500n)
@@ -215,6 +215,30 @@ describe('SIP Protocol Full Flow', () => {
 
       expect(intent.privacyLevel).toBe(PrivacyLevel.SHIELDED)
       expect(hasRequiredProofs(intent)).toBe(false) // Shielded needs proofs to be attached
+    })
+
+    it('should auto-generate proofs when provider is configured', async () => {
+      const mockProvider = new MockProofProvider()
+      await mockProvider.initialize()
+
+      const sip = new SIP({
+        network: 'testnet',
+        proofProvider: mockProvider,
+      })
+
+      // Note: input amount must be >= output minAmount for funding proof
+      const intent = await sip
+        .intent()
+        .input('near' as ChainId, 'NEAR', 10000n)
+        .output('zcash' as ChainId, 'ZEC', 9500n)
+        .privacy(PrivacyLevel.SHIELDED)
+        .build()
+
+      expect(intent.privacyLevel).toBe(PrivacyLevel.SHIELDED)
+      // Proofs should be auto-generated because provider was configured
+      expect(intent.fundingProof).toBeDefined()
+      expect(intent.validityProof).toBeDefined()
+      expect(hasRequiredProofs(intent)).toBe(true)
     })
 
     it('should handle compliant privacy level with viewing key', () => {
