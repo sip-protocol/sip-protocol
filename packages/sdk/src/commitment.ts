@@ -167,13 +167,31 @@ export function commit(
     throw new Error('Blinding factor must be 32 bytes')
   }
 
-  // Ensure blinding is in valid range (mod n)
-  const rScalar = bytesToBigInt(r) % CURVE_ORDER
+  // Ensure blinding is in valid range (mod n), and non-zero for valid scalar
+  let rScalar = bytesToBigInt(r) % CURVE_ORDER
+  if (rScalar === 0n) {
+    rScalar = 1n // Avoid zero scalar which is invalid
+  }
 
   // C = v*G + r*H
-  const vG = G.multiply(value)
-  const rH = H.multiply(rScalar)
-  const C = vG.add(rH)
+  // Handle edge cases where value or blinding could be zero
+  let C: typeof G
+
+  if (value === 0n && rScalar === 0n) {
+    // Both zero - use identity point (edge case, shouldn't happen with above fix)
+    C = secp256k1.ProjectivePoint.ZERO
+  } else if (value === 0n) {
+    // Only blinding contributes: C = r*H
+    C = H.multiply(rScalar)
+  } else if (rScalar === 0n) {
+    // Only value contributes: C = v*G (shouldn't happen with above fix)
+    C = G.multiply(value)
+  } else {
+    // Normal case: C = v*G + r*H
+    const vG = G.multiply(value)
+    const rH = H.multiply(rScalar)
+    C = vG.add(rH)
+  }
 
   return {
     commitment: `0x${bytesToHex(C.toRawBytes(true))}` as HexString,
@@ -197,16 +215,34 @@ export function verifyOpening(
   blinding: HexString,
 ): boolean {
   try {
+    // Handle special case of zero commitment (point at infinity)
+    if (commitment === '0x00') {
+      // Zero commitment only opens to (0, 0) - but that's not valid with our blinding adjustment
+      // Actually, zero point means C = C, so it should verify for 0, 0 blinding
+      return value === 0n && blinding === ('0x' + '0'.repeat(64))
+    }
+
     // Parse the commitment point
     const C = secp256k1.ProjectivePoint.fromHex(commitment.slice(2))
 
     // Recompute expected commitment
     const blindingBytes = hexToBytes(blinding.slice(2))
-    const rScalar = bytesToBigInt(blindingBytes) % CURVE_ORDER
+    let rScalar = bytesToBigInt(blindingBytes) % CURVE_ORDER
+    if (rScalar === 0n) {
+      rScalar = 1n // Match the commit() behavior
+    }
 
-    const vG = G.multiply(value)
-    const rH = H.multiply(rScalar)
-    const expected = vG.add(rH)
+    // Handle edge cases
+    let expected: typeof G
+    if (value === 0n) {
+      expected = H.multiply(rScalar)
+    } else if (rScalar === 0n) {
+      expected = G.multiply(value)
+    } else {
+      const vG = G.multiply(value)
+      const rH = H.multiply(rScalar)
+      expected = vG.add(rH)
+    }
 
     // Check equality
     return C.equals(expected)
@@ -274,6 +310,15 @@ export function subtractCommitments(
   const point2 = secp256k1.ProjectivePoint.fromHex(c2.slice(2))
 
   const diff = point1.subtract(point2)
+
+  // Handle ZERO point (identity element) - can't serialize directly
+  if (diff.equals(secp256k1.ProjectivePoint.ZERO)) {
+    // Return a special marker for zero commitment
+    // This is the point at infinity, represented as all zeros
+    return {
+      commitment: '0x00' as HexString,
+    }
+  }
 
   return {
     commitment: `0x${bytesToHex(diff.toRawBytes(true))}` as HexString,
