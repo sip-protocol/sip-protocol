@@ -3,7 +3,7 @@
 > **Issue**: #35 - Abstract wallet interface design
 > **Status**: IMPLEMENTED
 > **Date**: November 27, 2025
-> **Author**: RECTOR + CIPHER
+> **Author**: SIP Protocol Team
 
 ---
 

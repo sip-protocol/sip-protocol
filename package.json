@@ -5,9 +5,9 @@
   "description": "Shielded Intents Protocol - Privacy layer for cross-chain transactions",
   "repository": {
     "type": "git",
-    "url": "https://github.com/RECTOR-LABS/sip-protocol.git"
+    "url": "https://github.com/sip-protocol/sip-protocol.git"
   },
-  "author": "RECTOR Labs",
+  "author": "SIP Protocol",
   "license": "MIT",
   "scripts": {
     "dev": "turbo dev",

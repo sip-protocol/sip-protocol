@@ -16,6 +16,7 @@ import {
   type StealthMetaAddress,
   type Commitment,
   type HexString,
+  type Hash,
   type PrivacyLevel,
 } from '@sip-protocol/types'
 import { generateStealthAddress, decodeStealthMetaAddress } from './stealth'
@@ -24,7 +25,8 @@ import {
   generateIntentId,
   hash,
 } from './crypto'
-import { hexToBytes } from '@noble/hashes/utils'
+import { hexToBytes, bytesToHex } from '@noble/hashes/utils'
+import { sha256 } from '@noble/hashes/sha256'
 import { getPrivacyConfig, generateViewingKey } from './privacy'
 import type { ProofProvider } from './proofs'
 import { ValidationError } from './errors'
@@ -169,7 +171,7 @@ export class IntentBuilder {
   recipient(metaAddress: string): this {
     if (metaAddress && !isValidStealthMetaAddress(metaAddress)) {
       throw new ValidationError(
-        'invalid stealth meta-address format, expected: st:<chain>:0x<132 hex chars>',
+        'invalid stealth meta-address format, expected: sip:<chain>:<spendingKey>:<viewingKey>',
         'recipientMetaAddress'
       )
     }
@@ -282,9 +284,18 @@ export async function createShieldedIntent(
   const { senderAddress, proofProvider } = options ?? {}
 
   // Get privacy configuration
+  // Compute viewing key hash the same way as generateViewingKey():
+  // Hash the raw key bytes, not the hex string
+  let viewingKeyHash: Hash | undefined
+  if (viewingKey) {
+    const keyHex = viewingKey.startsWith('0x') ? viewingKey.slice(2) : viewingKey
+    const keyBytes = hexToBytes(keyHex)
+    viewingKeyHash = `0x${bytesToHex(sha256(keyBytes))}` as Hash
+  }
+
   const privacyConfig = getPrivacyConfig(
     privacy,
-    viewingKey ? { key: viewingKey, path: 'm/0', hash: hash(viewingKey) } : undefined,
+    viewingKey ? { key: viewingKey, path: 'm/0', hash: viewingKeyHash! } : undefined,
   )
 
   // Generate intent ID

@@ -3,7 +3,7 @@
 > Shielded Intents Protocol — Privacy layer for cross-chain transactions
 
 **Status**: Specification Complete (M1)
-**Authors**: RECTOR Labs
+**Authors**: SIP Protocol Team
 **Created**: 2025-11-26
 **Updated**: 2025-11-26
 

@@ -107,11 +107,11 @@ export function isValidSlippage(value: number): boolean {
 // ─── Stealth Address Validation ────────────────────────────────────────────────
 
 /**
- * EIP-5564 stealth meta-address format:
- * st:<chain>:0x<spendingKey><viewingKey>
- * Each key is 33 bytes compressed (66 hex chars)
+ * SIP stealth meta-address format:
+ * sip:<chain>:<spendingKey>:<viewingKey>
+ * Each key is 33 bytes compressed (66 hex chars with 0x prefix)
  */
-const STEALTH_META_ADDRESS_REGEX = /^st:[a-z]+:0x[0-9a-fA-F]{132}$/
+const STEALTH_META_ADDRESS_REGEX = /^sip:[a-z]+:0x[0-9a-fA-F]{66}:0x[0-9a-fA-F]{66}$/
 
 /**
  * Check if a string is a valid stealth meta-address
@@ -268,7 +268,7 @@ export function validateCreateIntentParams(params: unknown): asserts params is C
   if ((p.privacy === 'shielded' || p.privacy === 'compliant') && p.recipientMetaAddress) {
     if (!isValidStealthMetaAddress(p.recipientMetaAddress)) {
       throw new ValidationError(
-        'invalid stealth meta-address format, expected: st:<chain>:0x<132 hex chars>',
+        'invalid stealth meta-address format, expected: sip:<chain>:<spendingKey>:<viewingKey>',
         'recipientMetaAddress'
       )
     }

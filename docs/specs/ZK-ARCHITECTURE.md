@@ -3,7 +3,7 @@
 > **Issue**: #2 - Define ZK proof architecture (framework selection)
 > **Status**: DECIDED
 > **Date**: November 26, 2025
-> **Author**: RECTOR + CIPHER
+> **Author**: SIP Protocol Team
 
 ---
 

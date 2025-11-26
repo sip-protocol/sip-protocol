@@ -159,18 +159,26 @@ describe('isValidSlippage', () => {
 // ─── Stealth Address Validation ───────────────────────────────────────────────
 
 describe('isValidStealthMetaAddress', () => {
-  const validAddr = 'st:ethereum:0x' + 'a'.repeat(132)
+  // New format: sip:<chain>:<spendingKey>:<viewingKey>
+  // Each key is 66 hex chars (33 bytes with 0x prefix)
+  const validAddr = 'sip:ethereum:0x' + 'a'.repeat(66) + ':0x' + 'b'.repeat(66)
 
   it('should accept valid stealth meta-addresses', () => {
     expect(isValidStealthMetaAddress(validAddr)).toBe(true)
-    expect(isValidStealthMetaAddress('st:solana:0x' + 'b'.repeat(132))).toBe(true)
+    expect(isValidStealthMetaAddress('sip:solana:0x' + 'b'.repeat(66) + ':0x' + 'c'.repeat(66))).toBe(true)
   })
 
   it('should reject invalid stealth meta-addresses', () => {
-    expect(isValidStealthMetaAddress('0x' + 'a'.repeat(132))).toBe(false) // no st: prefix
-    expect(isValidStealthMetaAddress('st:ethereum:' + 'a'.repeat(132))).toBe(false) // no 0x
-    expect(isValidStealthMetaAddress('st:ethereum:0x' + 'a'.repeat(100))).toBe(false) // wrong length
-    expect(isValidStealthMetaAddress('st:ETH:0x' + 'a'.repeat(132))).toBe(false) // uppercase chain
+    // No sip: prefix
+    expect(isValidStealthMetaAddress('0x' + 'a'.repeat(66) + ':0x' + 'b'.repeat(66))).toBe(false)
+    // No 0x on keys
+    expect(isValidStealthMetaAddress('sip:ethereum:' + 'a'.repeat(66) + ':' + 'b'.repeat(66))).toBe(false)
+    // Wrong key length
+    expect(isValidStealthMetaAddress('sip:ethereum:0x' + 'a'.repeat(50) + ':0x' + 'b'.repeat(66))).toBe(false)
+    // Uppercase chain
+    expect(isValidStealthMetaAddress('sip:ETH:0x' + 'a'.repeat(66) + ':0x' + 'b'.repeat(66))).toBe(false)
+    // Old st: format no longer valid
+    expect(isValidStealthMetaAddress('st:ethereum:0x' + 'a'.repeat(132))).toBe(false)
     expect(isValidStealthMetaAddress('')).toBe(false)
     // @ts-expect-error - testing invalid type
     expect(isValidStealthMetaAddress(123)).toBe(false)
@@ -355,10 +363,12 @@ describe('validateCreateIntentParams', () => {
   })
 
   it('should accept valid shielded params with meta-address', () => {
+    // New format: sip:<chain>:<spendingKey>:<viewingKey>
+    // Each key is 66 hex chars (33 bytes with 0x prefix)
     const shieldedParams = {
       ...validParams,
       privacy: 'shielded',
-      recipientMetaAddress: 'st:solana:0x' + 'a'.repeat(132),
+      recipientMetaAddress: 'sip:solana:0x' + 'a'.repeat(66) + ':0x' + 'b'.repeat(66),
     }
     expect(() => validateCreateIntentParams(shieldedParams)).not.toThrow()
   })

@@ -1,17 +1,37 @@
 # SIP Protocol Roadmap
 
-> Shielded Intents Protocol — A standard for privacy in intent-based cross-chain systems
+> **Shielded Intents Protocol** — The privacy layer for NEAR Intents ecosystem
 
 ---
 
 ## Vision
 
-SIP aims to become the universal privacy standard for intent-based cross-chain transactions, providing:
+SIP is an **application layer** that brings privacy to intent-based cross-chain systems. We complement existing infrastructure (NEAR Intents, Zcash) rather than compete with it.
+
+### What We Provide
 
 - **Stealth Addresses**: One-time recipient addresses preventing linkability
 - **Shielded Intents**: Hidden sender/amount with verifiable output requirements
 - **Viewing Keys**: Selective disclosure for compliance and auditing
-- **Production-Grade Cryptography**: Real ZK proofs with Noir framework
+- **Multi-Chain Privacy**: Privacy across any NEAR-connected chain
+
+### Strategic Positioning
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SIP PROTOCOL STACK                       │
+├─────────────────────────────────────────────────────────────┤
+│  PRIVACY LAYER (SIP)          ← We build this               │
+│  • Pedersen Commitments  • Stealth Addresses                │
+│  • Viewing Keys          • Shielded Intents                 │
+├─────────────────────────────────────────────────────────────┤
+│  SETTLEMENT LAYER             ← We leverage this            │
+│  • NEAR Intents         • Chain Signatures                  │
+├─────────────────────────────────────────────────────────────┤
+│  BLOCKCHAIN LAYER             ← We connect to this          │
+│  • NEAR  • Ethereum  • Solana  • Bitcoin  • More...         │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -33,8 +53,6 @@ Foundational decisions and formal protocol specifications.
 | [#8](../../issues/8) | Viewing key specification | ✅ Done |
 | [#9](../../issues/9) | Privacy levels formal spec | ✅ Done |
 
-**Goal**: ✅ Mathematically rigorous specifications ready for implementation.
-
 ---
 
 ### M2: Cryptographic Core ✅ Complete
@@ -52,8 +70,6 @@ Real cryptographic implementations, no mocks.
 | [#16](../../issues/16) | Implement Fulfillment Proof circuit | ✅ Done |
 | [#17](../../issues/17) | Cryptographic test suite | ✅ Done |
 | [#18](../../issues/18) | Security audit preparation - document assumptions | ✅ Done |
-
-**Goal**: ✅ Production-ready cryptographic primitives.
 
 ---
 
@@ -73,35 +89,31 @@ Production-quality SDK refactoring.
 | [#26](../../issues/26) | Add SDK integration tests | ✅ Done |
 | [#27](../../issues/27) | Performance benchmarking and optimization | ✅ Done |
 
-**Goal**: ✅ SDK ready for developer adoption.
-
 ---
 
-### M4: Network Integration 🔄 In Progress
+### M4: Network Integration ✅ Complete
 
 Connect to real blockchain networks.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#28](../../issues/28) | [EPIC] Network Integration | 🔄 Active |
+| [#28](../../issues/28) | [EPIC] Network Integration | ✅ Done |
 | [#29](../../issues/29) | Research and document NEAR 1Click API | ✅ Done |
 | [#30](../../issues/30) | Implement NEAR Intents adapter | ✅ Done |
 | [#31](../../issues/31) | Implement solver interface | ✅ Done |
 | [#32](../../issues/32) | Zcash testnet RPC client | ✅ Done |
 | [#33](../../issues/33) | Zcash shielded transaction support | ✅ Done |
 | [#34](../../issues/34) | Evaluate Zcash proving system | ✅ Done |
-| [#35](../../issues/35) | Abstract wallet interface design | 🔲 Open |
-| [#36](../../issues/36) | Solana wallet adapter | 🔲 Open |
-| [#37](../../issues/37) | Ethereum wallet adapter | 🔲 Open |
-| [#38](../../issues/38) | End-to-end testnet integration | 🔲 Open |
+| [#35](../../issues/35) | Abstract wallet interface design | ✅ Done |
+| [#36](../../issues/36) | Solana wallet adapter | ✅ Done |
+| [#37](../../issues/37) | Ethereum wallet adapter | ✅ Done |
+| [#38](../../issues/38) | End-to-end testnet integration | ✅ Done |
 
-**Goal**: Working cross-chain privacy transactions.
-
-**Progress**: 6/11 issues complete (55%)
+**Achievement**: 741 tests passing, comprehensive E2E coverage.
 
 ---
 
-### M5: Documentation & Launch 📋 Planned
+### M5: Documentation & Launch 🔄 In Progress
 
 Polish and publish.
 
@@ -117,28 +129,34 @@ Polish and publish.
 | [#46](../../issues/46) | Protocol whitepaper | 🔲 Open |
 | [#47](../../issues/47) | Architecture diagrams | 🔲 Open |
 
-**Goal**: Ready for public adoption.
+---
+
+## Future Roadmap (Post-Launch)
+
+### Horizontal Expansion (New Use Cases)
+
+| Use Case | Description | Priority |
+|----------|-------------|----------|
+| Private Payments | Stablecoin transfers with privacy | High |
+| DAO Treasury | Private treasury operations | High |
+| Private Payroll | Salary payments with privacy | Medium |
+
+### Vertical Expansion (Deeper Integration)
+
+| Feature | Description | Priority |
+|---------|-------------|----------|
+| More Chains | All NEAR-supported chains | Automatic |
+| Enterprise Compliance | Dashboard for auditors | High |
+| Hardware Wallets | Ledger/Trezor support | Medium |
 
 ---
 
 ## Design Principles
 
-1. **Specification First**: Define rigorously, then implement
-2. **Real Cryptography**: No mocked proofs or simulated security
-3. **Standard, Not Product**: Build infrastructure others can adopt
-4. **Quality Over Speed**: Long-term protocol, not short-term hack
-
----
-
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-Priority areas:
-- Cryptographic review
-- Protocol specification feedback
-- ZK circuit optimization
-- Security analysis
+1. **Complement, Don't Compete**: Leverage NEAR Intents, Zcash primitives
+2. **Application Layer**: Fast to ship, easy to integrate
+3. **Privacy + Compliance**: Viewing keys for regulatory compatibility
+4. **Real Cryptography**: No mocked proofs or simulated security
 
 ---
 
@@ -151,18 +169,28 @@ Priority areas:
 | Pedersen Commitments | ✅ Complete |
 | ZK Proof Specs | ✅ Complete |
 | ProofProvider Interface | ✅ Complete |
-| Noir Circuit Stubs | ✅ Complete |
 | SDK Core | ✅ Complete |
 | Input Validation | ✅ Complete |
 | Error Handling | ✅ Complete |
-| Unit Tests (411 tests) | ✅ Complete |
+| Unit Tests (741 tests) | ✅ Complete |
 | Integration Tests | ✅ Complete |
+| E2E Tests (128 tests) | ✅ Complete |
 | Performance Benchmarks | ✅ Complete |
 | NEAR Intents Adapter | ✅ Complete |
 | Zcash RPC Client | ✅ Complete |
-| Zcash Shielded Service | ✅ Complete |
-| Wallet Adapters | 🔄 In Progress |
-| E2E Integration | 📋 Planned |
+| Wallet Adapters | ✅ Complete |
+
+---
+
+## Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+Priority areas:
+- SDK integrations
+- Wallet support
+- Documentation
+- Security review
 
 ---
 

@@ -3,7 +3,7 @@
 > **Issue**: #34 - Evaluate leveraging Zcash proving system
 > **Status**: EVALUATED
 > **Date**: November 27, 2025
-> **Author**: RECTOR + CIPHER
+> **Author**: SIP Protocol Team
 
 ---
 
