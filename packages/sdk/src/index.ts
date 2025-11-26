@@ -67,7 +67,7 @@ export {
 } from './privacy'
 export type { PrivacyConfig } from './privacy'
 
-// Crypto utilities
+// Crypto utilities (legacy - use commitment module for new code)
 export {
   createCommitment,
   verifyCommitment,
@@ -79,6 +79,24 @@ export {
   hash,
   generateRandomBytes,
 } from './crypto'
+
+// Pedersen Commitments (recommended for new code)
+export {
+  commit,
+  verifyOpening,
+  commitZero,
+  addCommitments,
+  subtractCommitments,
+  addBlindings,
+  subtractBlindings,
+  getGenerators,
+  generateBlinding,
+} from './commitment'
+
+export type {
+  PedersenCommitment,
+  CommitmentPoint,
+} from './commitment'
 
 // Proof providers
 export {

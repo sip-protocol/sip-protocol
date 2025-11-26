@@ -1,57 +1,46 @@
 /**
  * Cryptographic utilities for SIP Protocol
  *
- * Implements Pedersen commitments and ZK proof interfaces.
- *
  * IMPORTANT: ZK proof generation requires real Noir circuits.
  * Proof functions will throw ProofNotImplementedError until
  * real implementations are available (#14, #15, #16).
+ *
+ * For Pedersen commitments, use the dedicated commitment module:
+ * @see ./commitment.ts for secure Pedersen commitment implementation
  */
 
-import { secp256k1 } from '@noble/curves/secp256k1'
 import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils'
 import type { Commitment, ZKProof, HexString, Hash } from '@sip-protocol/types'
 import { ProofNotImplementedError } from './errors'
-
-// Generator point H for Pedersen commitments (nothing-up-my-sleeve point)
-// H = hash_to_curve("SIP-PROTOCOL-H")
-const H_BYTES = sha256(new TextEncoder().encode('SIP-PROTOCOL-H'))
+import { commit, verifyOpening } from './commitment'
 
 /**
  * Create a Pedersen commitment to a value
- * Commitment = value * G + blinding * H
+ *
+ * @deprecated Use `commit()` from './commitment' for new code.
+ *             This wrapper maintains backward compatibility.
  *
  * @param value - The value to commit to
  * @param blindingFactor - Optional blinding factor (random if not provided)
- * @returns Commitment object
+ * @returns Commitment object (legacy format)
  */
 export function createCommitment(
   value: bigint,
   blindingFactor?: Uint8Array,
 ): Commitment {
-  const blinding = blindingFactor ?? randomBytes(32)
-
-  // value * G
-  const valueScalar = bigIntToBytes(value, 32)
-  const valuePoint = secp256k1.ProjectivePoint.BASE.multiply(bytesToBigInt(valueScalar))
-
-  // blinding * H (we use H_BYTES as a scalar to derive a point)
-  const hPoint = secp256k1.ProjectivePoint.BASE.multiply(bytesToBigInt(H_BYTES))
-  const blindingPoint = hPoint.multiply(bytesToBigInt(blinding))
-
-  // Commitment = valuePoint + blindingPoint
-  const commitmentPoint = valuePoint.add(blindingPoint)
-  const commitmentBytes = commitmentPoint.toRawBytes(true)
+  const { commitment, blinding } = commit(value, blindingFactor)
 
   return {
-    value: `0x${bytesToHex(commitmentBytes)}` as HexString,
-    blindingFactor: `0x${bytesToHex(blinding)}` as HexString,
+    value: commitment,
+    blindingFactor: blinding,
   }
 }
 
 /**
  * Verify a Pedersen commitment (requires knowing the value and blinding factor)
+ *
+ * @deprecated Use `verifyOpening()` from './commitment' for new code.
  */
 export function verifyCommitment(
   commitment: Commitment,
@@ -61,11 +50,7 @@ export function verifyCommitment(
     throw new Error('Cannot verify commitment without blinding factor')
   }
 
-  // Recreate the commitment
-  const blinding = hexToBytes(commitment.blindingFactor.slice(2))
-  const recreated = createCommitment(expectedValue, blinding)
-
-  return recreated.value === commitment.value
+  return verifyOpening(commitment.value, expectedValue, commitment.blindingFactor)
 }
 
 /**
@@ -159,24 +144,4 @@ export function hash(data: string | Uint8Array): Hash {
  */
 export function generateRandomBytes(length: number): HexString {
   return `0x${bytesToHex(randomBytes(length))}` as HexString
-}
-
-// ─── Utility Functions ──────────────────────────────────────────────────────
-
-function bytesToBigInt(bytes: Uint8Array): bigint {
-  let result = 0n
-  for (const byte of bytes) {
-    result = (result << 8n) + BigInt(byte)
-  }
-  return result
-}
-
-function bigIntToBytes(value: bigint, length: number): Uint8Array {
-  const bytes = new Uint8Array(length)
-  let v = value
-  for (let i = length - 1; i >= 0; i--) {
-    bytes[i] = Number(v & 0xffn)
-    v >>= 8n
-  }
-  return bytes
 }
