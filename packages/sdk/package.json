@@ -38,9 +38,12 @@
     "bench:json": "vitest bench --config vitest.bench.config.ts --outputJson benchmarks/results.json"
   },
   "dependencies": {
+    "@aztec/bb.js": "^0.63.1",
     "@noble/ciphers": "^2.0.1",
     "@noble/curves": "^1.3.0",
     "@noble/hashes": "^1.3.3",
+    "@noir-lang/noir_js": "^1.0.0-beta.15",
+    "@noir-lang/types": "1.0.0-beta.15",
     "@sip-protocol/types": "workspace:*"
   },
   "devDependencies": {

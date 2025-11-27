@@ -203,13 +203,13 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ## Related Repositories
 
-| Repo | Purpose | URL | Status |
-|------|---------|-----|--------|
-| `sip-protocol/sip-protocol` | Core SDK + Types (this repo) | - | ✅ Active |
-| `sip-protocol/sip-website` | Marketing site + Demo app | sip-protocol.org | ✅ Active |
-| `sip-protocol/docs-sip` | Documentation (Astro + Starlight) | docs.sip-protocol.org | ✅ Active |
-| `sip-protocol/.github` | Org-wide configs, profile | - | 📋 Planned |
-| `sip-protocol/circuits` | Noir ZK circuits | - | 📋 M8 |
+| Repo | Purpose | URL | Local | Status |
+|------|---------|-----|-------|--------|
+| `sip-protocol/sip-protocol` | Core SDK + Types (this repo) | - | `~/local-dev/sip-protocol` | ✅ Active |
+| `sip-protocol/sip-website` | Marketing site + Demo app | sip-protocol.org | `~/local-dev/sip-website` | ⚠️ CI Broken |
+| `sip-protocol/docs-sip` | Documentation (Astro + Starlight) | docs.sip-protocol.org | `~/local-dev/docs-sip` | ✅ Active |
+| `sip-protocol/.github` | Org-wide configs, profile | - | `~/local-dev/sip-github-org` | ✅ Local |
+| `sip-protocol/circuits` | Noir ZK circuits | - | - | 📋 M8 |
 
 ---
 
