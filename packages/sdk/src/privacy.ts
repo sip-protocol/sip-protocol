@@ -19,6 +19,8 @@ import type {
   Hash,
 } from '@sip-protocol/types'
 import { sha256 } from '@noble/hashes/sha256'
+import { sha512 } from '@noble/hashes/sha512'
+import { hmac } from '@noble/hashes/hmac'
 import { hkdf } from '@noble/hashes/hkdf'
 import { bytesToHex, hexToBytes, randomBytes, utf8ToBytes } from '@noble/hashes/utils'
 import { xchacha20poly1305 } from '@noble/ciphers/chacha.js'
@@ -108,16 +110,39 @@ export function generateViewingKey(path: string = 'm/0'): ViewingKey {
 }
 
 /**
- * Derive a child viewing key
+ * Derive a child viewing key using BIP32-style hierarchical derivation
+ *
+ * Uses HMAC-SHA512 for proper key derivation:
+ * - childKey = HMAC-SHA512(masterKey, childPath)
+ * - Takes first 32 bytes as the derived key
+ *
+ * This provides:
+ * - Cryptographic standard compliance (similar to BIP32)
+ * - One-way derivation (cannot derive parent from child)
+ * - Non-correlatable keys (different paths produce unrelated keys)
  */
 export function deriveViewingKey(
   masterKey: ViewingKey,
   childPath: string,
 ): ViewingKey {
-  // Simple derivation: hash(masterKey || childPath)
-  const combined = new TextEncoder().encode(`${masterKey.key}:${childPath}`)
-  const derivedBytes = sha256(combined)
+  // Extract raw master key bytes (remove 0x prefix if present)
+  const masterKeyHex = masterKey.key.startsWith('0x')
+    ? masterKey.key.slice(2)
+    : masterKey.key
+  const masterKeyBytes = hexToBytes(masterKeyHex)
+
+  // Encode child path as bytes
+  const childPathBytes = utf8ToBytes(childPath)
+
+  // HMAC-SHA512(key=masterKey, data=childPath)
+  // This follows BIP32-style hierarchical derivation
+  const derivedFull = hmac(sha512, masterKeyBytes, childPathBytes)
+
+  // Take first 32 bytes as the derived key (standard practice)
+  const derivedBytes = derivedFull.slice(0, 32)
   const derived = `0x${bytesToHex(derivedBytes)}` as HexString
+
+  // Compute hash of the derived key for identification
   const hashBytes = sha256(derivedBytes)
 
   return {
