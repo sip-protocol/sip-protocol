@@ -1,0 +1,49 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "SIP Protocol API",
+  "entryPoints": [
+    "packages/sdk/src/index.ts",
+    "packages/types/src/index.ts"
+  ],
+  "entryPointStrategy": "expand",
+  "tsconfig": "packages/sdk/tsconfig.json",
+  "out": "docs/api",
+  "readme": "none",
+  "plugin": ["typedoc-plugin-markdown"],
+  "outputFileStrategy": "members",
+  "flattenOutputFiles": false,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "includeVersion": true,
+  "categorizeByGroup": true,
+  "categoryOrder": [
+    "Main",
+    "Intent",
+    "Privacy",
+    "Stealth",
+    "Crypto",
+    "Proofs",
+    "Network",
+    "Wallet",
+    "Zcash",
+    "Validation",
+    "Errors",
+    "Types",
+    "*"
+  ],
+  "sort": ["source-order"],
+  "visibilityFilters": {
+    "protected": false,
+    "private": false,
+    "inherited": true,
+    "external": false
+  },
+  "navigationLinks": {
+    "GitHub": "https://github.com/sip-protocol/sip-protocol",
+    "Docs": "https://docs.sip-protocol.org"
+  },
+  "githubPages": false,
+  "hideGenerator": true,
+  "searchInComments": true
+}

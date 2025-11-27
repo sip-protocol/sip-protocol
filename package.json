@@ -5,22 +5,27 @@
   "description": "Shielded Intents Protocol - Privacy layer for cross-chain transactions",
   "repository": {
     "type": "git",
-    "url": "https://github.com/RECTOR-LABS/sip-protocol.git"
+    "url": "https://github.com/sip-protocol/sip-protocol.git"
   },
-  "author": "RECTOR Labs",
+  "author": "SIP Protocol",
   "license": "MIT",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
+    "test": "turbo test",
     "clean": "turbo clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "docs:generate": "typedoc",
+    "docs:watch": "typedoc --watch"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "prettier": "^3.1.0",
     "turbo": "^2.0.0",
+    "typedoc": "^0.28.14",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "^5.3.0"
   },
   "packageManager": "pnpm@8.15.0",

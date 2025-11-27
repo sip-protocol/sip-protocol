@@ -78,9 +78,15 @@ pnpm-debug.log*
 .vercel/
 
 # ----------------------------------------
+# Generated Documentation
+# ----------------------------------------
+docs/api/
+
+# ----------------------------------------
 # Misc
 # ----------------------------------------
 *.local
 .cache/
 tmp/
 temp/
+packages/sdk/benchmarks/results.json

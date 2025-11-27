@@ -1,0 +1,19 @@
+# Funding Proof - Example Prover Inputs
+#
+# These values are computed dynamically in production.
+# This file is for testing proof generation only.
+#
+# Workflow:
+# 1. SDK computes commitment = pedersen_commitment([balance, blinding])
+# 2. SDK computes commitment_hash = pedersen_hash([commitment.x, commitment.y, asset_id])
+# 3. Generate proof with: nargo prove
+# 4. Verify proof with: nargo verify
+
+# Public inputs (known to verifier)
+commitment_hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+minimum_required = 50
+asset_id = "0xABCD"
+
+# Private inputs (known only to prover)
+balance = 100
+blinding = "12345"

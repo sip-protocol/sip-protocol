@@ -1,0 +1,31 @@
+# Fulfillment Proof - Example Prover Inputs
+#
+# These values are computed dynamically by the SDK.
+# Oracle attestation and signature must come from authorized oracle network.
+
+# Public inputs
+intent_hash = "0x0"
+output_commitment_x = "0x0"
+output_commitment_y = "0x0"
+recipient_stealth = "0x0"
+min_output_amount = 1000000
+solver_id = "0x0"
+fulfillment_time = 1732650000
+expiry = 1732686400
+
+# Private inputs
+output_amount = 1050000
+output_blinding = "0x0"
+solver_secret = "0x0"
+
+# Oracle attestation (private)
+attestation_recipient = "0x0"
+attestation_amount = 1050000
+attestation_tx_hash = "0x0"
+attestation_block = 12345678
+
+# Oracle signature data (must be from authorized oracle)
+oracle_signature = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+oracle_message_hash = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+oracle_pub_key_x = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+oracle_pub_key_y = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
