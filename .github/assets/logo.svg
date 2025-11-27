@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#a855f7"/>
+      <stop offset="100%" style="stop-color:#ec4899"/>
+    </linearGradient>
+    <linearGradient id="grad-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c3aed"/>
+      <stop offset="100%" style="stop-color:#db2777"/>
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#grad)"/>
+  <!-- Shield shape -->
+  <path d="M256 96c-48 0-96 24-128 48v144c0 80 56 120 128 152 72-32 128-72 128-152V144c-32-24-80-48-128-48z" fill="white" fill-opacity="0.95"/>
+  <!-- Inner shield accent -->
+  <path d="M256 128c-36 0-72 18-96 36v108c0 60 42 90 96 114 54-24 96-54 96-114V164c-24-18-60-36-96-36z" fill="url(#grad)" fill-opacity="0.2"/>
+  <!-- Lock/privacy symbol -->
+  <rect x="224" y="240" width="64" height="56" rx="8" fill="url(#grad-dark)"/>
+  <path d="M240 240v-24c0-17.67 7.16-32 16-32s16 14.33 16 32v24" stroke="url(#grad-dark)" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <!-- Keyhole -->
+  <circle cx="256" cy="260" r="10" fill="white"/>
+  <rect x="252" y="264" width="8" height="16" rx="2" fill="white"/>
+</svg>
