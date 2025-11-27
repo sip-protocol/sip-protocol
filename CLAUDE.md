@@ -191,13 +191,13 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ## Related Repositories
 
-| Repo | Purpose | Status |
-|------|---------|--------|
-| `sip-protocol/sip-protocol` | Core SDK + Types (this repo) | ✅ Active |
-| `sip-protocol/sip-website` | Website + Demo (sip-protocol.org) | ✅ Active |
-| `sip-protocol/.github` | Org-wide configs, profile | 📋 Planned |
-| `sip-protocol/circuits` | Noir ZK circuits | 📋 Planned |
-| `sip-protocol/awesome-sip` | Examples, community | 📋 Future |
+| Repo | Purpose | URL | Status |
+|------|---------|-----|--------|
+| `sip-protocol/sip-protocol` | Core SDK + Types (this repo) | - | ✅ Active |
+| `sip-protocol/sip-website` | Marketing site + Demo app | sip-protocol.org | ✅ Active |
+| `sip-protocol/docs-sip` | Documentation (Astro + Starlight) | docs.sip-protocol.org | 🔲 M6 |
+| `sip-protocol/.github` | Org-wide configs, profile | - | 📋 Planned |
+| `sip-protocol/circuits` | Noir ZK circuits | - | 📋 M8 |
 
 ---
 
@@ -215,13 +215,17 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ## Milestones
 
-| Milestone | Status | Tests |
+| Milestone | Status | Focus |
 |-----------|--------|-------|
-| M1: Architecture & Specification | ✅ Complete | - |
-| M2: Cryptographic Core | ✅ Complete | ~150 |
-| M3: SDK Production | ✅ Complete | ~300 |
-| M4: Network Integration | ✅ Complete | ~200 |
-| M5: Documentation & Launch | ✅ Complete | - |
+| M1: Architecture & Specification | ✅ Complete | Specs, proofs design |
+| M2: Cryptographic Core | ✅ Complete | Real crypto primitives |
+| M3: SDK Production | ✅ Complete | Production SDK |
+| M4: Network Integration | ✅ Complete | NEAR, Zcash, wallets |
+| M5: Documentation & Launch | ✅ Complete | Docs, whitepaper |
+| M6: Launch & Publish | 🔲 In Progress | npm publish, docs site |
+| M7: Real Demo Integration | 🔲 Planned | Live demo with real txs |
+| M8: Production Hardening | 🔲 Planned | Noir circuits, security |
+| M9: Horizontal Expansion | 🔲 Future | New use cases |
 
 ---
 
