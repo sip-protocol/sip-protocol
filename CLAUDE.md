@@ -10,7 +10,7 @@
 
 Shielded Intents Protocol enables private cross-chain swaps. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Status:** M6 Complete | 741/741 tests passing | Live at sip-protocol.org
+**Status:** M7 Complete | 745 SDK tests + 92 demo tests | Live at sip-protocol.org
 
 ---
 
@@ -86,7 +86,9 @@ pnpm build
 
 ---
 
-## Test Suite (741 tests)
+## Test Suite (745 SDK + 92 Demo = 837 tests)
+
+### SDK Tests (sip-protocol)
 
 | Suite | Count | Location |
 |-------|-------|----------|
@@ -98,7 +100,17 @@ pnpm build
 | E2E tests | 128 | `packages/sdk/tests/e2e/` |
 | Benchmarks | ~20 | `packages/sdk/tests/benchmarks/` |
 
-**E2E tests cover:** Cross-chain swaps, privacy verification, compliance flows, error scenarios, performance metrics.
+### Demo Tests (sip-website)
+
+| Suite | Count | Location |
+|-------|-------|----------|
+| Toast store | 14 | `tests/stores/toast-store.test.ts` |
+| Wallet store | 21 | `tests/stores/wallet-store.test.ts` |
+| useQuote hook | 12 | `tests/hooks/use-quote.test.tsx` |
+| useSwap hook | 24 | `tests/hooks/use-swap.test.tsx` |
+| TransactionStatus | 21 | `tests/components/transaction-status.test.tsx` |
+
+**Coverage:** Cross-chain swaps, privacy verification, compliance flows, wallet connection, quote fetching, transaction execution, error handling.
 
 ---
 
@@ -223,7 +235,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | M4: Network Integration | ✅ Complete | NEAR, Zcash, wallets |
 | M5: Documentation & Launch | ✅ Complete | Docs, whitepaper |
 | M6: Launch & Publish | ✅ Complete | npm publish, docs site |
-| M7: Real Demo Integration | 🔲 Planned | Live demo with real txs |
+| M7: Real Demo Integration | ✅ Complete | Live demo with wallets, 92 tests |
 | M8: Production Hardening | 🔲 Planned | Noir circuits, security |
 | M9: Horizontal Expansion | 🔲 Future | New use cases |
 
@@ -296,5 +308,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** November 27, 2025
-**Status:** M6 Complete - Live
+**Last Updated:** November 28, 2025
+**Status:** M7 Complete - Live

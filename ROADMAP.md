@@ -133,35 +133,39 @@ Polish and publish.
 
 ---
 
-### M6: Launch & Publish 🔲 Planned
+### M6: Launch & Publish ✅ Complete
 
 Publish SDK to npm and integrate into website.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#48](../../issues/48) | [EPIC] Launch & Publish | 🔲 Open |
-| [#49](../../issues/49) | Configure NPM_TOKEN secret | 🔲 Open |
-| [#50](../../issues/50) | Create GitHub release v0.1.0 | 🔲 Open |
-| [#51](../../issues/51) | Verify npm packages work | 🔲 Open |
-| [#52](../../issues/52) | Update sip-website to use npm packages | 🔲 Open |
-| [#53](../../issues/53) | Build docs-sip with Astro + Starlight | 🔲 Open |
+| [#48](../../issues/48) | [EPIC] Launch & Publish | ✅ Done |
+| [#49](../../issues/49) | Configure NPM_TOKEN secret | ✅ Done |
+| [#50](../../issues/50) | Create GitHub release v0.1.0 | ✅ Done |
+| [#51](../../issues/51) | Verify npm packages work | ✅ Done |
+| [#52](../../issues/52) | Update sip-website to use npm packages | ✅ Done |
+| [#53](../../issues/53) | Build docs-sip with Astro + Starlight | ✅ Done |
+
+**Achievement**: @sip-protocol/sdk and @sip-protocol/types published to npm. docs.sip-protocol.org live.
 
 ---
 
-### M7: Real Demo Integration 🔲 Planned
+### M7: Real Demo Integration ✅ Complete
 
 Connect demo UI to real SDK with actual blockchain transactions.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#54](../../issues/54) | [EPIC] Real Demo Integration | 🔲 Open |
-| [#55](../../issues/55) | Wallet connection component (Phantom, MetaMask) | 🔲 Open |
-| [#56](../../issues/56) | SDK client initialization | 🔲 Open |
-| [#57](../../issues/57) | Testnet configuration (Solana Devnet, Sepolia) | 🔲 Open |
-| [#58](../../issues/58) | Quote flow integration (1Click API) | 🔲 Open |
-| [#59](../../issues/59) | Transaction execution flow | 🔲 Open |
-| [#60](../../issues/60) | Explorer links and tx status | 🔲 Open |
-| [#61](../../issues/61) | Error handling and edge cases | 🔲 Open |
+| [#54](../../issues/54) | [EPIC] Real Demo Integration | ✅ Done |
+| [#55](../../issues/55) | Wallet connection component (Phantom, MetaMask) | ✅ Done |
+| [#56](../../issues/56) | SDK client initialization | ✅ Done |
+| [#57](../../issues/57) | Testnet configuration (Solana Devnet, Sepolia) | ✅ Done |
+| [#58](../../issues/58) | Quote flow integration (1Click API) | ✅ Done |
+| [#59](../../issues/59) | Transaction execution flow | ✅ Done |
+| [#60](../../issues/60) | Explorer links and tx status | ✅ Done |
+| [#61](../../issues/61) | Error handling and edge cases | ✅ Done |
+
+**Achievement**: Full demo with wallet connection, quote fetching, transaction execution, chain-specific explorers, toast notifications. 92 tests in sip-website.
 
 ---
 
@@ -215,13 +219,19 @@ New use cases and deeper integration.
 | SDK Core | ✅ Complete |
 | Input Validation | ✅ Complete |
 | Error Handling | ✅ Complete |
-| Unit Tests (741 tests) | ✅ Complete |
+| SDK Unit Tests (745 tests) | ✅ Complete |
 | Integration Tests | ✅ Complete |
 | E2E Tests (128 tests) | ✅ Complete |
 | Performance Benchmarks | ✅ Complete |
 | NEAR Intents Adapter | ✅ Complete |
 | Zcash RPC Client | ✅ Complete |
 | Wallet Adapters | ✅ Complete |
+| npm Publish | ✅ Complete |
+| Documentation Site | ✅ Complete |
+| Demo UI Tests (92 tests) | ✅ Complete |
+| Wallet Connection | ✅ Complete |
+| Quote Flow | ✅ Complete |
+| Transaction Execution | ✅ Complete |
 
 ---
 
@@ -230,11 +240,10 @@ New use cases and deeper integration.
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 Priority areas:
-- M6: npm publishing and integration
-- M7: Real demo with wallet connections
 - M8: Noir ZK circuit implementation
 - Security review and audit preparation
+- M9: Horizontal expansion (payments, DAO treasury)
 
 ---
 
-*Last updated: November 27, 2025*
+*Last updated: November 28, 2025*
