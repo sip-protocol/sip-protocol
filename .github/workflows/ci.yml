@@ -58,9 +58,10 @@ jobs:
 
       - name: Run tests
         run: pnpm test -- --run
+        working-directory: packages/sdk
 
       - name: Run tests with coverage
-        run: pnpm vitest run --coverage
+        run: pnpm test -- --run --coverage
         working-directory: packages/sdk
 
       - name: Upload coverage reports
@@ -93,10 +94,6 @@ jobs:
 
       - name: Build packages
         run: pnpm build
-
-      - name: Build demo app
-        run: pnpm build
-        working-directory: apps/demo
 
       - name: Generate API docs
         run: pnpm docs

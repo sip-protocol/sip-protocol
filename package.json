@@ -14,6 +14,7 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
+    "test": "turbo test",
     "clean": "turbo clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "docs": "typedoc",
