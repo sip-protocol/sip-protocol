@@ -30,6 +30,11 @@ export function createCommitment(
   value: bigint,
   blindingFactor?: Uint8Array,
 ): Commitment {
+  console.warn(
+    'createCommitment() is deprecated and will be removed in v0.2.0. ' +
+    'Use commit() from "./commitment" instead.'
+  )
+
   const { commitment, blinding } = commit(value, blindingFactor)
 
   return {
@@ -47,6 +52,11 @@ export function verifyCommitment(
   commitment: Commitment,
   expectedValue: bigint,
 ): boolean {
+  console.warn(
+    'verifyCommitment() is deprecated and will be removed in v0.2.0. ' +
+    'Use verifyOpening() from "./commitment" instead.'
+  )
+
   if (!commitment.blindingFactor) {
     throw new ValidationError(
       'cannot verify commitment without blinding factor',
