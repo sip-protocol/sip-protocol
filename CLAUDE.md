@@ -1,8 +1,191 @@
-# CLAUDE.md - SIP Protocol Core
+# CLAUDE.md - SIP Protocol Ecosystem
 
-**Repository:** https://github.com/sip-protocol/sip-protocol
+**Organization:** https://github.com/sip-protocol
 **Website:** https://sip-protocol.org
-**Purpose:** Privacy layer for cross-chain transactions via NEAR Intents + Zcash
+**Purpose:** This file contains ecosystem-wide context for AI assistants working across all SIP Protocol repositories
+
+---
+
+## ECOSYSTEM OVERVIEW
+
+**SIP (Shielded Intents Protocol)** is a privacy layer for cross-chain transactions via NEAR Intents + Zcash. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
+
+### Related Repositories
+
+| Repo | Purpose | Tech Stack | Version |
+|------|---------|------------|---------|
+| `sip-protocol/sip-protocol` | **Core** - SDK + Types monorepo | TypeScript, Vitest | v0.1.0 |
+| `sip-protocol/sip-website` | Demo app + Marketing site | Next.js 14, Tailwind | v0.1.0 |
+| `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro, MDX | v0.0.1 |
+| `sip-protocol/circuits` | Noir ZK circuits | Noir, Barretenberg | - |
+| `sip-protocol/.github` | Org configs, profile | YAML | - |
+
+**Organization Mission:** Become the privacy standard for cross-chain intents
+
+---
+
+## CROSS-REPO STANDARDS
+
+These standards apply to ALL repositories under sip-protocol organization.
+
+### Shared Coding Standards
+
+**Formatting:**
+- TypeScript: 2-space indentation, no semicolons
+- Markdown: Consistent headers, code blocks with language tags
+
+**Quality Gates:**
+- All tests passing before merge
+- Type checking passes (`pnpm typecheck` or `npm run typecheck`)
+- No security vulnerabilities
+
+**Git Workflow:**
+- Feature branches from `dev` or `main`
+- Descriptive commit messages
+- Squash commits on PR merge when sensible
+
+**Documentation:**
+- Keep README.md synchronized with code
+- Maintain repo-specific CLAUDE.md (references this file)
+
+### Shared AI Assistant Guidelines
+
+**DO:**
+- Read repo-specific CLAUDE.md for unique details
+- Run tests after code changes
+- Reference file:line when discussing code (e.g., `stealth.ts:123`)
+- Update documentation when changing behavior
+
+**DON'T:**
+- Create files without checking existing structure
+- Use bash echo for communication (output directly)
+- Proceed with ambiguous or unclear instructions
+- Skip validation in public APIs
+- Commit anything in `.strategy/` folder
+
+### Licenses
+
+All SIP Protocol projects are MIT licensed.
+
+---
+
+## REPOSITORY INDEX
+
+Quick reference for navigating between SIP Protocol repositories.
+
+### 1. sip-protocol (Core) - **YOU ARE HERE**
+
+**Purpose:** Core SDK for shielded intents + TypeScript types
+**Tech Stack:** TypeScript, @noble/curves, @noble/hashes, Vitest
+**Key Commands:**
+```bash
+pnpm install                    # Install dependencies
+pnpm test -- --run              # Run all tests (745 tests)
+pnpm typecheck                  # Type check
+pnpm build                      # Build all packages
+```
+**Key Files:**
+- `packages/sdk/src/stealth.ts` - Stealth address generation (EIP-5564)
+- `packages/sdk/src/crypto.ts` - Pedersen commitments, hashing
+- `packages/sdk/src/privacy.ts` - Viewing keys, encryption
+- `packages/sdk/src/intent.ts` - IntentBuilder, createShieldedIntent
+- `packages/sdk/src/sip.ts` - Main SIP client class
+
+**Full details:** See "SIP CORE REPOSITORY" section below
+
+---
+
+### 2. sip-website
+
+**Purpose:** Demo application + Marketing website
+**Tech Stack:** Next.js 14, React 18, Tailwind CSS, Zustand, Vitest
+**Key Commands:**
+```bash
+pnpm dev                        # Dev server (localhost:3000)
+pnpm test -- --run              # Run tests (92 tests)
+pnpm build                      # Build for production
+pnpm typecheck                  # Type check
+```
+**Key Files:**
+- `src/app/` - Next.js app router pages
+- `src/components/` - React components
+- `src/hooks/` - Custom hooks (useSwap, useQuote)
+- `src/stores/` - Zustand stores (wallet, toast)
+- `tests/` - Test suites
+
+**Features:** Wallet connection, quote fetching, swap execution, privacy toggle
+**Deployment:** sip-protocol.org (Docker + GHCR)
+**CLAUDE.md:** [sip-website/CLAUDE.md](https://github.com/sip-protocol/sip-website/blob/main/CLAUDE.md)
+
+---
+
+### 3. docs-sip
+
+**Purpose:** Official documentation website
+**Tech Stack:** Astro 5, Starlight, MDX
+**Key Commands:**
+```bash
+npm run dev                     # Dev server (localhost:4321)
+npm run build                   # Build for production
+npm run preview                 # Preview build
+```
+**Key Files:**
+- `src/content/docs/` - Documentation pages (MDX)
+- `src/content/config.ts` - Content collections config
+- `astro.config.mjs` - Astro configuration
+
+**Deployment:** docs.sip-protocol.org (Docker + GHCR)
+**CLAUDE.md:** [docs-sip/CLAUDE.md](https://github.com/sip-protocol/docs-sip/blob/main/CLAUDE.md)
+
+---
+
+### 4. circuits
+
+**Purpose:** Noir ZK circuits for privacy proofs
+**Tech Stack:** Noir, Barretenberg, Nargo CLI
+**Key Commands:**
+```bash
+nargo compile                   # Compile circuit
+nargo test                      # Run tests
+nargo prove                     # Generate proof
+nargo verify                    # Verify proof
+```
+**Circuits (Planned):**
+- Funding Proof - Prove balance >= minimum without revealing balance
+- Validity Proof - Prove intent authorization without revealing sender
+- Fulfillment Proof - Prove fulfillment correctness
+
+**Specs:** See `docs/specs/` in sip-protocol repo
+**CLAUDE.md:** [circuits/CLAUDE.md](https://github.com/sip-protocol/circuits/blob/main/CLAUDE.md)
+
+---
+
+### 5. .github
+
+**Purpose:** Organization-wide GitHub configuration
+**Key Files:**
+- `profile/README.md` - Organization profile page
+- `ISSUE_TEMPLATE/` - Default issue templates (planned)
+- `FUNDING.yml` - Sponsorship configuration (planned)
+
+**CLAUDE.md:** [.github/CLAUDE.md](https://github.com/sip-protocol/.github/blob/main/CLAUDE.md)
+
+---
+
+## CURRENT FOCUS
+
+See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
+
+**Cross-Repo Coordination:**
+- Changes to `@sip-protocol/sdk` may require updates to sip-website
+- All repos follow semantic versioning
+- Check repo-specific CLAUDE.md files for individual development notes
+
+---
+
+# SIP CORE REPOSITORY
+
+> **Note:** The sections below are specific to the `sip-protocol/sip-protocol` repository (core SDK monorepo). For other repos, see their respective CLAUDE.md files linked above.
 
 ---
 
@@ -47,16 +230,16 @@ User Intent → Privacy Layer (SIP) → NEAR Intents → Multi-chain Settlement
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Stealth addresses | ✅ | EIP-5564 style, secp256k1 |
-| Pedersen commitments | ✅ | Homomorphic, hiding amounts |
-| Viewing keys | ✅ | Selective disclosure for compliance |
-| Privacy levels | ✅ | transparent, shielded, compliant |
-| NEAR Intents adapter | ✅ | 1Click API integration |
-| Zcash RPC client | ✅ | Shielded transaction support |
-| Wallet adapters | ✅ | Abstract interface + Solana/Ethereum |
-| E2E test suite | ✅ | 128 tests covering all flows |
-| ZK proof specs | ✅ | Funding, Validity, Fulfillment |
-| Noir circuits | 🔲 | Stubs ready, implementation planned |
+| Stealth addresses | Done | EIP-5564 style, secp256k1 |
+| Pedersen commitments | Done | Homomorphic, hiding amounts |
+| Viewing keys | Done | Selective disclosure for compliance |
+| Privacy levels | Done | transparent, shielded, compliant |
+| NEAR Intents adapter | Done | 1Click API integration |
+| Zcash RPC client | Done | Shielded transaction support |
+| Wallet adapters | Done | Abstract interface + Solana/Ethereum |
+| E2E test suite | Done | 128 tests covering all flows |
+| ZK proof specs | Done | Funding, Validity, Fulfillment |
+| Noir circuits | Planned | M8 - stubs ready in SDK |
 
 ---
 
@@ -66,7 +249,7 @@ User Intent → Privacy Layer (SIP) → NEAR Intents → Multi-chain Settlement
 # Install dependencies
 pnpm install
 
-# Run all tests (741 tests, ~20s)
+# Run all tests (745 tests, ~20s)
 pnpm test -- --run
 
 # Run E2E tests only (128 tests)
@@ -81,8 +264,6 @@ pnpm lint
 # Build all packages
 pnpm build
 ```
-
-**Note:** Demo application is in [sip-protocol/sip-website](https://github.com/sip-protocol/sip-website).
 
 ---
 
@@ -109,8 +290,6 @@ pnpm build
 | useQuote hook | 12 | `tests/hooks/use-quote.test.tsx` |
 | useSwap hook | 24 | `tests/hooks/use-swap.test.tsx` |
 | TransactionStatus | 21 | `tests/components/transaction-status.test.tsx` |
-
-**Coverage:** Cross-chain swaps, privacy verification, compliance flows, wallet connection, quote fetching, transaction execution, error handling.
 
 ---
 
@@ -161,21 +340,16 @@ See `.strategy/ROADMAP-INTERNAL.md` for detailed strategy (private).
 
 ---
 
-## AI Assistant Guidelines
+## Core-Specific AI Guidelines
 
-### ✅ DO:
+### DO (Core Repository):
 - Run `pnpm test -- --run` after code changes
-- Reference file:line when discussing code (e.g., `stealth.ts:123`)
-- Update this file when architecture changes
-- Use existing patterns from codebase
 - Check E2E tests for integration changes
+- Use existing patterns from codebase
 
-### ❌ DON'T:
-- Create .md files without surveying existing structure
-- Use `echo` or bash for communication (output directly)
-- Skip validation in public APIs
+### DON'T (Core Repository):
 - Change commitment/stealth formats without updating all usages
-- Commit anything in `.strategy/` folder
+- Skip validation in public APIs
 
 ---
 
@@ -201,18 +375,6 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ---
 
-## Related Repositories
-
-| Repo | Purpose | URL | Local | Status |
-|------|---------|-----|-------|--------|
-| `sip-protocol/sip-protocol` | Core SDK + Types (this repo) | - | `~/local-dev/sip-protocol` | ✅ Active |
-| `sip-protocol/sip-website` | Marketing site + Demo app | sip-protocol.org | `~/local-dev/sip-website` | ⚠️ CI Broken |
-| `sip-protocol/docs-sip` | Documentation (Astro + Starlight) | docs.sip-protocol.org | `~/local-dev/docs-sip` | ✅ Active |
-| `sip-protocol/.github` | Org-wide configs, profile | - | `~/local-dev/sip-github-org` | ✅ Local |
-| `sip-protocol/circuits` | Noir ZK circuits | - | - | 📋 M8 |
-
----
-
 ## Key Concepts
 
 | Concept | Description |
@@ -227,17 +389,17 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ## Milestones
 
-| Milestone | Status | Focus |
-|-----------|--------|-------|
-| M1: Architecture & Specification | ✅ Complete | Specs, proofs design |
-| M2: Cryptographic Core | ✅ Complete | Real crypto primitives |
-| M3: SDK Production | ✅ Complete | Production SDK |
-| M4: Network Integration | ✅ Complete | NEAR, Zcash, wallets |
-| M5: Documentation & Launch | ✅ Complete | Docs, whitepaper |
-| M6: Launch & Publish | ✅ Complete | npm publish, docs site |
-| M7: Real Demo Integration | ✅ Complete | Live demo with wallets, 92 tests |
-| M8: Production Hardening | 🔲 Planned | Noir circuits, security |
-| M9: Horizontal Expansion | 🔲 Future | New use cases |
+| Milestone | Focus |
+|-----------|-------|
+| M1: Architecture & Specification | Specs, proofs design |
+| M2: Cryptographic Core | Real crypto primitives |
+| M3: SDK Production | Production SDK |
+| M4: Network Integration | NEAR, Zcash, wallets |
+| M5: Documentation & Launch | Docs, whitepaper |
+| M6: Launch & Publish | npm publish, docs site |
+| M7: Real Demo Integration | Live demo with wallets, 92 tests |
+| M8: Production Hardening | Noir circuits, security |
+| M9: Horizontal Expansion | New use cases |
 
 ---
 
@@ -308,5 +470,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** November 28, 2025
+**Last Updated:** 2025-11-28
 **Status:** M7 Complete - Live
