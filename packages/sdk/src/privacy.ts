@@ -25,6 +25,12 @@ import { xchacha20poly1305 } from '@noble/ciphers/chacha.js'
 import { ValidationError, CryptoError, ErrorCode } from './errors'
 
 /**
+ * Maximum size for decrypted transaction data (1MB)
+ * Prevents DoS attacks via large payloads
+ */
+const MAX_TRANSACTION_DATA_SIZE = 1024 * 1024
+
+/**
  * Privacy configuration for an intent
  */
 export interface PrivacyConfig {
@@ -289,6 +295,16 @@ export function decryptWithViewing(
   // Parse JSON
   const textDecoder = new TextDecoder()
   const jsonString = textDecoder.decode(plaintext)
+
+  // Validate size before parsing to prevent DoS
+  if (jsonString.length > MAX_TRANSACTION_DATA_SIZE) {
+    throw new ValidationError(
+      `decrypted data exceeds maximum size limit (${MAX_TRANSACTION_DATA_SIZE} bytes)`,
+      'transactionData',
+      { received: jsonString.length, max: MAX_TRANSACTION_DATA_SIZE },
+      ErrorCode.INVALID_INPUT
+    )
+  }
 
   try {
     const data = JSON.parse(jsonString) as TransactionData
