@@ -99,12 +99,14 @@ export interface NEARIntentsAdapterConfig {
   defaultSlippage?: number
   /** Default deadline offset in seconds */
   defaultDeadlineOffset?: number
+  /** Custom asset mappings (merged with defaults) */
+  assetMappings?: Record<string, DefuseAssetId>
 }
 
 /**
- * Asset mapping from SIP format to Defuse asset identifier
+ * Default asset mapping from SIP format to Defuse asset identifier
  */
-const ASSET_MAPPINGS: Record<string, DefuseAssetId> = {
+const DEFAULT_ASSET_MAPPINGS: Record<string, DefuseAssetId> = {
   // NEAR assets
   'near:NEAR': 'near:mainnet:native',
   'near:wNEAR': 'near:mainnet:wrap.near',
@@ -155,6 +157,14 @@ const CHAIN_TYPE_MAP: Record<ChainId, ChainType> = {
  *   jwtToken: process.env.NEAR_INTENTS_JWT,
  * })
  *
+ * // Or with custom asset mappings (e.g., testnet)
+ * const testnetAdapter = new NEARIntentsAdapter({
+ *   jwtToken: process.env.NEAR_INTENTS_JWT,
+ *   assetMappings: {
+ *     'near:testUSDC': 'near:testnet:usdc.test',
+ *   },
+ * })
+ *
  * // Prepare a swap with stealth recipient
  * const prepared = await adapter.prepareSwap(intent, recipientMetaAddress)
  *
@@ -169,6 +179,7 @@ export class NEARIntentsAdapter {
   private readonly client: OneClickClient
   private readonly defaultSlippage: number
   private readonly defaultDeadlineOffset: number
+  private readonly assetMappings: Record<string, DefuseAssetId>
 
   constructor(config: NEARIntentsAdapterConfig = {}) {
     this.client = config.client ?? new OneClickClient({
@@ -177,6 +188,10 @@ export class NEARIntentsAdapter {
     })
     this.defaultSlippage = config.defaultSlippage ?? 100 // 1%
     this.defaultDeadlineOffset = config.defaultDeadlineOffset ?? 3600 // 1 hour
+    this.assetMappings = {
+      ...DEFAULT_ASSET_MAPPINGS,
+      ...config.assetMappings,
+    }
   }
 
   /**
@@ -361,11 +376,11 @@ export class NEARIntentsAdapter {
    */
   mapAsset(chain: ChainId, symbol: string): DefuseAssetId {
     const key = `${chain}:${symbol}`
-    const mapped = ASSET_MAPPINGS[key]
+    const mapped = this.assetMappings[key]
 
     if (!mapped) {
       throw new ValidationError(
-        `Unknown asset mapping for ${key}. Supported: ${Object.keys(ASSET_MAPPINGS).join(', ')}`,
+        `Unknown asset mapping for ${key}. Supported: ${Object.keys(this.assetMappings).join(', ')}`,
         'asset',
         { chain, symbol }
       )

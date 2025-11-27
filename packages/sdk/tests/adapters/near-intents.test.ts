@@ -76,6 +76,33 @@ describe('NEARIntentsAdapter', () => {
       const adapterWithClient = new NEARIntentsAdapter({ client: mockClient })
       expect(adapterWithClient.getClient()).toBe(mockClient)
     })
+
+    it('should accept custom asset mappings', () => {
+      const customAdapter = new NEARIntentsAdapter({
+        assetMappings: {
+          'near:testUSDC': 'near:testnet:usdc.test',
+          'ethereum:testDAI': 'eth:11155111:0xtest',
+        },
+      })
+      expect(customAdapter).toBeInstanceOf(NEARIntentsAdapter)
+
+      // Custom mapping should work
+      expect(customAdapter.mapAsset('near', 'testUSDC')).toBe('near:testnet:usdc.test')
+
+      // Default mappings should still work
+      expect(customAdapter.mapAsset('near', 'NEAR')).toBe('near:mainnet:native')
+    })
+
+    it('should allow custom mappings to override defaults', () => {
+      const customAdapter = new NEARIntentsAdapter({
+        assetMappings: {
+          'near:NEAR': 'near:testnet:native', // Override default
+        },
+      })
+
+      // Custom mapping should override default
+      expect(customAdapter.mapAsset('near', 'NEAR')).toBe('near:testnet:native')
+    })
   })
 
   // ─── createNEARIntentsAdapter ────────────────────────────────────────────────
