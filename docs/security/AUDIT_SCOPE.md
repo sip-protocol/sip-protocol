@@ -2,7 +2,7 @@
 
 **Project:** SIP Protocol (Shielded Intents Protocol)
 **Version:** 0.1.0
-**Date:** November 27, 2025
+**Date:** November 28, 2025
 **Status:** Ready for External Audit
 
 ---
@@ -31,6 +31,7 @@ SIP Protocol is a privacy layer for cross-chain transactions built on NEAR Inten
 | `packages/sdk/src/stealth.ts` | ~415 | EIP-5564 stealth addresses | Critical |
 | `packages/sdk/src/privacy.ts` | ~340 | Viewing keys, XChaCha20-Poly1305 encryption | Critical |
 | `packages/sdk/src/crypto.ts` | ~84 | Hash utilities, commitment wrappers | High |
+| `packages/sdk/src/secure-memory.ts` | ~120 | Memory zeroization utilities | Critical |
 
 **Focus Areas:**
 - NUMS generator construction (nothing-up-my-sleeve)
@@ -70,6 +71,7 @@ SIP Protocol is a privacy layer for cross-chain transactions built on NEAR Inten
 |------|-------|-------------|------|
 | `packages/sdk/src/proofs/interface.ts` | ~200 | Proof provider interface | Medium |
 | `packages/sdk/src/proofs/mock.ts` | ~280 | Mock provider (dev only) | Low |
+| `packages/sdk/src/proofs/noir.ts` | ~450 | Noir proof provider (real ZK) | High |
 
 **Focus Areas:**
 - Interface correctness for future Noir integration
@@ -93,11 +95,12 @@ SIP Protocol is a privacy layer for cross-chain transactions built on NEAR Inten
 |-----------|--------|
 | `apps/demo/` | Demo application, not production code |
 | `packages/types/` | Type definitions only, no runtime code |
-| `packages/sdk/src/proofs/noir.ts` | Stub implementation, circuits not ready |
 | `packages/sdk/src/zcash/` | Zcash integration (optional feature) |
 | `packages/sdk/src/solver/` | Mock solver for testing only |
 | Test files (`tests/`) | Test code, not production |
 | Build configuration | Not security-critical |
+
+**Note:** `packages/sdk/src/proofs/noir.ts` was previously out of scope but is now **in scope** after full implementation.
 
 ---
 
@@ -106,13 +109,13 @@ SIP Protocol is a privacy layer for cross-chain transactions built on NEAR Inten
 ### Lines of Code (Production)
 
 ```
-Core Cryptography:     ~1,300 lines
+Core Cryptography:     ~1,420 lines (+secure-memory.ts)
 Validation/Errors:       ~870 lines
 Intent System:           ~720 lines
-Proof System:            ~480 lines
+Proof System:            ~930 lines (+noir.ts)
 Integrations:          ~1,530 lines
 ─────────────────────────────────
-Total In-Scope:        ~4,900 lines
+Total In-Scope:        ~5,470 lines
 ```
 
 ### Test Coverage
@@ -179,17 +182,17 @@ Core Files:
 
 ## Known Limitations (Pre-Disclosed)
 
-1. **Memory Zeroization**: Sensitive data not explicitly cleared from memory after use (JavaScript limitation)
+1. ~~**Memory Zeroization**~~: ✅ **Implemented in v0.1.1** - `secure-memory.ts` provides defense-in-depth wiping (random overwrite + zero)
 
-2. **Noir Circuits**: ZK proof circuits are stub implementations; production proofs require circuit implementation
+2. ~~**Noir Circuits**~~: ✅ **Implemented in v0.2.0** - Full Noir circuits for Funding, Validity, and Fulfillment proofs
 
 3. **Timing Attacks**: Relies on @noble/* constant-time operations; SDK code not independently verified for constant-time
 
 4. **View Tag**: 8-bit view tag reveals 8 bits of shared secret (documented trade-off for scanning efficiency)
 
 5. **TODOs in Code**:
-   - `noir.ts`: Circuit implementations pending (#14, #15, #16)
-   - `shielded-service.ts:376`: Zcash fee estimation
+   - ~~`noir.ts`: Circuit implementations~~ ✅ **Implemented**
+   - `shielded-service.ts:376`: Zcash fee estimation (minor)
 
 See `docs/security/KNOWN_LIMITATIONS.md` for full details.
 

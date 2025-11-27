@@ -2,7 +2,7 @@
 
 **Project:** SIP Protocol
 **Version:** 0.1.0
-**Date:** November 27, 2025
+**Date:** November 28, 2025
 **Status:** READY FOR EXTERNAL AUDIT
 
 ---
@@ -68,10 +68,10 @@ sip-protocol/
 
 | Metric | Value |
 |--------|-------|
-| In-scope lines | ~4,900 |
-| Test count | 741 |
+| In-scope lines | ~5,100 |
+| Test count | 762 |
 | Test coverage | 89.88% |
-| Dependencies | 3 (@noble/*) |
+| Dependencies | 3 (@noble/*) + 2 (@noir-lang/*, @aztec/bb.js) |
 
 ---
 
@@ -120,6 +120,7 @@ packages/sdk/src/commitment.ts    # Pedersen commitments, NUMS
 packages/sdk/src/stealth.ts       # Stealth addresses
 packages/sdk/src/privacy.ts       # Viewing keys, encryption
 packages/sdk/src/crypto.ts        # Hash utilities
+packages/sdk/src/secure-memory.ts # Memory zeroization
 ```
 
 ### Priority 2: High (Validation)
@@ -141,6 +142,7 @@ packages/sdk/src/sip.ts           # Main client
 ```
 packages/sdk/src/proofs/interface.ts  # Proof interface
 packages/sdk/src/proofs/mock.ts       # Mock provider
+packages/sdk/src/proofs/noir.ts       # Noir proof provider (real ZK)
 ```
 
 ---
@@ -166,14 +168,14 @@ All cryptographic operations use @noble/* libraries:
 
 | ID | Severity | Description | Status |
 |----|----------|-------------|--------|
-| CODE-2 | Medium | Memory zeroization not implemented | Documented |
+| CODE-2 | Medium | Memory zeroization not implemented | ✅ Fixed (v0.1.1) |
 | CODE-1 | Low | ESLint not installed | Accepted |
 
 ### TODOs in Code
 
 | Location | Description | Status |
 |----------|-------------|--------|
-| noir.ts | Circuit implementations | Expected (planned feature) |
+| noir.ts | Circuit implementations | ✅ Implemented (v0.2.0) |
 | shielded-service.ts:376 | Zcash fee estimation | Minor |
 
 ---
@@ -181,8 +183,8 @@ All cryptographic operations use @noble/* libraries:
 ## Test Results
 
 ```
-Test Suites: 27 passed
-Tests:       741 passed, 2 skipped
+Test Suites: 28 passed
+Tests:       762 passed, 5 skipped
 Coverage:    89.88% statements
              84.91% branches
 Duration:    ~20s
