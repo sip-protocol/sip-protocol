@@ -472,6 +472,45 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 SIP is experimental software. Use at your own risk.
 
+### Zcash RPC Security
+
+**CRITICAL:** Always use HTTPS/TLS when connecting to Zcash nodes in production.
+
+The Zcash RPC client uses HTTP Basic Authentication, which transmits credentials in base64-encoded cleartext. Without TLS/HTTPS:
+- RPC credentials are vulnerable to network sniffing
+- All transaction data can be intercepted
+- Man-in-the-middle attacks are possible
+
+**Production Requirements:**
+- ✅ Use `https://` URLs for Zcash RPC endpoints
+- ✅ Configure zcashd with valid TLS certificates
+- ✅ Store credentials in secure environment variables
+- ✅ Use network-level access controls (firewall rules, VPCs)
+- ❌ NEVER use HTTP in production
+- ❌ NEVER hardcode credentials in source code
+
+**Example:**
+```typescript
+// ✅ Production (HTTPS)
+const client = new ZcashRPCClient({
+  host: 'https://your-node.com',
+  port: 8232,
+  username: process.env.ZCASH_RPC_USER,
+  password: process.env.ZCASH_RPC_PASS,
+})
+
+// ⚠️ Development only (HTTP on localhost)
+const testClient = new ZcashRPCClient({
+  host: '127.0.0.1',
+  port: 18232,
+  username: 'test',
+  password: 'test',
+  testnet: true,
+})
+```
+
+### Reporting Security Issues
+
 If you discover a security vulnerability, please report it responsibly:
 - Email: security@sip-protocol.xyz
 - Do NOT open public issues for security vulnerabilities

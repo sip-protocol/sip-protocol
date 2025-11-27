@@ -103,6 +103,17 @@ export class ZcashRPCError extends Error {
  *
  * Provides type-safe access to zcashd JSON-RPC API with automatic
  * retry logic and proper error handling.
+ *
+ * @security IMPORTANT: Always use HTTPS in production environments.
+ * This client uses HTTP Basic Authentication which transmits credentials
+ * in base64-encoded cleartext. Without TLS/HTTPS, credentials and all
+ * RPC data are vulnerable to network sniffing and man-in-the-middle attacks.
+ *
+ * Production configuration should use:
+ * - HTTPS endpoint (e.g., https://your-node.com:8232)
+ * - Valid TLS certificates
+ * - Secure credential storage
+ * - Network-level access controls
  */
 export class ZcashRPCClient {
   private readonly config: Required<ZcashConfig>
@@ -179,6 +190,10 @@ export class ZcashRPCClient {
    * @returns New shielded address
    */
   async generateShieldedAddress(type: 'sapling' | 'sprout' = 'sapling'): Promise<string> {
+    console.warn(
+      'generateShieldedAddress() is deprecated and will be removed in v0.2.0. ' +
+      'Use createAccount() and getAddressForAccount() instead.'
+    )
     return this.call<string>('z_getnewaddress', [type])
   }
 
@@ -578,6 +593,30 @@ export class ZcashRPCClient {
  *
  * @param config - Client configuration
  * @returns ZcashRPCClient instance
+ *
+ * @security IMPORTANT: Always use HTTPS in production environments.
+ * HTTP Basic Auth transmits credentials in cleartext without TLS/HTTPS.
+ * Configure your zcashd node with TLS certificates and use https:// URLs.
+ *
+ * @example
+ * ```typescript
+ * // ✅ Production (HTTPS)
+ * const client = createZcashClient({
+ *   host: 'https://your-node.com',
+ *   port: 8232,
+ *   username: process.env.ZCASH_RPC_USER,
+ *   password: process.env.ZCASH_RPC_PASS,
+ * })
+ *
+ * // ⚠️ Development only (HTTP)
+ * const testClient = createZcashClient({
+ *   host: '127.0.0.1',
+ *   port: 18232,
+ *   username: 'test',
+ *   password: 'test',
+ *   testnet: true,
+ * })
+ * ```
  */
 export function createZcashClient(config: ZcashConfig): ZcashRPCClient {
   return new ZcashRPCClient(config)

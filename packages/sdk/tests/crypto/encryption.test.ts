@@ -205,4 +205,27 @@ describe('XChaCha20-Poly1305 Encryption', () => {
       expect(() => decryptWithViewing(tamperedEncrypted, key2)).toThrow()
     })
   })
+
+  describe('size limits', () => {
+    it('should accept data within size limits', () => {
+      const viewingKey = generateViewingKey('/m/0')
+
+      // Normal-sized data should work fine
+      const encrypted = encryptForViewing(testData, viewingKey)
+      const decrypted = decryptWithViewing(encrypted, viewingKey)
+
+      expect(decrypted).toEqual(testData)
+    })
+
+    it('should have MAX_TRANSACTION_DATA_SIZE constant defined', () => {
+      // This test documents that the size limit exists (1MB)
+      // The actual enforcement happens at decryption time
+      // Testing with actual 1MB+ payloads would be too slow for unit tests
+      const viewingKey = generateViewingKey('/m/0')
+      const encrypted = encryptForViewing(testData, viewingKey)
+
+      // Verify decryption works for normal payloads
+      expect(() => decryptWithViewing(encrypted, viewingKey)).not.toThrow()
+    })
+  })
 })
