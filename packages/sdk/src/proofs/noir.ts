@@ -27,6 +27,7 @@ import { ProofError, ErrorCode } from '../errors'
 import { Noir } from '@noir-lang/noir_js'
 import type { CompiledCircuit } from '@noir-lang/types'
 import { UltraHonkBackend } from '@aztec/bb.js'
+import { secp256k1 } from '@noble/curves/secp256k1'
 
 // Import compiled circuit artifacts
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,6 +36,16 @@ import fundingCircuitArtifact from './circuits/funding_proof.json'
 import validityCircuitArtifact from './circuits/validity_proof.json'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import fulfillmentCircuitArtifact from './circuits/fulfillment_proof.json'
+
+/**
+ * Public key coordinates for secp256k1
+ */
+export interface PublicKeyCoordinates {
+  /** X coordinate as 32-byte array */
+  x: number[]
+  /** Y coordinate as 32-byte array */
+  y: number[]
+}
 
 /**
  * Noir Proof Provider Configuration
@@ -57,6 +68,12 @@ export interface NoirProviderConfig {
    * @default false
    */
   verbose?: boolean
+
+  /**
+   * Oracle public key for verifying attestations in fulfillment proofs
+   * Required for production use. If not provided, proofs will use placeholder keys.
+   */
+  oraclePublicKey?: PublicKeyCoordinates
 }
 
 /**
@@ -103,6 +120,46 @@ export class NoirProofProvider implements ProofProvider {
 
   get isReady(): boolean {
     return this._isReady
+  }
+
+  /**
+   * Derive secp256k1 public key coordinates from a private key
+   *
+   * Utility method that can be used to generate public key coordinates
+   * for use in ValidityProofParams.senderPublicKey or NoirProviderConfig.oraclePublicKey
+   *
+   * @param privateKey - 32-byte private key
+   * @returns X and Y coordinates as 32-byte arrays
+   *
+   * @example
+   * ```typescript
+   * const privateKey = new Uint8Array(32).fill(1) // Your secret key
+   * const publicKey = NoirProofProvider.derivePublicKey(privateKey)
+   *
+   * // Use for oracle configuration
+   * const provider = new NoirProofProvider({
+   *   oraclePublicKey: publicKey
+   * })
+   *
+   * // Or use for validity proof params
+   * const validityParams = {
+   *   // ... other params
+   *   senderPublicKey: {
+   *     x: new Uint8Array(publicKey.x),
+   *     y: new Uint8Array(publicKey.y)
+   *   }
+   * }
+   * ```
+   */
+  static derivePublicKey(privateKey: Uint8Array): PublicKeyCoordinates {
+    // Get uncompressed public key (65 bytes: 04 || x || y)
+    const uncompressedPubKey = secp256k1.getPublicKey(privateKey, false)
+
+    // Extract X (bytes 1-32) and Y (bytes 33-64)
+    const x = Array.from(uncompressedPubKey.slice(1, 33))
+    const y = Array.from(uncompressedPubKey.slice(33, 65))
+
+    return { x, y }
   }
 
   /**
@@ -346,10 +403,21 @@ export class NoirProofProvider implements ProofProvider {
       // Create message hash from intent hash (32 bytes)
       const messageHash = this.fieldToBytes32(intentHashField)
 
-      // For now, we derive a placeholder public key
-      // In production, this would come from the sender's actual public key
-      const pubKeyX = new Array(32).fill(0)
-      const pubKeyY = new Array(32).fill(0)
+      // Use provided public key or derive from sender's secret key
+      // The sender secret is used as the private key for ECDSA signature verification
+      let pubKeyX: number[]
+      let pubKeyY: number[]
+
+      if (params.senderPublicKey) {
+        // Use provided public key
+        pubKeyX = Array.from(params.senderPublicKey.x)
+        pubKeyY = Array.from(params.senderPublicKey.y)
+      } else {
+        // Derive from sender secret
+        const coords = this.getPublicKeyCoordinates(params.senderSecret)
+        pubKeyX = coords.x
+        pubKeyY = coords.y
+      }
 
       // Prepare witness inputs for the circuit
       const witnessInputs = {
@@ -520,9 +588,14 @@ export class NoirProofProvider implements ProofProvider {
         attestation.blockNumber
       )
 
-      // For now, use placeholder oracle public key (would come from trusted registry)
-      const oraclePubKeyX = new Array(32).fill(0)
-      const oraclePubKeyY = new Array(32).fill(0)
+      // Use configured oracle public key, or placeholder if not configured
+      // In production, the oracle public key should always be configured
+      const oraclePubKeyX = this.config.oraclePublicKey?.x ?? new Array(32).fill(0)
+      const oraclePubKeyY = this.config.oraclePublicKey?.y ?? new Array(32).fill(0)
+
+      if (!this.config.oraclePublicKey && this.config.verbose) {
+        console.warn('[NoirProofProvider] Warning: No oracle public key configured. Using placeholder keys.')
+      }
 
       // Prepare witness inputs for the circuit
       const witnessInputs = {
@@ -983,5 +1056,34 @@ export class NoirProofProvider implements ProofProvider {
     const hash = sha256(preimage)
 
     return Array.from(hash)
+  }
+
+  /**
+   * Derive secp256k1 public key coordinates from a private key
+   *
+   * @param privateKey - 32-byte private key as Uint8Array
+   * @returns X and Y coordinates as 32-byte arrays
+   */
+  private getPublicKeyCoordinates(privateKey: Uint8Array): PublicKeyCoordinates {
+    // Get uncompressed public key (65 bytes: 04 || x || y)
+    const uncompressedPubKey = secp256k1.getPublicKey(privateKey, false)
+
+    // Extract X (bytes 1-32) and Y (bytes 33-64)
+    const x = Array.from(uncompressedPubKey.slice(1, 33))
+    const y = Array.from(uncompressedPubKey.slice(33, 65))
+
+    return { x, y }
+  }
+
+  /**
+   * Derive public key coordinates from a field string (private key)
+   *
+   * @param privateKeyField - Private key as hex field string
+   * @returns X and Y coordinates as 32-byte arrays
+   */
+  private getPublicKeyFromField(privateKeyField: string): PublicKeyCoordinates {
+    // Convert field to 32-byte array
+    const privateKeyBytes = this.hexToBytes(privateKeyField.padStart(64, '0'))
+    return this.getPublicKeyCoordinates(privateKeyBytes)
   }
 }

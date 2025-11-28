@@ -37,6 +37,16 @@ export interface FundingProofParams {
 }
 
 /**
+ * Public key coordinates for secp256k1 (X and Y as byte arrays)
+ */
+export interface PublicKeyXY {
+  /** X coordinate as 32-byte array */
+  x: Uint8Array
+  /** Y coordinate as 32-byte array */
+  y: Uint8Array
+}
+
+/**
  * Parameters for generating a Validity Proof
  *
  * Proves: intent is authorized by sender without revealing sender
@@ -50,7 +60,7 @@ export interface ValidityProofParams {
   senderAddress: string
   /** Blinding factor for sender commitment (private) */
   senderBlinding: Uint8Array
-  /** Sender's secret key (private) */
+  /** Sender's secret key (private) - used to derive public key if senderPublicKey not provided */
   senderSecret: Uint8Array
   /** Signature authorizing the intent (private) */
   authorizationSignature: Uint8Array
@@ -60,6 +70,8 @@ export interface ValidityProofParams {
   timestamp: number
   /** Intent expiry (public) */
   expiry: number
+  /** Optional: Sender's public key. If not provided, derived from senderSecret */
+  senderPublicKey?: PublicKeyXY
 }
 
 /**

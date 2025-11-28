@@ -276,6 +276,96 @@ describe('NoirProofProvider', () => {
   })
 })
 
+describe('NoirProofProvider.derivePublicKey', () => {
+  it('should derive public key coordinates from private key', () => {
+    // Use a known private key
+    const privateKey = new Uint8Array(32)
+    privateKey[31] = 1 // Private key = 1
+
+    const { x, y } = NoirProofProvider.derivePublicKey(privateKey)
+
+    // Should return 32-byte arrays
+    expect(x).toHaveLength(32)
+    expect(y).toHaveLength(32)
+
+    // For private key = 1, the public key is the generator point G
+    // G.x starts with 0x79BE667E...
+    expect(x[0]).toBe(0x79)
+    expect(x[1]).toBe(0xBE)
+    expect(x[2]).toBe(0x66)
+    expect(x[3]).toBe(0x7E)
+  })
+
+  it('should derive different coordinates for different private keys', () => {
+    const privateKey1 = new Uint8Array(32)
+    privateKey1[31] = 1
+
+    const privateKey2 = new Uint8Array(32)
+    privateKey2[31] = 2
+
+    const coords1 = NoirProofProvider.derivePublicKey(privateKey1)
+    const coords2 = NoirProofProvider.derivePublicKey(privateKey2)
+
+    // Coordinates should be different
+    expect(coords1.x).not.toEqual(coords2.x)
+    expect(coords1.y).not.toEqual(coords2.y)
+  })
+
+  it('should return consistent results for same private key', () => {
+    const privateKey = new Uint8Array(32).fill(42)
+
+    const coords1 = NoirProofProvider.derivePublicKey(privateKey)
+    const coords2 = NoirProofProvider.derivePublicKey(privateKey)
+
+    expect(coords1.x).toEqual(coords2.x)
+    expect(coords1.y).toEqual(coords2.y)
+  })
+
+  it('should work with typical random private key', () => {
+    // Simulate a "random" private key (deterministic for test)
+    const privateKey = new Uint8Array([
+      0x4b, 0x5c, 0x7a, 0x3d, 0x1f, 0x2e, 0x8c, 0x9b,
+      0x6d, 0x5e, 0x4f, 0x3a, 0x2c, 0x1b, 0x0a, 0x9f,
+      0x8e, 0x7d, 0x6c, 0x5b, 0x4a, 0x39, 0x28, 0x17,
+      0x06, 0xf5, 0xe4, 0xd3, 0xc2, 0xb1, 0xa0, 0x9f,
+    ])
+
+    const { x, y } = NoirProofProvider.derivePublicKey(privateKey)
+
+    // Should return valid coordinates
+    expect(x).toHaveLength(32)
+    expect(y).toHaveLength(32)
+
+    // Coordinates should not be all zeros
+    expect(x.some(b => b !== 0)).toBe(true)
+    expect(y.some(b => b !== 0)).toBe(true)
+  })
+})
+
+describe('NoirProofProvider with oracle public key', () => {
+  it('should accept oracle public key in config', () => {
+    const oraclePrivateKey = new Uint8Array(32).fill(99)
+    const oraclePublicKey = NoirProofProvider.derivePublicKey(oraclePrivateKey)
+
+    const provider = new NoirProofProvider({
+      oraclePublicKey,
+    })
+
+    expect(provider.framework).toBe('noir')
+  })
+
+  it('should accept verbose and oracle public key together', () => {
+    const oraclePublicKey = NoirProofProvider.derivePublicKey(new Uint8Array(32).fill(1))
+
+    const provider = new NoirProofProvider({
+      verbose: true,
+      oraclePublicKey,
+    })
+
+    expect(provider.framework).toBe('noir')
+  })
+})
+
 describe('NoirProofProvider verbose mode', () => {
   it('should log when verbose is enabled', async () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
