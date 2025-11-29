@@ -494,7 +494,7 @@ describe('SIP Production Mode', () => {
       const quotes = await sip.getQuotes(params) as ProductionQuote[]
       const intent = await sip.createIntent(params)
 
-      const onDepositRequired = vi.fn().mockResolvedValue('0xdeposit-tx-hash')
+      const onDepositRequired = vi.fn().mockResolvedValue('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef')
       const onStatusUpdate = vi.fn()
 
       await sip.execute(intent, quotes[0], {
@@ -503,7 +503,7 @@ describe('SIP Production Mode', () => {
       })
 
       expect(onDepositRequired).toHaveBeenCalledWith('0xdeposit', '100')
-      expect(mockNotifyDeposit).toHaveBeenCalledWith('0xdeposit', '0xdeposit-tx-hash')
+      expect(mockNotifyDeposit).toHaveBeenCalledWith('0xdeposit', '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef')
     })
   })
 

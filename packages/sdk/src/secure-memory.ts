@@ -1,18 +1,43 @@
 /**
  * Secure Memory Utilities
  *
- * Provides secure memory handling for cryptographic secrets.
+ * Provides best-effort secure memory handling for cryptographic secrets
+ * in JavaScript environments.
  *
- * ## Security Properties
- * - **Zeroization**: Secrets are overwritten before being freed
+ * ## What This Provides
+ * - **Explicit Cleanup**: Deterministic overwriting of sensitive buffers
  * - **Defense in Depth**: Overwrite with random data, then zero
+ * - **API for Safe Patterns**: Helper functions for scoped secret usage
  *
- * ## Limitations
- * - JavaScript garbage collection may leave copies
- * - JIT compilation may create copies
- * - Memory may be swapped to disk
+ * ## IMPORTANT: Limitations of JavaScript Memory Cleanup
  *
- * This provides best-effort cleanup for JavaScript environments.
+ * JavaScript does NOT provide true secure memory guarantees. These utilities
+ * offer BEST-EFFORT cleanup only. Be aware of these fundamental limitations:
+ *
+ * 1. **Garbage Collection**: The GC may have already copied the original
+ *    data to other memory locations before you call secureWipe().
+ *
+ * 2. **JIT Compilation**: Modern JS engines may optimize away "dead" writes
+ *    or create copies in compiled code paths.
+ *
+ * 3. **Memory Swapping**: The OS may swap memory pages to disk before cleanup,
+ *    leaving secrets in swap files or hibernation images.
+ *
+ * 4. **String Interning**: If secrets pass through strings, they may be
+ *    interned and retained in the string pool.
+ *
+ * ## Recommendations for High-Security Applications
+ *
+ * For applications requiring strong memory protection:
+ * - Use hardware security modules (HSMs) for key storage
+ * - Use hardware wallets (Ledger, Trezor) for signing operations
+ * - Consider native bindings with secure memory allocators
+ * - Run in isolated environments with encrypted swap disabled
+ *
+ * This module is appropriate for:
+ * - Reducing attack surface (makes casual inspection harder)
+ * - Defense in depth (multiple security layers)
+ * - Compliance with best practices (demonstrable cleanup efforts)
  *
  * @see docs/security/KNOWN_LIMITATIONS.md
  */

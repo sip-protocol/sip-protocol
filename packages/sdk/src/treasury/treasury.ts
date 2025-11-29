@@ -348,9 +348,24 @@ export class Treasury {
       )
     }
 
-    // Create signature
+    // Create and verify signature
     const messageHash = computeProposalHash(proposal)
     const signature = signMessage(messageHash, privateKey)
+
+    // Verify signature before accepting
+    // Get signer's public key from member record
+    const signerMember = this.getMember(signerAddress)
+    if (signerMember?.publicKey) {
+      const isValid = verifySignature(messageHash, signature, signerMember.publicKey)
+      if (!isValid) {
+        throw new ValidationError(
+          'signature verification failed',
+          'signature',
+          undefined,
+          ErrorCode.INVALID_INPUT
+        )
+      }
+    }
 
     const proposalSignature: ProposalSignature = {
       signer: signerAddress,
@@ -695,6 +710,25 @@ function signMessage(messageHash: Uint8Array, privateKey: HexString): HexString 
     return `0x${signature.toCompactHex()}` as HexString
   } finally {
     secureWipe(keyBytes)
+  }
+}
+
+function verifySignature(
+  messageHash: Uint8Array,
+  signature: HexString,
+  publicKey: HexString,
+): boolean {
+  const sigHex = signature.startsWith('0x') ? signature.slice(2) : signature
+  const pubKeyHex = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey
+
+  try {
+    // Convert compact signature to secp256k1 Signature
+    const sig = secp256k1.Signature.fromCompact(sigHex)
+    const pubKeyBytes = hexToBytes(pubKeyHex)
+
+    return secp256k1.verify(sig, messageHash, pubKeyBytes)
+  } catch {
+    return false
   }
 }
 

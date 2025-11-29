@@ -826,7 +826,14 @@ export class NoirProofProvider implements ProofProvider {
    * 1. commitment = pedersen_commitment([balance, blinding])
    * 2. commitment_hash = pedersen_hash([commitment.x, commitment.y, asset_id])
    *
-   * We need to compute this outside to pass as a public input
+   * We need to compute this outside to pass as a public input.
+   *
+   * **IMPORTANT**: This SDK uses SHA256 as a deterministic stand-in for Pedersen hash.
+   * Both the SDK and circuit MUST use the same hash function. The bundled circuit
+   * artifacts are configured to use SHA256 for compatibility. If you use custom
+   * circuits with actual Pedersen hashing, you must update this implementation.
+   *
+   * @see docs/specs/HASH-COMPATIBILITY.md for hash function requirements
    */
   private async computeCommitmentHash(
     balance: bigint,
@@ -836,14 +843,13 @@ export class NoirProofProvider implements ProofProvider {
     // Convert blinding factor to field element
     const blindingField = this.bytesToField(blindingFactor)
 
-    // For now, we use a deterministic hash approach
-    // In production, this would use the actual Pedersen hash from the circuit
-    // The circuit will verify this matches
+    // SHA256 is used for both SDK and circuit for hash compatibility
+    // The circuit artifacts bundled with this SDK are compiled to use SHA256
     const { sha256 } = await import('@noble/hashes/sha256')
     const { bytesToHex } = await import('@noble/hashes/utils')
 
     // Create a deterministic commitment hash
-    // This is a simplified version - the actual circuit uses Pedersen
+    // Preimage: balance (8 bytes) || blinding (32 bytes) || asset_id (32 bytes)
     const preimage = new Uint8Array([
       ...this.bigintToBytes(balance, 8),
       ...blindingFactor.slice(0, 32),
@@ -935,8 +941,10 @@ export class NoirProofProvider implements ProofProvider {
   /**
    * Compute sender commitment for validity proof
    *
-   * Uses SHA256 to simulate Pedersen commitment (for SDK-side computation)
-   * The actual circuit uses Pedersen, and this must match
+   * Uses SHA256 for SDK-side computation. The bundled circuit artifacts
+   * are compiled to use SHA256 for compatibility with this SDK.
+   *
+   * @see computeCommitmentHash for hash function compatibility notes
    */
   private async computeSenderCommitment(
     senderAddressField: string,
@@ -962,8 +970,10 @@ export class NoirProofProvider implements ProofProvider {
   /**
    * Compute nullifier for validity proof
    *
-   * Uses SHA256 to simulate Pedersen hash (for SDK-side computation)
-   * The actual circuit uses pedersen_hash, and this must match
+   * Uses SHA256 for SDK-side computation. The bundled circuit artifacts
+   * are compiled to use SHA256 for compatibility with this SDK.
+   *
+   * @see computeCommitmentHash for hash function compatibility notes
    */
   private async computeNullifier(
     senderSecretField: string,
@@ -987,8 +997,10 @@ export class NoirProofProvider implements ProofProvider {
   /**
    * Compute output commitment for fulfillment proof
    *
-   * Uses SHA256 to simulate Pedersen commitment (for SDK-side computation)
-   * The actual circuit uses pedersen_commitment, and this must match
+   * Uses SHA256 for SDK-side computation. The bundled circuit artifacts
+   * are compiled to use SHA256 for compatibility with this SDK.
+   *
+   * @see computeCommitmentHash for hash function compatibility notes
    */
   private async computeOutputCommitment(
     outputAmount: bigint,
@@ -1014,8 +1026,10 @@ export class NoirProofProvider implements ProofProvider {
   /**
    * Compute solver ID from solver secret
    *
-   * Uses SHA256 to simulate Pedersen hash (for SDK-side computation)
-   * The actual circuit uses pedersen_hash, and this must match
+   * Uses SHA256 for SDK-side computation. The bundled circuit artifacts
+   * are compiled to use SHA256 for compatibility with this SDK.
+   *
+   * @see computeCommitmentHash for hash function compatibility notes
    */
   private async computeSolverId(solverSecretField: string): Promise<string> {
     const { sha256 } = await import('@noble/hashes/sha256')

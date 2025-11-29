@@ -346,11 +346,17 @@ export class ComplianceManager {
 
     // Decrypt memo if available
     let decryptedMemo: string | undefined
+    let memoDecryptionError: string | undefined
     if (payment.encryptedMemo && viewingKey) {
       try {
         decryptedMemo = this.decryptMemoSafe(payment.encryptedMemo, viewingKey)
-      } catch {
-        // Failed to decrypt, leave undefined
+      } catch (error) {
+        // Log warning for monitoring - memo decryption failure may indicate
+        // key mismatch, data corruption, or unauthorized viewing key
+        memoDecryptionError = error instanceof Error ? error.message : 'Unknown decryption error'
+        console.warn(
+          `[ComplianceManager] Failed to decrypt memo for payment ${payment.paymentId}: ${memoDecryptionError}`
+        )
       }
     }
 
@@ -917,8 +923,19 @@ export class ComplianceManager {
       tx.memo ?? '',
     ])
 
-    const escape = (val: string) => `"${val.replace(/"/g, '""')}"`
-    const csvRows = [headers, ...rows].map(row => row.map(escape).join(','))
+    // Escape CSV cells to prevent formula injection attacks
+    // Formulas starting with =, +, -, @, |, or tab can be malicious
+    const escapeForCSV = (val: string): string => {
+      // First handle formula injection: prefix with single quote if starts with dangerous chars
+      let escaped = val
+      if (/^[=+\-@|\t]/.test(escaped)) {
+        escaped = `'${escaped}`
+      }
+      // Then escape double quotes and wrap in quotes
+      return `"${escaped.replace(/"/g, '""')}"`
+    }
+
+    const csvRows = [headers, ...rows].map(row => row.map(escapeForCSV).join(','))
 
     return csvRows.join('\n')
   }

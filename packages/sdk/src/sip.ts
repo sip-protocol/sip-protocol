@@ -504,6 +504,15 @@ export class SIP {
     if (options?.onDepositRequired) {
       depositTxHash = await options.onDepositRequired(depositAddress, rawQuote.amountIn)
 
+      // Validate txHash format before proceeding
+      if (!depositTxHash || !this.isValidTxHash(depositTxHash)) {
+        throw new ValidationError(
+          'Invalid deposit transaction hash. Expected 0x-prefixed hex string (32-66 bytes).',
+          'depositTxHash',
+          { received: depositTxHash }
+        )
+      }
+
       // Notify 1Click of deposit
       await this.intentsAdapter.notifyDeposit(
         depositAddress,
@@ -542,6 +551,34 @@ export class SIP {
     }
     // Estimate 0.5% fee if we can't calculate
     return inputAmount / 200n
+  }
+
+  /**
+   * Validate transaction hash format
+   *
+   * Accepts:
+   * - Ethereum-style: 0x + 64 hex chars (32 bytes)
+   * - Solana-style: base58 encoded (44-88 chars)
+   * - NEAR-style: base58 or hex with varying lengths
+   */
+  private isValidTxHash(txHash: string): boolean {
+    if (!txHash || typeof txHash !== 'string') {
+      return false
+    }
+
+    // Check for 0x-prefixed hex (Ethereum, etc.)
+    if (txHash.startsWith('0x')) {
+      const hex = txHash.slice(2)
+      // Valid hex, 32-66 bytes (64-132 chars)
+      return /^[0-9a-fA-F]{64,132}$/.test(hex)
+    }
+
+    // Base58 (Solana, NEAR)
+    if (/^[1-9A-HJ-NP-Za-km-z]{32,88}$/.test(txHash)) {
+      return true
+    }
+
+    return false
   }
 
   // ─── Demo Mode Implementation ───────────────────────────────────────────────
