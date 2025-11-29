@@ -11,13 +11,15 @@ import {
   type OneClickQuoteResponse,
   type OneClickStatusResponse,
   type DefuseAssetId,
-  type ChainType,
   type ChainId,
   type HexString,
   type Asset,
   PrivacyLevel,
   OneClickSwapType,
   OneClickSwapStatus,
+  OneClickDepositType,
+  OneClickRefundType,
+  OneClickRecipientType,
 } from '@sip-protocol/types'
 import { OneClickClient } from './oneclick-client'
 import { generateStealthAddress, decodeStealthMetaAddress } from '../stealth'
@@ -104,47 +106,52 @@ export interface NEARIntentsAdapterConfig {
 }
 
 /**
- * Default asset mapping from SIP format to Defuse asset identifier
+ * Default asset mapping from SIP format to Defuse asset identifier (NEP-141 format)
+ *
+ * These are the actual asset IDs used by the 1Click API.
+ * Format: nep141:<token-contract>.near
+ *
+ * @see https://1click.chaindefuser.com/v0/tokens
  */
 const DEFAULT_ASSET_MAPPINGS: Record<string, DefuseAssetId> = {
   // NEAR assets
-  'near:NEAR': 'near:mainnet:native',
-  'near:wNEAR': 'near:mainnet:wrap.near',
+  'near:NEAR': 'nep141:wrap.near',
+  'near:wNEAR': 'nep141:wrap.near',
 
-  // Ethereum assets
-  'ethereum:ETH': 'eth:1:native',
-  'ethereum:USDC': 'eth:1:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-  'ethereum:USDT': 'eth:1:0xdac17f958d2ee523a2206206994597c13d831ec7',
+  // Ethereum assets (via OMFT bridge)
+  'ethereum:ETH': 'nep141:eth.omft.near',
+  'ethereum:USDC': 'nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1',
+  'ethereum:USDT': 'nep141:usdt.tether-token.near',
 
-  // Solana assets
-  'solana:SOL': 'sol:mainnet:native',
+  // Solana assets (via OMFT bridge)
+  'solana:SOL': 'nep141:sol.omft.near',
 
   // Zcash assets
-  'zcash:ZEC': 'zcash:mainnet:native',
+  'zcash:ZEC': 'nep141:zec.omft.near',
 
   // Arbitrum assets
-  'arbitrum:ETH': 'arb:42161:native',
+  'arbitrum:ETH': 'nep141:arb.omft.near',
 
   // Base assets
-  'base:ETH': 'base:8453:native',
+  'base:ETH': 'nep141:base.omft.near',
 
   // Polygon assets
-  'polygon:MATIC': 'polygon:137:native',
+  'polygon:MATIC': 'nep141:matic.omft.near',
 }
 
 /**
- * Chain ID to ChainType mapping
+ * Chain ID to blockchain name mapping (for address format validation)
  */
-const CHAIN_TYPE_MAP: Record<ChainId, ChainType> = {
+const CHAIN_BLOCKCHAIN_MAP: Record<ChainId, string> = {
   near: 'near',
-  ethereum: 'eth',
-  solana: 'sol',
+  ethereum: 'evm',
+  solana: 'solana',
   zcash: 'zcash',
-  polygon: 'polygon',
-  arbitrum: 'arb',
-  optimism: 'optimism',
-  base: 'base',
-  bitcoin: 'btc',
+  polygon: 'evm',
+  arbitrum: 'evm',
+  optimism: 'evm',
+  base: 'evm',
+  bitcoin: 'bitcoin',
 }
 
 /**
@@ -391,10 +398,11 @@ export class NEARIntentsAdapter {
   }
 
   /**
-   * Convert SIP chain ID to 1Click chain type
+   * Convert SIP chain ID to blockchain type
+   * @deprecated Use getBlockchainType() instead. The 1Click API now uses ORIGIN_CHAIN/DESTINATION_CHAIN types.
    */
-  mapChainType(chain: ChainId): ChainType {
-    const mapped = CHAIN_TYPE_MAP[chain]
+  mapChainType(chain: ChainId): string {
+    const mapped = CHAIN_BLOCKCHAIN_MAP[chain]
 
     if (!mapped) {
       throw new ValidationError(
@@ -432,7 +440,7 @@ export class NEARIntentsAdapter {
     recipient: string,
     refundTo?: string,
   ): OneClickQuoteRequest {
-    // Map assets
+    // Map assets to NEP-141 format
     const originAsset = this.mapAsset(
       request.inputAsset.chain,
       request.inputAsset.symbol
@@ -442,14 +450,11 @@ export class NEARIntentsAdapter {
       request.outputAsset.symbol
     )
 
-    // Map chain types
-    const depositType = this.mapChainType(request.inputAsset.chain)
-    const recipientType = this.mapChainType(request.outputAsset.chain)
-    const refundType = depositType // Refund to same chain as deposit
-
-    // Calculate deadline
+    // Calculate deadline (ISO 8601 format required)
     const deadline = new Date(Date.now() + this.defaultDeadlineOffset * 1000).toISOString()
 
+    // Use ORIGIN_CHAIN for deposits from external chains
+    // Use DESTINATION_CHAIN for sending to external chains
     return {
       swapType: OneClickSwapType.EXACT_INPUT,
       originAsset,
@@ -457,12 +462,19 @@ export class NEARIntentsAdapter {
       amount: request.inputAmount.toString(),
       recipient,
       refundTo: refundTo ?? recipient,
-      depositType,
-      recipientType,
-      refundType,
+      depositType: OneClickDepositType.ORIGIN_CHAIN,
+      recipientType: OneClickRecipientType.DESTINATION_CHAIN,
+      refundType: OneClickRefundType.ORIGIN_CHAIN,
       slippageTolerance: this.defaultSlippage,
       deadline,
     }
+  }
+
+  /**
+   * Get blockchain type for a chain (for address format validation)
+   */
+  getBlockchainType(chain: ChainId): string {
+    return CHAIN_BLOCKCHAIN_MAP[chain] ?? chain
   }
 }
 

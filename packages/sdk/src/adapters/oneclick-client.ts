@@ -249,6 +249,12 @@ export class OneClickClient {
     if (!request.recipientType) {
       throw new ValidationError('recipientType is required', 'request.recipientType')
     }
+    if (request.slippageTolerance === undefined || request.slippageTolerance === null) {
+      throw new ValidationError('slippageTolerance is required (0-10000 basis points)', 'request.slippageTolerance')
+    }
+    if (!request.deadline) {
+      throw new ValidationError('deadline is required (ISO 8601 format)', 'request.deadline')
+    }
   }
 
   private async get<T>(path: string): Promise<T> {

@@ -89,8 +89,8 @@ describe('NEARIntentsAdapter', () => {
       // Custom mapping should work
       expect(customAdapter.mapAsset('near', 'testUSDC')).toBe('near:testnet:usdc.test')
 
-      // Default mappings should still work
-      expect(customAdapter.mapAsset('near', 'NEAR')).toBe('near:mainnet:native')
+      // Default mappings should still work (NEP-141 format)
+      expect(customAdapter.mapAsset('near', 'NEAR')).toBe('nep141:wrap.near')
     })
 
     it('should allow custom mappings to override defaults', () => {
@@ -126,27 +126,27 @@ describe('NEARIntentsAdapter', () => {
   describe('mapAsset', () => {
     it('should map NEAR native token', () => {
       const result = adapter.mapAsset('near', 'NEAR')
-      expect(result).toBe('near:mainnet:native')
+      expect(result).toBe('nep141:wrap.near')
     })
 
     it('should map wNEAR', () => {
       const result = adapter.mapAsset('near', 'wNEAR')
-      expect(result).toBe('near:mainnet:wrap.near')
+      expect(result).toBe('nep141:wrap.near')
     })
 
     it('should map ETH', () => {
       const result = adapter.mapAsset('ethereum', 'ETH')
-      expect(result).toBe('eth:1:native')
+      expect(result).toBe('nep141:eth.omft.near')
     })
 
     it('should map SOL', () => {
       const result = adapter.mapAsset('solana', 'SOL')
-      expect(result).toBe('sol:mainnet:native')
+      expect(result).toBe('nep141:sol.omft.near')
     })
 
     it('should map ZEC', () => {
       const result = adapter.mapAsset('zcash', 'ZEC')
-      expect(result).toBe('zcash:mainnet:native')
+      expect(result).toBe('nep141:zec.omft.near')
     })
 
     it('should throw for unknown asset', () => {
@@ -158,13 +158,14 @@ describe('NEARIntentsAdapter', () => {
   // ─── mapChainType ────────────────────────────────────────────────────────────
 
   describe('mapChainType', () => {
-    it('should map chain IDs to chain types', () => {
+    it('should map chain IDs to blockchain types', () => {
+      // mapChainType now returns blockchain types for address format validation
       expect(adapter.mapChainType('near')).toBe('near')
-      expect(adapter.mapChainType('ethereum')).toBe('eth')
-      expect(adapter.mapChainType('solana')).toBe('sol')
+      expect(adapter.mapChainType('ethereum')).toBe('evm')
+      expect(adapter.mapChainType('solana')).toBe('solana')
       expect(adapter.mapChainType('zcash')).toBe('zcash')
-      expect(adapter.mapChainType('polygon')).toBe('polygon')
-      expect(adapter.mapChainType('arbitrum')).toBe('arb')
+      expect(adapter.mapChainType('polygon')).toBe('evm')
+      expect(adapter.mapChainType('arbitrum')).toBe('evm')
     })
 
     it('should throw for unknown chain', () => {
@@ -172,8 +173,8 @@ describe('NEARIntentsAdapter', () => {
         .toThrow(ValidationError)
     })
 
-    it('should map bitcoin to btc', () => {
-      expect(adapter.mapChainType('bitcoin')).toBe('btc')
+    it('should map bitcoin to bitcoin', () => {
+      expect(adapter.mapChainType('bitcoin')).toBe('bitcoin')
     })
   })
 
@@ -199,8 +200,9 @@ describe('NEARIntentsAdapter', () => {
       expect(prepared.stealthAddress?.ephemeralPublicKey).toMatch(/^0x/)
       expect(prepared.sharedSecret).toMatch(/^0x/)
       expect(prepared.quoteRequest.swapType).toBe(OneClickSwapType.EXACT_INPUT)
-      expect(prepared.quoteRequest.originAsset).toBe('near:mainnet:native')
-      expect(prepared.quoteRequest.destinationAsset).toBe('eth:1:native')
+      // NEP-141 format asset IDs
+      expect(prepared.quoteRequest.originAsset).toBe('nep141:wrap.near')
+      expect(prepared.quoteRequest.destinationAsset).toBe('nep141:eth.omft.near')
     })
 
     it('should accept encoded stealth meta-address string', async () => {

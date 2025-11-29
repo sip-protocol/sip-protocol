@@ -80,14 +80,16 @@ describe('OneClickClient', () => {
   describe('quote', () => {
     const validQuoteRequest = {
       swapType: OneClickSwapType.EXACT_INPUT,
-      originAsset: 'near:mainnet:wrap.near',
-      destinationAsset: 'eth:1:native',
+      originAsset: 'nep141:wrap.near',
+      destinationAsset: 'nep141:eth.omft.near',
       amount: '1000000000000000000000000',
       refundTo: 'user.near',
       recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f',
-      depositType: 'near',
-      refundType: 'near',
-      recipientType: 'eth',
+      depositType: 'ORIGIN_CHAIN',
+      refundType: 'ORIGIN_CHAIN',
+      recipientType: 'DESTINATION_CHAIN',
+      slippageTolerance: 100,
+      deadline: '2024-12-01T00:00:00.000Z',
     }
 
     it('should request a quote with valid parameters', async () => {
@@ -163,14 +165,16 @@ describe('OneClickClient', () => {
 
       await client.dryQuote({
         swapType: OneClickSwapType.EXACT_INPUT,
-        originAsset: 'near:mainnet:wrap.near',
-        destinationAsset: 'eth:1:native',
+        originAsset: 'nep141:wrap.near',
+        destinationAsset: 'nep141:eth.omft.near',
         amount: '1000',
         refundTo: 'user.near',
         recipient: '0x...',
-        depositType: 'near',
-        refundType: 'near',
-        recipientType: 'eth',
+        depositType: 'ORIGIN_CHAIN',
+        refundType: 'ORIGIN_CHAIN',
+        recipientType: 'DESTINATION_CHAIN',
+        slippageTolerance: 100,
+        deadline: '2024-12-01T00:00:00.000Z',
       })
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -280,14 +284,16 @@ describe('OneClickClient', () => {
 
       await expect(client.quote({
         swapType: OneClickSwapType.EXACT_INPUT,
-        originAsset: 'near:mainnet:wrap.near',
-        destinationAsset: 'eth:1:native',
+        originAsset: 'nep141:wrap.near',
+        destinationAsset: 'nep141:eth.omft.near',
         amount: '1000000000000000000000000000000', // huge amount
         refundTo: 'user.near',
         recipient: '0x...',
-        depositType: 'near',
-        refundType: 'near',
-        recipientType: 'eth',
+        depositType: 'ORIGIN_CHAIN',
+        refundType: 'ORIGIN_CHAIN',
+        recipientType: 'DESTINATION_CHAIN',
+        slippageTolerance: 100,
+        deadline: '2024-12-01T00:00:00.000Z',
       })).rejects.toThrow(NetworkError)
     })
 

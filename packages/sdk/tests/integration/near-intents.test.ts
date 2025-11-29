@@ -27,23 +27,23 @@ describe('NEAR Intents Integration', () => {
   // ─── Asset Mapping Tests ─────────────────────────────────────────────────────
 
   describe('Asset Mapping', () => {
-    it('should map all supported native tokens', () => {
-      // These should all succeed
-      expect(adapter.mapAsset('near', 'NEAR')).toBe('near:mainnet:native')
-      expect(adapter.mapAsset('near', 'wNEAR')).toBe('near:mainnet:wrap.near')
-      expect(adapter.mapAsset('ethereum', 'ETH')).toBe('eth:1:native')
-      expect(adapter.mapAsset('solana', 'SOL')).toBe('sol:mainnet:native')
-      expect(adapter.mapAsset('zcash', 'ZEC')).toBe('zcash:mainnet:native')
-      expect(adapter.mapAsset('arbitrum', 'ETH')).toBe('arb:42161:native')
-      expect(adapter.mapAsset('base', 'ETH')).toBe('base:8453:native')
-      expect(adapter.mapAsset('polygon', 'MATIC')).toBe('polygon:137:native')
+    it('should map all supported native tokens (NEP-141 format)', () => {
+      // These should all succeed with NEP-141 format
+      expect(adapter.mapAsset('near', 'NEAR')).toBe('nep141:wrap.near')
+      expect(adapter.mapAsset('near', 'wNEAR')).toBe('nep141:wrap.near')
+      expect(adapter.mapAsset('ethereum', 'ETH')).toBe('nep141:eth.omft.near')
+      expect(adapter.mapAsset('solana', 'SOL')).toBe('nep141:sol.omft.near')
+      expect(adapter.mapAsset('zcash', 'ZEC')).toBe('nep141:zec.omft.near')
+      expect(adapter.mapAsset('arbitrum', 'ETH')).toBe('nep141:arb.omft.near')
+      expect(adapter.mapAsset('base', 'ETH')).toBe('nep141:base.omft.near')
+      expect(adapter.mapAsset('polygon', 'MATIC')).toBe('nep141:matic.omft.near')
     })
 
     it('should map common stablecoins', () => {
       expect(adapter.mapAsset('ethereum', 'USDC'))
-        .toBe('eth:1:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48')
+        .toBe('nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1')
       expect(adapter.mapAsset('ethereum', 'USDT'))
-        .toBe('eth:1:0xdac17f958d2ee523a2206206994597c13d831ec7')
+        .toBe('nep141:usdt.tether-token.near')
     })
   })
 
@@ -84,13 +84,13 @@ describe('NEAR Intents Integration', () => {
 
       const prepared = await adapter.prepareSwap(request, metaAddress)
 
-      // Verify quote request structure
-      expect(prepared.quoteRequest.originAsset).toBe('near:mainnet:native')
-      expect(prepared.quoteRequest.destinationAsset).toBe('eth:1:native')
+      // Verify quote request structure (NEP-141 format)
+      expect(prepared.quoteRequest.originAsset).toBe('nep141:wrap.near')
+      expect(prepared.quoteRequest.destinationAsset).toBe('nep141:eth.omft.near')
       expect(prepared.quoteRequest.amount).toBe('100000000000000000000000')
       expect(prepared.quoteRequest.recipient).toBe(prepared.stealthAddress?.address)
-      expect(prepared.quoteRequest.depositType).toBe('near')
-      expect(prepared.quoteRequest.recipientType).toBe('eth')
+      expect(prepared.quoteRequest.depositType).toBe('ORIGIN_CHAIN')
+      expect(prepared.quoteRequest.recipientType).toBe('DESTINATION_CHAIN')
       expect(prepared.quoteRequest.slippageTolerance).toBeDefined()
       expect(prepared.quoteRequest.deadline).toBeDefined()
     })

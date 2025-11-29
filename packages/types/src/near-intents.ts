@@ -19,9 +19,42 @@
 export type DefuseAssetId = string
 
 /**
- * Chain identifier for deposit/refund/recipient types
+ * Chain identifier for blockchain types (used internally)
  */
 export type ChainType = 'near' | 'eth' | 'sol' | 'btc' | 'zcash' | 'arb' | 'base' | 'polygon' | string
+
+/**
+ * Deposit type for quote requests
+ * Determines where the user deposits tokens
+ */
+export enum OneClickDepositType {
+  /** Deposit to address on origin chain (e.g., Solana address for SOL) */
+  ORIGIN_CHAIN = 'ORIGIN_CHAIN',
+  /** Deposit to NEAR Intents account */
+  INTENTS = 'INTENTS',
+}
+
+/**
+ * Refund type for quote requests
+ * Determines where refunds are sent on failure
+ */
+export enum OneClickRefundType {
+  /** Refund to origin chain address */
+  ORIGIN_CHAIN = 'ORIGIN_CHAIN',
+  /** Refund to NEAR Intents account */
+  INTENTS = 'INTENTS',
+}
+
+/**
+ * Recipient type for quote requests
+ * Determines where output tokens are sent
+ */
+export enum OneClickRecipientType {
+  /** Send to address on destination chain (e.g., Ethereum address for ETH) */
+  DESTINATION_CHAIN = 'DESTINATION_CHAIN',
+  /** Send to NEAR Intents account */
+  INTENTS = 'INTENTS',
+}
 
 // ─── 1Click API Types ──────────────────────────────────────────────────────────
 
@@ -105,26 +138,26 @@ export interface OneClickQuoteRequest {
   dry?: boolean
   /** How to calculate the swap */
   swapType: OneClickSwapType
-  /** Slippage tolerance in basis points (100 = 1%) */
-  slippageTolerance?: number
-  /** Source asset identifier */
+  /** Slippage tolerance in basis points (100 = 1%), required */
+  slippageTolerance: number
+  /** Source asset identifier (NEP-141 format) */
   originAsset: DefuseAssetId
-  /** Destination asset identifier */
+  /** Destination asset identifier (NEP-141 format) */
   destinationAsset: DefuseAssetId
   /** Amount in smallest units (input or output depending on swapType) */
   amount: string
-  /** Address for refunds on failed swaps */
+  /** Address for refunds on failed swaps (format must match refundType) */
   refundTo: string
-  /** Destination address for output tokens */
+  /** Destination address for output tokens (format must match recipientType) */
   recipient: string
-  /** Source chain identifier */
-  depositType: ChainType
-  /** Refund chain identifier */
-  refundType: ChainType
-  /** Destination chain identifier */
-  recipientType: ChainType
-  /** ISO timestamp for automatic refund trigger */
-  deadline?: string
+  /** Where user deposits tokens */
+  depositType: OneClickDepositType | string
+  /** Where refunds go on failure */
+  refundType: OneClickRefundType | string
+  /** Where output tokens are sent */
+  recipientType: OneClickRecipientType | string
+  /** ISO 8601 timestamp for automatic refund trigger (required) */
+  deadline: string
   /** Deposit mode */
   depositMode?: OneClickDepositMode
   /** Optional app-level fees */
