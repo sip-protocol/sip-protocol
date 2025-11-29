@@ -6,7 +6,7 @@
 
 # Interface: NoirProviderConfig
 
-Defined in: [packages/sdk/src/proofs/noir.ts:39](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L39)
+Defined in: [packages/sdk/src/proofs/noir.ts:53](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L53)
 
 Noir Proof Provider Configuration
 
@@ -16,7 +16,7 @@ Noir Proof Provider Configuration
 
 > `optional` **artifactsPath**: `string`
 
-Defined in: [packages/sdk/src/proofs/noir.ts:44](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L44)
+Defined in: [packages/sdk/src/proofs/noir.ts:58](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L58)
 
 Path to compiled circuit artifacts
 If not provided, uses bundled artifacts
@@ -27,14 +27,14 @@ If not provided, uses bundled artifacts
 
 > `optional` **backend**: `"barretenberg"`
 
-Defined in: [packages/sdk/src/proofs/noir.ts:50](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L50)
+Defined in: [packages/sdk/src/proofs/noir.ts:64](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L64)
 
 Backend to use for proof generation
 
 #### Default
 
 ```ts
-'barretenberg' (UltraPlonk)
+'barretenberg' (UltraHonk)
 ```
 
 ***
@@ -43,7 +43,7 @@ Backend to use for proof generation
 
 > `optional` **verbose**: `boolean`
 
-Defined in: [packages/sdk/src/proofs/noir.ts:56](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L56)
+Defined in: [packages/sdk/src/proofs/noir.ts:70](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L70)
 
 Enable verbose logging for debugging
 
@@ -52,3 +52,14 @@ Enable verbose logging for debugging
 ```ts
 false
 ```
+
+***
+
+### oraclePublicKey?
+
+> `optional` **oraclePublicKey**: `PublicKeyCoordinates`
+
+Defined in: [packages/sdk/src/proofs/noir.ts:76](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L76)
+
+Oracle public key for verifying attestations in fulfillment proofs
+Required for production use. If not provided, proofs will use placeholder keys.

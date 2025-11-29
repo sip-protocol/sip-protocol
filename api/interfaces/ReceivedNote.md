@@ -6,7 +6,7 @@
 
 # Interface: ReceivedNote
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:102](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L102)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:102](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L102)
 
 Received note information
 
@@ -16,7 +16,7 @@ Received note information
 
 > **txid**: `string`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:104](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L104)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:104](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L104)
 
 Transaction ID
 
@@ -26,7 +26,7 @@ Transaction ID
 
 > **amount**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:106](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L106)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:106](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L106)
 
 Amount received
 
@@ -36,7 +36,7 @@ Amount received
 
 > `optional` **memo**: `string`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:108](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L108)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:108](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L108)
 
 Memo content (if any)
 
@@ -46,7 +46,7 @@ Memo content (if any)
 
 > **confirmations**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:110](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L110)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:110](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L110)
 
 Number of confirmations
 
@@ -56,7 +56,7 @@ Number of confirmations
 
 > **spendable**: `boolean`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:112](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L112)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:112](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L112)
 
 Whether spendable
 
@@ -66,7 +66,7 @@ Whether spendable
 
 > **pool**: `"sapling"` \| `"orchard"`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:114](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L114)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:114](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L114)
 
 Pool type (sapling/orchard)
 
@@ -76,7 +76,7 @@ Pool type (sapling/orchard)
 
 > **address**: `string`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:116](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L116)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:116](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L116)
 
 Receiving address
 
@@ -86,6 +86,6 @@ Receiving address
 
 > **isChange**: `boolean`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:118](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L118)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:118](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L118)
 
 Whether this is change

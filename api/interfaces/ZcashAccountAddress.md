@@ -6,7 +6,7 @@
 
 # Interface: ZcashAccountAddress
 
-Defined in: packages/types/dist/index.d.ts:1061
+Defined in: packages/types/dist/index.d.ts:1091
 
 Address for account result
 
@@ -16,7 +16,7 @@ Address for account result
 
 > **account**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1063
+Defined in: packages/types/dist/index.d.ts:1093
 
 Account number
 
@@ -26,7 +26,7 @@ Account number
 
 > **diversifier\_index**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1065
+Defined in: packages/types/dist/index.d.ts:1095
 
 Diversifier index used
 
@@ -36,7 +36,7 @@ Diversifier index used
 
 > **receiver\_types**: [`ZcashReceiverType`](../type-aliases/ZcashReceiverType.md)[]
 
-Defined in: packages/types/dist/index.d.ts:1067
+Defined in: packages/types/dist/index.d.ts:1097
 
 Receiver types included
 
@@ -46,6 +46,6 @@ Receiver types included
 
 > **address**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1069
+Defined in: packages/types/dist/index.d.ts:1099
 
 The unified address

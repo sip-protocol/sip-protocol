@@ -6,7 +6,7 @@
 
 # Interface: ZcashBlockchainInfo
 
-Defined in: packages/types/dist/index.d.ts:1305
+Defined in: packages/types/dist/index.d.ts:1337
 
 Blockchain information
 
@@ -16,7 +16,7 @@ Blockchain information
 
 > **chain**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1307
+Defined in: packages/types/dist/index.d.ts:1339
 
 Current network (main, test, regtest)
 
@@ -26,7 +26,7 @@ Current network (main, test, regtest)
 
 > **blocks**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1309
+Defined in: packages/types/dist/index.d.ts:1341
 
 Current block count
 
@@ -36,7 +36,7 @@ Current block count
 
 > **headers**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1311
+Defined in: packages/types/dist/index.d.ts:1343
 
 Current header count
 
@@ -46,7 +46,7 @@ Current header count
 
 > **bestblockhash**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1313
+Defined in: packages/types/dist/index.d.ts:1345
 
 Best block hash
 
@@ -56,7 +56,7 @@ Best block hash
 
 > **difficulty**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1315
+Defined in: packages/types/dist/index.d.ts:1347
 
 Current difficulty
 
@@ -66,7 +66,7 @@ Current difficulty
 
 > **verificationprogress**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1317
+Defined in: packages/types/dist/index.d.ts:1349
 
 Verification progress
 
@@ -76,7 +76,7 @@ Verification progress
 
 > **chainwork**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1319
+Defined in: packages/types/dist/index.d.ts:1351
 
 Chain work
 
@@ -86,7 +86,7 @@ Chain work
 
 > **initialblockdownload**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1321
+Defined in: packages/types/dist/index.d.ts:1353
 
 Whether initial block download is complete
 
@@ -96,7 +96,7 @@ Whether initial block download is complete
 
 > **size\_on\_disk**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1323
+Defined in: packages/types/dist/index.d.ts:1355
 
 Size on disk in bytes
 
@@ -106,7 +106,7 @@ Size on disk in bytes
 
 > **pruned**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1325
+Defined in: packages/types/dist/index.d.ts:1357
 
 Whether pruned
 
@@ -116,7 +116,7 @@ Whether pruned
 
 > **consensus**: `object`
 
-Defined in: packages/types/dist/index.d.ts:1327
+Defined in: packages/types/dist/index.d.ts:1359
 
 Consensus parameters
 

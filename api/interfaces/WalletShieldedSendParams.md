@@ -6,7 +6,7 @@
 
 # Interface: WalletShieldedSendParams
 
-Defined in: packages/types/dist/index.d.ts:1591
+Defined in: packages/types/dist/index.d.ts:2420
 
 Parameters for shielded send operations
 
@@ -16,7 +16,7 @@ Parameters for shielded send operations
 
 > **to**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1593
+Defined in: packages/types/dist/index.d.ts:2422
 
 Recipient address or stealth address
 
@@ -26,7 +26,7 @@ Recipient address or stealth address
 
 > **amount**: `bigint`
 
-Defined in: packages/types/dist/index.d.ts:1595
+Defined in: packages/types/dist/index.d.ts:2424
 
 Amount in smallest unit
 
@@ -36,7 +36,7 @@ Amount in smallest unit
 
 > **asset**: [`Asset`](Asset.md)
 
-Defined in: packages/types/dist/index.d.ts:1597
+Defined in: packages/types/dist/index.d.ts:2426
 
 Asset to send
 
@@ -46,7 +46,7 @@ Asset to send
 
 > `optional` **memo**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1599
+Defined in: packages/types/dist/index.d.ts:2428
 
 Optional memo (may be encrypted)
 
@@ -56,6 +56,6 @@ Optional memo (may be encrypted)
 
 > `optional` **fullPrivacy**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1601
+Defined in: packages/types/dist/index.d.ts:2430
 
 Use full privacy (shielded pools if available)

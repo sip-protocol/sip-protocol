@@ -8,7 +8,7 @@
 
 > `const` **ZcashErrorCode**: `object`
 
-Defined in: packages/types/dist/index.d.ts:1273
+Defined in: packages/types/dist/index.d.ts:1305
 
 Standard Zcash RPC error codes
 

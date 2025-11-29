@@ -8,7 +8,7 @@
 
 > `const` **WalletErrorCode**: `object`
 
-Defined in: packages/types/dist/index.d.ts:1727
+Defined in: packages/types/dist/index.d.ts:2556
 
 Wallet error codes
 
@@ -81,6 +81,10 @@ Wallet error codes
 ### SHIELDED\_NOT\_SUPPORTED
 
 > `readonly` **SHIELDED\_NOT\_SUPPORTED**: `"WALLET_SHIELDED_NOT_SUPPORTED"`
+
+### UNSUPPORTED\_OPERATION
+
+> `readonly` **UNSUPPORTED\_OPERATION**: `"WALLET_UNSUPPORTED_OPERATION"`
 
 ### UNKNOWN
 

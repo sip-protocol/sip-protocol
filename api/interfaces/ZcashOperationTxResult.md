@@ -6,7 +6,7 @@
 
 # Interface: ZcashOperationTxResult
 
-Defined in: packages/types/dist/index.d.ts:1161
+Defined in: packages/types/dist/index.d.ts:1191
 
 Operation result for successful transactions
 
@@ -16,6 +16,16 @@ Operation result for successful transactions
 
 > **txid**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1163
+Defined in: packages/types/dist/index.d.ts:1193
 
 Transaction ID
+
+***
+
+### fee?
+
+> `optional` **fee**: `number`
+
+Defined in: packages/types/dist/index.d.ts:1195
+
+Fee paid in ZEC (available in zcashd 5.0+)

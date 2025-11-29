@@ -6,7 +6,7 @@
 
 # Interface: OneClickQuoteResponse
 
-Defined in: packages/types/dist/index.d.ts:734
+Defined in: packages/types/dist/index.d.ts:764
 
 Quote response from POST /v0/quote
 
@@ -16,7 +16,7 @@ Quote response from POST /v0/quote
 
 > **quoteId**: `string`
 
-Defined in: packages/types/dist/index.d.ts:736
+Defined in: packages/types/dist/index.d.ts:766
 
 Unique quote identifier
 
@@ -26,7 +26,7 @@ Unique quote identifier
 
 > **depositAddress**: `string`
 
-Defined in: packages/types/dist/index.d.ts:738
+Defined in: packages/types/dist/index.d.ts:768
 
 Address to deposit input tokens
 
@@ -36,7 +36,7 @@ Address to deposit input tokens
 
 > **amountIn**: `string`
 
-Defined in: packages/types/dist/index.d.ts:740
+Defined in: packages/types/dist/index.d.ts:770
 
 Required input amount in smallest units
 
@@ -46,7 +46,7 @@ Required input amount in smallest units
 
 > **amountInFormatted**: `string`
 
-Defined in: packages/types/dist/index.d.ts:742
+Defined in: packages/types/dist/index.d.ts:772
 
 Human-readable input amount
 
@@ -56,7 +56,7 @@ Human-readable input amount
 
 > **amountOut**: `string`
 
-Defined in: packages/types/dist/index.d.ts:744
+Defined in: packages/types/dist/index.d.ts:774
 
 Expected output amount in smallest units
 
@@ -66,7 +66,7 @@ Expected output amount in smallest units
 
 > **amountOutFormatted**: `string`
 
-Defined in: packages/types/dist/index.d.ts:746
+Defined in: packages/types/dist/index.d.ts:776
 
 Human-readable output amount
 
@@ -76,7 +76,7 @@ Human-readable output amount
 
 > `optional` **amountOutUsd**: `string`
 
-Defined in: packages/types/dist/index.d.ts:748
+Defined in: packages/types/dist/index.d.ts:778
 
 Estimated USD value (display only)
 
@@ -86,7 +86,7 @@ Estimated USD value (display only)
 
 > **deadline**: `string`
 
-Defined in: packages/types/dist/index.d.ts:750
+Defined in: packages/types/dist/index.d.ts:780
 
 Quote expiration timestamp
 
@@ -96,7 +96,7 @@ Quote expiration timestamp
 
 > **timeEstimate**: `number`
 
-Defined in: packages/types/dist/index.d.ts:752
+Defined in: packages/types/dist/index.d.ts:782
 
 Estimated completion time in seconds
 
@@ -106,7 +106,7 @@ Estimated completion time in seconds
 
 > **signature**: `string`
 
-Defined in: packages/types/dist/index.d.ts:754
+Defined in: packages/types/dist/index.d.ts:784
 
 Quote signature
 
@@ -116,6 +116,6 @@ Quote signature
 
 > `optional` **request**: [`OneClickQuoteRequest`](OneClickQuoteRequest.md)
 
-Defined in: packages/types/dist/index.d.ts:756
+Defined in: packages/types/dist/index.d.ts:786
 
 Original request echo

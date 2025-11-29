@@ -6,7 +6,7 @@
 
 # Interface: ZcashNewAccount
 
-Defined in: packages/types/dist/index.d.ts:1054
+Defined in: packages/types/dist/index.d.ts:1084
 
 New account creation result
 
@@ -16,6 +16,6 @@ New account creation result
 
 > **account**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1056
+Defined in: packages/types/dist/index.d.ts:1086
 
 The account number

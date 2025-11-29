@@ -6,7 +6,7 @@
 
 # Interface: SolanaSignature
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:162](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L162)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:162](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L162)
 
 Extended signature with Solana-specific data
 
@@ -16,7 +16,7 @@ Extended signature with Solana-specific data
 
 > **signature**: `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:164](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L164)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:164](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L164)
 
 Raw signature bytes
 
@@ -26,7 +26,7 @@ Raw signature bytes
 
 > **publicKey**: `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:166](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L166)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:166](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L166)
 
 Solana public key (base58)
 
@@ -36,6 +36,6 @@ Solana public key (base58)
 
 > `optional` **base58Signature**: `string`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:168](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L168)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:168](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L168)
 
 Base58 encoded signature (Solana standard)

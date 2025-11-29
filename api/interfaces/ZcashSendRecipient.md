@@ -6,7 +6,7 @@
 
 # Interface: ZcashSendRecipient
 
-Defined in: packages/types/dist/index.d.ts:1127
+Defined in: packages/types/dist/index.d.ts:1157
 
 Recipient for z_sendmany
 
@@ -16,7 +16,7 @@ Recipient for z_sendmany
 
 > **address**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1129
+Defined in: packages/types/dist/index.d.ts:1159
 
 Recipient address (t-addr, z-addr, or unified)
 
@@ -26,7 +26,7 @@ Recipient address (t-addr, z-addr, or unified)
 
 > **amount**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1131
+Defined in: packages/types/dist/index.d.ts:1161
 
 Amount in ZEC
 
@@ -36,6 +36,6 @@ Amount in ZEC
 
 > `optional` **memo**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1133
+Defined in: packages/types/dist/index.d.ts:1163
 
 Optional memo (hex, for shielded recipients only)

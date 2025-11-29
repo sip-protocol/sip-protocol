@@ -6,7 +6,7 @@
 
 # Interface: TransactionData
 
-Defined in: [packages/sdk/src/privacy.ts:197](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L197)
+Defined in: [packages/sdk/src/privacy.ts:220](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L220)
 
 Transaction data that can be encrypted for viewing
 
@@ -16,7 +16,7 @@ Transaction data that can be encrypted for viewing
 
 > **sender**: `string`
 
-Defined in: [packages/sdk/src/privacy.ts:198](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L198)
+Defined in: [packages/sdk/src/privacy.ts:221](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L221)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/sdk/src/privacy.ts:198](https://github.com/sip-protocol/si
 
 > **recipient**: `string`
 
-Defined in: [packages/sdk/src/privacy.ts:199](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L199)
+Defined in: [packages/sdk/src/privacy.ts:222](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L222)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/sdk/src/privacy.ts:199](https://github.com/sip-protocol/si
 
 > **amount**: `string`
 
-Defined in: [packages/sdk/src/privacy.ts:200](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L200)
+Defined in: [packages/sdk/src/privacy.ts:223](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L223)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/sdk/src/privacy.ts:200](https://github.com/sip-protocol/si
 
 > **timestamp**: `number`
 
-Defined in: [packages/sdk/src/privacy.ts:201](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L201)
+Defined in: [packages/sdk/src/privacy.ts:224](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L224)

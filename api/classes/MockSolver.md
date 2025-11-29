@@ -6,7 +6,7 @@
 
 # Class: MockSolver
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:62](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L62)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:62](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L62)
 
 Mock implementation of SIPSolver for testing
 
@@ -39,7 +39,7 @@ if (await solver.canHandle(visibleIntent)) {
 
 > **new MockSolver**(`config`): `MockSolver`
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:72](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L72)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:72](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L72)
 
 #### Parameters
 
@@ -57,7 +57,7 @@ Defined in: [packages/sdk/src/solver/mock-solver.ts:72](https://github.com/sip-p
 
 > `readonly` **info**: [`Solver`](../interfaces/Solver.md)
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:63](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L63)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:63](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L63)
 
 Solver information
 
@@ -71,7 +71,7 @@ Solver information
 
 > `readonly` **capabilities**: [`SolverCapabilities`](../interfaces/SolverCapabilities.md)
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:64](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L64)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:64](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L64)
 
 Solver capabilities
 
@@ -85,7 +85,7 @@ Solver capabilities
 
 > **canHandle**(`intent`): `Promise`\<`boolean`\>
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:116](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L116)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:116](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L116)
 
 Check if this solver can handle the given intent
 
@@ -111,7 +111,7 @@ Privacy-preserving: Only accesses visible fields
 
 > **generateQuote**(`intent`): `Promise`\<[`SolverQuote`](../interfaces/SolverQuote.md) \| `null`\>
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:144](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L144)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:144](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L144)
 
 Generate a quote for the intent
 
@@ -140,7 +140,7 @@ Privacy-preserving:
 
 > **fulfill**(`intent`, `quote`): `Promise`\<[`FulfillmentResult`](../interfaces/FulfillmentResult.md)\>
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:192](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L192)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:192](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L192)
 
 Fulfill an intent with the given quote
 
@@ -178,7 +178,7 @@ Privacy preserved:
 
 > **cancel**(`intentId`): `Promise`\<`boolean`\>
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:244](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L244)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:244](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L244)
 
 Cancel a pending fulfillment
 
@@ -202,7 +202,7 @@ Cancel a pending fulfillment
 
 > **getStatus**(`intentId`): `Promise`\<[`FulfillmentStatus`](../interfaces/FulfillmentStatus.md) \| `null`\>
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:257](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L257)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:257](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L257)
 
 Get fulfillment status
 
@@ -226,7 +226,7 @@ Get fulfillment status
 
 > **reset**(): `void`
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:264](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L264)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:264](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L264)
 
 Reset solver state (for testing)
 

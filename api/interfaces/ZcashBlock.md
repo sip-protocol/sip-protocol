@@ -6,7 +6,7 @@
 
 # Interface: ZcashBlock
 
-Defined in: packages/types/dist/index.d.ts:1229
+Defined in: packages/types/dist/index.d.ts:1261
 
 Full block data
 
@@ -20,7 +20,7 @@ Full block data
 
 > **hash**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1200
+Defined in: packages/types/dist/index.d.ts:1232
 
 Block hash
 
@@ -34,7 +34,7 @@ Block hash
 
 > **confirmations**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1202
+Defined in: packages/types/dist/index.d.ts:1234
 
 Number of confirmations
 
@@ -48,7 +48,7 @@ Number of confirmations
 
 > **height**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1204
+Defined in: packages/types/dist/index.d.ts:1236
 
 Block height
 
@@ -62,7 +62,7 @@ Block height
 
 > **version**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1206
+Defined in: packages/types/dist/index.d.ts:1238
 
 Block version
 
@@ -76,7 +76,7 @@ Block version
 
 > **merkleroot**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1208
+Defined in: packages/types/dist/index.d.ts:1240
 
 Merkle root
 
@@ -90,7 +90,7 @@ Merkle root
 
 > **time**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1210
+Defined in: packages/types/dist/index.d.ts:1242
 
 Block time (Unix timestamp)
 
@@ -104,7 +104,7 @@ Block time (Unix timestamp)
 
 > **nonce**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1212
+Defined in: packages/types/dist/index.d.ts:1244
 
 Nonce
 
@@ -118,7 +118,7 @@ Nonce
 
 > **solution**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1214
+Defined in: packages/types/dist/index.d.ts:1246
 
 Solution
 
@@ -132,7 +132,7 @@ Solution
 
 > **bits**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1216
+Defined in: packages/types/dist/index.d.ts:1248
 
 Bits
 
@@ -146,7 +146,7 @@ Bits
 
 > **difficulty**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1218
+Defined in: packages/types/dist/index.d.ts:1250
 
 Difficulty
 
@@ -160,7 +160,7 @@ Difficulty
 
 > **chainwork**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1220
+Defined in: packages/types/dist/index.d.ts:1252
 
 Chain work
 
@@ -174,7 +174,7 @@ Chain work
 
 > `optional` **previousblockhash**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1222
+Defined in: packages/types/dist/index.d.ts:1254
 
 Previous block hash
 
@@ -188,7 +188,7 @@ Previous block hash
 
 > `optional` **nextblockhash**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1224
+Defined in: packages/types/dist/index.d.ts:1256
 
 Next block hash
 
@@ -202,7 +202,7 @@ Next block hash
 
 > **tx**: `string`[]
 
-Defined in: packages/types/dist/index.d.ts:1231
+Defined in: packages/types/dist/index.d.ts:1263
 
 Transaction IDs in the block
 
@@ -212,6 +212,6 @@ Transaction IDs in the block
 
 > **size**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1233
+Defined in: packages/types/dist/index.d.ts:1265
 
 Block size in bytes

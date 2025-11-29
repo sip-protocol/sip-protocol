@@ -8,7 +8,7 @@
 
 > **createMockSolver**(`config?`): [`MockSolver`](../classes/MockSolver.md)
 
-Defined in: [packages/sdk/src/solver/mock-solver.ts:276](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/solver/mock-solver.ts#L276)
+Defined in: [packages/sdk/src/solver/mock-solver.ts:276](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/solver/mock-solver.ts#L276)
 
 Create a mock solver with default configuration
 

@@ -8,7 +8,7 @@
 
 > **isValidHex**(`value`): `` value is `0x${string}` ``
 
-Defined in: [packages/sdk/src/validation.ts:65](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/validation.ts#L65)
+Defined in: [packages/sdk/src/validation.ts:65](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/validation.ts#L65)
 
 Check if a string is valid hex format (with 0x prefix)
 

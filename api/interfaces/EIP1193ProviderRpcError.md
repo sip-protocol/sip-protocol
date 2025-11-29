@@ -6,7 +6,7 @@
 
 # Interface: EIP1193ProviderRpcError
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:64](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L64)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:64](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L64)
 
 EIP-1193 Provider RPC error
 
@@ -20,7 +20,7 @@ EIP-1193 Provider RPC error
 
 > **code**: `number`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:65](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L65)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:65](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L65)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:65](https://github.com/si
 
 > `optional` **data**: `unknown`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:66](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L66)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:66](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L66)
 
 ***
 

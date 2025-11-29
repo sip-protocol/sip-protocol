@@ -6,7 +6,7 @@
 
 # Enumeration: ErrorCode
 
-Defined in: [packages/sdk/src/errors.ts:17](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L17)
+Defined in: [packages/sdk/src/errors.ts:17](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L17)
 
 Machine-readable error codes for programmatic error handling
 
@@ -16,7 +16,7 @@ Machine-readable error codes for programmatic error handling
 
 > **UNKNOWN**: `"SIP_1000"`
 
-Defined in: [packages/sdk/src/errors.ts:19](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L19)
+Defined in: [packages/sdk/src/errors.ts:19](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L19)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/sdk/src/errors.ts:19](https://github.com/sip-protocol/sip-
 
 > **INTERNAL**: `"SIP_1001"`
 
-Defined in: [packages/sdk/src/errors.ts:20](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L20)
+Defined in: [packages/sdk/src/errors.ts:20](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L20)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/sdk/src/errors.ts:20](https://github.com/sip-protocol/sip-
 
 > **NOT\_IMPLEMENTED**: `"SIP_1002"`
 
-Defined in: [packages/sdk/src/errors.ts:21](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L21)
+Defined in: [packages/sdk/src/errors.ts:21](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L21)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/sdk/src/errors.ts:21](https://github.com/sip-protocol/sip-
 
 > **VALIDATION\_FAILED**: `"SIP_2000"`
 
-Defined in: [packages/sdk/src/errors.ts:24](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L24)
+Defined in: [packages/sdk/src/errors.ts:24](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L24)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [packages/sdk/src/errors.ts:24](https://github.com/sip-protocol/sip-
 
 > **INVALID\_INPUT**: `"SIP_2001"`
 
-Defined in: [packages/sdk/src/errors.ts:25](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L25)
+Defined in: [packages/sdk/src/errors.ts:25](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L25)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: [packages/sdk/src/errors.ts:25](https://github.com/sip-protocol/sip-
 
 > **INVALID\_CHAIN**: `"SIP_2002"`
 
-Defined in: [packages/sdk/src/errors.ts:26](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L26)
+Defined in: [packages/sdk/src/errors.ts:26](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L26)
 
 ***
 
@@ -64,7 +64,7 @@ Defined in: [packages/sdk/src/errors.ts:26](https://github.com/sip-protocol/sip-
 
 > **INVALID\_PRIVACY\_LEVEL**: `"SIP_2003"`
 
-Defined in: [packages/sdk/src/errors.ts:27](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L27)
+Defined in: [packages/sdk/src/errors.ts:27](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L27)
 
 ***
 
@@ -72,7 +72,7 @@ Defined in: [packages/sdk/src/errors.ts:27](https://github.com/sip-protocol/sip-
 
 > **INVALID\_AMOUNT**: `"SIP_2004"`
 
-Defined in: [packages/sdk/src/errors.ts:28](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L28)
+Defined in: [packages/sdk/src/errors.ts:28](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L28)
 
 ***
 
@@ -80,7 +80,7 @@ Defined in: [packages/sdk/src/errors.ts:28](https://github.com/sip-protocol/sip-
 
 > **INVALID\_HEX**: `"SIP_2005"`
 
-Defined in: [packages/sdk/src/errors.ts:29](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L29)
+Defined in: [packages/sdk/src/errors.ts:29](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L29)
 
 ***
 
@@ -88,7 +88,7 @@ Defined in: [packages/sdk/src/errors.ts:29](https://github.com/sip-protocol/sip-
 
 > **INVALID\_KEY**: `"SIP_2006"`
 
-Defined in: [packages/sdk/src/errors.ts:30](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L30)
+Defined in: [packages/sdk/src/errors.ts:30](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L30)
 
 ***
 
@@ -96,7 +96,7 @@ Defined in: [packages/sdk/src/errors.ts:30](https://github.com/sip-protocol/sip-
 
 > **INVALID\_ADDRESS**: `"SIP_2007"`
 
-Defined in: [packages/sdk/src/errors.ts:31](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L31)
+Defined in: [packages/sdk/src/errors.ts:31](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L31)
 
 ***
 
@@ -104,7 +104,7 @@ Defined in: [packages/sdk/src/errors.ts:31](https://github.com/sip-protocol/sip-
 
 > **MISSING\_REQUIRED**: `"SIP_2008"`
 
-Defined in: [packages/sdk/src/errors.ts:32](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L32)
+Defined in: [packages/sdk/src/errors.ts:32](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L32)
 
 ***
 
@@ -112,7 +112,7 @@ Defined in: [packages/sdk/src/errors.ts:32](https://github.com/sip-protocol/sip-
 
 > **OUT\_OF\_RANGE**: `"SIP_2009"`
 
-Defined in: [packages/sdk/src/errors.ts:33](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L33)
+Defined in: [packages/sdk/src/errors.ts:33](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L33)
 
 ***
 
@@ -120,7 +120,7 @@ Defined in: [packages/sdk/src/errors.ts:33](https://github.com/sip-protocol/sip-
 
 > **CRYPTO\_FAILED**: `"SIP_3000"`
 
-Defined in: [packages/sdk/src/errors.ts:36](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L36)
+Defined in: [packages/sdk/src/errors.ts:36](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L36)
 
 ***
 
@@ -128,7 +128,7 @@ Defined in: [packages/sdk/src/errors.ts:36](https://github.com/sip-protocol/sip-
 
 > **ENCRYPTION\_FAILED**: `"SIP_3001"`
 
-Defined in: [packages/sdk/src/errors.ts:37](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L37)
+Defined in: [packages/sdk/src/errors.ts:37](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L37)
 
 ***
 
@@ -136,7 +136,7 @@ Defined in: [packages/sdk/src/errors.ts:37](https://github.com/sip-protocol/sip-
 
 > **DECRYPTION\_FAILED**: `"SIP_3002"`
 
-Defined in: [packages/sdk/src/errors.ts:38](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L38)
+Defined in: [packages/sdk/src/errors.ts:38](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L38)
 
 ***
 
@@ -144,7 +144,7 @@ Defined in: [packages/sdk/src/errors.ts:38](https://github.com/sip-protocol/sip-
 
 > **KEY\_DERIVATION\_FAILED**: `"SIP_3003"`
 
-Defined in: [packages/sdk/src/errors.ts:39](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L39)
+Defined in: [packages/sdk/src/errors.ts:39](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L39)
 
 ***
 
@@ -152,7 +152,7 @@ Defined in: [packages/sdk/src/errors.ts:39](https://github.com/sip-protocol/sip-
 
 > **COMMITMENT\_FAILED**: `"SIP_3004"`
 
-Defined in: [packages/sdk/src/errors.ts:40](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L40)
+Defined in: [packages/sdk/src/errors.ts:40](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L40)
 
 ***
 
@@ -160,7 +160,7 @@ Defined in: [packages/sdk/src/errors.ts:40](https://github.com/sip-protocol/sip-
 
 > **SIGNATURE\_FAILED**: `"SIP_3005"`
 
-Defined in: [packages/sdk/src/errors.ts:41](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L41)
+Defined in: [packages/sdk/src/errors.ts:41](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L41)
 
 ***
 
@@ -168,7 +168,7 @@ Defined in: [packages/sdk/src/errors.ts:41](https://github.com/sip-protocol/sip-
 
 > **INVALID\_CURVE\_POINT**: `"SIP_3006"`
 
-Defined in: [packages/sdk/src/errors.ts:42](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L42)
+Defined in: [packages/sdk/src/errors.ts:42](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L42)
 
 ***
 
@@ -176,7 +176,7 @@ Defined in: [packages/sdk/src/errors.ts:42](https://github.com/sip-protocol/sip-
 
 > **INVALID\_SCALAR**: `"SIP_3007"`
 
-Defined in: [packages/sdk/src/errors.ts:43](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L43)
+Defined in: [packages/sdk/src/errors.ts:43](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L43)
 
 ***
 
@@ -184,7 +184,7 @@ Defined in: [packages/sdk/src/errors.ts:43](https://github.com/sip-protocol/sip-
 
 > **PROOF\_FAILED**: `"SIP_4000"`
 
-Defined in: [packages/sdk/src/errors.ts:46](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L46)
+Defined in: [packages/sdk/src/errors.ts:46](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L46)
 
 ***
 
@@ -192,7 +192,7 @@ Defined in: [packages/sdk/src/errors.ts:46](https://github.com/sip-protocol/sip-
 
 > **PROOF\_GENERATION\_FAILED**: `"SIP_4001"`
 
-Defined in: [packages/sdk/src/errors.ts:47](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L47)
+Defined in: [packages/sdk/src/errors.ts:47](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L47)
 
 ***
 
@@ -200,7 +200,7 @@ Defined in: [packages/sdk/src/errors.ts:47](https://github.com/sip-protocol/sip-
 
 > **PROOF\_VERIFICATION\_FAILED**: `"SIP_4002"`
 
-Defined in: [packages/sdk/src/errors.ts:48](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L48)
+Defined in: [packages/sdk/src/errors.ts:48](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L48)
 
 ***
 
@@ -208,7 +208,7 @@ Defined in: [packages/sdk/src/errors.ts:48](https://github.com/sip-protocol/sip-
 
 > **PROOF\_NOT\_IMPLEMENTED**: `"SIP_4003"`
 
-Defined in: [packages/sdk/src/errors.ts:49](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L49)
+Defined in: [packages/sdk/src/errors.ts:49](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L49)
 
 ***
 
@@ -216,7 +216,7 @@ Defined in: [packages/sdk/src/errors.ts:49](https://github.com/sip-protocol/sip-
 
 > **PROOF\_PROVIDER\_NOT\_READY**: `"SIP_4004"`
 
-Defined in: [packages/sdk/src/errors.ts:50](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L50)
+Defined in: [packages/sdk/src/errors.ts:50](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L50)
 
 ***
 
@@ -224,7 +224,7 @@ Defined in: [packages/sdk/src/errors.ts:50](https://github.com/sip-protocol/sip-
 
 > **INVALID\_PROOF\_PARAMS**: `"SIP_4005"`
 
-Defined in: [packages/sdk/src/errors.ts:51](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L51)
+Defined in: [packages/sdk/src/errors.ts:51](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L51)
 
 ***
 
@@ -232,7 +232,7 @@ Defined in: [packages/sdk/src/errors.ts:51](https://github.com/sip-protocol/sip-
 
 > **INTENT\_FAILED**: `"SIP_5000"`
 
-Defined in: [packages/sdk/src/errors.ts:54](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L54)
+Defined in: [packages/sdk/src/errors.ts:54](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L54)
 
 ***
 
@@ -240,7 +240,7 @@ Defined in: [packages/sdk/src/errors.ts:54](https://github.com/sip-protocol/sip-
 
 > **INTENT\_EXPIRED**: `"SIP_5001"`
 
-Defined in: [packages/sdk/src/errors.ts:55](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L55)
+Defined in: [packages/sdk/src/errors.ts:55](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L55)
 
 ***
 
@@ -248,7 +248,7 @@ Defined in: [packages/sdk/src/errors.ts:55](https://github.com/sip-protocol/sip-
 
 > **INTENT\_CANCELLED**: `"SIP_5002"`
 
-Defined in: [packages/sdk/src/errors.ts:56](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L56)
+Defined in: [packages/sdk/src/errors.ts:56](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L56)
 
 ***
 
@@ -256,7 +256,7 @@ Defined in: [packages/sdk/src/errors.ts:56](https://github.com/sip-protocol/sip-
 
 > **INTENT\_NOT\_FOUND**: `"SIP_5003"`
 
-Defined in: [packages/sdk/src/errors.ts:57](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L57)
+Defined in: [packages/sdk/src/errors.ts:57](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L57)
 
 ***
 
@@ -264,7 +264,7 @@ Defined in: [packages/sdk/src/errors.ts:57](https://github.com/sip-protocol/sip-
 
 > **INTENT\_INVALID\_STATE**: `"SIP_5004"`
 
-Defined in: [packages/sdk/src/errors.ts:58](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L58)
+Defined in: [packages/sdk/src/errors.ts:58](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L58)
 
 ***
 
@@ -272,7 +272,7 @@ Defined in: [packages/sdk/src/errors.ts:58](https://github.com/sip-protocol/sip-
 
 > **PROOFS\_REQUIRED**: `"SIP_5005"`
 
-Defined in: [packages/sdk/src/errors.ts:59](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L59)
+Defined in: [packages/sdk/src/errors.ts:59](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L59)
 
 ***
 
@@ -280,7 +280,7 @@ Defined in: [packages/sdk/src/errors.ts:59](https://github.com/sip-protocol/sip-
 
 > **QUOTE\_EXPIRED**: `"SIP_5006"`
 
-Defined in: [packages/sdk/src/errors.ts:60](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L60)
+Defined in: [packages/sdk/src/errors.ts:60](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L60)
 
 ***
 
@@ -288,7 +288,7 @@ Defined in: [packages/sdk/src/errors.ts:60](https://github.com/sip-protocol/sip-
 
 > **NETWORK\_FAILED**: `"SIP_6000"`
 
-Defined in: [packages/sdk/src/errors.ts:63](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L63)
+Defined in: [packages/sdk/src/errors.ts:63](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L63)
 
 ***
 
@@ -296,7 +296,7 @@ Defined in: [packages/sdk/src/errors.ts:63](https://github.com/sip-protocol/sip-
 
 > **NETWORK\_TIMEOUT**: `"SIP_6001"`
 
-Defined in: [packages/sdk/src/errors.ts:64](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L64)
+Defined in: [packages/sdk/src/errors.ts:64](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L64)
 
 ***
 
@@ -304,7 +304,7 @@ Defined in: [packages/sdk/src/errors.ts:64](https://github.com/sip-protocol/sip-
 
 > **NETWORK\_UNAVAILABLE**: `"SIP_6002"`
 
-Defined in: [packages/sdk/src/errors.ts:65](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L65)
+Defined in: [packages/sdk/src/errors.ts:65](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L65)
 
 ***
 
@@ -312,7 +312,7 @@ Defined in: [packages/sdk/src/errors.ts:65](https://github.com/sip-protocol/sip-
 
 > **RPC\_ERROR**: `"SIP_6003"`
 
-Defined in: [packages/sdk/src/errors.ts:66](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L66)
+Defined in: [packages/sdk/src/errors.ts:66](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L66)
 
 ***
 
@@ -320,7 +320,7 @@ Defined in: [packages/sdk/src/errors.ts:66](https://github.com/sip-protocol/sip-
 
 > **API\_ERROR**: `"SIP_6004"`
 
-Defined in: [packages/sdk/src/errors.ts:67](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L67)
+Defined in: [packages/sdk/src/errors.ts:67](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L67)
 
 ***
 
@@ -328,7 +328,7 @@ Defined in: [packages/sdk/src/errors.ts:67](https://github.com/sip-protocol/sip-
 
 > **RATE\_LIMITED**: `"SIP_6005"`
 
-Defined in: [packages/sdk/src/errors.ts:68](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L68)
+Defined in: [packages/sdk/src/errors.ts:68](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L68)
 
 ***
 
@@ -336,7 +336,7 @@ Defined in: [packages/sdk/src/errors.ts:68](https://github.com/sip-protocol/sip-
 
 > **WALLET\_ERROR**: `"SIP_7000"`
 
-Defined in: [packages/sdk/src/errors.ts:71](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L71)
+Defined in: [packages/sdk/src/errors.ts:71](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L71)
 
 ***
 
@@ -344,7 +344,7 @@ Defined in: [packages/sdk/src/errors.ts:71](https://github.com/sip-protocol/sip-
 
 > **WALLET\_NOT\_CONNECTED**: `"SIP_7001"`
 
-Defined in: [packages/sdk/src/errors.ts:72](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L72)
+Defined in: [packages/sdk/src/errors.ts:72](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L72)
 
 ***
 
@@ -352,7 +352,7 @@ Defined in: [packages/sdk/src/errors.ts:72](https://github.com/sip-protocol/sip-
 
 > **WALLET\_CONNECTION\_FAILED**: `"SIP_7002"`
 
-Defined in: [packages/sdk/src/errors.ts:73](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L73)
+Defined in: [packages/sdk/src/errors.ts:73](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L73)
 
 ***
 
@@ -360,7 +360,7 @@ Defined in: [packages/sdk/src/errors.ts:73](https://github.com/sip-protocol/sip-
 
 > **WALLET\_SIGNING\_FAILED**: `"SIP_7003"`
 
-Defined in: [packages/sdk/src/errors.ts:74](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L74)
+Defined in: [packages/sdk/src/errors.ts:74](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L74)
 
 ***
 
@@ -368,4 +368,4 @@ Defined in: [packages/sdk/src/errors.ts:74](https://github.com/sip-protocol/sip-
 
 > **WALLET\_TRANSACTION\_FAILED**: `"SIP_7004"`
 
-Defined in: [packages/sdk/src/errors.ts:75](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L75)
+Defined in: [packages/sdk/src/errors.ts:75](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L75)

@@ -6,7 +6,7 @@
 
 # Interface: SignedTransaction
 
-Defined in: packages/types/dist/index.d.ts:1398
+Defined in: packages/types/dist/index.d.ts:2227
 
 Signed transaction ready for broadcast
 
@@ -16,7 +16,7 @@ Signed transaction ready for broadcast
 
 > **unsigned**: [`UnsignedTransaction`](UnsignedTransaction.md)
 
-Defined in: packages/types/dist/index.d.ts:1400
+Defined in: packages/types/dist/index.d.ts:2229
 
 Original unsigned transaction
 
@@ -26,7 +26,7 @@ Original unsigned transaction
 
 > **signatures**: [`Signature`](Signature.md)[]
 
-Defined in: packages/types/dist/index.d.ts:1402
+Defined in: packages/types/dist/index.d.ts:2231
 
 The signature(s)
 
@@ -36,6 +36,6 @@ The signature(s)
 
 > **serialized**: `` `0x${string}` ``
 
-Defined in: packages/types/dist/index.d.ts:1404
+Defined in: packages/types/dist/index.d.ts:2233
 
 Serialized transaction ready for broadcast (hex encoded)

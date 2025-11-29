@@ -6,7 +6,7 @@
 
 # Interface: EthereumTransactionReceipt
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:143](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L143)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:143](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L143)
 
 Ethereum transaction receipt
 
@@ -16,7 +16,7 @@ Ethereum transaction receipt
 
 > **transactionHash**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:145](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L145)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:145](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L145)
 
 Transaction hash
 
@@ -26,7 +26,7 @@ Transaction hash
 
 > **blockNumber**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:147](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L147)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:147](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L147)
 
 Block number
 
@@ -36,7 +36,7 @@ Block number
 
 > **blockHash**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:149](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L149)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:149](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L149)
 
 Block hash
 
@@ -46,7 +46,7 @@ Block hash
 
 > **from**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:151](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L151)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:151](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L151)
 
 Sender address
 
@@ -56,7 +56,7 @@ Sender address
 
 > **to**: `string` \| `null`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:153](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L153)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:153](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L153)
 
 Recipient address
 
@@ -66,7 +66,7 @@ Recipient address
 
 > **gasUsed**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:155](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L155)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:155](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L155)
 
 Gas used
 
@@ -76,7 +76,7 @@ Gas used
 
 > **effectiveGasPrice**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:157](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L157)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:157](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L157)
 
 Effective gas price
 
@@ -86,7 +86,7 @@ Effective gas price
 
 > **status**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:159](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L159)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:159](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L159)
 
 Status (1 = success, 0 = failure)
 
@@ -96,6 +96,6 @@ Status (1 = success, 0 = failure)
 
 > **contractAddress**: `string` \| `null`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:161](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L161)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:161](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L161)
 
 Contract address (if deployment)

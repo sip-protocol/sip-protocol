@@ -8,7 +8,7 @@
 
 > **createWalletFactory**\<`T`\>(`AdapterClass`): [`WalletAdapterFactory`](../type-aliases/WalletAdapterFactory.md)
 
-Defined in: [packages/sdk/src/wallet/registry.ts:191](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/registry.ts#L191)
+Defined in: [packages/sdk/src/wallet/registry.ts:191](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/registry.ts#L191)
 
 Helper to create a wallet adapter factory
 

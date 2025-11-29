@@ -6,7 +6,7 @@
 
 # Interface: ZcashOperationError
 
-Defined in: packages/types/dist/index.d.ts:1168
+Defined in: packages/types/dist/index.d.ts:1200
 
 Operation error
 
@@ -16,7 +16,7 @@ Operation error
 
 > **code**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1170
+Defined in: packages/types/dist/index.d.ts:1202
 
 Error code
 
@@ -26,6 +26,6 @@ Error code
 
 > **message**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1172
+Defined in: packages/types/dist/index.d.ts:1204
 
 Error message

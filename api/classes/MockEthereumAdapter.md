@@ -6,7 +6,7 @@
 
 # Class: MockEthereumAdapter
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:63](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L63)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:63](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L63)
 
 Mock Ethereum wallet adapter for testing
 
@@ -32,7 +32,7 @@ const balance = await adapter.getBalance()
 
 > **new MockEthereumAdapter**(`config`): `MockEthereumAdapter`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:79](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L79)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:79](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L79)
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:79](https://github.com/sip
 
 > `readonly` **chain**: `"ethereum"`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:64](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L64)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:64](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L64)
 
 Chain this adapter connects to
 
@@ -68,7 +68,7 @@ Chain this adapter connects to
 
 > `readonly` **name**: `"mock-ethereum"` = `'mock-ethereum'`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:65](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L65)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:65](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L65)
 
 Wallet name/identifier (e.g., 'phantom', 'metamask')
 
@@ -84,7 +84,7 @@ Wallet name/identifier (e.g., 'phantom', 'metamask')
 
 > **get** **address**(): `string`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L74)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L74)
 
 Current address (empty string if not connected)
 
@@ -106,7 +106,7 @@ Current address (empty string if not connected)
 
 > **get** **publicKey**(): `""` \| `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L78)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L78)
 
 Public key (hex encoded, empty string if not connected)
 
@@ -128,7 +128,7 @@ Public key (hex encoded, empty string if not connected)
 
 > **get** **connectionState**(): [`WalletConnectionState`](../type-aliases/WalletConnectionState.md)
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L82)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L82)
 
 Current connection state
 
@@ -148,7 +148,7 @@ Current connection state
 
 > **on**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L99)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L99)
 
 Subscribe to wallet events
 
@@ -182,7 +182,7 @@ Subscribe to wallet events
 
 > **off**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L110)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L110)
 
 Unsubscribe from wallet events
 
@@ -216,7 +216,7 @@ Unsubscribe from wallet events
 
 > **isConnected**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L191)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L191)
 
 Check if wallet is connected
 
@@ -234,7 +234,7 @@ Check if wallet is connected
 
 > **getChainId**(): `number`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:93](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L93)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:93](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L93)
 
 Get current chain ID
 
@@ -248,7 +248,7 @@ Get current chain ID
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:100](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L100)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:100](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L100)
 
 Connect to mock wallet
 
@@ -266,7 +266,7 @@ Connect to mock wallet
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:132](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L132)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:132](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L132)
 
 Disconnect from mock wallet
 
@@ -284,7 +284,7 @@ Disconnect from mock wallet
 
 > **signMessage**(`message`): `Promise`\<[`Signature`](../interfaces/Signature.md)\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:139](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L139)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:139](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L139)
 
 Sign a message
 
@@ -308,7 +308,7 @@ Sign a message
 
 > **signTypedData**(`typedData`): `Promise`\<[`Signature`](../interfaces/Signature.md)\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:162](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L162)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:162](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L162)
 
 Sign typed data (EIP-712)
 
@@ -328,7 +328,7 @@ Sign typed data (EIP-712)
 
 > **signTransaction**(`tx`): `Promise`\<[`SignedTransaction`](../interfaces/SignedTransaction.md)\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:184](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L184)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:184](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L184)
 
 Sign a transaction
 
@@ -352,7 +352,7 @@ Sign a transaction
 
 > **signAndSendTransaction**(`tx`): `Promise`\<[`TransactionReceipt`](../interfaces/TransactionReceipt.md)\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:214](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L214)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:214](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L214)
 
 Sign and send a transaction
 
@@ -376,7 +376,7 @@ Sign and send a transaction
 
 > **getBalance**(): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:241](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L241)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:241](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L241)
 
 Get ETH balance
 
@@ -394,7 +394,7 @@ Get ETH balance
 
 > **getTokenBalance**(`asset`): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:249](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L249)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:249](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L249)
 
 Get ERC-20 token balance
 
@@ -418,7 +418,7 @@ Get ERC-20 token balance
 
 > **switchChain**(`chainId`): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:270](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L270)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:270](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L270)
 
 Switch chain (mock)
 
@@ -438,7 +438,7 @@ Switch chain (mock)
 
 > **setMockBalance**(`balance`): `void`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:290](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L290)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:290](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L290)
 
 Set mock ETH balance
 
@@ -458,7 +458,7 @@ Set mock ETH balance
 
 > **setMockTokenBalance**(`tokenAddress`, `balance`): `void`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:297](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L297)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:297](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L297)
 
 Set mock token balance
 
@@ -482,7 +482,7 @@ Set mock token balance
 
 > **getSignedTransactions**(): [`UnsignedTransaction`](../interfaces/UnsignedTransaction.md)[]
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:304](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L304)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:304](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L304)
 
 Get signed transactions history
 
@@ -496,7 +496,7 @@ Get signed transactions history
 
 > **getSentTransactions**(): `string`[]
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:311](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L311)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:311](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L311)
 
 Get sent transaction hashes
 
@@ -510,7 +510,7 @@ Get sent transaction hashes
 
 > **clearTransactionHistory**(): `void`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:318](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L318)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:318](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L318)
 
 Clear transaction history
 
@@ -524,7 +524,7 @@ Clear transaction history
 
 > **simulateAccountChange**(`newAddress`): `void`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:326](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L326)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:326](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L326)
 
 Simulate account change
 
@@ -544,7 +544,7 @@ Simulate account change
 
 > **simulateDisconnect**(): `void`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:345](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L345)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:345](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L345)
 
 Simulate disconnect
 

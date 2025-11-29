@@ -8,7 +8,7 @@
 
 > **validateCreateIntentParams**(`params`): `asserts params is CreateIntentParams`
 
-Defined in: [packages/sdk/src/validation.ts:237](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/validation.ts#L237)
+Defined in: [packages/sdk/src/validation.ts:237](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/validation.ts#L237)
 
 Validate CreateIntentParams
 

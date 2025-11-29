@@ -6,7 +6,7 @@
 
 # Class: MockSolanaAdapter
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:127](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L127)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:127](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L127)
 
 Mock Solana wallet adapter for testing
 
@@ -40,7 +40,7 @@ const failingWallet = new MockSolanaAdapter({
 
 > **new MockSolanaAdapter**(`config`): `MockSolanaAdapter`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:145](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L145)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:145](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L145)
 
 #### Parameters
 
@@ -62,7 +62,7 @@ Defined in: [packages/sdk/src/wallet/solana/mock.ts:145](https://github.com/sip-
 
 > `readonly` **chain**: `"solana"`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:128](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L128)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:128](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L128)
 
 Chain this adapter connects to
 
@@ -76,7 +76,7 @@ Chain this adapter connects to
 
 > `readonly` **name**: `"mock-solana"` = `'mock-solana'`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:129](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L129)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:129](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L129)
 
 Wallet name/identifier (e.g., 'phantom', 'metamask')
 
@@ -92,7 +92,7 @@ Wallet name/identifier (e.g., 'phantom', 'metamask')
 
 > **get** **address**(): `string`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L74)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L74)
 
 Current address (empty string if not connected)
 
@@ -114,7 +114,7 @@ Current address (empty string if not connected)
 
 > **get** **publicKey**(): `""` \| `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L78)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L78)
 
 Public key (hex encoded, empty string if not connected)
 
@@ -136,7 +136,7 @@ Public key (hex encoded, empty string if not connected)
 
 > **get** **connectionState**(): [`WalletConnectionState`](../type-aliases/WalletConnectionState.md)
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L82)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L82)
 
 Current connection state
 
@@ -156,7 +156,7 @@ Current connection state
 
 > **on**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L99)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L99)
 
 Subscribe to wallet events
 
@@ -190,7 +190,7 @@ Subscribe to wallet events
 
 > **off**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L110)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L110)
 
 Unsubscribe from wallet events
 
@@ -224,7 +224,7 @@ Unsubscribe from wallet events
 
 > **isConnected**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L191)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L191)
 
 Check if wallet is connected
 
@@ -242,7 +242,7 @@ Check if wallet is connected
 
 > **getCluster**(): [`SolanaCluster`](../type-aliases/SolanaCluster.md)
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:161](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L161)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:161](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L161)
 
 Get the current Solana cluster
 
@@ -256,7 +256,7 @@ Get the current Solana cluster
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:168](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L168)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:168](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L168)
 
 Connect to the mock wallet
 
@@ -274,7 +274,7 @@ Connect to the mock wallet
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:186](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L186)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:186](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L186)
 
 Disconnect from the mock wallet
 
@@ -292,7 +292,7 @@ Disconnect from the mock wallet
 
 > **signMessage**(`message`): `Promise`\<[`Signature`](../interfaces/Signature.md)\>
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:194](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L194)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:194](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L194)
 
 Sign a message
 
@@ -316,7 +316,7 @@ Sign a message
 
 > **signTransaction**(`tx`): `Promise`\<[`SignedTransaction`](../interfaces/SignedTransaction.md)\>
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:217](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L217)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:217](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L217)
 
 Sign a transaction
 
@@ -340,7 +340,7 @@ Sign a transaction
 
 > **signAndSendTransaction**(`tx`): `Promise`\<[`TransactionReceipt`](../interfaces/TransactionReceipt.md)\>
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:242](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L242)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:242](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L242)
 
 Sign and send a transaction
 
@@ -364,7 +364,7 @@ Sign and send a transaction
 
 > **signAllTransactions**\<`T`\>(`transactions`): `Promise`\<`T`[]\>
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:270](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L270)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:270](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L270)
 
 Sign multiple transactions
 
@@ -390,7 +390,7 @@ Sign multiple transactions
 
 > **getBalance**(): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:295](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L295)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:295](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L295)
 
 Get SOL balance
 
@@ -408,7 +408,7 @@ Get SOL balance
 
 > **getTokenBalance**(`asset`): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:304](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L304)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:304](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L304)
 
 Get token balance
 
@@ -432,7 +432,7 @@ Get token balance
 
 > **setMockBalance**(`balance`): `void`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:328](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L328)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:328](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L328)
 
 Set mock balance
 
@@ -452,7 +452,7 @@ Set mock balance
 
 > **setMockTokenBalance**(`mintAddress`, `balance`): `void`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:335](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L335)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:335](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L335)
 
 Set mock token balance
 
@@ -476,7 +476,7 @@ Set mock token balance
 
 > **getSignedTransactions**(): ([`SolanaTransaction`](../interfaces/SolanaTransaction.md) \| [`SolanaVersionedTransaction`](../interfaces/SolanaVersionedTransaction.md))[]
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:342](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L342)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:342](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L342)
 
 Get all signed transactions (for verification)
 
@@ -490,7 +490,7 @@ Get all signed transactions (for verification)
 
 > **getSentTransactions**(): `string`[]
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:349](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L349)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:349](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L349)
 
 Get all sent transaction signatures (for verification)
 
@@ -504,7 +504,7 @@ Get all sent transaction signatures (for verification)
 
 > **clearTransactionHistory**(): `void`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:356](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L356)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:356](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L356)
 
 Clear transaction history
 
@@ -518,7 +518,7 @@ Clear transaction history
 
 > **simulateAccountChange**(`newAddress`): `void`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:364](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L364)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:364](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L364)
 
 Simulate an account change event
 
@@ -538,7 +538,7 @@ Simulate an account change event
 
 > **simulateDisconnect**(): `void`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:376](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L376)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:376](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L376)
 
 Simulate a disconnect event
 

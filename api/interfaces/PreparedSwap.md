@@ -6,7 +6,7 @@
 
 # Interface: PreparedSwap
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:47](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L47)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:49](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L49)
 
 Result of preparing a swap with SIP privacy
 
@@ -16,7 +16,7 @@ Result of preparing a swap with SIP privacy
 
 > **request**: [`SwapRequest`](SwapRequest.md)
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:49](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L49)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:51](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L51)
 
 Original swap request
 
@@ -26,7 +26,7 @@ Original swap request
 
 > **quoteRequest**: [`OneClickQuoteRequest`](OneClickQuoteRequest.md)
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:51](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L51)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:53](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L53)
 
 1Click quote request
 
@@ -36,7 +36,7 @@ Defined in: [packages/sdk/src/adapters/near-intents.ts:51](https://github.com/si
 
 > `optional` **stealthAddress**: `object`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:53](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L53)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:55](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L55)
 
 Generated stealth address (for shielded/compliant modes)
 
@@ -58,6 +58,6 @@ Generated stealth address (for shielded/compliant modes)
 
 > `optional` **sharedSecret**: `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:59](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L59)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:61](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L61)
 
 Shared secret for stealth address derivation (keep private!)

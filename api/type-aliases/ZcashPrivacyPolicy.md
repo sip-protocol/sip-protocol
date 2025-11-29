@@ -8,6 +8,6 @@
 
 > **ZcashPrivacyPolicy** = `"LegacyCompat"` \| `"FullPrivacy"` \| `"AllowRevealedAmounts"` \| `"AllowRevealedRecipients"` \| `"AllowRevealedSenders"` \| `"AllowFullyTransparent"` \| `"AllowLinkingAccountAddresses"` \| `"NoPrivacy"`
 
-Defined in: packages/types/dist/index.d.ts:1138
+Defined in: packages/types/dist/index.d.ts:1168
 
 Privacy policy for z_sendmany

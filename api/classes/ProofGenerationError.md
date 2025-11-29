@@ -6,7 +6,7 @@
 
 # Class: ProofGenerationError
 
-Defined in: [packages/sdk/src/proofs/interface.ts:214](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L214)
+Defined in: [packages/sdk/src/proofs/interface.ts:226](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L226)
 
 Error thrown when proof generation fails
 
@@ -20,7 +20,7 @@ Error thrown when proof generation fails
 
 > **new ProofGenerationError**(`proofType`, `message`, `cause?`): `ProofGenerationError`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:218](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L218)
+Defined in: [packages/sdk/src/proofs/interface.ts:230](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L230)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: [packages/sdk/src/proofs/interface.ts:218](https://github.com/sip-pr
 
 > `readonly` **proofType**: `"funding"` \| `"validity"` \| `"fulfillment"`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:215](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L215)
+Defined in: [packages/sdk/src/proofs/interface.ts:227](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L227)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [packages/sdk/src/proofs/interface.ts:215](https://github.com/sip-pr
 
 > `readonly` `optional` **cause**: `Error`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:216](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L216)
+Defined in: [packages/sdk/src/proofs/interface.ts:228](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L228)
 
 #### Overrides
 

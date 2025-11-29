@@ -6,7 +6,7 @@
 
 # Class: ZcashShieldedService
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:161](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L161)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:161](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L161)
 
 Zcash Shielded Transaction Service
 
@@ -19,7 +19,7 @@ with SIP Protocol integration.
 
 > **new ZcashShieldedService**(`config`): `ZcashShieldedService`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:168](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L168)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:168](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L168)
 
 #### Parameters
 
@@ -39,7 +39,7 @@ Defined in: [packages/sdk/src/zcash/shielded-service.ts:168](https://github.com/
 
 > **get** **rpcClient**(): [`ZcashRPCClient`](ZcashRPCClient.md)
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:622](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L622)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:680](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L680)
 
 Get underlying RPC client for advanced operations
 
@@ -55,7 +55,7 @@ Get underlying RPC client for advanced operations
 
 > **get** **currentAccount**(): `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:629](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L629)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:687](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L687)
 
 Get current account number
 
@@ -69,7 +69,7 @@ Get current account number
 
 > **initialize**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:186](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L186)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:186](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L186)
 
 Initialize the service
 
@@ -85,7 +85,7 @@ Creates an account if needed and retrieves the default address.
 
 > **getAddress**(): `string`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:228](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L228)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:228](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L228)
 
 Get the default shielded address
 
@@ -99,7 +99,7 @@ Get the default shielded address
 
 > **generateNewAddress**(): `Promise`\<`string`\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:238](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L238)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:238](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L238)
 
 Generate a new diversified address for the account
 
@@ -115,7 +115,7 @@ Each address is unlinkable but controlled by the same account.
 
 > **validateAddress**(`address`): `Promise`\<[`ZcashAddressInfo`](../interfaces/ZcashAddressInfo.md)\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:247](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L247)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:247](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L247)
 
 Validate an address
 
@@ -135,7 +135,7 @@ Validate an address
 
 > **isShieldedAddress**(`address`): `Promise`\<`boolean`\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:254](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L254)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:254](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L254)
 
 Check if an address is a shielded address
 
@@ -155,7 +155,7 @@ Check if an address is a shielded address
 
 > **getBalance**(`minConf?`): `Promise`\<[`ShieldedBalance`](../interfaces/ShieldedBalance.md)\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:267](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L267)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:267](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L267)
 
 Get shielded balance summary
 
@@ -175,7 +175,7 @@ Get shielded balance summary
 
 > **sendShielded**(`params`): `Promise`\<[`ShieldedSendResult`](../interfaces/ShieldedSendResult.md)\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:306](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L306)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:306](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L306)
 
 Send a shielded transaction
 
@@ -199,7 +199,7 @@ Send result with txid
 
 > **sendWithPrivacy**(`to`, `amount`, `privacyLevel`, `memo?`): `Promise`\<[`ShieldedSendResult`](../interfaces/ShieldedSendResult.md)\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:388](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L388)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:391](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L391)
 
 Send shielded transaction with SIP integration
 
@@ -233,7 +233,7 @@ Higher-level method that handles privacy level mapping.
 
 > **getReceivedNotes**(`minConf?`, `onlySpendable?`): `Promise`\<[`ReceivedNote`](../interfaces/ReceivedNote.md)[]\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:420](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L420)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:423](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L423)
 
 Get received notes (incoming shielded transactions)
 
@@ -261,7 +261,7 @@ Only return spendable notes
 
 > **getPendingNotes**(): `Promise`\<[`ReceivedNote`](../interfaces/ReceivedNote.md)[]\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:438](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L438)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:441](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L441)
 
 Get pending (unconfirmed) incoming transactions
 
@@ -275,7 +275,7 @@ Get pending (unconfirmed) incoming transactions
 
 > **waitForNote**(`predicate`, `timeout`, `pollInterval`): `Promise`\<[`ReceivedNote`](../interfaces/ReceivedNote.md)\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:450](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L450)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:453](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L453)
 
 Wait for incoming note with specific criteria
 
@@ -309,7 +309,7 @@ Poll interval in ms
 
 > **exportViewingKey**(`address?`): `Promise`\<[`ExportedViewingKey`](../interfaces/ExportedViewingKey.md)\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:482](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L482)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:485](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L485)
 
 Export viewing key for an address
 
@@ -332,7 +332,7 @@ without spending capability.
 
 > **importViewingKey**(`viewingKey`, `rescan`, `startHeight?`): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:501](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L501)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:504](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L504)
 
 Import viewing key for monitoring
 
@@ -362,7 +362,7 @@ Allows monitoring transactions to an address without spending.
 
 > **exportForCompliance**(): `Promise`\<\{ `viewingKey`: [`ExportedViewingKey`](../interfaces/ExportedViewingKey.md); `privacyLevel`: [`PrivacyLevel`](../enumerations/PrivacyLevel.md); `disclaimer`: `string`; \}\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:514](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L514)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:517](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L517)
 
 Export viewing key for compliance/audit
 
@@ -378,7 +378,7 @@ Specifically for SIP COMPLIANT privacy level.
 
 > **getOperationStatus**(`operationId`): `Promise`\<[`ZcashOperation`](../interfaces/ZcashOperation.md) \| `null`\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:535](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L535)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:538](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L538)
 
 Get status of an operation
 
@@ -398,7 +398,7 @@ Get status of an operation
 
 > **listPendingOperations**(): `Promise`\<[`ZcashOperation`](../interfaces/ZcashOperation.md)[]\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:543](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L543)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:546](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L546)
 
 List all pending operations
 
@@ -412,7 +412,7 @@ List all pending operations
 
 > **getBlockHeight**(): `Promise`\<`number`\>
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:553](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L553)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:556](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L556)
 
 Get current block height
 
@@ -426,10 +426,74 @@ Get current block height
 
 > **isTestnet**(): `boolean`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:560](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L560)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:563](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L563)
 
 Check if connected to testnet
 
 #### Returns
 
 `boolean`
+
+***
+
+### estimateFee()
+
+> **estimateFee**(`recipients`, `inputs`): `number`
+
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:602](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L602)
+
+Estimate transaction fee based on ZIP-317 conventional fee
+
+The ZIP-317 fee is calculated as:
+fee = marginal_fee * max(grace_actions, logical_actions)
+
+For shielded transactions:
+- Each Sapling spend = 1 logical action
+- Each Sapling output = 1 logical action
+- Each Orchard action = 1 logical action (covers both spend and output)
+
+#### Parameters
+
+##### recipients
+
+`number` = `1`
+
+Number of recipients (outputs)
+
+##### inputs
+
+`number` = `1`
+
+Estimated number of input notes (default: 1)
+
+#### Returns
+
+`number`
+
+Estimated fee in ZEC
+
+#### Example
+
+```typescript
+// Estimate fee for 1 recipient
+const fee = service.estimateFee(1)
+
+// Estimate fee for 3 recipients with 2 input notes
+const fee = service.estimateFee(3, 2)
+```
+
+***
+
+### getMinimumFee()
+
+> **getMinimumFee**(): `number`
+
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:618](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L618)
+
+Get minimum fee for a shielded transaction
+
+#### Returns
+
+`number`
+
+Minimum fee in ZEC (ZIP-317 with grace actions)

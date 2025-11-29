@@ -6,7 +6,7 @@
 
 # Interface: SolanaWalletProvider
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:86](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L86)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:86](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L86)
 
 Injected Solana wallet provider interface
 This is what Phantom/Solflare/etc inject into window
@@ -17,7 +17,7 @@ This is what Phantom/Solflare/etc inject into window
 
 > `optional` **isPhantom**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:88](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L88)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:88](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L88)
 
 Provider is Phantom
 
@@ -27,7 +27,7 @@ Provider is Phantom
 
 > `optional` **isSolflare**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:90](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L90)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:90](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L90)
 
 Provider is Solflare
 
@@ -37,7 +37,7 @@ Provider is Solflare
 
 > `optional` **isBackpack**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:92](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L92)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:92](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L92)
 
 Provider is Backpack
 
@@ -47,7 +47,7 @@ Provider is Backpack
 
 > **publicKey**: [`SolanaPublicKey`](SolanaPublicKey.md) \| `null`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:94](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L94)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:94](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L94)
 
 Public key when connected
 
@@ -57,7 +57,7 @@ Public key when connected
 
 > **isConnected**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:96](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L96)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:96](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L96)
 
 Whether wallet is connected
 
@@ -67,7 +67,7 @@ Whether wallet is connected
 
 > **connect**(`options?`): `Promise`\<\{ `publicKey`: [`SolanaPublicKey`](SolanaPublicKey.md); \}\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:98](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L98)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:98](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L98)
 
 Connect to wallet
 
@@ -89,7 +89,7 @@ Connect to wallet
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:100](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L100)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:100](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L100)
 
 Disconnect from wallet
 
@@ -103,7 +103,7 @@ Disconnect from wallet
 
 > **signMessage**(`message`, `encoding?`): `Promise`\<\{ `signature`: `Uint8Array`; \}\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:102](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L102)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:102](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L102)
 
 Sign a message
 
@@ -127,7 +127,7 @@ Sign a message
 
 > **signTransaction**\<`T`\>(`transaction`): `Promise`\<`T`\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:104](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L104)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:104](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L104)
 
 Sign a transaction
 
@@ -153,7 +153,7 @@ Sign a transaction
 
 > **signAllTransactions**\<`T`\>(`transactions`): `Promise`\<`T`[]\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:108](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L108)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:108](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L108)
 
 Sign multiple transactions
 
@@ -179,7 +179,7 @@ Sign multiple transactions
 
 > **signAndSendTransaction**\<`T`\>(`transaction`, `options?`): `Promise`\<\{ `signature`: `string`; \}\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:112](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L112)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:112](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L112)
 
 Sign and send transaction
 
@@ -209,7 +209,7 @@ Sign and send transaction
 
 > **on**(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:117](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L117)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:117](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L117)
 
 Event handling
 
@@ -233,7 +233,7 @@ Event handling
 
 > **off**(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:118](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L118)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:118](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L118)
 
 #### Parameters
 

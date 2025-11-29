@@ -6,7 +6,7 @@
 
 # Interface: OneClickStatusResponse
 
-Defined in: packages/types/dist/index.d.ts:774
+Defined in: packages/types/dist/index.d.ts:804
 
 Status response from GET /v0/status
 
@@ -16,7 +16,7 @@ Status response from GET /v0/status
 
 > **status**: [`OneClickSwapStatus`](../enumerations/OneClickSwapStatus.md)
 
-Defined in: packages/types/dist/index.d.ts:776
+Defined in: packages/types/dist/index.d.ts:806
 
 Current swap status
 
@@ -26,7 +26,7 @@ Current swap status
 
 > `optional` **depositTxHash**: `string`
 
-Defined in: packages/types/dist/index.d.ts:778
+Defined in: packages/types/dist/index.d.ts:808
 
 Deposit transaction hash
 
@@ -36,7 +36,7 @@ Deposit transaction hash
 
 > `optional` **settlementTxHash**: `string`
 
-Defined in: packages/types/dist/index.d.ts:780
+Defined in: packages/types/dist/index.d.ts:810
 
 Settlement transaction hash
 
@@ -46,7 +46,7 @@ Settlement transaction hash
 
 > `optional` **amountIn**: `string`
 
-Defined in: packages/types/dist/index.d.ts:782
+Defined in: packages/types/dist/index.d.ts:812
 
 Actual input amount
 
@@ -56,7 +56,7 @@ Actual input amount
 
 > `optional` **amountOut**: `string`
 
-Defined in: packages/types/dist/index.d.ts:784
+Defined in: packages/types/dist/index.d.ts:814
 
 Actual output amount
 
@@ -66,6 +66,6 @@ Actual output amount
 
 > `optional` **error**: `string`
 
-Defined in: packages/types/dist/index.d.ts:786
+Defined in: packages/types/dist/index.d.ts:816
 
 Error message if failed

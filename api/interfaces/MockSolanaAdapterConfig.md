@@ -6,7 +6,7 @@
 
 # Interface: MockSolanaAdapterConfig
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:86](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L86)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:86](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L86)
 
 Configuration for mock Solana adapter
 
@@ -16,7 +16,7 @@ Configuration for mock Solana adapter
 
 > `optional` **address**: `string`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:88](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L88)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:88](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L88)
 
 Mock address (base58)
 
@@ -26,7 +26,7 @@ Mock address (base58)
 
 > `optional` **balance**: `bigint`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:90](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L90)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:90](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L90)
 
 Mock balance in lamports
 
@@ -36,7 +36,7 @@ Mock balance in lamports
 
 > `optional` **tokenBalances**: `Record`\<`string`, `bigint`\>
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:92](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L92)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:92](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L92)
 
 Token balances by mint address
 
@@ -46,7 +46,7 @@ Token balances by mint address
 
 > `optional` **shouldFailConnect**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:94](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L94)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:94](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L94)
 
 Whether to simulate connection failure
 
@@ -56,7 +56,7 @@ Whether to simulate connection failure
 
 > `optional` **shouldFailSign**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:96](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L96)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:96](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L96)
 
 Whether to simulate signing failure
 
@@ -66,7 +66,7 @@ Whether to simulate signing failure
 
 > `optional` **shouldFailTransaction**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:98](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L98)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:98](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L98)
 
 Whether to simulate transaction failure
 
@@ -76,7 +76,7 @@ Whether to simulate transaction failure
 
 > `optional` **cluster**: [`SolanaCluster`](../type-aliases/SolanaCluster.md)
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:100](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L100)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:100](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L100)
 
 Simulated cluster
 
@@ -86,6 +86,6 @@ Simulated cluster
 
 > `optional` **latency**: `number`
 
-Defined in: [packages/sdk/src/wallet/solana/mock.ts:102](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/mock.ts#L102)
+Defined in: [packages/sdk/src/wallet/solana/mock.ts:102](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/mock.ts#L102)
 
 Simulated latency in ms

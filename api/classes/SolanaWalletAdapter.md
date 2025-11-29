@@ -6,7 +6,7 @@
 
 # Class: SolanaWalletAdapter
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:71](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L71)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:71](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L71)
 
 Solana wallet adapter
 
@@ -44,7 +44,7 @@ const wallet = new SolanaWalletAdapter({
 
 > **new SolanaWalletAdapter**(`config`): `SolanaWalletAdapter`
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:86](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L86)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:86](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L86)
 
 #### Parameters
 
@@ -66,7 +66,7 @@ Defined in: [packages/sdk/src/wallet/solana/adapter.ts:86](https://github.com/si
 
 > `readonly` **chain**: `"solana"`
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:72](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L72)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:72](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L72)
 
 Chain this adapter connects to
 
@@ -80,7 +80,7 @@ Chain this adapter connects to
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:73](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L73)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:73](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L73)
 
 Wallet name/identifier (e.g., 'phantom', 'metamask')
 
@@ -96,7 +96,7 @@ Wallet name/identifier (e.g., 'phantom', 'metamask')
 
 > **get** **address**(): `string`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L74)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L74)
 
 Current address (empty string if not connected)
 
@@ -118,7 +118,7 @@ Current address (empty string if not connected)
 
 > **get** **publicKey**(): `""` \| `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L78)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L78)
 
 Public key (hex encoded, empty string if not connected)
 
@@ -140,7 +140,7 @@ Public key (hex encoded, empty string if not connected)
 
 > **get** **connectionState**(): [`WalletConnectionState`](../type-aliases/WalletConnectionState.md)
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L82)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L82)
 
 Current connection state
 
@@ -160,7 +160,7 @@ Current connection state
 
 > **on**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L99)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L99)
 
 Subscribe to wallet events
 
@@ -194,7 +194,7 @@ Subscribe to wallet events
 
 > **off**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L110)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L110)
 
 Unsubscribe from wallet events
 
@@ -228,7 +228,7 @@ Unsubscribe from wallet events
 
 > **isConnected**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L191)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L191)
 
 Check if wallet is connected
 
@@ -246,7 +246,7 @@ Check if wallet is connected
 
 > **getCluster**(): [`SolanaCluster`](../type-aliases/SolanaCluster.md)
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:105](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L105)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:105](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L105)
 
 Get the current Solana cluster
 
@@ -260,7 +260,7 @@ Get the current Solana cluster
 
 > **getRpcEndpoint**(): `string`
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:112](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L112)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:112](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L112)
 
 Get the RPC endpoint
 
@@ -274,7 +274,7 @@ Get the RPC endpoint
 
 > **setRpcEndpoint**(`endpoint`): `void`
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:119](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L119)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:119](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L119)
 
 Set the RPC endpoint
 
@@ -294,7 +294,7 @@ Set the RPC endpoint
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:139](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L139)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:139](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L139)
 
 Connect to the wallet
 
@@ -312,7 +312,7 @@ Connect to the wallet
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:195](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L195)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:195](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L195)
 
 Disconnect from the wallet
 
@@ -330,7 +330,7 @@ Disconnect from the wallet
 
 > **signMessage**(`message`): `Promise`\<[`Signature`](../interfaces/Signature.md)\>
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:213](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L213)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:213](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L213)
 
 Sign a message
 
@@ -354,7 +354,7 @@ Sign a message
 
 > **signTransaction**(`tx`): `Promise`\<[`SignedTransaction`](../interfaces/SignedTransaction.md)\>
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:245](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L245)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:245](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L245)
 
 Sign a transaction
 
@@ -380,7 +380,7 @@ The transaction data should be a SolanaTransaction or SolanaVersionedTransaction
 
 > **signAndSendTransaction**(`tx`): `Promise`\<[`TransactionReceipt`](../interfaces/TransactionReceipt.md)\>
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:283](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L283)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:283](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L283)
 
 Sign and send a transaction
 
@@ -404,7 +404,7 @@ Sign and send a transaction
 
 > **signAllTransactions**\<`T`\>(`transactions`): `Promise`\<`T`[]\>
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:323](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L323)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:323](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L323)
 
 Sign multiple transactions at once
 
@@ -432,7 +432,7 @@ Solana-specific method for batch signing
 
 > **getBalance**(): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:350](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L350)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:350](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L350)
 
 Get native SOL balance
 
@@ -450,7 +450,7 @@ Get native SOL balance
 
 > **getTokenBalance**(`asset`): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/solana/adapter.ts:374](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/adapter.ts#L374)
+Defined in: [packages/sdk/src/wallet/solana/adapter.ts:374](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/adapter.ts#L374)
 
 Get SPL token balance
 

@@ -8,7 +8,7 @@
 
 > **featureNotSupportedError**(`feature`, `code`): [`WalletError`](../classes/WalletError.md)
 
-Defined in: [packages/sdk/src/wallet/errors.ts:101](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/errors.ts#L101)
+Defined in: [packages/sdk/src/wallet/errors.ts:101](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/errors.ts#L101)
 
 Create a WalletError for feature not supported
 

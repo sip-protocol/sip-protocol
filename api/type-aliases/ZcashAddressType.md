@@ -8,6 +8,6 @@
 
 > **ZcashAddressType** = `"p2pkh"` \| `"p2sh"` \| `"sprout"` \| `"sapling"` \| `"orchard"` \| `"unified"`
 
-Defined in: packages/types/dist/index.d.ts:1023
+Defined in: packages/types/dist/index.d.ts:1053
 
 Zcash address types

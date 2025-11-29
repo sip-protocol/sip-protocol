@@ -6,7 +6,7 @@
 
 # Interface: EIP1193RequestArguments
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:39](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L39)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:39](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L39)
 
 EIP-1193 Request arguments
 
@@ -16,7 +16,7 @@ EIP-1193 Request arguments
 
 > **method**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:40](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L40)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:40](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L40)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:40](https://github.com/si
 
 > `optional` **params**: `Record`\<`string`, `unknown`\> \| `unknown`[]
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:41](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L41)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:41](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L41)

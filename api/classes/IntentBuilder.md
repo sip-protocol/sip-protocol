@@ -6,7 +6,7 @@
 
 # Class: IntentBuilder
 
-Defined in: [packages/sdk/src/intent.ts:58](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L58)
+Defined in: [packages/sdk/src/intent.ts:58](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L58)
 
 Builder class for creating shielded intents
 
@@ -26,7 +26,7 @@ Builder class for creating shielded intents
 
 > **input**(`chain`, `token`, `amount`, `sourceAddress?`): `this`
 
-Defined in: [packages/sdk/src/intent.ts:68](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L68)
+Defined in: [packages/sdk/src/intent.ts:68](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L68)
 
 Set the input for the intent
 
@@ -62,7 +62,7 @@ If chain or amount is invalid
 
 > **output**(`chain`, `token`, `minAmount?`): `this`
 
-Defined in: [packages/sdk/src/intent.ts:112](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L112)
+Defined in: [packages/sdk/src/intent.ts:112](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L112)
 
 Set the output for the intent
 
@@ -94,7 +94,7 @@ If chain is invalid
 
 > **privacy**(`level`): `this`
 
-Defined in: [packages/sdk/src/intent.ts:155](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L155)
+Defined in: [packages/sdk/src/intent.ts:155](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L155)
 
 Set the privacy level
 
@@ -118,7 +118,7 @@ If privacy level is invalid
 
 > **recipient**(`metaAddress`): `this`
 
-Defined in: [packages/sdk/src/intent.ts:171](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L171)
+Defined in: [packages/sdk/src/intent.ts:171](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L171)
 
 Set the recipient's stealth meta-address
 
@@ -142,7 +142,7 @@ If stealth meta-address format is invalid
 
 > **slippage**(`percent`): `this`
 
-Defined in: [packages/sdk/src/intent.ts:188](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L188)
+Defined in: [packages/sdk/src/intent.ts:188](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L188)
 
 Set slippage tolerance
 
@@ -168,7 +168,7 @@ If slippage is out of range
 
 > **ttl**(`seconds`): `this`
 
-Defined in: [packages/sdk/src/intent.ts:208](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L208)
+Defined in: [packages/sdk/src/intent.ts:208](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L208)
 
 Set time-to-live in seconds
 
@@ -192,7 +192,7 @@ If TTL is not a positive integer
 
 > **withProvider**(`provider`): `this`
 
-Defined in: [packages/sdk/src/intent.ts:236](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L236)
+Defined in: [packages/sdk/src/intent.ts:236](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L236)
 
 Set the proof provider for automatic proof generation
 
@@ -227,7 +227,7 @@ const intent = await builder
 
 > **build**(): `Promise`\<[`ShieldedIntent`](../interfaces/ShieldedIntent.md)\>
 
-Defined in: [packages/sdk/src/intent.ts:249](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L249)
+Defined in: [packages/sdk/src/intent.ts:249](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L249)
 
 Build the shielded intent
 

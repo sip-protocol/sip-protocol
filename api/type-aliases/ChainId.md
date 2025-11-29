@@ -6,7 +6,7 @@
 
 # Type Alias: ChainId
 
-> **ChainId** = `"solana"` \| `"ethereum"` \| `"near"` \| `"zcash"` \| `"polygon"` \| `"arbitrum"` \| `"optimism"` \| `"base"`
+> **ChainId** = `"solana"` \| `"ethereum"` \| `"near"` \| `"zcash"` \| `"polygon"` \| `"arbitrum"` \| `"optimism"` \| `"base"` \| `"bitcoin"`
 
 Defined in: packages/types/dist/index.d.ts:136
 

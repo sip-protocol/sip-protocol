@@ -6,7 +6,7 @@
 
 # Interface: OneClickQuoteRequest
 
-Defined in: packages/types/dist/index.d.ts:701
+Defined in: packages/types/dist/index.d.ts:731
 
 Quote request parameters for POST /v0/quote
 
@@ -16,7 +16,7 @@ Quote request parameters for POST /v0/quote
 
 > `optional` **dry**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:703
+Defined in: packages/types/dist/index.d.ts:733
 
 Preview only, no deposit address generated
 
@@ -26,19 +26,19 @@ Preview only, no deposit address generated
 
 > **swapType**: [`OneClickSwapType`](../enumerations/OneClickSwapType.md)
 
-Defined in: packages/types/dist/index.d.ts:705
+Defined in: packages/types/dist/index.d.ts:735
 
 How to calculate the swap
 
 ***
 
-### slippageTolerance?
+### slippageTolerance
 
-> `optional` **slippageTolerance**: `number`
+> **slippageTolerance**: `number`
 
-Defined in: packages/types/dist/index.d.ts:707
+Defined in: packages/types/dist/index.d.ts:737
 
-Slippage tolerance in basis points (100 = 1%)
+Slippage tolerance in basis points (100 = 1%), required
 
 ***
 
@@ -46,9 +46,9 @@ Slippage tolerance in basis points (100 = 1%)
 
 > **originAsset**: `string`
 
-Defined in: packages/types/dist/index.d.ts:709
+Defined in: packages/types/dist/index.d.ts:739
 
-Source asset identifier
+Source asset identifier (NEP-141 format)
 
 ***
 
@@ -56,9 +56,9 @@ Source asset identifier
 
 > **destinationAsset**: `string`
 
-Defined in: packages/types/dist/index.d.ts:711
+Defined in: packages/types/dist/index.d.ts:741
 
-Destination asset identifier
+Destination asset identifier (NEP-141 format)
 
 ***
 
@@ -66,7 +66,7 @@ Destination asset identifier
 
 > **amount**: `string`
 
-Defined in: packages/types/dist/index.d.ts:713
+Defined in: packages/types/dist/index.d.ts:743
 
 Amount in smallest units (input or output depending on swapType)
 
@@ -76,9 +76,9 @@ Amount in smallest units (input or output depending on swapType)
 
 > **refundTo**: `string`
 
-Defined in: packages/types/dist/index.d.ts:715
+Defined in: packages/types/dist/index.d.ts:745
 
-Address for refunds on failed swaps
+Address for refunds on failed swaps (format must match refundType)
 
 ***
 
@@ -86,9 +86,9 @@ Address for refunds on failed swaps
 
 > **recipient**: `string`
 
-Defined in: packages/types/dist/index.d.ts:717
+Defined in: packages/types/dist/index.d.ts:747
 
-Destination address for output tokens
+Destination address for output tokens (format must match recipientType)
 
 ***
 
@@ -96,9 +96,9 @@ Destination address for output tokens
 
 > **depositType**: `string`
 
-Defined in: packages/types/dist/index.d.ts:719
+Defined in: packages/types/dist/index.d.ts:749
 
-Source chain identifier
+Where user deposits tokens
 
 ***
 
@@ -106,9 +106,9 @@ Source chain identifier
 
 > **refundType**: `string`
 
-Defined in: packages/types/dist/index.d.ts:721
+Defined in: packages/types/dist/index.d.ts:751
 
-Refund chain identifier
+Where refunds go on failure
 
 ***
 
@@ -116,19 +116,19 @@ Refund chain identifier
 
 > **recipientType**: `string`
 
-Defined in: packages/types/dist/index.d.ts:723
+Defined in: packages/types/dist/index.d.ts:753
 
-Destination chain identifier
+Where output tokens are sent
 
 ***
 
-### deadline?
+### deadline
 
-> `optional` **deadline**: `string`
+> **deadline**: `string`
 
-Defined in: packages/types/dist/index.d.ts:725
+Defined in: packages/types/dist/index.d.ts:755
 
-ISO timestamp for automatic refund trigger
+ISO 8601 timestamp for automatic refund trigger (required)
 
 ***
 
@@ -136,7 +136,7 @@ ISO timestamp for automatic refund trigger
 
 > `optional` **depositMode**: [`OneClickDepositMode`](../enumerations/OneClickDepositMode.md)
 
-Defined in: packages/types/dist/index.d.ts:727
+Defined in: packages/types/dist/index.d.ts:757
 
 Deposit mode
 
@@ -146,6 +146,6 @@ Deposit mode
 
 > `optional` **appFees**: `OneClickAppFee`[]
 
-Defined in: packages/types/dist/index.d.ts:729
+Defined in: packages/types/dist/index.d.ts:759
 
 Optional app-level fees

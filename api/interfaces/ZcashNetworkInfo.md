@@ -6,7 +6,7 @@
 
 # Interface: ZcashNetworkInfo
 
-Defined in: packages/types/dist/index.d.ts:1335
+Defined in: packages/types/dist/index.d.ts:1367
 
 Network information
 
@@ -16,7 +16,7 @@ Network information
 
 > **version**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1337
+Defined in: packages/types/dist/index.d.ts:1369
 
 Server version
 
@@ -26,7 +26,7 @@ Server version
 
 > **subversion**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1339
+Defined in: packages/types/dist/index.d.ts:1371
 
 Server subversion string
 
@@ -36,7 +36,7 @@ Server subversion string
 
 > **protocolversion**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1341
+Defined in: packages/types/dist/index.d.ts:1373
 
 Protocol version
 
@@ -46,7 +46,7 @@ Protocol version
 
 > **localservices**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1343
+Defined in: packages/types/dist/index.d.ts:1375
 
 Local services offered
 
@@ -56,7 +56,7 @@ Local services offered
 
 > **connections**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1345
+Defined in: packages/types/dist/index.d.ts:1377
 
 Number of connections
 
@@ -66,7 +66,7 @@ Number of connections
 
 > **networks**: `object`[]
 
-Defined in: packages/types/dist/index.d.ts:1347
+Defined in: packages/types/dist/index.d.ts:1379
 
 Networks available
 
@@ -88,7 +88,7 @@ Networks available
 
 > **relayfee**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1353
+Defined in: packages/types/dist/index.d.ts:1385
 
 Relay fee
 
@@ -98,7 +98,7 @@ Relay fee
 
 > **localaddresses**: `object`[]
 
-Defined in: packages/types/dist/index.d.ts:1355
+Defined in: packages/types/dist/index.d.ts:1387
 
 Local addresses
 

@@ -6,7 +6,7 @@
 
 # Interface: ValidityProofParams
 
-Defined in: [packages/sdk/src/proofs/interface.ts:46](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L46)
+Defined in: [packages/sdk/src/proofs/interface.ts:56](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L56)
 
 Parameters for generating a Validity Proof
 
@@ -22,7 +22,7 @@ docs/specs/VALIDITY-PROOF.md
 
 > **intentHash**: `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/proofs/interface.ts:48](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L48)
+Defined in: [packages/sdk/src/proofs/interface.ts:58](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L58)
 
 Hash of the intent (public)
 
@@ -32,7 +32,7 @@ Hash of the intent (public)
 
 > **senderAddress**: `string`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:50](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L50)
+Defined in: [packages/sdk/src/proofs/interface.ts:60](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L60)
 
 Sender's address (private)
 
@@ -42,7 +42,7 @@ Sender's address (private)
 
 > **senderBlinding**: `Uint8Array`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:52](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L52)
+Defined in: [packages/sdk/src/proofs/interface.ts:62](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L62)
 
 Blinding factor for sender commitment (private)
 
@@ -52,9 +52,9 @@ Blinding factor for sender commitment (private)
 
 > **senderSecret**: `Uint8Array`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:54](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L54)
+Defined in: [packages/sdk/src/proofs/interface.ts:64](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L64)
 
-Sender's secret key (private)
+Sender's secret key (private) - used to derive public key if senderPublicKey not provided
 
 ***
 
@@ -62,7 +62,7 @@ Sender's secret key (private)
 
 > **authorizationSignature**: `Uint8Array`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:56](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L56)
+Defined in: [packages/sdk/src/proofs/interface.ts:66](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L66)
 
 Signature authorizing the intent (private)
 
@@ -72,7 +72,7 @@ Signature authorizing the intent (private)
 
 > **nonce**: `Uint8Array`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:58](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L58)
+Defined in: [packages/sdk/src/proofs/interface.ts:68](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L68)
 
 Nonce for nullifier generation (private)
 
@@ -82,7 +82,7 @@ Nonce for nullifier generation (private)
 
 > **timestamp**: `number`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:60](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L60)
+Defined in: [packages/sdk/src/proofs/interface.ts:70](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L70)
 
 Intent timestamp (public)
 
@@ -92,6 +92,16 @@ Intent timestamp (public)
 
 > **expiry**: `number`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:62](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L62)
+Defined in: [packages/sdk/src/proofs/interface.ts:72](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L72)
 
 Intent expiry (public)
+
+***
+
+### senderPublicKey?
+
+> `optional` **senderPublicKey**: `PublicKeyXY`
+
+Defined in: [packages/sdk/src/proofs/interface.ts:74](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L74)
+
+Optional: Sender's public key. If not provided, derived from senderSecret

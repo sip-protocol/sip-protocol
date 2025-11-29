@@ -6,7 +6,7 @@
 
 # Interface: ZcashAddressInfo
 
-Defined in: packages/types/dist/index.d.ts:1031
+Defined in: packages/types/dist/index.d.ts:1061
 
 Address validation result
 
@@ -16,7 +16,7 @@ Address validation result
 
 > **isvalid**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1033
+Defined in: packages/types/dist/index.d.ts:1063
 
 Whether the address is valid
 
@@ -26,7 +26,7 @@ Whether the address is valid
 
 > `optional` **address**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1035
+Defined in: packages/types/dist/index.d.ts:1065
 
 The validated address
 
@@ -36,7 +36,7 @@ The validated address
 
 > `optional` **address\_type**: [`ZcashAddressType`](../type-aliases/ZcashAddressType.md)
 
-Defined in: packages/types/dist/index.d.ts:1037
+Defined in: packages/types/dist/index.d.ts:1067
 
 Address type
 
@@ -46,7 +46,7 @@ Address type
 
 > `optional` **type**: [`ZcashAddressType`](../type-aliases/ZcashAddressType.md)
 
-Defined in: packages/types/dist/index.d.ts:1039
+Defined in: packages/types/dist/index.d.ts:1069
 
 Deprecated: same as address_type
 
@@ -56,7 +56,7 @@ Deprecated: same as address_type
 
 > `optional` **ismine**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1041
+Defined in: packages/types/dist/index.d.ts:1071
 
 Whether the address belongs to this wallet
 
@@ -66,7 +66,7 @@ Whether the address belongs to this wallet
 
 > `optional` **payingkey**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1043
+Defined in: packages/types/dist/index.d.ts:1073
 
 Sprout: paying key
 
@@ -76,7 +76,7 @@ Sprout: paying key
 
 > `optional` **transmissionkey**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1045
+Defined in: packages/types/dist/index.d.ts:1075
 
 Sprout: transmission key
 
@@ -86,7 +86,7 @@ Sprout: transmission key
 
 > `optional` **diversifier**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1047
+Defined in: packages/types/dist/index.d.ts:1077
 
 Sapling: diversifier
 
@@ -96,6 +96,6 @@ Sapling: diversifier
 
 > `optional` **diversifiedtransmissionkey**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1049
+Defined in: packages/types/dist/index.d.ts:1079
 
 Sapling: diversified transmission key

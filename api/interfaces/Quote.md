@@ -12,6 +12,7 @@ Quote from a solver
 
 ## Extended by
 
+- [`ProductionQuote`](ProductionQuote.md)
 - [`SolverQuote`](SolverQuote.md)
 
 ## Properties

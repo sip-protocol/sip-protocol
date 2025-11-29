@@ -6,7 +6,7 @@
 
 # Interface: ShieldedBalance
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:124](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L124)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:124](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L124)
 
 Shielded balance summary
 
@@ -16,7 +16,7 @@ Shielded balance summary
 
 > **confirmed**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:126](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L126)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:126](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L126)
 
 Total confirmed balance in ZEC
 
@@ -26,7 +26,7 @@ Total confirmed balance in ZEC
 
 > **unconfirmed**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:128](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L128)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:128](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L128)
 
 Total unconfirmed balance in ZEC
 
@@ -36,7 +36,7 @@ Total unconfirmed balance in ZEC
 
 > **pools**: `object`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:130](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L130)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:130](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L130)
 
 Balance by pool
 
@@ -58,6 +58,6 @@ Balance by pool
 
 > **spendableNotes**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:136](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L136)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:136](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L136)
 
 Number of spendable notes

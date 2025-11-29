@@ -8,7 +8,7 @@
 
 > **WalletAdapterFactory** = () => [`IWalletAdapter`](../interfaces/IWalletAdapter.md) \| [`PrivateWalletAdapter`](../interfaces/PrivateWalletAdapter.md)
 
-Defined in: packages/types/dist/index.d.ts:1768
+Defined in: packages/types/dist/index.d.ts:2598
 
 Wallet adapter factory function
 

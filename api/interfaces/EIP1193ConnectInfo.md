@@ -6,7 +6,7 @@
 
 # Interface: EIP1193ConnectInfo
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:57](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L57)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:57](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L57)
 
 EIP-1193 Connect info
 
@@ -16,4 +16,4 @@ EIP-1193 Connect info
 
 > **chainId**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:58](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L58)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:58](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L58)

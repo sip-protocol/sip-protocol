@@ -6,7 +6,7 @@
 
 # Interface: ZcashConfig
 
-Defined in: packages/types/dist/index.d.ts:998
+Defined in: packages/types/dist/index.d.ts:1028
 
 Zcash RPC client configuration
 
@@ -16,7 +16,7 @@ Zcash RPC client configuration
 
 > `optional` **host**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1000
+Defined in: packages/types/dist/index.d.ts:1030
 
 RPC host (default: 127.0.0.1)
 
@@ -26,7 +26,7 @@ RPC host (default: 127.0.0.1)
 
 > `optional` **port**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1002
+Defined in: packages/types/dist/index.d.ts:1032
 
 RPC port (default: 8232 mainnet, 18232 testnet)
 
@@ -36,7 +36,7 @@ RPC port (default: 8232 mainnet, 18232 testnet)
 
 > **username**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1004
+Defined in: packages/types/dist/index.d.ts:1034
 
 RPC username
 
@@ -46,7 +46,7 @@ RPC username
 
 > **password**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1006
+Defined in: packages/types/dist/index.d.ts:1036
 
 RPC password
 
@@ -56,7 +56,7 @@ RPC password
 
 > `optional` **testnet**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1008
+Defined in: packages/types/dist/index.d.ts:1038
 
 Use testnet (default: false)
 
@@ -66,7 +66,7 @@ Use testnet (default: false)
 
 > `optional` **timeout**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1010
+Defined in: packages/types/dist/index.d.ts:1040
 
 Request timeout in ms (default: 30000)
 
@@ -76,7 +76,7 @@ Request timeout in ms (default: 30000)
 
 > `optional` **retries**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1012
+Defined in: packages/types/dist/index.d.ts:1042
 
 Number of retries on failure (default: 3)
 
@@ -86,6 +86,6 @@ Number of retries on failure (default: 3)
 
 > `optional` **retryDelay**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1014
+Defined in: packages/types/dist/index.d.ts:1044
 
 Retry delay in ms (default: 1000)

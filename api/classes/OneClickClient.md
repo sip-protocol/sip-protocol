@@ -6,7 +6,7 @@
 
 # Class: OneClickClient
 
-Defined in: [packages/sdk/src/adapters/oneclick-client.ts:60](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/oneclick-client.ts#L60)
+Defined in: [packages/sdk/src/adapters/oneclick-client.ts:60](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/oneclick-client.ts#L60)
 
 HTTP client for NEAR 1Click API
 
@@ -43,7 +43,7 @@ const status = await client.getStatus(quote.depositAddress)
 
 > **new OneClickClient**(`config`): `OneClickClient`
 
-Defined in: [packages/sdk/src/adapters/oneclick-client.ts:66](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/oneclick-client.ts#L66)
+Defined in: [packages/sdk/src/adapters/oneclick-client.ts:66](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/oneclick-client.ts#L66)
 
 #### Parameters
 
@@ -61,7 +61,7 @@ Defined in: [packages/sdk/src/adapters/oneclick-client.ts:66](https://github.com
 
 > **getTokens**(): `Promise`\<`OneClickToken`[]\>
 
-Defined in: [packages/sdk/src/adapters/oneclick-client.ts:78](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/oneclick-client.ts#L78)
+Defined in: [packages/sdk/src/adapters/oneclick-client.ts:78](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/oneclick-client.ts#L78)
 
 Get all supported tokens
 
@@ -77,7 +77,7 @@ Array of supported tokens with metadata
 
 > **quote**(`request`): `Promise`\<[`OneClickQuoteResponse`](../interfaces/OneClickQuoteResponse.md)\>
 
-Defined in: [packages/sdk/src/adapters/oneclick-client.ts:90](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/oneclick-client.ts#L90)
+Defined in: [packages/sdk/src/adapters/oneclick-client.ts:90](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/oneclick-client.ts#L90)
 
 Request a swap quote
 
@@ -109,7 +109,7 @@ On invalid parameters
 
 > **dryQuote**(`request`): `Promise`\<[`OneClickQuoteResponse`](../interfaces/OneClickQuoteResponse.md)\>
 
-Defined in: [packages/sdk/src/adapters/oneclick-client.ts:103](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/oneclick-client.ts#L103)
+Defined in: [packages/sdk/src/adapters/oneclick-client.ts:103](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/oneclick-client.ts#L103)
 
 Request a dry quote (preview without deposit address)
 
@@ -135,7 +135,7 @@ Quote preview without deposit address
 
 > **submitDeposit**(`deposit`): `Promise`\<[`OneClickQuoteResponse`](../interfaces/OneClickQuoteResponse.md)\>
 
-Defined in: [packages/sdk/src/adapters/oneclick-client.ts:115](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/oneclick-client.ts#L115)
+Defined in: [packages/sdk/src/adapters/oneclick-client.ts:115](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/oneclick-client.ts#L115)
 
 Submit deposit transaction notification
 
@@ -161,7 +161,7 @@ Updated quote response
 
 > **getStatus**(`depositAddress`, `depositMemo?`): `Promise`\<[`OneClickStatusResponse`](../interfaces/OneClickStatusResponse.md)\>
 
-Defined in: [packages/sdk/src/adapters/oneclick-client.ts:132](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/oneclick-client.ts#L132)
+Defined in: [packages/sdk/src/adapters/oneclick-client.ts:132](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/oneclick-client.ts#L132)
 
 Get swap status
 
@@ -191,7 +191,7 @@ Current swap status
 
 > **waitForStatus**(`depositAddress`, `options`): `Promise`\<[`OneClickStatusResponse`](../interfaces/OneClickStatusResponse.md)\>
 
-Defined in: [packages/sdk/src/adapters/oneclick-client.ts:152](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/oneclick-client.ts#L152)
+Defined in: [packages/sdk/src/adapters/oneclick-client.ts:152](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/oneclick-client.ts#L152)
 
 Poll status until terminal state or timeout
 
@@ -237,7 +237,7 @@ Final status when terminal state reached
 
 > **getWithdrawals**(`depositAddress`, `depositMemo?`, `options?`): `Promise`\<`OneClickWithdrawal`[]\>
 
-Defined in: [packages/sdk/src/adapters/oneclick-client.ts:202](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/oneclick-client.ts#L202)
+Defined in: [packages/sdk/src/adapters/oneclick-client.ts:202](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/oneclick-client.ts#L202)
 
 Get withdrawals for ANY_INPUT deposits
 

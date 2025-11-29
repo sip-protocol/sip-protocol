@@ -6,7 +6,7 @@
 
 # Interface: SwapResult
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:65](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L65)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:67](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L67)
 
 Result of executing a swap
 
@@ -16,7 +16,7 @@ Result of executing a swap
 
 > **requestId**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:67](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L67)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:69](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L69)
 
 Request ID
 
@@ -26,7 +26,7 @@ Request ID
 
 > **quoteId**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:69](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L69)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:71](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L71)
 
 1Click quote ID
 
@@ -36,7 +36,7 @@ Defined in: [packages/sdk/src/adapters/near-intents.ts:69](https://github.com/si
 
 > **depositAddress**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:71](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L71)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:73](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L73)
 
 Deposit address for input tokens
 
@@ -46,7 +46,7 @@ Deposit address for input tokens
 
 > **amountIn**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:73](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L73)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:75](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L75)
 
 Expected input amount
 
@@ -56,7 +56,7 @@ Expected input amount
 
 > **amountOut**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:75](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L75)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:77](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L77)
 
 Expected output amount
 
@@ -66,7 +66,7 @@ Expected output amount
 
 > **status**: [`OneClickSwapStatus`](../enumerations/OneClickSwapStatus.md)
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:77](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L77)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:79](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L79)
 
 Current status
 
@@ -76,7 +76,7 @@ Current status
 
 > `optional` **depositTxHash**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:79](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L79)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:81](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L81)
 
 Deposit transaction hash (after deposit)
 
@@ -86,7 +86,7 @@ Deposit transaction hash (after deposit)
 
 > `optional` **settlementTxHash**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:81](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L81)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:83](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L83)
 
 Settlement transaction hash (after success)
 
@@ -96,7 +96,7 @@ Settlement transaction hash (after success)
 
 > `optional` **stealthRecipient**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:83](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L83)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:85](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L85)
 
 Stealth address for recipient (if privacy mode)
 
@@ -106,6 +106,6 @@ Stealth address for recipient (if privacy mode)
 
 > `optional` **ephemeralPublicKey**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:85](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L85)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:87](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L87)
 
 Ephemeral public key (for recipient to derive stealth key)

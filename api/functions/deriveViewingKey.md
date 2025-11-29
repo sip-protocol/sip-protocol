@@ -8,7 +8,7 @@
 
 > **deriveViewingKey**(`masterKey`, `childPath`): [`ViewingKey`](../interfaces/ViewingKey.md)
 
-Defined in: [packages/sdk/src/privacy.ts:124](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L124)
+Defined in: [packages/sdk/src/privacy.ts:131](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L131)
 
 Derive a child viewing key using BIP32-style hierarchical derivation
 

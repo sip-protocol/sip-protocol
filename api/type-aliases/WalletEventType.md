@@ -8,6 +8,6 @@
 
 > **WalletEventType** = `"connect"` \| `"disconnect"` \| `"accountChanged"` \| `"chainChanged"` \| `"error"`
 
-Defined in: packages/types/dist/index.d.ts:1426
+Defined in: packages/types/dist/index.d.ts:2255
 
 Wallet event types

@@ -6,7 +6,7 @@
 
 # Class: NetworkError
 
-Defined in: [packages/sdk/src/errors.ts:394](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L394)
+Defined in: [packages/sdk/src/errors.ts:394](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L394)
 
 Error thrown when external service communication fails
 
@@ -31,7 +31,7 @@ throw new NetworkError('RPC request failed', ErrorCode.RPC_ERROR, {
 
 > **new NetworkError**(`message`, `code`, `options?`): `NetworkError`
 
-Defined in: [packages/sdk/src/errors.ts:401](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L401)
+Defined in: [packages/sdk/src/errors.ts:401](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L401)
 
 #### Parameters
 
@@ -75,7 +75,7 @@ Defined in: [packages/sdk/src/errors.ts:401](https://github.com/sip-protocol/sip
 
 > `readonly` **code**: [`ErrorCode`](../enumerations/ErrorCode.md)
 
-Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L118)
+Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L118)
 
 Machine-readable error code
 
@@ -89,7 +89,7 @@ Machine-readable error code
 
 > `readonly` `optional` **context**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L121)
+Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L121)
 
 Additional debugging context
 
@@ -103,7 +103,7 @@ Additional debugging context
 
 > `readonly` **timestamp**: `Date`
 
-Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L124)
+Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L124)
 
 Timestamp when error was created
 
@@ -117,7 +117,7 @@ Timestamp when error was created
 
 > `readonly` `optional` **endpoint**: `string`
 
-Defined in: [packages/sdk/src/errors.ts:396](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L396)
+Defined in: [packages/sdk/src/errors.ts:396](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L396)
 
 The endpoint that failed (if applicable)
 
@@ -127,7 +127,7 @@ The endpoint that failed (if applicable)
 
 > `readonly` `optional` **statusCode**: `number`
 
-Defined in: [packages/sdk/src/errors.ts:399](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L399)
+Defined in: [packages/sdk/src/errors.ts:399](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L399)
 
 HTTP status code (if applicable)
 
@@ -207,7 +207,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > **toJSON**(): [`SerializedError`](../interfaces/SerializedError.md)
 
-Defined in: [packages/sdk/src/errors.ts:149](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L149)
+Defined in: [packages/sdk/src/errors.ts:149](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L149)
 
 Serialize error for logging or transmission
 
@@ -225,7 +225,7 @@ Serialize error for logging or transmission
 
 > **toString**(): `string`
 
-Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L164)
+Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L164)
 
 Create a string representation for logging
 

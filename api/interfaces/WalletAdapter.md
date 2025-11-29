@@ -6,7 +6,7 @@
 
 # Interface: WalletAdapter
 
-Defined in: [packages/sdk/src/sip.ts:62](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L62)
+Defined in: [packages/sdk/src/sip.ts:88](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L88)
 
 Wallet adapter interface
 
@@ -16,7 +16,7 @@ Wallet adapter interface
 
 > **chain**: [`ChainId`](../type-aliases/ChainId.md)
 
-Defined in: [packages/sdk/src/sip.ts:64](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L64)
+Defined in: [packages/sdk/src/sip.ts:90](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L90)
 
 Connected chain
 
@@ -26,7 +26,7 @@ Connected chain
 
 > **address**: `string`
 
-Defined in: [packages/sdk/src/sip.ts:66](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L66)
+Defined in: [packages/sdk/src/sip.ts:92](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L92)
 
 Wallet address
 
@@ -36,7 +36,7 @@ Wallet address
 
 > **signMessage**(`message`): `Promise`\<`string`\>
 
-Defined in: [packages/sdk/src/sip.ts:68](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L68)
+Defined in: [packages/sdk/src/sip.ts:94](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L94)
 
 Sign a message
 
@@ -56,7 +56,7 @@ Sign a message
 
 > **signTransaction**(`tx`): `Promise`\<`unknown`\>
 
-Defined in: [packages/sdk/src/sip.ts:70](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L70)
+Defined in: [packages/sdk/src/sip.ts:96](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L96)
 
 Sign a transaction
 
@@ -69,3 +69,23 @@ Sign a transaction
 #### Returns
 
 `Promise`\<`unknown`\>
+
+***
+
+### sendTransaction()?
+
+> `optional` **sendTransaction**(`tx`): `Promise`\<`string`\>
+
+Defined in: [packages/sdk/src/sip.ts:98](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L98)
+
+Send a transaction (optional)
+
+#### Parameters
+
+##### tx
+
+`unknown`
+
+#### Returns
+
+`Promise`\<`string`\>

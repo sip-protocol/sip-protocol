@@ -6,7 +6,7 @@
 
 # Interface: WalletErrorEvent
 
-Defined in: packages/types/dist/index.d.ts:1468
+Defined in: packages/types/dist/index.d.ts:2297
 
 Error event - wallet error occurred
 
@@ -20,7 +20,7 @@ Error event - wallet error occurred
 
 > **timestamp**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1432
+Defined in: packages/types/dist/index.d.ts:2261
 
 #### Inherited from
 
@@ -32,7 +32,7 @@ Defined in: packages/types/dist/index.d.ts:1432
 
 > **type**: `"error"`
 
-Defined in: packages/types/dist/index.d.ts:1469
+Defined in: packages/types/dist/index.d.ts:2298
 
 #### Overrides
 
@@ -44,7 +44,7 @@ Defined in: packages/types/dist/index.d.ts:1469
 
 > **code**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1470
+Defined in: packages/types/dist/index.d.ts:2299
 
 ***
 
@@ -52,7 +52,7 @@ Defined in: packages/types/dist/index.d.ts:1470
 
 > **message**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1471
+Defined in: packages/types/dist/index.d.ts:2300
 
 ***
 
@@ -60,4 +60,4 @@ Defined in: packages/types/dist/index.d.ts:1471
 
 > `optional` **details**: `unknown`
 
-Defined in: packages/types/dist/index.d.ts:1472
+Defined in: packages/types/dist/index.d.ts:2301

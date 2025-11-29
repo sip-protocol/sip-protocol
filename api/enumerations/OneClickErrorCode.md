@@ -6,7 +6,7 @@
 
 # Enumeration: OneClickErrorCode
 
-Defined in: packages/types/dist/index.d.ts:937
+Defined in: packages/types/dist/index.d.ts:967
 
 1Click API error codes
 
@@ -16,7 +16,7 @@ Defined in: packages/types/dist/index.d.ts:937
 
 > **INSUFFICIENT\_LIQUIDITY**: `"INSUFFICIENT_LIQUIDITY"`
 
-Defined in: packages/types/dist/index.d.ts:939
+Defined in: packages/types/dist/index.d.ts:969
 
 No solvers can fill this amount
 
@@ -26,7 +26,7 @@ No solvers can fill this amount
 
 > **UNSUPPORTED\_PAIR**: `"UNSUPPORTED_PAIR"`
 
-Defined in: packages/types/dist/index.d.ts:941
+Defined in: packages/types/dist/index.d.ts:971
 
 Asset pair not supported
 
@@ -36,7 +36,7 @@ Asset pair not supported
 
 > **AMOUNT\_TOO\_LOW**: `"AMOUNT_TOO_LOW"`
 
-Defined in: packages/types/dist/index.d.ts:943
+Defined in: packages/types/dist/index.d.ts:973
 
 Amount below minimum threshold
 
@@ -46,7 +46,7 @@ Amount below minimum threshold
 
 > **DEADLINE\_TOO\_SHORT**: `"DEADLINE_TOO_SHORT"`
 
-Defined in: packages/types/dist/index.d.ts:945
+Defined in: packages/types/dist/index.d.ts:975
 
 Deadline too short for solvers
 
@@ -56,7 +56,7 @@ Deadline too short for solvers
 
 > **INVALID\_PARAMS**: `"INVALID_PARAMS"`
 
-Defined in: packages/types/dist/index.d.ts:947
+Defined in: packages/types/dist/index.d.ts:977
 
 Invalid request parameters
 
@@ -66,6 +66,6 @@ Invalid request parameters
 
 > **RATE\_LIMITED**: `"RATE_LIMITED"`
 
-Defined in: packages/types/dist/index.d.ts:949
+Defined in: packages/types/dist/index.d.ts:979
 
 Rate limit exceeded

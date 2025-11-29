@@ -6,7 +6,7 @@
 
 # Interface: IWalletAdapter
 
-Defined in: packages/types/dist/index.d.ts:1503
+Defined in: packages/types/dist/index.d.ts:2332
 
 Core wallet adapter interface
 
@@ -39,7 +39,7 @@ class SolanaWalletAdapter implements WalletAdapter {
 
 > `readonly` **chain**: [`ChainId`](../type-aliases/ChainId.md)
 
-Defined in: packages/types/dist/index.d.ts:1505
+Defined in: packages/types/dist/index.d.ts:2334
 
 Chain this adapter connects to
 
@@ -49,7 +49,7 @@ Chain this adapter connects to
 
 > `readonly` **name**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1507
+Defined in: packages/types/dist/index.d.ts:2336
 
 Wallet name/identifier (e.g., 'phantom', 'metamask')
 
@@ -59,7 +59,7 @@ Wallet name/identifier (e.g., 'phantom', 'metamask')
 
 > `readonly` **address**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1509
+Defined in: packages/types/dist/index.d.ts:2338
 
 Current address (empty string if not connected)
 
@@ -69,7 +69,7 @@ Current address (empty string if not connected)
 
 > `readonly` **publicKey**: `""` \| `` `0x${string}` ``
 
-Defined in: packages/types/dist/index.d.ts:1511
+Defined in: packages/types/dist/index.d.ts:2340
 
 Public key (hex encoded, empty string if not connected)
 
@@ -79,7 +79,7 @@ Public key (hex encoded, empty string if not connected)
 
 > `readonly` **connectionState**: [`WalletConnectionState`](../type-aliases/WalletConnectionState.md)
 
-Defined in: packages/types/dist/index.d.ts:1515
+Defined in: packages/types/dist/index.d.ts:2344
 
 Current connection state
 
@@ -89,7 +89,7 @@ Current connection state
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: packages/types/dist/index.d.ts:1521
+Defined in: packages/types/dist/index.d.ts:2350
 
 Connect to the wallet
 
@@ -107,7 +107,7 @@ If connection fails
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: packages/types/dist/index.d.ts:1525
+Defined in: packages/types/dist/index.d.ts:2354
 
 Disconnect from the wallet
 
@@ -121,7 +121,7 @@ Disconnect from the wallet
 
 > **isConnected**(): `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1529
+Defined in: packages/types/dist/index.d.ts:2358
 
 Check if wallet is connected
 
@@ -135,7 +135,7 @@ Check if wallet is connected
 
 > **signMessage**(`message`): `Promise`\<[`Signature`](Signature.md)\>
 
-Defined in: packages/types/dist/index.d.ts:1537
+Defined in: packages/types/dist/index.d.ts:2366
 
 Sign an arbitrary message
 
@@ -163,7 +163,7 @@ If signing fails or wallet not connected
 
 > **signTransaction**(`tx`): `Promise`\<[`SignedTransaction`](SignedTransaction.md)\>
 
-Defined in: packages/types/dist/index.d.ts:1545
+Defined in: packages/types/dist/index.d.ts:2374
 
 Sign a transaction
 
@@ -191,7 +191,7 @@ If signing fails or wallet not connected
 
 > **signAndSendTransaction**(`tx`): `Promise`\<[`TransactionReceipt`](TransactionReceipt.md)\>
 
-Defined in: packages/types/dist/index.d.ts:1553
+Defined in: packages/types/dist/index.d.ts:2382
 
 Sign and broadcast a transaction
 
@@ -219,7 +219,7 @@ If signing or broadcast fails
 
 > **getBalance**(): `Promise`\<`bigint`\>
 
-Defined in: packages/types/dist/index.d.ts:1560
+Defined in: packages/types/dist/index.d.ts:2389
 
 Get native token balance
 
@@ -239,7 +239,7 @@ If query fails
 
 > **getTokenBalance**(`asset`): `Promise`\<`bigint`\>
 
-Defined in: packages/types/dist/index.d.ts:1568
+Defined in: packages/types/dist/index.d.ts:2397
 
 Get token balance for a specific asset
 
@@ -267,7 +267,7 @@ If query fails or asset not supported
 
 > **on**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: packages/types/dist/index.d.ts:1575
+Defined in: packages/types/dist/index.d.ts:2404
 
 Subscribe to wallet events
 
@@ -301,7 +301,7 @@ Event handler function
 
 > **off**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: packages/types/dist/index.d.ts:1584
+Defined in: packages/types/dist/index.d.ts:2413
 
 Unsubscribe from wallet events
 

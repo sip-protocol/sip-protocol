@@ -6,7 +6,7 @@
 
 # Interface: ZcashOperation
 
-Defined in: packages/types/dist/index.d.ts:1177
+Defined in: packages/types/dist/index.d.ts:1209
 
 Operation status response
 
@@ -16,7 +16,7 @@ Operation status response
 
 > **id**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1179
+Defined in: packages/types/dist/index.d.ts:1211
 
 Operation ID
 
@@ -26,7 +26,7 @@ Operation ID
 
 > **status**: [`ZcashOperationStatus`](../type-aliases/ZcashOperationStatus.md)
 
-Defined in: packages/types/dist/index.d.ts:1181
+Defined in: packages/types/dist/index.d.ts:1213
 
 Current status
 
@@ -36,7 +36,7 @@ Current status
 
 > **creation\_time**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1183
+Defined in: packages/types/dist/index.d.ts:1215
 
 Creation time (Unix timestamp)
 
@@ -46,7 +46,7 @@ Creation time (Unix timestamp)
 
 > **method**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1185
+Defined in: packages/types/dist/index.d.ts:1217
 
 Method that created this operation
 
@@ -56,7 +56,7 @@ Method that created this operation
 
 > **params**: `Record`\<`string`, `unknown`\>
 
-Defined in: packages/types/dist/index.d.ts:1187
+Defined in: packages/types/dist/index.d.ts:1219
 
 Method parameters
 
@@ -66,7 +66,7 @@ Method parameters
 
 > `optional` **result**: [`ZcashOperationTxResult`](ZcashOperationTxResult.md)
 
-Defined in: packages/types/dist/index.d.ts:1189
+Defined in: packages/types/dist/index.d.ts:1221
 
 Result (if successful)
 
@@ -76,7 +76,7 @@ Result (if successful)
 
 > `optional` **error**: [`ZcashOperationError`](ZcashOperationError.md)
 
-Defined in: packages/types/dist/index.d.ts:1191
+Defined in: packages/types/dist/index.d.ts:1223
 
 Error (if failed)
 
@@ -86,6 +86,6 @@ Error (if failed)
 
 > `optional` **execution\_secs**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1193
+Defined in: packages/types/dist/index.d.ts:1225
 
 Execution seconds (if completed)

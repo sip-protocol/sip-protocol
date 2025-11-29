@@ -6,7 +6,7 @@
 
 # Interface: WalletAccountChangedEvent
 
-Defined in: packages/types/dist/index.d.ts:1452
+Defined in: packages/types/dist/index.d.ts:2281
 
 Account changed event - user switched accounts
 
@@ -20,7 +20,7 @@ Account changed event - user switched accounts
 
 > **timestamp**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1432
+Defined in: packages/types/dist/index.d.ts:2261
 
 #### Inherited from
 
@@ -32,7 +32,7 @@ Defined in: packages/types/dist/index.d.ts:1432
 
 > **type**: `"accountChanged"`
 
-Defined in: packages/types/dist/index.d.ts:1453
+Defined in: packages/types/dist/index.d.ts:2282
 
 #### Overrides
 
@@ -44,7 +44,7 @@ Defined in: packages/types/dist/index.d.ts:1453
 
 > **previousAddress**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1454
+Defined in: packages/types/dist/index.d.ts:2283
 
 ***
 
@@ -52,4 +52,4 @@ Defined in: packages/types/dist/index.d.ts:1454
 
 > **newAddress**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1455
+Defined in: packages/types/dist/index.d.ts:2284

@@ -6,7 +6,7 @@
 
 # Interface: EIP712TypeDefinition
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:87](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L87)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:87](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L87)
 
 EIP-712 Type definition
 
@@ -16,7 +16,7 @@ EIP-712 Type definition
 
 > **name**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:88](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L88)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:88](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L88)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:88](https://github.com/si
 
 > **type**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:89](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L89)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:89](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L89)

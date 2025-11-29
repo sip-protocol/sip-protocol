@@ -6,7 +6,7 @@
 
 # Interface: ZcashPoolBalance
 
-Defined in: packages/types/dist/index.d.ts:1074
+Defined in: packages/types/dist/index.d.ts:1104
 
 Account balance per pool
 
@@ -16,6 +16,6 @@ Account balance per pool
 
 > **valueZat**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1076
+Defined in: packages/types/dist/index.d.ts:1106
 
 Balance in zatoshis

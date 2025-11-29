@@ -6,7 +6,7 @@
 
 # Interface: WalletDisconnectEvent
 
-Defined in: packages/types/dist/index.d.ts:1445
+Defined in: packages/types/dist/index.d.ts:2274
 
 Disconnect event - wallet disconnected
 
@@ -20,7 +20,7 @@ Disconnect event - wallet disconnected
 
 > **timestamp**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1432
+Defined in: packages/types/dist/index.d.ts:2261
 
 #### Inherited from
 
@@ -32,7 +32,7 @@ Defined in: packages/types/dist/index.d.ts:1432
 
 > **type**: `"disconnect"`
 
-Defined in: packages/types/dist/index.d.ts:1446
+Defined in: packages/types/dist/index.d.ts:2275
 
 #### Overrides
 
@@ -44,4 +44,4 @@ Defined in: packages/types/dist/index.d.ts:1446
 
 > `optional` **reason**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1447
+Defined in: packages/types/dist/index.d.ts:2276

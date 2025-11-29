@@ -6,7 +6,7 @@
 
 # Interface: ShieldedSendParams
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:62](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L62)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:62](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L62)
 
 Shielded send parameters
 
@@ -16,7 +16,7 @@ Shielded send parameters
 
 > **to**: `string`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:64](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L64)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:64](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L64)
 
 Recipient address (shielded or unified)
 
@@ -26,7 +26,7 @@ Recipient address (shielded or unified)
 
 > **amount**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:66](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L66)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:66](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L66)
 
 Amount in ZEC
 
@@ -36,7 +36,7 @@ Amount in ZEC
 
 > `optional` **memo**: `string`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:68](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L68)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:68](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L68)
 
 Optional memo (max 512 bytes)
 
@@ -46,7 +46,7 @@ Optional memo (max 512 bytes)
 
 > `optional` **privacyLevel**: [`PrivacyLevel`](../enumerations/PrivacyLevel.md)
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:70](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L70)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:70](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L70)
 
 SIP privacy level
 
@@ -56,7 +56,7 @@ SIP privacy level
 
 > `optional` **from**: `string`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:72](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L72)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:72](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L72)
 
 Source address (uses default if not specified)
 
@@ -66,7 +66,7 @@ Source address (uses default if not specified)
 
 > `optional` **minConf**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:74](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L74)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:74](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L74)
 
 Minimum confirmations for inputs
 
@@ -76,6 +76,6 @@ Minimum confirmations for inputs
 
 > `optional` **fee**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:76](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L76)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:76](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L76)
 
 Custom fee (uses ZIP-317 default if not specified)

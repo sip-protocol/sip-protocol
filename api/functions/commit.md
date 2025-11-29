@@ -8,7 +8,7 @@
 
 > **commit**(`value`, `blinding?`): [`PedersenCommitment`](../interfaces/PedersenCommitment.md)
 
-Defined in: [packages/sdk/src/commitment.ts:158](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/commitment.ts#L158)
+Defined in: [packages/sdk/src/commitment.ts:158](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/commitment.ts#L158)
 
 Create a Pedersen commitment to a value
 

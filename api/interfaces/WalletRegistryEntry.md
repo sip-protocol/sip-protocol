@@ -6,7 +6,7 @@
 
 # Interface: WalletRegistryEntry
 
-Defined in: packages/types/dist/index.d.ts:1772
+Defined in: packages/types/dist/index.d.ts:2602
 
 Registry entry for a wallet adapter
 
@@ -16,7 +16,7 @@ Registry entry for a wallet adapter
 
 > **info**: [`WalletInfo`](WalletInfo.md)
 
-Defined in: packages/types/dist/index.d.ts:1773
+Defined in: packages/types/dist/index.d.ts:2603
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: packages/types/dist/index.d.ts:1773
 
 > **factory**: [`WalletAdapterFactory`](../type-aliases/WalletAdapterFactory.md)
 
-Defined in: packages/types/dist/index.d.ts:1774
+Defined in: packages/types/dist/index.d.ts:2604
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: packages/types/dist/index.d.ts:1774
 
 > **detect**: () => `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1776
+Defined in: packages/types/dist/index.d.ts:2606
 
 Detection function - returns true if wallet is available
 

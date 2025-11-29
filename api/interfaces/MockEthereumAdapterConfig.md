@@ -6,7 +6,7 @@
 
 # Interface: MockEthereumAdapterConfig
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:32](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L32)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:32](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L32)
 
 Mock Ethereum adapter configuration
 
@@ -16,7 +16,7 @@ Mock Ethereum adapter configuration
 
 > `optional` **address**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:34](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L34)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:34](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L34)
 
 Mock address
 
@@ -26,7 +26,7 @@ Mock address
 
 > `optional` **chainId**: `number`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:36](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L36)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:36](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L36)
 
 Mock chain ID
 
@@ -36,7 +36,7 @@ Mock chain ID
 
 > `optional` **balance**: `bigint`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:38](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L38)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:38](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L38)
 
 Initial ETH balance in wei
 
@@ -46,7 +46,7 @@ Initial ETH balance in wei
 
 > `optional` **tokenBalances**: `Record`\<`string`, `bigint`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:40](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L40)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:40](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L40)
 
 Token balances by address
 
@@ -56,7 +56,7 @@ Token balances by address
 
 > `optional` **shouldFailConnect**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:42](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L42)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:42](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L42)
 
 Should connection fail
 
@@ -66,7 +66,7 @@ Should connection fail
 
 > `optional` **shouldFailSign**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:44](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L44)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:44](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L44)
 
 Should signing fail
 
@@ -76,6 +76,6 @@ Should signing fail
 
 > `optional` **shouldFailTransaction**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:46](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/mock.ts#L46)
+Defined in: [packages/sdk/src/wallet/ethereum/mock.ts:46](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/mock.ts#L46)
 
 Should transaction fail

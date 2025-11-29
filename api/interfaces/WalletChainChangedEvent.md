@@ -6,7 +6,7 @@
 
 # Interface: WalletChainChangedEvent
 
-Defined in: packages/types/dist/index.d.ts:1460
+Defined in: packages/types/dist/index.d.ts:2289
 
 Chain changed event - user switched networks
 
@@ -20,7 +20,7 @@ Chain changed event - user switched networks
 
 > **timestamp**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1432
+Defined in: packages/types/dist/index.d.ts:2261
 
 #### Inherited from
 
@@ -32,7 +32,7 @@ Defined in: packages/types/dist/index.d.ts:1432
 
 > **type**: `"chainChanged"`
 
-Defined in: packages/types/dist/index.d.ts:1461
+Defined in: packages/types/dist/index.d.ts:2290
 
 #### Overrides
 
@@ -44,7 +44,7 @@ Defined in: packages/types/dist/index.d.ts:1461
 
 > **previousChain**: [`ChainId`](../type-aliases/ChainId.md)
 
-Defined in: packages/types/dist/index.d.ts:1462
+Defined in: packages/types/dist/index.d.ts:2291
 
 ***
 
@@ -52,4 +52,4 @@ Defined in: packages/types/dist/index.d.ts:1462
 
 > **newChain**: [`ChainId`](../type-aliases/ChainId.md)
 
-Defined in: packages/types/dist/index.d.ts:1463
+Defined in: packages/types/dist/index.d.ts:2292

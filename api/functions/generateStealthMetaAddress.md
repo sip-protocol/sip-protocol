@@ -8,7 +8,7 @@
 
 > **generateStealthMetaAddress**(`chain`, `label?`): `object`
 
-Defined in: [packages/sdk/src/stealth.ts:41](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/stealth.ts#L41)
+Defined in: [packages/sdk/src/stealth.ts:42](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/stealth.ts#L42)
 
 Generate a new stealth meta-address keypair
 

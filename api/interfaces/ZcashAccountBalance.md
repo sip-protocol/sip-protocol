@@ -6,7 +6,7 @@
 
 # Interface: ZcashAccountBalance
 
-Defined in: packages/types/dist/index.d.ts:1081
+Defined in: packages/types/dist/index.d.ts:1111
 
 Account balance result
 
@@ -16,7 +16,7 @@ Account balance result
 
 > **pools**: `object`
 
-Defined in: packages/types/dist/index.d.ts:1083
+Defined in: packages/types/dist/index.d.ts:1113
 
 Balances per pool
 
@@ -38,6 +38,6 @@ Balances per pool
 
 > **minimum\_confirmations**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1089
+Defined in: packages/types/dist/index.d.ts:1119
 
 Minimum confirmations used

@@ -6,7 +6,7 @@
 
 # Interface: SolanaConnection
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:58](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L58)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:58](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L58)
 
 Solana connection interface for RPC calls
 
@@ -16,7 +16,7 @@ Solana connection interface for RPC calls
 
 > **getBalance**(`publicKey`): `Promise`\<`number`\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:60](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L60)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:60](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L60)
 
 Get account balance in lamports
 
@@ -36,7 +36,7 @@ Get account balance in lamports
 
 > **getTokenAccountBalance**(`publicKey`): `Promise`\<\{ `value`: \{ `amount`: `string`; `decimals`: `number`; \}; \}\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:62](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L62)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:62](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L62)
 
 Get token account balance
 
@@ -56,7 +56,7 @@ Get token account balance
 
 > **getLatestBlockhash**(): `Promise`\<\{ `blockhash`: `string`; `lastValidBlockHeight`: `number`; \}\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:66](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L66)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:66](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L66)
 
 Get latest blockhash
 
@@ -70,7 +70,7 @@ Get latest blockhash
 
 > **sendRawTransaction**(`rawTransaction`, `options?`): `Promise`\<`string`\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:71](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L71)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:71](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L71)
 
 Send raw transaction
 
@@ -94,7 +94,7 @@ Send raw transaction
 
 > **confirmTransaction**(`signature`, `commitment?`): `Promise`\<\{ `value`: \{ `err`: `unknown`; \}; \}\>
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:76](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L76)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:76](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L76)
 
 Confirm transaction
 

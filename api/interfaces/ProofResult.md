@@ -6,7 +6,7 @@
 
 # Interface: ProofResult
 
-Defined in: [packages/sdk/src/proofs/interface.ts:114](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L114)
+Defined in: [packages/sdk/src/proofs/interface.ts:126](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L126)
 
 Result of proof generation
 
@@ -16,7 +16,7 @@ Result of proof generation
 
 > **proof**: [`ZKProof`](ZKProof.md)
 
-Defined in: [packages/sdk/src/proofs/interface.ts:116](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L116)
+Defined in: [packages/sdk/src/proofs/interface.ts:128](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L128)
 
 The generated proof
 
@@ -26,7 +26,7 @@ The generated proof
 
 > **publicInputs**: `` `0x${string}` ``[]
 
-Defined in: [packages/sdk/src/proofs/interface.ts:118](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L118)
+Defined in: [packages/sdk/src/proofs/interface.ts:130](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L130)
 
 Public inputs used in the proof
 
@@ -36,6 +36,6 @@ Public inputs used in the proof
 
 > `optional` **commitment**: [`Commitment`](Commitment.md)
 
-Defined in: [packages/sdk/src/proofs/interface.ts:120](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L120)
+Defined in: [packages/sdk/src/proofs/interface.ts:132](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L132)
 
 Commitment (if generated as part of proof)

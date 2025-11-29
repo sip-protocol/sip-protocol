@@ -6,7 +6,7 @@
 
 # Interface: NEARIntentsAdapterConfig
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:91](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L91)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:93](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L93)
 
 Configuration for NEAR Intents adapter
 
@@ -16,7 +16,7 @@ Configuration for NEAR Intents adapter
 
 > `optional` **client**: [`OneClickClient`](../classes/OneClickClient.md)
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:93](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L93)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:95](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L95)
 
 OneClickClient instance or config
 
@@ -26,7 +26,7 @@ OneClickClient instance or config
 
 > `optional` **baseUrl**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:95](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L95)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:97](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L97)
 
 Base URL for 1Click API
 
@@ -36,7 +36,7 @@ Base URL for 1Click API
 
 > `optional` **jwtToken**: `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:97](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L97)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:99](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L99)
 
 JWT token for authentication
 
@@ -46,7 +46,7 @@ JWT token for authentication
 
 > `optional` **defaultSlippage**: `number`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:99](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L99)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:101](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L101)
 
 Default slippage tolerance in basis points (100 = 1%)
 
@@ -56,7 +56,7 @@ Default slippage tolerance in basis points (100 = 1%)
 
 > `optional` **defaultDeadlineOffset**: `number`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:101](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L101)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:103](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L103)
 
 Default deadline offset in seconds
 
@@ -66,6 +66,6 @@ Default deadline offset in seconds
 
 > `optional` **assetMappings**: `Record`\<`string`, `string`\>
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:103](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L103)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:105](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L105)
 
 Custom asset mappings (merged with defaults)

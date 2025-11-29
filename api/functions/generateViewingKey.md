@@ -8,7 +8,7 @@
 
 > **generateViewingKey**(`path`): [`ViewingKey`](../interfaces/ViewingKey.md)
 
-Defined in: [packages/sdk/src/privacy.ts:100](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L100)
+Defined in: [packages/sdk/src/privacy.ts:101](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L101)
 
 Generate a new viewing key
 

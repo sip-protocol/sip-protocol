@@ -6,7 +6,7 @@
 
 # Class: NoirProofProvider
 
-Defined in: [packages/sdk/src/proofs/noir.ts:79](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L79)
+Defined in: [packages/sdk/src/proofs/noir.ts:100](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L100)
 
 Noir Proof Provider
 
@@ -15,16 +15,17 @@ Production ZK proof provider using Noir circuits.
 ## Example
 
 ```typescript
-const provider = new NoirProofProvider({
-  artifactsPath: './circuits/target',
-})
+const provider = new NoirProofProvider()
 
 await provider.initialize()
 
 const result = await provider.generateFundingProof({
   balance: 100n,
   minimumRequired: 50n,
-  // ... other params
+  blindingFactor: new Uint8Array(32),
+  assetId: '0xABCD',
+  userAddress: '0x1234...',
+  ownershipSignature: new Uint8Array(64),
 })
 ```
 
@@ -38,7 +39,7 @@ const result = await provider.generateFundingProof({
 
 > **new NoirProofProvider**(`config`): `NoirProofProvider`
 
-Defined in: [packages/sdk/src/proofs/noir.ts:85](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L85)
+Defined in: [packages/sdk/src/proofs/noir.ts:113](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L113)
 
 #### Parameters
 
@@ -56,7 +57,7 @@ Defined in: [packages/sdk/src/proofs/noir.ts:85](https://github.com/sip-protocol
 
 > `readonly` **framework**: [`ProofFramework`](../type-aliases/ProofFramework.md) = `'noir'`
 
-Defined in: [packages/sdk/src/proofs/noir.ts:80](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L80)
+Defined in: [packages/sdk/src/proofs/noir.ts:101](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L101)
 
 The ZK framework this provider uses
 
@@ -72,7 +73,7 @@ The ZK framework this provider uses
 
 > **get** **isReady**(): `boolean`
 
-Defined in: [packages/sdk/src/proofs/noir.ts:93](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L93)
+Defined in: [packages/sdk/src/proofs/noir.ts:121](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L121)
 
 Whether the provider is ready to generate proofs
 (e.g., circuits compiled, keys loaded)
@@ -90,11 +91,59 @@ Whether the provider is ready to generate proofs
 
 ## Methods
 
+### derivePublicKey()
+
+> `static` **derivePublicKey**(`privateKey`): `PublicKeyCoordinates`
+
+Defined in: [packages/sdk/src/proofs/noir.ts:154](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L154)
+
+Derive secp256k1 public key coordinates from a private key
+
+Utility method that can be used to generate public key coordinates
+for use in ValidityProofParams.senderPublicKey or NoirProviderConfig.oraclePublicKey
+
+#### Parameters
+
+##### privateKey
+
+`Uint8Array`
+
+32-byte private key
+
+#### Returns
+
+`PublicKeyCoordinates`
+
+X and Y coordinates as 32-byte arrays
+
+#### Example
+
+```typescript
+const privateKey = new Uint8Array(32).fill(1) // Your secret key
+const publicKey = NoirProofProvider.derivePublicKey(privateKey)
+
+// Use for oracle configuration
+const provider = new NoirProofProvider({
+  oraclePublicKey: publicKey
+})
+
+// Or use for validity proof params
+const validityParams = {
+  // ... other params
+  senderPublicKey: {
+    x: new Uint8Array(publicKey.x),
+    y: new Uint8Array(publicKey.y)
+  }
+}
+```
+
+***
+
 ### initialize()
 
 > **initialize**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/proofs/noir.ts:104](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L104)
+Defined in: [packages/sdk/src/proofs/noir.ts:170](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L170)
 
 Initialize the Noir provider
 
@@ -104,10 +153,6 @@ Loads circuit artifacts and initializes the proving backend.
 
 `Promise`\<`void`\>
 
-#### Throws
-
-Error if circuits are not yet implemented
-
 #### Implementation of
 
 [`ProofProvider`](../interfaces/ProofProvider.md).[`initialize`](../interfaces/ProofProvider.md#initialize)
@@ -116,15 +161,17 @@ Error if circuits are not yet implemented
 
 ### generateFundingProof()
 
-> **generateFundingProof**(`_params`): `Promise`\<[`ProofResult`](../interfaces/ProofResult.md)\>
+> **generateFundingProof**(`params`): `Promise`\<[`ProofResult`](../interfaces/ProofResult.md)\>
 
-Defined in: [packages/sdk/src/proofs/noir.ts:139](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L139)
+Defined in: [packages/sdk/src/proofs/noir.ts:244](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L244)
 
 Generate a Funding Proof using Noir circuits
 
+Proves: balance >= minimumRequired without revealing balance
+
 #### Parameters
 
-##### \_params
+##### params
 
 [`FundingProofParams`](../interfaces/FundingProofParams.md)
 
@@ -144,15 +191,17 @@ docs/specs/FUNDING-PROOF.md
 
 ### generateValidityProof()
 
-> **generateValidityProof**(`_params`): `Promise`\<[`ProofResult`](../interfaces/ProofResult.md)\>
+> **generateValidityProof**(`params`): `Promise`\<[`ProofResult`](../interfaces/ProofResult.md)\>
 
-Defined in: [packages/sdk/src/proofs/noir.ts:173](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L173)
+Defined in: [packages/sdk/src/proofs/noir.ts:355](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L355)
 
 Generate a Validity Proof using Noir circuits
 
+Proves: Intent is authorized by sender without revealing identity
+
 #### Parameters
 
-##### \_params
+##### params
 
 [`ValidityProofParams`](../interfaces/ValidityProofParams.md)
 
@@ -172,15 +221,18 @@ docs/specs/VALIDITY-PROOF.md
 
 ### generateFulfillmentProof()
 
-> **generateFulfillmentProof**(`_params`): `Promise`\<[`ProofResult`](../interfaces/ProofResult.md)\>
+> **generateFulfillmentProof**(`params`): `Promise`\<[`ProofResult`](../interfaces/ProofResult.md)\>
 
-Defined in: [packages/sdk/src/proofs/noir.ts:188](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L188)
+Defined in: [packages/sdk/src/proofs/noir.ts:541](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L541)
 
 Generate a Fulfillment Proof using Noir circuits
 
+Proves: Solver correctly executed the intent and delivered the required
+output to the recipient, without revealing execution path or liquidity sources.
+
 #### Parameters
 
-##### \_params
+##### params
 
 [`FulfillmentProofParams`](../interfaces/FulfillmentProofParams.md)
 
@@ -200,15 +252,15 @@ docs/specs/FULFILLMENT-PROOF.md
 
 ### verifyProof()
 
-> **verifyProof**(`_proof`): `Promise`\<`boolean`\>
+> **verifyProof**(`proof`): `Promise`\<`boolean`\>
 
-Defined in: [packages/sdk/src/proofs/noir.ts:201](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/noir.ts#L201)
+Defined in: [packages/sdk/src/proofs/noir.ts:737](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L737)
 
 Verify a Noir proof
 
 #### Parameters
 
-##### \_proof
+##### proof
 
 [`ZKProof`](../interfaces/ZKProof.md)
 
@@ -219,3 +271,17 @@ Verify a Noir proof
 #### Implementation of
 
 [`ProofProvider`](../interfaces/ProofProvider.md).[`verifyProof`](../interfaces/ProofProvider.md#verifyproof)
+
+***
+
+### destroy()
+
+> **destroy**(): `Promise`\<`void`\>
+
+Defined in: [packages/sdk/src/proofs/noir.ts:792](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/noir.ts#L792)
+
+Destroy the provider and free resources
+
+#### Returns
+
+`Promise`\<`void`\>

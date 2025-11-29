@@ -6,7 +6,7 @@
 
 # Class: SIP
 
-Defined in: [packages/sdk/src/sip.ts:76](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L76)
+Defined in: [packages/sdk/src/sip.ts:114](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L114)
 
 Main SIP SDK class
 
@@ -16,7 +16,7 @@ Main SIP SDK class
 
 > **new SIP**(`config`): `SIP`
 
-Defined in: [packages/sdk/src/sip.ts:86](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L86)
+Defined in: [packages/sdk/src/sip.ts:127](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L127)
 
 #### Parameters
 
@@ -30,11 +30,73 @@ Defined in: [packages/sdk/src/sip.ts:86](https://github.com/sip-protocol/sip-pro
 
 ## Methods
 
+### getMode()
+
+> **getMode**(): `"demo"` \| `"production"`
+
+Defined in: [packages/sdk/src/sip.ts:180](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L180)
+
+Get the current mode
+
+#### Returns
+
+`"demo"` \| `"production"`
+
+***
+
+### isProductionMode()
+
+> **isProductionMode**(): `boolean`
+
+Defined in: [packages/sdk/src/sip.ts:187](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L187)
+
+Check if running in production mode with real NEAR Intents
+
+#### Returns
+
+`boolean`
+
+***
+
+### getIntentsAdapter()
+
+> **getIntentsAdapter**(): [`NEARIntentsAdapter`](NEARIntentsAdapter.md) \| `undefined`
+
+Defined in: [packages/sdk/src/sip.ts:194](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L194)
+
+Get the NEAR Intents adapter
+
+#### Returns
+
+[`NEARIntentsAdapter`](NEARIntentsAdapter.md) \| `undefined`
+
+***
+
+### setIntentsAdapter()
+
+> **setIntentsAdapter**(`adapter`): `void`
+
+Defined in: [packages/sdk/src/sip.ts:201](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L201)
+
+Set the NEAR Intents adapter
+
+#### Parameters
+
+##### adapter
+
+[`NEARIntentsAdapterConfig`](../interfaces/NEARIntentsAdapterConfig.md) | [`NEARIntentsAdapter`](NEARIntentsAdapter.md)
+
+#### Returns
+
+`void`
+
+***
+
 ### getProofProvider()
 
 > **getProofProvider**(): [`ProofProvider`](../interfaces/ProofProvider.md) \| `undefined`
 
-Defined in: [packages/sdk/src/sip.ts:121](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L121)
+Defined in: [packages/sdk/src/sip.ts:212](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L212)
 
 Get the configured proof provider
 
@@ -48,7 +110,7 @@ Get the configured proof provider
 
 > **setProofProvider**(`provider`): `void`
 
-Defined in: [packages/sdk/src/sip.ts:128](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L128)
+Defined in: [packages/sdk/src/sip.ts:219](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L219)
 
 Set or update the proof provider
 
@@ -68,7 +130,7 @@ Set or update the proof provider
 
 > **hasProofProvider**(): `boolean`
 
-Defined in: [packages/sdk/src/sip.ts:135](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L135)
+Defined in: [packages/sdk/src/sip.ts:226](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L226)
 
 Check if proof provider is available and ready
 
@@ -82,7 +144,7 @@ Check if proof provider is available and ready
 
 > **connect**(`wallet`): `void`
 
-Defined in: [packages/sdk/src/sip.ts:142](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L142)
+Defined in: [packages/sdk/src/sip.ts:233](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L233)
 
 Connect a wallet
 
@@ -102,7 +164,7 @@ Connect a wallet
 
 > **disconnect**(): `void`
 
-Defined in: [packages/sdk/src/sip.ts:149](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L149)
+Defined in: [packages/sdk/src/sip.ts:240](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L240)
 
 Disconnect wallet
 
@@ -116,7 +178,7 @@ Disconnect wallet
 
 > **isConnected**(): `boolean`
 
-Defined in: [packages/sdk/src/sip.ts:156](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L156)
+Defined in: [packages/sdk/src/sip.ts:247](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L247)
 
 Check if wallet is connected
 
@@ -130,7 +192,7 @@ Check if wallet is connected
 
 > **getWallet**(): [`WalletAdapter`](../interfaces/WalletAdapter.md) \| `undefined`
 
-Defined in: [packages/sdk/src/sip.ts:163](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L163)
+Defined in: [packages/sdk/src/sip.ts:254](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L254)
 
 Get connected wallet
 
@@ -144,7 +206,7 @@ Get connected wallet
 
 > **generateStealthKeys**(`chain`, `label?`): [`StealthMetaAddress`](../interfaces/StealthMetaAddress.md)
 
-Defined in: [packages/sdk/src/sip.ts:172](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L172)
+Defined in: [packages/sdk/src/sip.ts:263](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L263)
 
 Generate and store stealth keys for this session
 
@@ -172,7 +234,7 @@ If chain is invalid
 
 > **getStealthAddress**(): `string` \| `undefined`
 
-Defined in: [packages/sdk/src/sip.ts:182](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L182)
+Defined in: [packages/sdk/src/sip.ts:273](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L273)
 
 Get the encoded stealth meta-address for receiving
 
@@ -186,7 +248,7 @@ Get the encoded stealth meta-address for receiving
 
 > **intent**(): [`IntentBuilder`](IntentBuilder.md)
 
-Defined in: [packages/sdk/src/sip.ts:202](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L202)
+Defined in: [packages/sdk/src/sip.ts:293](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L293)
 
 Create a new intent builder
 
@@ -213,7 +275,7 @@ const intent = await sip.intent()
 
 > **createIntent**(`params`): `Promise`\<[`TrackedIntent`](../interfaces/TrackedIntent.md)\>
 
-Defined in: [packages/sdk/src/sip.ts:216](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L216)
+Defined in: [packages/sdk/src/sip.ts:307](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L307)
 
 Create a shielded intent directly
 
@@ -234,31 +296,47 @@ automatically for SHIELDED and COMPLIANT privacy levels.
 
 ### getQuotes()
 
-> **getQuotes**(`intent`): `Promise`\<[`Quote`](../interfaces/Quote.md)[]\>
+> **getQuotes**(`params`, `recipientMetaAddress?`): `Promise`\<[`ProductionQuote`](../interfaces/ProductionQuote.md)[]\>
 
-Defined in: [packages/sdk/src/sip.ts:227](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L227)
+Defined in: [packages/sdk/src/sip.ts:325](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L325)
 
-Get quotes for an intent (mock implementation)
+Get quotes for an intent
+
+In production mode: fetches real quotes from NEAR 1Click API
+In demo mode: returns mock quotes for testing
 
 #### Parameters
 
-##### intent
+##### params
 
-[`ShieldedIntent`](../interfaces/ShieldedIntent.md)
+Intent parameters (CreateIntentParams for production, ShieldedIntent/CreateIntentParams for demo)
+
+[`CreateIntentParams`](../interfaces/CreateIntentParams.md) | [`ShieldedIntent`](../interfaces/ShieldedIntent.md)
+
+##### recipientMetaAddress?
+
+Optional stealth meta-address for privacy modes
+
+`string` | [`StealthMetaAddress`](../interfaces/StealthMetaAddress.md)
 
 #### Returns
 
-`Promise`\<[`Quote`](../interfaces/Quote.md)[]\>
+`Promise`\<[`ProductionQuote`](../interfaces/ProductionQuote.md)[]\>
+
+Array of quotes (with deposit info in production mode)
 
 ***
 
 ### execute()
 
-> **execute**(`intent`, `quote`): `Promise`\<[`FulfillmentResult`](../interfaces/FulfillmentResult.md)\>
+> **execute**(`intent`, `quote`, `options?`): `Promise`\<[`FulfillmentResult`](../interfaces/FulfillmentResult.md)\>
 
-Defined in: [packages/sdk/src/sip.ts:256](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L256)
+Defined in: [packages/sdk/src/sip.ts:356](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L356)
 
-Execute an intent with a selected quote (mock implementation)
+Execute an intent with a selected quote
+
+In production mode: initiates real swap via NEAR 1Click API
+In demo mode: returns mock result
 
 #### Parameters
 
@@ -266,13 +344,41 @@ Execute an intent with a selected quote (mock implementation)
 
 [`TrackedIntent`](../interfaces/TrackedIntent.md)
 
+The intent to execute
+
 ##### quote
 
-[`Quote`](../interfaces/Quote.md)
+Selected quote from getQuotes()
+
+[`Quote`](../interfaces/Quote.md) | [`ProductionQuote`](../interfaces/ProductionQuote.md)
+
+##### options?
+
+Execution options
+
+###### onDepositRequired?
+
+(`depositAddress`, `amount`) => `Promise`\<`string`\>
+
+Callback when deposit is required
+
+###### onStatusUpdate?
+
+(`status`) => `void`
+
+Callback for status updates
+
+###### timeout?
+
+`number`
+
+Timeout for waiting (ms)
 
 #### Returns
 
 `Promise`\<[`FulfillmentResult`](../interfaces/FulfillmentResult.md)\>
+
+Fulfillment result with transaction hash (when available)
 
 ***
 
@@ -280,7 +386,7 @@ Execute an intent with a selected quote (mock implementation)
 
 > **generateViewingKey**(`path?`): [`ViewingKey`](../interfaces/ViewingKey.md)
 
-Defined in: [packages/sdk/src/sip.ts:275](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L275)
+Defined in: [packages/sdk/src/sip.ts:380](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L380)
 
 Generate a viewing key for compliant mode
 
@@ -300,7 +406,7 @@ Generate a viewing key for compliant mode
 
 > **deriveViewingKey**(`masterKey`, `childPath`): [`ViewingKey`](../interfaces/ViewingKey.md)
 
-Defined in: [packages/sdk/src/sip.ts:282](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L282)
+Defined in: [packages/sdk/src/sip.ts:387](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L387)
 
 Derive a child viewing key
 
@@ -324,7 +430,7 @@ Derive a child viewing key
 
 > **getNetwork**(): `"mainnet"` \| `"testnet"`
 
-Defined in: [packages/sdk/src/sip.ts:289](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/sip.ts#L289)
+Defined in: [packages/sdk/src/sip.ts:394](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/sip.ts#L394)
 
 Get network configuration
 

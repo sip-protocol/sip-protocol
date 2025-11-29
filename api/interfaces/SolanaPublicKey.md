@@ -6,7 +6,7 @@
 
 # Interface: SolanaPublicKey
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:15](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L15)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:15](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L15)
 
 Solana public key interface
 Matches @solana/web3.js PublicKey
@@ -17,7 +17,7 @@ Matches @solana/web3.js PublicKey
 
 > **toBase58**(): `string`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:16](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L16)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:16](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L16)
 
 #### Returns
 
@@ -29,7 +29,7 @@ Defined in: [packages/sdk/src/wallet/solana/types.ts:16](https://github.com/sip-
 
 > **toBytes**(): `Uint8Array`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:17](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L17)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:17](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L17)
 
 #### Returns
 
@@ -41,7 +41,7 @@ Defined in: [packages/sdk/src/wallet/solana/types.ts:17](https://github.com/sip-
 
 > **toString**(): `string`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:18](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L18)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:18](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L18)
 
 #### Returns
 

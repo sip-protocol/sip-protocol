@@ -8,7 +8,7 @@
 
 > **createNEARIntentsAdapter**(`config?`): [`NEARIntentsAdapter`](../classes/NEARIntentsAdapter.md)
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:471](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L471)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:484](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L484)
 
 Create a new NEAR Intents adapter
 

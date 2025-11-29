@@ -6,7 +6,7 @@
 
 # Enumeration: OneClickDepositMode
 
-Defined in: packages/types/dist/index.d.ts:647
+Defined in: packages/types/dist/index.d.ts:677
 
 Deposit mode for the swap
 
@@ -16,7 +16,7 @@ Deposit mode for the swap
 
 > **SIMPLE**: `"SIMPLE"`
 
-Defined in: packages/types/dist/index.d.ts:649
+Defined in: packages/types/dist/index.d.ts:679
 
 Standard deposit to address
 
@@ -26,6 +26,6 @@ Standard deposit to address
 
 > **MEMO**: `"MEMO"`
 
-Defined in: packages/types/dist/index.d.ts:651
+Defined in: packages/types/dist/index.d.ts:681
 
 Deposit with memo (for chains like NEAR)

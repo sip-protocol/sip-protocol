@@ -6,7 +6,7 @@
 
 # Interface: ProofProvider
 
-Defined in: [packages/sdk/src/proofs/interface.ts:144](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L144)
+Defined in: [packages/sdk/src/proofs/interface.ts:156](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L156)
 
 Proof Provider Interface
 
@@ -35,7 +35,7 @@ const sip = new SIP({
 
 > `readonly` **framework**: [`ProofFramework`](../type-aliases/ProofFramework.md)
 
-Defined in: [packages/sdk/src/proofs/interface.ts:148](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L148)
+Defined in: [packages/sdk/src/proofs/interface.ts:160](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L160)
 
 The ZK framework this provider uses
 
@@ -45,7 +45,7 @@ The ZK framework this provider uses
 
 > `readonly` **isReady**: `boolean`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:154](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L154)
+Defined in: [packages/sdk/src/proofs/interface.ts:166](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L166)
 
 Whether the provider is ready to generate proofs
 (e.g., circuits compiled, keys loaded)
@@ -56,7 +56,7 @@ Whether the provider is ready to generate proofs
 
 > **initialize**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/proofs/interface.ts:161](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L161)
+Defined in: [packages/sdk/src/proofs/interface.ts:173](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L173)
 
 Initialize the provider (compile circuits, load keys, etc.)
 
@@ -74,7 +74,7 @@ Error if initialization fails
 
 > **generateFundingProof**(`params`): `Promise`\<[`ProofResult`](ProofResult.md)\>
 
-Defined in: [packages/sdk/src/proofs/interface.ts:174](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L174)
+Defined in: [packages/sdk/src/proofs/interface.ts:186](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L186)
 
 Generate a Funding Proof
 
@@ -108,7 +108,7 @@ docs/specs/FUNDING-PROOF.md (~22,000 constraints)
 
 > **generateValidityProof**(`params`): `Promise`\<[`ProofResult`](ProofResult.md)\>
 
-Defined in: [packages/sdk/src/proofs/interface.ts:187](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L187)
+Defined in: [packages/sdk/src/proofs/interface.ts:199](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L199)
 
 Generate a Validity Proof
 
@@ -142,7 +142,7 @@ docs/specs/VALIDITY-PROOF.md (~72,000 constraints)
 
 > **generateFulfillmentProof**(`params`): `Promise`\<[`ProofResult`](ProofResult.md)\>
 
-Defined in: [packages/sdk/src/proofs/interface.ts:200](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L200)
+Defined in: [packages/sdk/src/proofs/interface.ts:212](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L212)
 
 Generate a Fulfillment Proof
 
@@ -176,7 +176,7 @@ docs/specs/FULFILLMENT-PROOF.md (~22,000 constraints)
 
 > **verifyProof**(`proof`): `Promise`\<`boolean`\>
 
-Defined in: [packages/sdk/src/proofs/interface.ts:208](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L208)
+Defined in: [packages/sdk/src/proofs/interface.ts:220](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L220)
 
 Verify a proof
 

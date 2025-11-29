@@ -6,7 +6,7 @@
 
 # Interface: FundingProofParams
 
-Defined in: [packages/sdk/src/proofs/interface.ts:24](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L24)
+Defined in: [packages/sdk/src/proofs/interface.ts:24](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L24)
 
 Parameters for generating a Funding Proof
 
@@ -22,7 +22,7 @@ docs/specs/FUNDING-PROOF.md
 
 > **balance**: `bigint`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:26](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L26)
+Defined in: [packages/sdk/src/proofs/interface.ts:26](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L26)
 
 User's actual balance (private)
 
@@ -32,7 +32,7 @@ User's actual balance (private)
 
 > **minimumRequired**: `bigint`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:28](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L28)
+Defined in: [packages/sdk/src/proofs/interface.ts:28](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L28)
 
 Minimum amount required for the intent (public)
 
@@ -42,7 +42,7 @@ Minimum amount required for the intent (public)
 
 > **blindingFactor**: `Uint8Array`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:30](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L30)
+Defined in: [packages/sdk/src/proofs/interface.ts:30](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L30)
 
 Blinding factor for the commitment (private)
 
@@ -52,7 +52,7 @@ Blinding factor for the commitment (private)
 
 > **assetId**: `string`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:32](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L32)
+Defined in: [packages/sdk/src/proofs/interface.ts:32](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L32)
 
 Asset identifier (public)
 
@@ -62,7 +62,7 @@ Asset identifier (public)
 
 > **userAddress**: `string`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:34](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L34)
+Defined in: [packages/sdk/src/proofs/interface.ts:34](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L34)
 
 User's address for ownership proof (private)
 
@@ -72,6 +72,6 @@ User's address for ownership proof (private)
 
 > **ownershipSignature**: `Uint8Array`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:36](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L36)
+Defined in: [packages/sdk/src/proofs/interface.ts:36](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L36)
 
 Signature proving ownership of the address (private)

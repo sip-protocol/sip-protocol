@@ -6,7 +6,7 @@
 
 # Interface: TransactionReceipt
 
-Defined in: packages/types/dist/index.d.ts:1409
+Defined in: packages/types/dist/index.d.ts:2238
 
 Transaction receipt after broadcast
 
@@ -16,7 +16,7 @@ Transaction receipt after broadcast
 
 > **txHash**: `` `0x${string}` ``
 
-Defined in: packages/types/dist/index.d.ts:1411
+Defined in: packages/types/dist/index.d.ts:2240
 
 Transaction hash
 
@@ -26,7 +26,7 @@ Transaction hash
 
 > `optional` **blockNumber**: `bigint`
 
-Defined in: packages/types/dist/index.d.ts:1413
+Defined in: packages/types/dist/index.d.ts:2242
 
 Block number (if confirmed)
 
@@ -36,7 +36,7 @@ Block number (if confirmed)
 
 > `optional` **blockHash**: `` `0x${string}` ``
 
-Defined in: packages/types/dist/index.d.ts:1415
+Defined in: packages/types/dist/index.d.ts:2244
 
 Block hash (if confirmed)
 
@@ -46,7 +46,7 @@ Block hash (if confirmed)
 
 > **status**: `"pending"` \| `"failed"` \| `"confirmed"`
 
-Defined in: packages/types/dist/index.d.ts:1417
+Defined in: packages/types/dist/index.d.ts:2246
 
 Transaction status
 
@@ -56,7 +56,7 @@ Transaction status
 
 > `optional` **feeUsed**: `bigint`
 
-Defined in: packages/types/dist/index.d.ts:1419
+Defined in: packages/types/dist/index.d.ts:2248
 
 Gas/fee used
 
@@ -66,6 +66,6 @@ Gas/fee used
 
 > `optional` **timestamp**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1421
+Defined in: packages/types/dist/index.d.ts:2250
 
 Timestamp

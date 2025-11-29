@@ -8,6 +8,6 @@
 
 > **ZcashOperationStatus** = `"queued"` \| `"executing"` \| `"success"` \| `"failed"` \| `"cancelled"`
 
-Defined in: packages/types/dist/index.d.ts:1157
+Defined in: packages/types/dist/index.d.ts:1187
 
 Operation status values

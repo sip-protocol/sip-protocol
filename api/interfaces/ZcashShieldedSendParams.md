@@ -6,7 +6,7 @@
 
 # Interface: ZcashShieldedSendParams
 
-Defined in: packages/types/dist/index.d.ts:1142
+Defined in: packages/types/dist/index.d.ts:1172
 
 Parameters for shielded send
 
@@ -16,7 +16,7 @@ Parameters for shielded send
 
 > **fromAddress**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1144
+Defined in: packages/types/dist/index.d.ts:1174
 
 Source address
 
@@ -26,7 +26,7 @@ Source address
 
 > **recipients**: [`ZcashSendRecipient`](ZcashSendRecipient.md)[]
 
-Defined in: packages/types/dist/index.d.ts:1146
+Defined in: packages/types/dist/index.d.ts:1176
 
 Recipients
 
@@ -36,7 +36,7 @@ Recipients
 
 > `optional` **minConf**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1148
+Defined in: packages/types/dist/index.d.ts:1178
 
 Minimum confirmations (default: 10)
 
@@ -46,7 +46,7 @@ Minimum confirmations (default: 10)
 
 > `optional` **fee**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1150
+Defined in: packages/types/dist/index.d.ts:1180
 
 Fee in ZEC (default: ZIP 317 calculation)
 
@@ -56,6 +56,6 @@ Fee in ZEC (default: ZIP 317 calculation)
 
 > `optional` **privacyPolicy**: [`ZcashPrivacyPolicy`](../type-aliases/ZcashPrivacyPolicy.md)
 
-Defined in: packages/types/dist/index.d.ts:1152
+Defined in: packages/types/dist/index.d.ts:1182
 
 Privacy policy (default: LegacyCompat)

@@ -8,6 +8,6 @@
 
 > **ZcashPool** = `"transparent"` \| `"sprout"` \| `"sapling"` \| `"orchard"`
 
-Defined in: packages/types/dist/index.d.ts:1094
+Defined in: packages/types/dist/index.d.ts:1124
 
 Value pool types

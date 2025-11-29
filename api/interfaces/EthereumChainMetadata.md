@@ -6,7 +6,7 @@
 
 # Interface: EthereumChainMetadata
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:209](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L209)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:209](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L209)
 
 Chain metadata for wallet_addEthereumChain
 
@@ -16,7 +16,7 @@ Chain metadata for wallet_addEthereumChain
 
 > **chainId**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:210](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L210)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:210](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L210)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:210](https://github.com/s
 
 > **chainName**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:211](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L211)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:211](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L211)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:211](https://github.com/s
 
 > **nativeCurrency**: `object`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:212](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L212)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:212](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L212)
 
 #### name
 
@@ -52,7 +52,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:212](https://github.com/s
 
 > **rpcUrls**: `string`[]
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:217](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L217)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:217](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L217)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:217](https://github.com/s
 
 > `optional` **blockExplorerUrls**: `string`[]
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:218](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L218)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:218](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L218)
 
 ***
 
@@ -68,4 +68,4 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:218](https://github.com/s
 
 > `optional` **iconUrls**: `string`[]
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:219](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L219)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:219](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L219)

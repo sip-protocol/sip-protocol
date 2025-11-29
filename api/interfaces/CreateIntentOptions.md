@@ -6,7 +6,7 @@
 
 # Interface: CreateIntentOptions
 
-Defined in: [packages/sdk/src/intent.ts:45](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L45)
+Defined in: [packages/sdk/src/intent.ts:45](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L45)
 
 Options for creating a shielded intent
 
@@ -16,7 +16,7 @@ Options for creating a shielded intent
 
 > `optional` **senderAddress**: `string`
 
-Defined in: [packages/sdk/src/intent.ts:47](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L47)
+Defined in: [packages/sdk/src/intent.ts:47](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L47)
 
 Sender address (for ownership proof)
 
@@ -26,7 +26,7 @@ Sender address (for ownership proof)
 
 > `optional` **proofProvider**: [`ProofProvider`](ProofProvider.md)
 
-Defined in: [packages/sdk/src/intent.ts:52](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/intent.ts#L52)
+Defined in: [packages/sdk/src/intent.ts:52](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/intent.ts#L52)
 
 Proof provider for generating ZK proofs
 If provided and privacy level requires proofs, they will be generated automatically

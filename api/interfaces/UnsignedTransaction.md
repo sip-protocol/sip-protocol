@@ -6,7 +6,7 @@
 
 # Interface: UnsignedTransaction
 
-Defined in: packages/types/dist/index.d.ts:1387
+Defined in: packages/types/dist/index.d.ts:2216
 
 Unsigned transaction (chain-specific)
 
@@ -16,7 +16,7 @@ Unsigned transaction (chain-specific)
 
 > **chain**: [`ChainId`](../type-aliases/ChainId.md)
 
-Defined in: packages/types/dist/index.d.ts:1389
+Defined in: packages/types/dist/index.d.ts:2218
 
 Target chain
 
@@ -26,7 +26,7 @@ Target chain
 
 > **data**: `unknown`
 
-Defined in: packages/types/dist/index.d.ts:1391
+Defined in: packages/types/dist/index.d.ts:2220
 
 Transaction data (chain-specific format)
 
@@ -36,6 +36,6 @@ Transaction data (chain-specific format)
 
 > `optional` **metadata**: `Record`\<`string`, `unknown`\>
 
-Defined in: packages/types/dist/index.d.ts:1393
+Defined in: packages/types/dist/index.d.ts:2222
 
 Optional transaction metadata

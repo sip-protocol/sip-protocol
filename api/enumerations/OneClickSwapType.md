@@ -6,7 +6,7 @@
 
 # Enumeration: OneClickSwapType
 
-Defined in: packages/types/dist/index.d.ts:634
+Defined in: packages/types/dist/index.d.ts:664
 
 Swap type determines how amounts are calculated
 
@@ -16,7 +16,7 @@ Swap type determines how amounts are calculated
 
 > **EXACT\_INPUT**: `"EXACT_INPUT"`
 
-Defined in: packages/types/dist/index.d.ts:636
+Defined in: packages/types/dist/index.d.ts:666
 
 Fixed input amount, variable output
 
@@ -26,7 +26,7 @@ Fixed input amount, variable output
 
 > **EXACT\_OUTPUT**: `"EXACT_OUTPUT"`
 
-Defined in: packages/types/dist/index.d.ts:638
+Defined in: packages/types/dist/index.d.ts:668
 
 Fixed output amount, variable input
 
@@ -36,7 +36,7 @@ Fixed output amount, variable input
 
 > **FLEX\_INPUT**: `"FLEX_INPUT"`
 
-Defined in: packages/types/dist/index.d.ts:640
+Defined in: packages/types/dist/index.d.ts:670
 
 Partial deposits allowed, variable amounts
 
@@ -46,6 +46,6 @@ Partial deposits allowed, variable amounts
 
 > **ANY\_INPUT**: `"ANY_INPUT"`
 
-Defined in: packages/types/dist/index.d.ts:642
+Defined in: packages/types/dist/index.d.ts:672
 
 Streaming deposits, ongoing swaps

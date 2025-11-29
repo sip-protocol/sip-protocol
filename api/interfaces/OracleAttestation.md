@@ -6,7 +6,7 @@
 
 # Interface: OracleAttestation
 
-Defined in: [packages/sdk/src/proofs/interface.ts:98](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L98)
+Defined in: [packages/sdk/src/proofs/interface.ts:110](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L110)
 
 Oracle attestation for cross-chain verification
 
@@ -16,7 +16,7 @@ Oracle attestation for cross-chain verification
 
 > **recipient**: `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/proofs/interface.ts:100](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L100)
+Defined in: [packages/sdk/src/proofs/interface.ts:112](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L112)
 
 Recipient who received funds
 
@@ -26,7 +26,7 @@ Recipient who received funds
 
 > **amount**: `bigint`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:102](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L102)
+Defined in: [packages/sdk/src/proofs/interface.ts:114](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L114)
 
 Amount received
 
@@ -36,7 +36,7 @@ Amount received
 
 > **txHash**: `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/proofs/interface.ts:104](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L104)
+Defined in: [packages/sdk/src/proofs/interface.ts:116](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L116)
 
 Transaction hash on destination chain
 
@@ -46,7 +46,7 @@ Transaction hash on destination chain
 
 > **blockNumber**: `bigint`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:106](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L106)
+Defined in: [packages/sdk/src/proofs/interface.ts:118](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L118)
 
 Block number containing the transaction
 
@@ -56,6 +56,6 @@ Block number containing the transaction
 
 > **signature**: `Uint8Array`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:108](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L108)
+Defined in: [packages/sdk/src/proofs/interface.ts:120](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L120)
 
 Oracle signature (threshold signature for multi-oracle)

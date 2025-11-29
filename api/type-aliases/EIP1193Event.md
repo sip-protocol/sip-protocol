@@ -8,6 +8,6 @@
 
 > **EIP1193Event** = `"connect"` \| `"disconnect"` \| `"chainChanged"` \| `"accountsChanged"` \| `"message"`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:47](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L47)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:47](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L47)
 
 EIP-1193 Provider events

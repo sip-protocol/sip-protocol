@@ -6,7 +6,7 @@
 
 # Interface: EIP1193Provider
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:18](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L18)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:18](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L18)
 
 EIP-1193 Provider interface
 Standard interface for Ethereum providers (MetaMask, etc.)
@@ -17,7 +17,7 @@ Standard interface for Ethereum providers (MetaMask, etc.)
 
 > `optional` **isMetaMask**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:25](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L25)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:25](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L25)
 
 Provider is MetaMask
 
@@ -27,7 +27,7 @@ Provider is MetaMask
 
 > `optional` **isCoinbaseWallet**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:27](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L27)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:27](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L27)
 
 Provider is Coinbase Wallet
 
@@ -37,7 +37,7 @@ Provider is Coinbase Wallet
 
 > `optional` **selectedAddress**: `string` \| `null`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:29](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L29)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:29](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L29)
 
 Selected address (may be undefined before connection)
 
@@ -47,7 +47,7 @@ Selected address (may be undefined before connection)
 
 > `optional` **chainId**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:31](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L31)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:31](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L31)
 
 Chain ID in hex format
 
@@ -57,7 +57,7 @@ Chain ID in hex format
 
 > **request**\<`T`\>(`args`): `Promise`\<`T`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:20](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L20)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:20](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L20)
 
 Make an Ethereum JSON-RPC request
 
@@ -83,7 +83,7 @@ Make an Ethereum JSON-RPC request
 
 > **on**(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:22](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L22)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:22](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L22)
 
 Event emitter for provider events
 
@@ -107,7 +107,7 @@ Event emitter for provider events
 
 > **removeListener**(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:23](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L23)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:23](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L23)
 
 #### Parameters
 
@@ -129,7 +129,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:23](https://github.com/si
 
 > `optional` **isConnected**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:33](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L33)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:33](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L33)
 
 Whether provider is connected
 

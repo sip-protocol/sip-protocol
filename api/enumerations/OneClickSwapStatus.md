@@ -6,7 +6,7 @@
 
 # Enumeration: OneClickSwapStatus
 
-Defined in: packages/types/dist/index.d.ts:656
+Defined in: packages/types/dist/index.d.ts:686
 
 Status of a swap in the 1Click system
 
@@ -16,7 +16,7 @@ Status of a swap in the 1Click system
 
 > **PENDING\_DEPOSIT**: `"PENDING_DEPOSIT"`
 
-Defined in: packages/types/dist/index.d.ts:658
+Defined in: packages/types/dist/index.d.ts:688
 
 Awaiting user deposit
 
@@ -26,7 +26,7 @@ Awaiting user deposit
 
 > **PROCESSING**: `"PROCESSING"`
 
-Defined in: packages/types/dist/index.d.ts:660
+Defined in: packages/types/dist/index.d.ts:690
 
 Deposit detected, execution in progress
 
@@ -36,7 +36,7 @@ Deposit detected, execution in progress
 
 > **SUCCESS**: `"SUCCESS"`
 
-Defined in: packages/types/dist/index.d.ts:662
+Defined in: packages/types/dist/index.d.ts:692
 
 Successfully delivered to destination
 
@@ -46,7 +46,7 @@ Successfully delivered to destination
 
 > **INCOMPLETE\_DEPOSIT**: `"INCOMPLETE_DEPOSIT"`
 
-Defined in: packages/types/dist/index.d.ts:664
+Defined in: packages/types/dist/index.d.ts:694
 
 Deposit below minimum threshold
 
@@ -56,7 +56,7 @@ Deposit below minimum threshold
 
 > **REFUNDED**: `"REFUNDED"`
 
-Defined in: packages/types/dist/index.d.ts:666
+Defined in: packages/types/dist/index.d.ts:696
 
 Funds returned automatically
 
@@ -66,6 +66,6 @@ Funds returned automatically
 
 > **FAILED**: `"FAILED"`
 
-Defined in: packages/types/dist/index.d.ts:668
+Defined in: packages/types/dist/index.d.ts:698
 
 Execution error occurred

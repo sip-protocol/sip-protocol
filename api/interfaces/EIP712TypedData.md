@@ -6,7 +6,7 @@
 
 # Interface: EIP712TypedData
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:103](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L103)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:103](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L103)
 
 EIP-712 Typed data for signing
 
@@ -16,7 +16,7 @@ EIP-712 Typed data for signing
 
 > **domain**: [`EIP712Domain`](EIP712Domain.md)
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:104](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L104)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:104](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L104)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:104](https://github.com/s
 
 > **types**: [`EIP712Types`](EIP712Types.md)
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:105](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L105)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:105](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L105)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:105](https://github.com/s
 
 > **primaryType**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:106](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L106)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:106](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L106)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/sdk/src/wallet/ethereum/types.ts:106](https://github.com/s
 
 > **message**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:107](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L107)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:107](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L107)

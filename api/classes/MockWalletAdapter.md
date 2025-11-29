@@ -6,7 +6,7 @@
 
 # Class: MockWalletAdapter
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:261](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L261)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:261](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L261)
 
 Mock wallet adapter for testing
 
@@ -36,7 +36,7 @@ const balance = await mockWallet.getBalance()
 
 > **new MockWalletAdapter**(`options`): `MockWalletAdapter`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:272](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L272)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:272](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L272)
 
 #### Parameters
 
@@ -88,7 +88,7 @@ Defined in: [packages/sdk/src/wallet/base-adapter.ts:272](https://github.com/sip
 
 > `readonly` **chain**: [`ChainId`](../type-aliases/ChainId.md)
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:262](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L262)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:262](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L262)
 
 Chain this adapter connects to
 
@@ -102,7 +102,7 @@ Chain this adapter connects to
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:263](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L263)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:263](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L263)
 
 Wallet name/identifier (e.g., 'phantom', 'metamask')
 
@@ -118,7 +118,7 @@ Wallet name/identifier (e.g., 'phantom', 'metamask')
 
 > **get** **address**(): `string`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L74)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L74)
 
 Current address (empty string if not connected)
 
@@ -140,7 +140,7 @@ Current address (empty string if not connected)
 
 > **get** **publicKey**(): `""` \| `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L78)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L78)
 
 Public key (hex encoded, empty string if not connected)
 
@@ -162,7 +162,7 @@ Public key (hex encoded, empty string if not connected)
 
 > **get** **connectionState**(): [`WalletConnectionState`](../type-aliases/WalletConnectionState.md)
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L82)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L82)
 
 Current connection state
 
@@ -182,7 +182,7 @@ Current connection state
 
 > **on**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L99)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L99)
 
 Subscribe to wallet events
 
@@ -216,7 +216,7 @@ Subscribe to wallet events
 
 > **off**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L110)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L110)
 
 Unsubscribe from wallet events
 
@@ -250,7 +250,7 @@ Unsubscribe from wallet events
 
 > **isConnected**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L191)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L191)
 
 Check if wallet is connected
 
@@ -268,7 +268,7 @@ Check if wallet is connected
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:293](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L293)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:293](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L293)
 
 Connect to the wallet
 
@@ -290,7 +290,7 @@ If connection fails
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:313](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L313)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:313](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L313)
 
 Disconnect from the wallet
 
@@ -308,7 +308,7 @@ Disconnect from the wallet
 
 > **signMessage**(`message`): `Promise`\<[`Signature`](../interfaces/Signature.md)\>
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:317](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L317)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:317](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L317)
 
 Sign an arbitrary message
 
@@ -340,7 +340,7 @@ If signing fails or wallet not connected
 
 > **signTransaction**(`tx`): `Promise`\<[`SignedTransaction`](../interfaces/SignedTransaction.md)\>
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:337](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L337)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:337](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L337)
 
 Sign a transaction
 
@@ -372,7 +372,7 @@ If signing fails or wallet not connected
 
 > **signAndSendTransaction**(`tx`): `Promise`\<[`TransactionReceipt`](../interfaces/TransactionReceipt.md)\>
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:355](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L355)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:355](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L355)
 
 Sign and broadcast a transaction
 
@@ -404,7 +404,7 @@ If signing or broadcast fails
 
 > **getBalance**(): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:370](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L370)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:370](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L370)
 
 Get native token balance
 
@@ -428,7 +428,7 @@ If query fails
 
 > **getTokenBalance**(`asset`): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:375](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L375)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:375](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L375)
 
 Get token balance for a specific asset
 
@@ -460,7 +460,7 @@ If query fails or asset not supported
 
 > **setMockBalance**(`balance`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:386](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L386)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:386](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L386)
 
 Set mock balance (for testing)
 
@@ -480,7 +480,7 @@ Set mock balance (for testing)
 
 > **setMockTokenBalance**(`asset`, `balance`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:393](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L393)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:393](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L393)
 
 Set mock token balance (for testing)
 
@@ -504,7 +504,7 @@ Set mock token balance (for testing)
 
 > **simulateAccountChange**(`newAddress`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:401](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L401)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:401](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L401)
 
 Simulate account change (for testing)
 

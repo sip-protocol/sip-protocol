@@ -6,7 +6,7 @@
 
 # Interface: ExportedViewingKey
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:142](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L142)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:142](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L142)
 
 Viewing key export result
 
@@ -16,7 +16,7 @@ Viewing key export result
 
 > **key**: `string`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:144](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L144)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:144](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L144)
 
 The viewing key
 
@@ -26,7 +26,7 @@ The viewing key
 
 > **address**: `string`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:146](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L146)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:146](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L146)
 
 Associated address
 
@@ -36,7 +36,7 @@ Associated address
 
 > **account**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:148](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L148)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:148](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L148)
 
 Account number
 
@@ -46,6 +46,6 @@ Account number
 
 > **exportedAt**: `number`
 
-Defined in: [packages/sdk/src/zcash/shielded-service.ts:150](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/shielded-service.ts#L150)
+Defined in: [packages/sdk/src/zcash/shielded-service.ts:150](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/shielded-service.ts#L150)
 
 Creation timestamp

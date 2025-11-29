@@ -8,6 +8,6 @@
 
 > **WalletEvent** = [`WalletConnectEvent`](../interfaces/WalletConnectEvent.md) \| [`WalletDisconnectEvent`](../interfaces/WalletDisconnectEvent.md) \| [`WalletAccountChangedEvent`](../interfaces/WalletAccountChangedEvent.md) \| [`WalletChainChangedEvent`](../interfaces/WalletChainChangedEvent.md) \| [`WalletErrorEvent`](../interfaces/WalletErrorEvent.md)
 
-Defined in: packages/types/dist/index.d.ts:1477
+Defined in: packages/types/dist/index.d.ts:2306
 
 Union of all wallet events

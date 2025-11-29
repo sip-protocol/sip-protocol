@@ -6,7 +6,7 @@
 
 # Class: CryptoError
 
-Defined in: [packages/sdk/src/errors.ts:233](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L233)
+Defined in: [packages/sdk/src/errors.ts:233](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L233)
 
 Error thrown when cryptographic operations fail
 
@@ -35,7 +35,7 @@ throw new CryptoError('Decryption failed', ErrorCode.DECRYPTION_FAILED, {
 
 > **new CryptoError**(`message`, `code`, `options?`): `CryptoError`
 
-Defined in: [packages/sdk/src/errors.ts:237](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L237)
+Defined in: [packages/sdk/src/errors.ts:237](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L237)
 
 #### Parameters
 
@@ -75,7 +75,7 @@ Defined in: [packages/sdk/src/errors.ts:237](https://github.com/sip-protocol/sip
 
 > `readonly` **code**: [`ErrorCode`](../enumerations/ErrorCode.md)
 
-Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L118)
+Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L118)
 
 Machine-readable error code
 
@@ -89,7 +89,7 @@ Machine-readable error code
 
 > `readonly` `optional` **context**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L121)
+Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L121)
 
 Additional debugging context
 
@@ -103,7 +103,7 @@ Additional debugging context
 
 > `readonly` **timestamp**: `Date`
 
-Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L124)
+Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L124)
 
 Timestamp when error was created
 
@@ -117,7 +117,7 @@ Timestamp when error was created
 
 > `readonly` `optional` **operation**: `string`
 
-Defined in: [packages/sdk/src/errors.ts:235](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L235)
+Defined in: [packages/sdk/src/errors.ts:235](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L235)
 
 The cryptographic operation that failed
 
@@ -197,7 +197,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > **toJSON**(): [`SerializedError`](../interfaces/SerializedError.md)
 
-Defined in: [packages/sdk/src/errors.ts:149](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L149)
+Defined in: [packages/sdk/src/errors.ts:149](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L149)
 
 Serialize error for logging or transmission
 
@@ -215,7 +215,7 @@ Serialize error for logging or transmission
 
 > **toString**(): `string`
 
-Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L164)
+Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L164)
 
 Create a string representation for logging
 

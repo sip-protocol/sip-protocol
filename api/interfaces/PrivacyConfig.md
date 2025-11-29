@@ -6,7 +6,7 @@
 
 # Interface: PrivacyConfig
 
-Defined in: [packages/sdk/src/privacy.ts:38](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L38)
+Defined in: [packages/sdk/src/privacy.ts:39](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L39)
 
 Privacy configuration for an intent
 
@@ -16,7 +16,7 @@ Privacy configuration for an intent
 
 > **level**: [`PrivacyLevel`](../enumerations/PrivacyLevel.md)
 
-Defined in: [packages/sdk/src/privacy.ts:40](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L40)
+Defined in: [packages/sdk/src/privacy.ts:41](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L41)
 
 The privacy level
 
@@ -26,7 +26,7 @@ The privacy level
 
 > `optional` **viewingKey**: [`ViewingKey`](ViewingKey.md)
 
-Defined in: [packages/sdk/src/privacy.ts:42](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L42)
+Defined in: [packages/sdk/src/privacy.ts:43](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L43)
 
 Viewing key (required for compliant mode)
 
@@ -36,7 +36,7 @@ Viewing key (required for compliant mode)
 
 > **useStealth**: `boolean`
 
-Defined in: [packages/sdk/src/privacy.ts:44](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L44)
+Defined in: [packages/sdk/src/privacy.ts:45](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L45)
 
 Whether to use stealth addresses
 
@@ -46,6 +46,6 @@ Whether to use stealth addresses
 
 > **encryptData**: `boolean`
 
-Defined in: [packages/sdk/src/privacy.ts:46](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L46)
+Defined in: [packages/sdk/src/privacy.ts:47](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L47)
 
 Whether to encrypt transaction data

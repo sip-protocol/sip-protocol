@@ -6,7 +6,7 @@
 
 # Interface: ZcashUnspentNote
 
-Defined in: packages/types/dist/index.d.ts:1098
+Defined in: packages/types/dist/index.d.ts:1128
 
 Unspent note (shielded UTXO)
 
@@ -16,7 +16,7 @@ Unspent note (shielded UTXO)
 
 > **txid**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1100
+Defined in: packages/types/dist/index.d.ts:1130
 
 Transaction ID
 
@@ -26,7 +26,7 @@ Transaction ID
 
 > **pool**: [`ZcashPool`](../type-aliases/ZcashPool.md)
 
-Defined in: packages/types/dist/index.d.ts:1102
+Defined in: packages/types/dist/index.d.ts:1132
 
 Value pool
 
@@ -36,7 +36,7 @@ Value pool
 
 > **outindex**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1104
+Defined in: packages/types/dist/index.d.ts:1134
 
 Output index
 
@@ -46,7 +46,7 @@ Output index
 
 > **confirmations**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1106
+Defined in: packages/types/dist/index.d.ts:1136
 
 Number of confirmations
 
@@ -56,7 +56,7 @@ Number of confirmations
 
 > **spendable**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1108
+Defined in: packages/types/dist/index.d.ts:1138
 
 Whether spendable by this wallet
 
@@ -66,7 +66,7 @@ Whether spendable by this wallet
 
 > **address**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1110
+Defined in: packages/types/dist/index.d.ts:1140
 
 The shielded address
 
@@ -76,7 +76,7 @@ The shielded address
 
 > **amount**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1112
+Defined in: packages/types/dist/index.d.ts:1142
 
 Value in ZEC
 
@@ -86,7 +86,7 @@ Value in ZEC
 
 > **memo**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1114
+Defined in: packages/types/dist/index.d.ts:1144
 
 Memo field (hex)
 
@@ -96,7 +96,7 @@ Memo field (hex)
 
 > `optional` **memoStr**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1116
+Defined in: packages/types/dist/index.d.ts:1146
 
 Memo as UTF-8 if valid
 
@@ -106,7 +106,7 @@ Memo as UTF-8 if valid
 
 > **change**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1118
+Defined in: packages/types/dist/index.d.ts:1148
 
 Whether this is change
 
@@ -116,7 +116,7 @@ Whether this is change
 
 > `optional` **jsindex**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1120
+Defined in: packages/types/dist/index.d.ts:1150
 
 Sprout: joinsplit index
 
@@ -126,6 +126,6 @@ Sprout: joinsplit index
 
 > `optional` **jsoutindex**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1122
+Defined in: packages/types/dist/index.d.ts:1152
 
 Sprout: joinsplit output index

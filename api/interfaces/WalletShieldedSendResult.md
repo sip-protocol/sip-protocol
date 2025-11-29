@@ -6,7 +6,7 @@
 
 # Interface: WalletShieldedSendResult
 
-Defined in: packages/types/dist/index.d.ts:1606
+Defined in: packages/types/dist/index.d.ts:2435
 
 Result of a shielded send operation
 
@@ -16,7 +16,7 @@ Result of a shielded send operation
 
 > **txHash**: `` `0x${string}` ``
 
-Defined in: packages/types/dist/index.d.ts:1608
+Defined in: packages/types/dist/index.d.ts:2437
 
 Transaction hash
 
@@ -26,7 +26,7 @@ Transaction hash
 
 > **isShielded**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1610
+Defined in: packages/types/dist/index.d.ts:2439
 
 Whether the transaction used shielded pools
 
@@ -36,7 +36,7 @@ Whether the transaction used shielded pools
 
 > `optional` **ephemeralPublicKey**: `` `0x${string}` ``
 
-Defined in: packages/types/dist/index.d.ts:1612
+Defined in: packages/types/dist/index.d.ts:2441
 
 Ephemeral public key (for stealth address sends)
 
@@ -46,6 +46,6 @@ Ephemeral public key (for stealth address sends)
 
 > **fee**: `bigint`
 
-Defined in: packages/types/dist/index.d.ts:1614
+Defined in: packages/types/dist/index.d.ts:2443
 
 Fee paid

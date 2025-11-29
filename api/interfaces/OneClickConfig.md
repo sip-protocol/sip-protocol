@@ -6,7 +6,7 @@
 
 # Interface: OneClickConfig
 
-Defined in: packages/types/dist/index.d.ts:965
+Defined in: packages/types/dist/index.d.ts:995
 
 1Click API client configuration
 
@@ -16,7 +16,7 @@ Defined in: packages/types/dist/index.d.ts:965
 
 > `optional` **baseUrl**: `string`
 
-Defined in: packages/types/dist/index.d.ts:967
+Defined in: packages/types/dist/index.d.ts:997
 
 Base URL (default: https://1click.chaindefuser.com)
 
@@ -26,7 +26,7 @@ Base URL (default: https://1click.chaindefuser.com)
 
 > `optional` **jwtToken**: `string`
 
-Defined in: packages/types/dist/index.d.ts:969
+Defined in: packages/types/dist/index.d.ts:999
 
 JWT token for authenticated requests
 
@@ -36,7 +36,7 @@ JWT token for authenticated requests
 
 > `optional` **timeout**: `number`
 
-Defined in: packages/types/dist/index.d.ts:971
+Defined in: packages/types/dist/index.d.ts:1001
 
 Request timeout in milliseconds
 
@@ -46,7 +46,7 @@ Request timeout in milliseconds
 
 > `optional` **fetch**: \{(`input`, `init?`): `Promise`\<`Response`\>; (`input`, `init?`): `Promise`\<`Response`\>; \}
 
-Defined in: packages/types/dist/index.d.ts:973
+Defined in: packages/types/dist/index.d.ts:1003
 
 Custom fetch implementation
 

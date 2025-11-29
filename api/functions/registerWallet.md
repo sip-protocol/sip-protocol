@@ -8,7 +8,7 @@
 
 > **registerWallet**(`entry`): `void`
 
-Defined in: [packages/sdk/src/wallet/registry.ts:184](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/registry.ts#L184)
+Defined in: [packages/sdk/src/wallet/registry.ts:184](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/registry.ts#L184)
 
 Helper to register a wallet adapter
 

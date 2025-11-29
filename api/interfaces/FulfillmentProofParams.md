@@ -6,7 +6,7 @@
 
 # Interface: FulfillmentProofParams
 
-Defined in: [packages/sdk/src/proofs/interface.ts:72](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L72)
+Defined in: [packages/sdk/src/proofs/interface.ts:84](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L84)
 
 Parameters for generating a Fulfillment Proof
 
@@ -22,7 +22,7 @@ docs/specs/FULFILLMENT-PROOF.md
 
 > **intentHash**: `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/proofs/interface.ts:74](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L74)
+Defined in: [packages/sdk/src/proofs/interface.ts:86](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L86)
 
 Hash of the original intent (public)
 
@@ -32,7 +32,7 @@ Hash of the original intent (public)
 
 > **outputAmount**: `bigint`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:76](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L76)
+Defined in: [packages/sdk/src/proofs/interface.ts:88](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L88)
 
 Actual output amount delivered (private)
 
@@ -42,7 +42,7 @@ Actual output amount delivered (private)
 
 > **outputBlinding**: `Uint8Array`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:78](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L78)
+Defined in: [packages/sdk/src/proofs/interface.ts:90](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L90)
 
 Blinding factor for output commitment (private)
 
@@ -52,7 +52,7 @@ Blinding factor for output commitment (private)
 
 > **minOutputAmount**: `bigint`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:80](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L80)
+Defined in: [packages/sdk/src/proofs/interface.ts:92](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L92)
 
 Minimum required output from intent (public)
 
@@ -62,7 +62,7 @@ Minimum required output from intent (public)
 
 > **recipientStealth**: `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/proofs/interface.ts:82](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L82)
+Defined in: [packages/sdk/src/proofs/interface.ts:94](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L94)
 
 Recipient's stealth address (public)
 
@@ -72,7 +72,7 @@ Recipient's stealth address (public)
 
 > **solverId**: `string`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:84](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L84)
+Defined in: [packages/sdk/src/proofs/interface.ts:96](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L96)
 
 Solver's identifier (public)
 
@@ -82,7 +82,7 @@ Solver's identifier (public)
 
 > **solverSecret**: `Uint8Array`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:86](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L86)
+Defined in: [packages/sdk/src/proofs/interface.ts:98](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L98)
 
 Solver's secret for authorization (private)
 
@@ -92,7 +92,7 @@ Solver's secret for authorization (private)
 
 > **oracleAttestation**: [`OracleAttestation`](OracleAttestation.md)
 
-Defined in: [packages/sdk/src/proofs/interface.ts:88](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L88)
+Defined in: [packages/sdk/src/proofs/interface.ts:100](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L100)
 
 Oracle attestation of delivery (private)
 
@@ -102,7 +102,7 @@ Oracle attestation of delivery (private)
 
 > **fulfillmentTime**: `number`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:90](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L90)
+Defined in: [packages/sdk/src/proofs/interface.ts:102](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L102)
 
 Time of fulfillment (public)
 
@@ -112,6 +112,6 @@ Time of fulfillment (public)
 
 > **expiry**: `number`
 
-Defined in: [packages/sdk/src/proofs/interface.ts:92](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/interface.ts#L92)
+Defined in: [packages/sdk/src/proofs/interface.ts:104](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/interface.ts#L104)
 
 Intent expiry (public)

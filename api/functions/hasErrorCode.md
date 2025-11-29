@@ -8,7 +8,7 @@
 
 > **hasErrorCode**(`error`, `code`): `boolean`
 
-Defined in: [packages/sdk/src/errors.ts:430](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L430)
+Defined in: [packages/sdk/src/errors.ts:430](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L430)
 
 Check if an error has a specific error code
 

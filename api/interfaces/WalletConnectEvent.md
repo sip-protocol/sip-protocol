@@ -6,7 +6,7 @@
 
 # Interface: WalletConnectEvent
 
-Defined in: packages/types/dist/index.d.ts:1437
+Defined in: packages/types/dist/index.d.ts:2266
 
 Connect event - wallet successfully connected
 
@@ -20,7 +20,7 @@ Connect event - wallet successfully connected
 
 > **timestamp**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1432
+Defined in: packages/types/dist/index.d.ts:2261
 
 #### Inherited from
 
@@ -32,7 +32,7 @@ Defined in: packages/types/dist/index.d.ts:1432
 
 > **type**: `"connect"`
 
-Defined in: packages/types/dist/index.d.ts:1438
+Defined in: packages/types/dist/index.d.ts:2267
 
 #### Overrides
 
@@ -44,7 +44,7 @@ Defined in: packages/types/dist/index.d.ts:1438
 
 > **address**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1439
+Defined in: packages/types/dist/index.d.ts:2268
 
 ***
 
@@ -52,4 +52,4 @@ Defined in: packages/types/dist/index.d.ts:1439
 
 > **chain**: [`ChainId`](../type-aliases/ChainId.md)
 
-Defined in: packages/types/dist/index.d.ts:1440
+Defined in: packages/types/dist/index.d.ts:2269

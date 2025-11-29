@@ -6,7 +6,7 @@
 
 # Class: WalletError
 
-Defined in: [packages/sdk/src/wallet/errors.ts:11](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/errors.ts#L11)
+Defined in: [packages/sdk/src/wallet/errors.ts:11](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/errors.ts#L11)
 
 Error thrown by wallet adapters
 
@@ -20,7 +20,7 @@ Error thrown by wallet adapters
 
 > **new WalletError**(`message`, `walletCode`, `options?`): `WalletError`
 
-Defined in: [packages/sdk/src/wallet/errors.ts:14](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/errors.ts#L14)
+Defined in: [packages/sdk/src/wallet/errors.ts:14](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/errors.ts#L14)
 
 #### Parameters
 
@@ -56,7 +56,7 @@ Defined in: [packages/sdk/src/wallet/errors.ts:14](https://github.com/sip-protoc
 
 > `readonly` **code**: [`ErrorCode`](../enumerations/ErrorCode.md)
 
-Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L118)
+Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L118)
 
 Machine-readable error code
 
@@ -70,7 +70,7 @@ Machine-readable error code
 
 > `readonly` `optional` **context**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L121)
+Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L121)
 
 Additional debugging context
 
@@ -84,7 +84,7 @@ Additional debugging context
 
 > `readonly` **timestamp**: `Date`
 
-Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L124)
+Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L124)
 
 Timestamp when error was created
 
@@ -98,7 +98,7 @@ Timestamp when error was created
 
 > `readonly` **walletCode**: `WalletErrorCodeType`
 
-Defined in: [packages/sdk/src/wallet/errors.ts:12](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/errors.ts#L12)
+Defined in: [packages/sdk/src/wallet/errors.ts:12](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/errors.ts#L12)
 
 ***
 
@@ -176,7 +176,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > **toJSON**(): [`SerializedError`](../interfaces/SerializedError.md)
 
-Defined in: [packages/sdk/src/errors.ts:149](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L149)
+Defined in: [packages/sdk/src/errors.ts:149](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L149)
 
 Serialize error for logging or transmission
 
@@ -194,7 +194,7 @@ Serialize error for logging or transmission
 
 > **toString**(): `string`
 
-Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L164)
+Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L164)
 
 Create a string representation for logging
 
@@ -212,7 +212,7 @@ Create a string representation for logging
 
 > **isConnectionError**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/errors.ts:27](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/errors.ts#L27)
+Defined in: [packages/sdk/src/wallet/errors.ts:27](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/errors.ts#L27)
 
 Check if this is a connection-related error
 
@@ -226,7 +226,7 @@ Check if this is a connection-related error
 
 > **isSigningError**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/errors.ts:40](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/errors.ts#L40)
+Defined in: [packages/sdk/src/wallet/errors.ts:40](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/errors.ts#L40)
 
 Check if this is a signing-related error
 
@@ -240,7 +240,7 @@ Check if this is a signing-related error
 
 > **isTransactionError**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/errors.ts:52](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/errors.ts#L52)
+Defined in: [packages/sdk/src/wallet/errors.ts:52](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/errors.ts#L52)
 
 Check if this is a transaction-related error
 
@@ -254,7 +254,7 @@ Check if this is a transaction-related error
 
 > **isPrivacyError**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/errors.ts:65](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/errors.ts#L65)
+Defined in: [packages/sdk/src/wallet/errors.ts:65](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/errors.ts#L65)
 
 Check if this is a privacy-related error
 
@@ -268,7 +268,7 @@ Check if this is a privacy-related error
 
 > **isUserRejection**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/errors.ts:77](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/errors.ts#L77)
+Defined in: [packages/sdk/src/wallet/errors.ts:77](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/errors.ts#L77)
 
 Check if this error was caused by user rejection
 

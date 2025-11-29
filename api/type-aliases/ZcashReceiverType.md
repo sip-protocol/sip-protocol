@@ -8,6 +8,6 @@
 
 > **ZcashReceiverType** = `"p2pkh"` \| `"sapling"` \| `"orchard"`
 
-Defined in: packages/types/dist/index.d.ts:1027
+Defined in: packages/types/dist/index.d.ts:1057
 
 Receiver types for unified addresses

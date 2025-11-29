@@ -6,7 +6,7 @@
 
 # Interface: SolanaSendOptions
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:46](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L46)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:46](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L46)
 
 Solana send options
 
@@ -16,7 +16,7 @@ Solana send options
 
 > `optional` **skipPreflight**: `boolean`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:48](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L48)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:48](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L48)
 
 Skip preflight transaction checks
 
@@ -26,7 +26,7 @@ Skip preflight transaction checks
 
 > `optional` **preflightCommitment**: `"confirmed"` \| `"processed"` \| `"finalized"`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:50](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L50)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:50](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L50)
 
 Preflight commitment level
 
@@ -36,6 +36,6 @@ Preflight commitment level
 
 > `optional` **maxRetries**: `number`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:52](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L52)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:52](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L52)
 
 Maximum retries

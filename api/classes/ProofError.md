@@ -6,7 +6,7 @@
 
 # Class: ProofError
 
-Defined in: [packages/sdk/src/errors.ts:294](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L294)
+Defined in: [packages/sdk/src/errors.ts:294](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L294)
 
 Error thrown when proof operations fail
 
@@ -34,7 +34,7 @@ throw new ProofError('Proof verification failed', ErrorCode.PROOF_VERIFICATION_F
 
 > **new ProofError**(`message`, `code`, `options?`): `ProofError`
 
-Defined in: [packages/sdk/src/errors.ts:298](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L298)
+Defined in: [packages/sdk/src/errors.ts:298](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L298)
 
 #### Parameters
 
@@ -74,7 +74,7 @@ Defined in: [packages/sdk/src/errors.ts:298](https://github.com/sip-protocol/sip
 
 > `readonly` **code**: [`ErrorCode`](../enumerations/ErrorCode.md)
 
-Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L118)
+Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L118)
 
 Machine-readable error code
 
@@ -88,7 +88,7 @@ Machine-readable error code
 
 > `readonly` `optional` **context**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L121)
+Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L121)
 
 Additional debugging context
 
@@ -102,7 +102,7 @@ Additional debugging context
 
 > `readonly` **timestamp**: `Date`
 
-Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L124)
+Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L124)
 
 Timestamp when error was created
 
@@ -116,7 +116,7 @@ Timestamp when error was created
 
 > `readonly` `optional` **proofType**: `"funding"` \| `"validity"` \| `"fulfillment"` \| `"viewing"`
 
-Defined in: [packages/sdk/src/errors.ts:296](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L296)
+Defined in: [packages/sdk/src/errors.ts:296](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L296)
 
 The type of proof involved
 
@@ -196,7 +196,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > **toJSON**(): [`SerializedError`](../interfaces/SerializedError.md)
 
-Defined in: [packages/sdk/src/errors.ts:149](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L149)
+Defined in: [packages/sdk/src/errors.ts:149](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L149)
 
 Serialize error for logging or transmission
 
@@ -214,7 +214,7 @@ Serialize error for logging or transmission
 
 > **toString**(): `string`
 
-Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L164)
+Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L164)
 
 Create a string representation for logging
 

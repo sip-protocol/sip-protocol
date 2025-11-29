@@ -8,6 +8,6 @@
 
 > **ZcashNetwork** = `"mainnet"` \| `"testnet"` \| `"regtest"`
 
-Defined in: packages/types/dist/index.d.ts:1019
+Defined in: packages/types/dist/index.d.ts:1049
 
 Zcash network type

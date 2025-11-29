@@ -6,7 +6,7 @@
 
 # Class: NEARIntentsAdapter
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:178](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L178)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:186](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L186)
 
 NEAR Intents Adapter
 
@@ -43,7 +43,7 @@ const result = await adapter.trackSwap(quote.depositAddress)
 
 > **new NEARIntentsAdapter**(`config`): `NEARIntentsAdapter`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:184](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L184)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:192](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L192)
 
 #### Parameters
 
@@ -61,7 +61,7 @@ Defined in: [packages/sdk/src/adapters/near-intents.ts:184](https://github.com/s
 
 > **getClient**(): [`OneClickClient`](OneClickClient.md)
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:200](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L200)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:208](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L208)
 
 Get the underlying OneClick client
 
@@ -75,7 +75,7 @@ Get the underlying OneClick client
 
 > **prepareSwap**(`request`, `recipientMetaAddress?`, `senderAddress?`): `Promise`\<[`PreparedSwap`](../interfaces/PreparedSwap.md)\>
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:214](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L214)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:222](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L222)
 
 Prepare a swap request
 
@@ -113,7 +113,7 @@ Prepared swap with quote request
 
 > **getQuote**(`prepared`): `Promise`\<[`OneClickQuoteResponse`](../interfaces/OneClickQuoteResponse.md)\>
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:275](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L275)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:283](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L283)
 
 Get a quote for a prepared swap
 
@@ -137,7 +137,7 @@ Quote response with deposit address
 
 > **getDryQuote**(`prepared`): `Promise`\<[`OneClickQuoteResponse`](../interfaces/OneClickQuoteResponse.md)\>
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:285](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L285)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:293](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L293)
 
 Get a dry quote (preview without deposit address)
 
@@ -161,7 +161,7 @@ Quote preview
 
 > **notifyDeposit**(`depositAddress`, `txHash`, `nearAccount?`): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:296](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L296)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:304](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L304)
 
 Notify 1Click of deposit transaction
 
@@ -195,7 +195,7 @@ NEAR account (if depositing from NEAR)
 
 > **getStatus**(`depositAddress`): `Promise`\<[`OneClickStatusResponse`](../interfaces/OneClickStatusResponse.md)\>
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:314](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L314)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:322](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L322)
 
 Get current swap status
 
@@ -219,7 +219,7 @@ Current status
 
 > **waitForCompletion**(`depositAddress`, `options?`): `Promise`\<[`OneClickStatusResponse`](../interfaces/OneClickStatusResponse.md)\>
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:325](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L325)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:333](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L333)
 
 Wait for swap to complete
 
@@ -259,7 +259,7 @@ Final status
 
 > **initiateSwap**(`request`, `recipientMetaAddress?`, `senderAddress?`): `Promise`\<[`SwapResult`](../interfaces/SwapResult.md)\>
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:349](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L349)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:357](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L357)
 
 Execute a full swap flow
 
@@ -300,7 +300,7 @@ Swap result with deposit instructions
 
 > **mapAsset**(`chain`, `symbol`): `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:377](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L377)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:385](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L385)
 
 Convert SIP asset to Defuse asset identifier
 
@@ -320,13 +320,37 @@ Convert SIP asset to Defuse asset identifier
 
 ***
 
-### mapChainType()
+### ~~mapChainType()~~
 
 > **mapChainType**(`chain`): `string`
 
-Defined in: [packages/sdk/src/adapters/near-intents.ts:395](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/adapters/near-intents.ts#L395)
+Defined in: [packages/sdk/src/adapters/near-intents.ts:404](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L404)
 
-Convert SIP chain ID to 1Click chain type
+Convert SIP chain ID to blockchain type
+
+#### Parameters
+
+##### chain
+
+[`ChainId`](../type-aliases/ChainId.md)
+
+#### Returns
+
+`string`
+
+#### Deprecated
+
+Use getBlockchainType() instead. The 1Click API now uses ORIGIN_CHAIN/DESTINATION_CHAIN types.
+
+***
+
+### getBlockchainType()
+
+> **getBlockchainType**(`chain`): `string`
+
+Defined in: [packages/sdk/src/adapters/near-intents.ts:476](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/adapters/near-intents.ts#L476)
+
+Get blockchain type for a chain (for address format validation)
 
 #### Parameters
 

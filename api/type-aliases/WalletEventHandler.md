@@ -8,7 +8,7 @@
 
 > **WalletEventHandler**\<`T`\> = (`event`) => `void`
 
-Defined in: packages/types/dist/index.d.ts:1481
+Defined in: packages/types/dist/index.d.ts:2310
 
 Event handler function
 

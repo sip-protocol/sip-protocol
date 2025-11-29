@@ -6,7 +6,7 @@
 
 # Interface: Signature
 
-Defined in: packages/types/dist/index.d.ts:1376
+Defined in: packages/types/dist/index.d.ts:2205
 
 Signature data returned from signing operations
 
@@ -16,7 +16,7 @@ Signature data returned from signing operations
 
 > **signature**: `` `0x${string}` ``
 
-Defined in: packages/types/dist/index.d.ts:1378
+Defined in: packages/types/dist/index.d.ts:2207
 
 The signature bytes (hex encoded)
 
@@ -26,7 +26,7 @@ The signature bytes (hex encoded)
 
 > `optional` **recoveryId**: `number`
 
-Defined in: packages/types/dist/index.d.ts:1380
+Defined in: packages/types/dist/index.d.ts:2209
 
 Recovery id for secp256k1 signatures
 
@@ -36,6 +36,6 @@ Recovery id for secp256k1 signatures
 
 > **publicKey**: `` `0x${string}` ``
 
-Defined in: packages/types/dist/index.d.ts:1382
+Defined in: packages/types/dist/index.d.ts:2211
 
 Public key used for signing (hex encoded)

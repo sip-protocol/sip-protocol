@@ -6,7 +6,7 @@
 
 # Interface: WalletInfo
 
-Defined in: packages/types/dist/index.d.ts:1751
+Defined in: packages/types/dist/index.d.ts:2581
 
 Wallet metadata for discovery/display
 
@@ -16,7 +16,7 @@ Wallet metadata for discovery/display
 
 > **id**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1753
+Defined in: packages/types/dist/index.d.ts:2583
 
 Wallet identifier
 
@@ -26,7 +26,7 @@ Wallet identifier
 
 > **name**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1755
+Defined in: packages/types/dist/index.d.ts:2585
 
 Display name
 
@@ -36,7 +36,7 @@ Display name
 
 > `optional` **icon**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1757
+Defined in: packages/types/dist/index.d.ts:2587
 
 Icon URL
 
@@ -46,7 +46,7 @@ Icon URL
 
 > **chains**: [`ChainId`](../type-aliases/ChainId.md)[]
 
-Defined in: packages/types/dist/index.d.ts:1759
+Defined in: packages/types/dist/index.d.ts:2589
 
 Supported chains
 
@@ -56,7 +56,7 @@ Supported chains
 
 > `optional` **url**: `string`
 
-Defined in: packages/types/dist/index.d.ts:1761
+Defined in: packages/types/dist/index.d.ts:2591
 
 Download/install URL
 
@@ -66,6 +66,6 @@ Download/install URL
 
 > **supportsPrivacy**: `boolean`
 
-Defined in: packages/types/dist/index.d.ts:1763
+Defined in: packages/types/dist/index.d.ts:2593
 
 Whether wallet supports privacy features

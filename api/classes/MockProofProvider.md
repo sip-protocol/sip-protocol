@@ -6,7 +6,7 @@
 
 # Class: MockProofProvider
 
-Defined in: [packages/sdk/src/proofs/mock.ts:63](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/mock.ts#L63)
+Defined in: [packages/sdk/src/proofs/mock.ts:63](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/mock.ts#L63)
 
 Mock Proof Provider for testing
 
@@ -44,7 +44,7 @@ const result = await provider.generateFundingProof({
 
 > `readonly` **framework**: [`ProofFramework`](../type-aliases/ProofFramework.md) = `'mock'`
 
-Defined in: [packages/sdk/src/proofs/mock.ts:64](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/mock.ts#L64)
+Defined in: [packages/sdk/src/proofs/mock.ts:64](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/mock.ts#L64)
 
 The ZK framework this provider uses
 
@@ -60,7 +60,7 @@ The ZK framework this provider uses
 
 > **get** **isReady**(): `boolean`
 
-Defined in: [packages/sdk/src/proofs/mock.ts:68](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/mock.ts#L68)
+Defined in: [packages/sdk/src/proofs/mock.ts:68](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/mock.ts#L68)
 
 Whether the provider is ready to generate proofs
 (e.g., circuits compiled, keys loaded)
@@ -82,7 +82,7 @@ Whether the provider is ready to generate proofs
 
 > `static` **isMockProof**(`proof`): `boolean`
 
-Defined in: [packages/sdk/src/proofs/mock.ts:217](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/mock.ts#L217)
+Defined in: [packages/sdk/src/proofs/mock.ts:217](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/mock.ts#L217)
 
 Check if a proof is a mock proof
 
@@ -102,7 +102,7 @@ Check if a proof is a mock proof
 
 > **initialize**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/proofs/mock.ts:77](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/mock.ts#L77)
+Defined in: [packages/sdk/src/proofs/mock.ts:77](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/mock.ts#L77)
 
 Initialize the mock provider
 
@@ -122,7 +122,7 @@ Logs a warning to console about mock usage.
 
 > **generateFundingProof**(`params`): `Promise`\<[`ProofResult`](../interfaces/ProofResult.md)\>
 
-Defined in: [packages/sdk/src/proofs/mock.ts:90](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/mock.ts#L90)
+Defined in: [packages/sdk/src/proofs/mock.ts:90](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/mock.ts#L90)
 
 Generate a mock funding proof
 
@@ -148,7 +148,7 @@ Generate a mock funding proof
 
 > **generateValidityProof**(`params`): `Promise`\<[`ProofResult`](../interfaces/ProofResult.md)\>
 
-Defined in: [packages/sdk/src/proofs/mock.ts:125](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/mock.ts#L125)
+Defined in: [packages/sdk/src/proofs/mock.ts:125](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/mock.ts#L125)
 
 Generate a mock validity proof
 
@@ -174,7 +174,7 @@ Generate a mock validity proof
 
 > **generateFulfillmentProof**(`params`): `Promise`\<[`ProofResult`](../interfaces/ProofResult.md)\>
 
-Defined in: [packages/sdk/src/proofs/mock.ts:162](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/mock.ts#L162)
+Defined in: [packages/sdk/src/proofs/mock.ts:162](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/mock.ts#L162)
 
 Generate a mock fulfillment proof
 
@@ -200,7 +200,7 @@ Generate a mock fulfillment proof
 
 > **verifyProof**(`proof`): `Promise`\<`boolean`\>
 
-Defined in: [packages/sdk/src/proofs/mock.ts:207](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/proofs/mock.ts#L207)
+Defined in: [packages/sdk/src/proofs/mock.ts:207](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/proofs/mock.ts#L207)
 
 Verify a mock proof
 

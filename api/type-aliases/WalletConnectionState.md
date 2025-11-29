@@ -8,6 +8,6 @@
 
 > **WalletConnectionState** = `"disconnected"` \| `"connecting"` \| `"connected"` \| `"error"`
 
-Defined in: packages/types/dist/index.d.ts:1372
+Defined in: packages/types/dist/index.d.ts:2201
 
 Wallet connection state

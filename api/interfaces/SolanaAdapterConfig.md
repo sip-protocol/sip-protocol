@@ -6,7 +6,7 @@
 
 # Interface: SolanaAdapterConfig
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:134](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L134)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:134](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L134)
 
 Solana adapter configuration
 
@@ -16,7 +16,7 @@ Solana adapter configuration
 
 > `optional` **wallet**: [`SolanaWalletName`](../type-aliases/SolanaWalletName.md)
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:136](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L136)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:136](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L136)
 
 Wallet to connect to
 
@@ -26,7 +26,7 @@ Wallet to connect to
 
 > `optional` **cluster**: [`SolanaCluster`](../type-aliases/SolanaCluster.md)
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:138](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L138)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:138](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L138)
 
 Solana cluster/network
 
@@ -36,7 +36,7 @@ Solana cluster/network
 
 > `optional` **rpcEndpoint**: `string`
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:140](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L140)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:140](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L140)
 
 RPC endpoint URL
 
@@ -46,7 +46,7 @@ RPC endpoint URL
 
 > `optional` **provider**: [`SolanaWalletProvider`](SolanaWalletProvider.md)
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:142](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L142)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:142](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L142)
 
 Custom wallet provider (for testing)
 
@@ -56,6 +56,6 @@ Custom wallet provider (for testing)
 
 > `optional` **connection**: [`SolanaConnection`](SolanaConnection.md)
 
-Defined in: [packages/sdk/src/wallet/solana/types.ts:144](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/solana/types.ts#L144)
+Defined in: [packages/sdk/src/wallet/solana/types.ts:144](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/solana/types.ts#L144)
 
 Custom connection (for testing)

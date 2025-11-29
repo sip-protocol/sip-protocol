@@ -6,7 +6,7 @@
 
 # Class: ZcashRPCError
 
-Defined in: [packages/sdk/src/zcash/rpc-client.ts:67](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/rpc-client.ts#L67)
+Defined in: [packages/sdk/src/zcash/rpc-client.ts:67](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/rpc-client.ts#L67)
 
 Error thrown when Zcash RPC call fails
 
@@ -20,7 +20,7 @@ Error thrown when Zcash RPC call fails
 
 > **new ZcashRPCError**(`message`, `code`, `data?`): `ZcashRPCError`
 
-Defined in: [packages/sdk/src/zcash/rpc-client.ts:68](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/rpc-client.ts#L68)
+Defined in: [packages/sdk/src/zcash/rpc-client.ts:68](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/rpc-client.ts#L68)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: [packages/sdk/src/zcash/rpc-client.ts:68](https://github.com/sip-pro
 
 > `readonly` **code**: `number`
 
-Defined in: [packages/sdk/src/zcash/rpc-client.ts:70](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/rpc-client.ts#L70)
+Defined in: [packages/sdk/src/zcash/rpc-client.ts:70](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/rpc-client.ts#L70)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [packages/sdk/src/zcash/rpc-client.ts:70](https://github.com/sip-pro
 
 > `readonly` `optional` **data**: `unknown`
 
-Defined in: [packages/sdk/src/zcash/rpc-client.ts:71](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/rpc-client.ts#L71)
+Defined in: [packages/sdk/src/zcash/rpc-client.ts:71](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/rpc-client.ts#L71)
 
 ***
 
@@ -136,7 +136,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > **isInsufficientFunds**(): `boolean`
 
-Defined in: [packages/sdk/src/zcash/rpc-client.ts:80](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/rpc-client.ts#L80)
+Defined in: [packages/sdk/src/zcash/rpc-client.ts:80](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/rpc-client.ts#L80)
 
 Check if error is due to insufficient funds
 
@@ -150,7 +150,7 @@ Check if error is due to insufficient funds
 
 > **isInvalidAddress**(): `boolean`
 
-Defined in: [packages/sdk/src/zcash/rpc-client.ts:87](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/rpc-client.ts#L87)
+Defined in: [packages/sdk/src/zcash/rpc-client.ts:87](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/rpc-client.ts#L87)
 
 Check if error is due to invalid address
 
@@ -164,7 +164,7 @@ Check if error is due to invalid address
 
 > **isWalletLocked**(): `boolean`
 
-Defined in: [packages/sdk/src/zcash/rpc-client.ts:94](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/zcash/rpc-client.ts#L94)
+Defined in: [packages/sdk/src/zcash/rpc-client.ts:94](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/zcash/rpc-client.ts#L94)
 
 Check if error is due to wallet being locked
 

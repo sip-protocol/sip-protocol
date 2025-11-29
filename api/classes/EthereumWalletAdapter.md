@@ -6,7 +6,7 @@
 
 # Class: EthereumWalletAdapter
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:51](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L51)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:51](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L51)
 
 Ethereum wallet adapter implementation
 
@@ -32,7 +32,7 @@ const balance = await adapter.getBalance()
 
 > **new EthereumWalletAdapter**(`config`): `EthereumWalletAdapter`
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:63](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L63)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:63](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L63)
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:63](https://github.com/
 
 > `readonly` **chain**: `"ethereum"`
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:52](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L52)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:52](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L52)
 
 Chain this adapter connects to
 
@@ -68,7 +68,7 @@ Chain this adapter connects to
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:53](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L53)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:53](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L53)
 
 Wallet name/identifier (e.g., 'phantom', 'metamask')
 
@@ -84,7 +84,7 @@ Wallet name/identifier (e.g., 'phantom', 'metamask')
 
 > **get** **address**(): `string`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L74)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:74](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L74)
 
 Current address (empty string if not connected)
 
@@ -106,7 +106,7 @@ Current address (empty string if not connected)
 
 > **get** **publicKey**(): `""` \| `` `0x${string}` ``
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L78)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:78](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L78)
 
 Public key (hex encoded, empty string if not connected)
 
@@ -128,7 +128,7 @@ Public key (hex encoded, empty string if not connected)
 
 > **get** **connectionState**(): [`WalletConnectionState`](../type-aliases/WalletConnectionState.md)
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L82)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:82](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L82)
 
 Current connection state
 
@@ -148,7 +148,7 @@ Current connection state
 
 > **on**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L99)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:99](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L99)
 
 Subscribe to wallet events
 
@@ -182,7 +182,7 @@ Subscribe to wallet events
 
 > **off**\<`T`\>(`event`, `handler`): `void`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L110)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:110](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L110)
 
 Unsubscribe from wallet events
 
@@ -216,7 +216,7 @@ Unsubscribe from wallet events
 
 > **isConnected**(): `boolean`
 
-Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/base-adapter.ts#L191)
+Defined in: [packages/sdk/src/wallet/base-adapter.ts:191](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/base-adapter.ts#L191)
 
 Check if wallet is connected
 
@@ -234,7 +234,7 @@ Check if wallet is connected
 
 > **getChainId**(): `number`
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:80](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L80)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:80](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L80)
 
 Get current chain ID
 
@@ -248,7 +248,7 @@ Get current chain ID
 
 > **getRpcEndpoint**(): `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:87](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L87)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:87](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L87)
 
 Get RPC endpoint URL
 
@@ -262,7 +262,7 @@ Get RPC endpoint URL
 
 > **setRpcEndpoint**(`endpoint`): `void`
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:94](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L94)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:94](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L94)
 
 Set RPC endpoint URL
 
@@ -282,7 +282,7 @@ Set RPC endpoint URL
 
 > **connect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:101](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L101)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:101](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L101)
 
 Connect to Ethereum wallet
 
@@ -300,7 +300,7 @@ Connect to Ethereum wallet
 
 > **disconnect**(): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:174](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L174)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:174](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L174)
 
 Disconnect from wallet
 
@@ -318,7 +318,7 @@ Disconnect from wallet
 
 > **signMessage**(`message`): `Promise`\<[`Signature`](../interfaces/Signature.md)\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:183](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L183)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:183](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L183)
 
 Sign a message
 
@@ -342,7 +342,7 @@ Sign a message
 
 > **signTypedData**(`typedData`): `Promise`\<[`Signature`](../interfaces/Signature.md)\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:227](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L227)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:227](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L227)
 
 Sign typed data (EIP-712)
 
@@ -362,7 +362,7 @@ Sign typed data (EIP-712)
 
 > **signTransaction**(`tx`): `Promise`\<[`SignedTransaction`](../interfaces/SignedTransaction.md)\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:267](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L267)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:267](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L267)
 
 Sign a transaction without sending
 
@@ -386,7 +386,7 @@ Sign a transaction without sending
 
 > **signAndSendTransaction**(`tx`): `Promise`\<[`TransactionReceipt`](../interfaces/TransactionReceipt.md)\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:340](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L340)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:340](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L340)
 
 Sign and send a transaction
 
@@ -410,7 +410,7 @@ Sign and send a transaction
 
 > **getBalance**(): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:389](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L389)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:389](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L389)
 
 Get ETH balance
 
@@ -428,7 +428,7 @@ Get ETH balance
 
 > **getTokenBalance**(`asset`): `Promise`\<`bigint`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:431](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L431)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:431](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L431)
 
 Get ERC-20 token balance
 
@@ -452,7 +452,7 @@ Get ERC-20 token balance
 
 > **switchChain**(`chainId`): `Promise`\<`void`\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:478](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L478)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:478](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L478)
 
 Switch to a different chain
 
@@ -472,7 +472,7 @@ Switch to a different chain
 
 > **waitForTransaction**(`txHash`, `confirmations`): `Promise`\<[`EthereumTransactionReceipt`](../interfaces/EthereumTransactionReceipt.md)\>
 
-Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:524](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/adapter.ts#L524)
+Defined in: [packages/sdk/src/wallet/ethereum/adapter.ts:524](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/adapter.ts#L524)
 
 Wait for transaction confirmation
 

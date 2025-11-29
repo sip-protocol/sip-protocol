@@ -6,7 +6,7 @@
 
 # Class: ValidationError
 
-Defined in: [packages/sdk/src/errors.ts:192](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L192)
+Defined in: [packages/sdk/src/errors.ts:192](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L192)
 
 Error thrown when input validation fails
 
@@ -35,7 +35,7 @@ throw new ValidationError('Invalid chain ID', 'chain', {
 
 > **new ValidationError**(`message`, `field?`, `context?`, `code?`): `ValidationError`
 
-Defined in: [packages/sdk/src/errors.ts:196](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L196)
+Defined in: [packages/sdk/src/errors.ts:196](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L196)
 
 #### Parameters
 
@@ -69,7 +69,7 @@ Defined in: [packages/sdk/src/errors.ts:196](https://github.com/sip-protocol/sip
 
 > `readonly` **code**: [`ErrorCode`](../enumerations/ErrorCode.md)
 
-Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L118)
+Defined in: [packages/sdk/src/errors.ts:118](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L118)
 
 Machine-readable error code
 
@@ -83,7 +83,7 @@ Machine-readable error code
 
 > `readonly` `optional` **context**: `Record`\<`string`, `unknown`\>
 
-Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L121)
+Defined in: [packages/sdk/src/errors.ts:121](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L121)
 
 Additional debugging context
 
@@ -97,7 +97,7 @@ Additional debugging context
 
 > `readonly` **timestamp**: `Date`
 
-Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L124)
+Defined in: [packages/sdk/src/errors.ts:124](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L124)
 
 Timestamp when error was created
 
@@ -111,7 +111,7 @@ Timestamp when error was created
 
 > `readonly` `optional` **field**: `string`
 
-Defined in: [packages/sdk/src/errors.ts:194](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L194)
+Defined in: [packages/sdk/src/errors.ts:194](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L194)
 
 The field that failed validation (if applicable)
 
@@ -191,7 +191,7 @@ Defined in: node\_modules/.pnpm/typescript@5.9.3/node\_modules/typescript/lib/li
 
 > **toString**(): `string`
 
-Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L164)
+Defined in: [packages/sdk/src/errors.ts:164](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L164)
 
 Create a string representation for logging
 
@@ -209,7 +209,7 @@ Create a string representation for logging
 
 > **toJSON**(): [`SerializedError`](../interfaces/SerializedError.md)
 
-Defined in: [packages/sdk/src/errors.ts:210](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/errors.ts#L210)
+Defined in: [packages/sdk/src/errors.ts:210](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/errors.ts#L210)
 
 Serialize error for logging or transmission
 

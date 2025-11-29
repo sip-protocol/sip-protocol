@@ -8,7 +8,7 @@
 
 > **getPrivacyDescription**(`level`): `string`
 
-Defined in: [packages/sdk/src/privacy.ts:373](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L373)
+Defined in: [packages/sdk/src/privacy.ts:406](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L406)
 
 Get human-readable description of privacy level
 

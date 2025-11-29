@@ -6,7 +6,7 @@
 
 # Interface: EthereumTokenMetadata
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:171](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L171)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:171](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L171)
 
 Token metadata for wallet_watchAsset
 
@@ -16,7 +16,7 @@ Token metadata for wallet_watchAsset
 
 > **address**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:173](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L173)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:173](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L173)
 
 Token contract address
 
@@ -26,7 +26,7 @@ Token contract address
 
 > **symbol**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:175](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L175)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:175](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L175)
 
 Token symbol
 
@@ -36,7 +36,7 @@ Token symbol
 
 > **decimals**: `number`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:177](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L177)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:177](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L177)
 
 Token decimals
 
@@ -46,6 +46,6 @@ Token decimals
 
 > `optional` **image**: `string`
 
-Defined in: [packages/sdk/src/wallet/ethereum/types.ts:179](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/wallet/ethereum/types.ts#L179)
+Defined in: [packages/sdk/src/wallet/ethereum/types.ts:179](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/wallet/ethereum/types.ts#L179)
 
 Token image URL (optional)

@@ -8,7 +8,7 @@
 
 > **getPrivacyConfig**(`level`, `viewingKey?`): [`PrivacyConfig`](../interfaces/PrivacyConfig.md)
 
-Defined in: [packages/sdk/src/privacy.ts:52](https://github.com/sip-protocol/sip-protocol/blob/25dc84cb065f1312864981e7c4ad22352fff4815/packages/sdk/src/privacy.ts#L52)
+Defined in: [packages/sdk/src/privacy.ts:53](https://github.com/sip-protocol/sip-protocol/blob/b58f289745cddccf84eff084cb12117a5d2022b5/packages/sdk/src/privacy.ts#L53)
 
 Get privacy configuration for a privacy level
 
