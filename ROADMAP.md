@@ -169,36 +169,83 @@ Connect demo UI to real SDK with actual blockchain transactions.
 
 ---
 
-### M8: Production Hardening ✅ Complete
+### M8: Production Hardening 🔄 In Progress
 
 Replace mock proofs with real ZK circuits and security hardening.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#62](../../issues/62) | [EPIC] Production Hardening | ✅ Done |
-| [#63](../../issues/63) | Noir Funding Proof circuit | ✅ Done |
-| [#64](../../issues/64) | Noir Validity Proof circuit | ✅ Done |
-| [#65](../../issues/65) | Noir Fulfillment Proof circuit | ✅ Done |
-| [#66](../../issues/66) | Memory zeroization for secrets | ✅ Done |
-| [#67](../../issues/67) | External security audit | ✅ Done |
+| [#62](../../issues/62) | [EPIC] Production Hardening | 🔄 In Progress |
+| [#63](../../issues/63) | Noir Funding Proof circuit | 🔲 Planned |
+| [#64](../../issues/64) | Noir Validity Proof circuit | 🔲 Planned |
+| [#65](../../issues/65) | Noir Fulfillment Proof circuit | 🔲 Planned |
+| [#66](../../issues/66) | Memory zeroization for secrets | 🔲 Planned |
+| [#67](../../issues/67) | External security audit | 🔲 Planned |
 
-**Achievement**: Full Noir ZK circuits implemented, secure memory handling, audit documentation prepared.
+**Target**: Q1 2026 - Real ZK circuits, security audit completion.
 
 ---
 
-### M9: Horizontal Expansion ✅ Complete
+### M9: Horizontal Expansion 🔲 Planned
 
 New use cases and deeper integration.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#68](../../issues/68) | [EPIC] Horizontal Expansion | ✅ Done |
-| [#69](../../issues/69) | Private Payments (stablecoin transfers) | ✅ Done |
-| [#70](../../issues/70) | DAO Treasury operations | ✅ Done |
-| [#71](../../issues/71) | Enterprise Compliance dashboard | ✅ Done |
-| [#72](../../issues/72) | Hardware wallet support (Ledger/Trezor) | ✅ Done |
+| [#68](../../issues/68) | [EPIC] Horizontal Expansion | 🔲 Planned |
+| [#69](../../issues/69) | Private Payments (stablecoin transfers) | 🔲 Planned |
+| [#70](../../issues/70) | DAO Treasury operations | 🔲 Planned |
+| [#71](../../issues/71) | Enterprise Compliance dashboard | 🔲 Planned |
+| [#72](../../issues/72) | Hardware wallet support (Ledger/Trezor) | 🔲 Planned |
 
-**Achievement**: 203 new tests across 4 modules: Private Payments (58), DAO Treasury (45), Enterprise Compliance (51), Hardware Wallets (49).
+**Target**: Q2 2026 - Expand beyond swaps to payments, treasury ops, enterprise.
+
+---
+
+### M10: Partnership & Distribution 🔲 Planned
+
+Build network effects through strategic partnerships.
+
+| Issue | Description | Priority |
+|-------|-------------|----------|
+| - | Wallet integration (Phantom, Solflare native) | 🔥 Critical |
+| - | DEX partnership (Jupiter, Raydium) | 🔥 Critical |
+| - | Solver partnerships (exclusive/preferred terms) | 🔥 High |
+| - | NEAR Foundation partnership | 🔥 High |
+| - | Zcash Foundation collaboration | Medium |
+
+**Goal**: Become the default privacy option in major wallets and DEXes.
+
+---
+
+### M11: Moat Building 🔲 Planned
+
+Create sustainable competitive advantages.
+
+| Issue | Description | Priority |
+|-------|-------------|----------|
+| - | NEAR fee contract (protocol revenue) | 🔥 High |
+| - | Institutional onboarding program | 🔥 High |
+| - | Compliance certifications | Medium |
+| - | Multi-language SDK (Python, Rust) | Medium |
+| - | Governance token design | Medium |
+
+**Goal**: Build defensible moats before competitors emerge.
+
+---
+
+### M12: Chain-Specific Optimization 🔲 Future
+
+Optimize for high-volume chains with native integrations.
+
+| Issue | Description | Priority |
+|-------|-------------|----------|
+| - | Solana-native features (potential Arcium integration) | Medium |
+| - | Ethereum same-chain optimization | Medium |
+| - | Bitcoin privacy enhancement | Low |
+| - | Move chains exploration (Aptos/Sui) | Low |
+
+**Goal**: Best-in-class privacy on each chain while maintaining cross-chain capability.
 
 ---
 
@@ -208,10 +255,41 @@ New use cases and deeper integration.
 2. **Application Layer**: Fast to ship, easy to integrate
 3. **Privacy + Compliance**: Viewing keys for regulatory compatibility
 4. **Real Cryptography**: No mocked proofs or simulated security
+5. **Cross-Chain First**: Only private cross-chain solution in the market
+
+---
+
+## Competitive Advantage
+
+### The Market Gap
+
+**No one offers private cross-chain swaps today.**
+
+| Solution | Cross-Chain | Private | Status |
+|----------|-------------|---------|--------|
+| Wormhole/Portal | ✅ | ❌ | Transparent only |
+| deBridge | ✅ | ❌ | Transparent only |
+| Mayan Finance | ✅ | ❌ | Transparent only |
+| Arcium | ❌ | ✅ | Solana-only, NOT LIVE (Q4 2025) |
+| Aztec | ❌ | ✅ | Ethereum L2 only |
+| Railgun | ❌ | ✅ | Ethereum only, no compliance |
+| **SIP Protocol** | ✅ | ✅ | **Only solution** |
+
+### Our Moats
+
+| Moat Type | Description |
+|-----------|-------------|
+| **First Mover** | Only private cross-chain solution |
+| **Network Effects** | Solver liquidity compounds over time |
+| **Compliance** | Viewing keys for institutional adoption |
+| **Partnerships** | Default option in wallets/DEXes |
+| **NEAR Integration** | Deep integration with Intents ecosystem |
 
 ---
 
 ## Status
+
+### Core Infrastructure (M1-M7) ✅ Complete
 
 | Component | Status |
 |-----------|--------|
@@ -223,7 +301,7 @@ New use cases and deeper integration.
 | SDK Core | ✅ Complete |
 | Input Validation | ✅ Complete |
 | Error Handling | ✅ Complete |
-| SDK Unit Tests (965 tests) | ✅ Complete |
+| SDK Unit Tests (745 tests) | ✅ Complete |
 | Integration Tests | ✅ Complete |
 | E2E Tests (128 tests) | ✅ Complete |
 | Performance Benchmarks | ✅ Complete |
@@ -236,13 +314,26 @@ New use cases and deeper integration.
 | Wallet Connection | ✅ Complete |
 | Quote Flow | ✅ Complete |
 | Transaction Execution | ✅ Complete |
-| Noir ZK Circuits | ✅ Complete |
-| Secure Memory Handling | ✅ Complete |
-| Private Payments Module | ✅ Complete |
-| Stablecoin Registry | ✅ Complete |
-| DAO Treasury Module | ✅ Complete |
-| Enterprise Compliance | ✅ Complete |
-| Hardware Wallet Support | ✅ Complete |
+
+### Production Hardening (M8) 🔄 In Progress
+
+| Component | Status |
+|-----------|--------|
+| Noir ZK Circuits | 🔲 Planned |
+| Secure Memory Handling | 🔲 Planned |
+| External Security Audit | 🔲 Planned |
+
+### Future Expansion (M9-M12) 🔲 Planned
+
+| Component | Status |
+|-----------|--------|
+| Private Payments Module | 🔲 Planned |
+| DAO Treasury Module | 🔲 Planned |
+| Enterprise Compliance | 🔲 Planned |
+| Hardware Wallet Support | 🔲 Planned |
+| Wallet Partnerships | 🔲 Planned |
+| DEX Integrations | 🔲 Planned |
+| NEAR Fee Contract | 🔲 Planned |
 
 ---
 
@@ -250,11 +341,17 @@ New use cases and deeper integration.
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-All planned milestones (M1-M9) are complete. Future areas of interest:
+**Current focus areas:**
+- M8: Production hardening (Noir circuits, security audit)
+- M10: Partnership integrations
+- M11: Fee mechanism design
+
+**Future areas of interest:**
 - Additional chain integrations
 - Mobile wallet support
 - Advanced ZK optimizations
+- Governance token design
 
 ---
 
-*Last updated: November 28, 2025*
+*Last updated: November 30, 2025*

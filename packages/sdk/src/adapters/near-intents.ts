@@ -456,6 +456,7 @@ export class NEARIntentsAdapter {
     // Use ORIGIN_CHAIN for deposits from external chains
     // Use DESTINATION_CHAIN for sending to external chains
     return {
+      dry: false, // Explicitly set to false for real quotes (1Click API requires boolean)
       swapType: OneClickSwapType.EXACT_INPUT,
       originAsset,
       destinationAsset,
