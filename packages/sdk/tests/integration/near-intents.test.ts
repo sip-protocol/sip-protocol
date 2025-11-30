@@ -127,10 +127,10 @@ describe('NEAR Intents Integration', () => {
       expect(prepared.sharedSecret).toBeDefined()
     })
 
-    it('should auto-generate stealth refund address for EVM input chains', async () => {
+    it('should reject non-EVM output chains for stealth addresses', async () => {
       const { metaAddress } = generateStealthMetaAddress('solana')
 
-      // ETH → SOL: EVM input can use stealth refund addresses without sender
+      // ETH → SOL: Solana output doesn't support secp256k1 stealth addresses
       const request: SwapRequest = {
         requestId: `test_${Date.now()}`,
         privacyLevel: PrivacyLevel.SHIELDED,
@@ -139,13 +139,9 @@ describe('NEAR Intents Integration', () => {
         outputAsset: NATIVE_TOKENS.solana,
       }
 
-      // No sender address - should auto-generate stealth refund address for ETH
-      const prepared = await adapter.prepareSwap(request, metaAddress)
-
-      // Should succeed without sender address for EVM input
-      expect(prepared.stealthAddress).toBeDefined()
-      // refundTo should be an ETH address (stealth-derived)
-      expect(prepared.quoteRequest.refundTo).toMatch(/^0x[a-fA-F0-9]{40}$/)
+      // Should throw because Solana uses ed25519, not secp256k1
+      await expect(adapter.prepareSwap(request, metaAddress))
+        .rejects.toThrow('Stealth addresses are not supported for solana output')
     })
 
     it('should require sender address for non-EVM input chains', async () => {

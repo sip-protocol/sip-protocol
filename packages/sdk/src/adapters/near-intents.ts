@@ -250,14 +250,23 @@ export class NEARIntentsAdapter {
       // Generate stealth address for recipient (output chain)
       const { stealthAddress, sharedSecret: secret } = generateStealthAddress(metaAddr)
 
+      // Stealth addresses are secp256k1-based (EIP-5564 style) and only work for EVM chains.
+      // Non-EVM chains (Solana, Bitcoin, etc.) use different cryptographic schemes
+      // and cannot receive funds at secp256k1-derived addresses.
+      const outputChainType = CHAIN_BLOCKCHAIN_MAP[request.outputAsset.chain]
+      if (outputChainType !== 'evm') {
+        throw new ValidationError(
+          `Stealth addresses are not supported for ${request.outputAsset.chain} output. ` +
+          `SIP stealth addresses use secp256k1 (EIP-5564 style) which only works for EVM chains. ` +
+          `For ${request.outputAsset.chain} output, please connect a wallet or use an EVM output chain.`,
+          'outputAsset',
+          { outputChain: request.outputAsset.chain, outputChainType }
+        )
+      }
+
       // For EVM chains, convert stealth public key to ETH address format
       // The 1Click API expects 20-byte Ethereum addresses, not 33-byte secp256k1 public keys
-      const outputChainType = CHAIN_BLOCKCHAIN_MAP[request.outputAsset.chain]
-      if (outputChainType === 'evm') {
-        recipientAddress = publicKeyToEthAddress(stealthAddress.address)
-      } else {
-        recipientAddress = stealthAddress.address
-      }
+      recipientAddress = publicKeyToEthAddress(stealthAddress.address)
       stealthData = stealthAddress
       sharedSecret = secret
 
