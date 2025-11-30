@@ -9,7 +9,12 @@ import {
   type SwapRequest,
 } from '../../src/adapters/near-intents'
 import { OneClickClient } from '../../src/adapters/oneclick-client'
-import { generateStealthMetaAddress } from '../../src/stealth'
+import {
+  generateStealthMetaAddress,
+  generateEd25519StealthMetaAddress,
+  isValidSolanaAddress,
+  isValidNearImplicitAddress,
+} from '../../src/stealth'
 import { PrivacyLevel, OneClickSwapType, OneClickSwapStatus, NATIVE_TOKENS } from '@sip-protocol/types'
 import { ValidationError } from '../../src/errors'
 
@@ -362,6 +367,242 @@ describe('NEARIntentsAdapter', () => {
 
       expect(mockClient.waitForStatus).toHaveBeenCalledWith('0xdeposit', options)
       expect(result.status).toBe(OneClickSwapStatus.SUCCESS)
+    })
+  })
+
+  // ─── Multi-Curve Cross-Chain Tests ────────────────────────────────────────────
+
+  describe('Multi-Curve Stealth Addresses', () => {
+    // Solana output with ed25519 stealth address
+    describe('Solana output (ed25519)', () => {
+      const ethToSolRequest: SwapRequest = {
+        requestId: 'req_eth_to_sol',
+        privacyLevel: PrivacyLevel.SHIELDED,
+        inputAsset: NATIVE_TOKENS.ethereum,
+        inputAmount: 1000000000000000000n, // 1 ETH
+        outputAsset: NATIVE_TOKENS.solana,
+      }
+
+      it('should generate ed25519 stealth address for Solana output', async () => {
+        const { metaAddress } = generateEd25519StealthMetaAddress('solana')
+
+        const prepared = await adapter.prepareSwap(
+          ethToSolRequest,
+          metaAddress,
+          '0x1234567890123456789012345678901234567890' // sender for refunds
+        )
+
+        expect(prepared.curve).toBe('ed25519')
+        expect(prepared.nativeRecipientAddress).toBeDefined()
+        // Solana addresses are base58 encoded, typically 32-44 chars
+        expect(isValidSolanaAddress(prepared.nativeRecipientAddress!)).toBe(true)
+        expect(prepared.stealthAddress).toBeDefined()
+      })
+
+      it('should reject secp256k1 meta-address for Solana output', async () => {
+        const { metaAddress } = generateStealthMetaAddress('ethereum') // secp256k1
+
+        await expect(
+          adapter.prepareSwap(
+            ethToSolRequest,
+            metaAddress,
+            '0x1234567890123456789012345678901234567890'
+          )
+        ).rejects.toThrow('ed25519')
+      })
+    })
+
+    // NEAR output with ed25519 stealth address
+    describe('NEAR output (ed25519)', () => {
+      const ethToNearRequest: SwapRequest = {
+        requestId: 'req_eth_to_near',
+        privacyLevel: PrivacyLevel.SHIELDED,
+        inputAsset: NATIVE_TOKENS.ethereum,
+        inputAmount: 1000000000000000000n, // 1 ETH
+        outputAsset: NATIVE_TOKENS.near,
+      }
+
+      it('should generate ed25519 stealth address for NEAR output', async () => {
+        const { metaAddress } = generateEd25519StealthMetaAddress('near')
+
+        const prepared = await adapter.prepareSwap(
+          ethToNearRequest,
+          metaAddress,
+          '0x1234567890123456789012345678901234567890' // sender for refunds
+        )
+
+        expect(prepared.curve).toBe('ed25519')
+        expect(prepared.nativeRecipientAddress).toBeDefined()
+        // NEAR implicit addresses are 64 hex chars
+        expect(isValidNearImplicitAddress(prepared.nativeRecipientAddress!)).toBe(true)
+        expect(prepared.stealthAddress).toBeDefined()
+      })
+
+      it('should reject secp256k1 meta-address for NEAR output', async () => {
+        const { metaAddress } = generateStealthMetaAddress('ethereum') // secp256k1
+
+        await expect(
+          adapter.prepareSwap(
+            ethToNearRequest,
+            metaAddress,
+            '0x1234567890123456789012345678901234567890'
+          )
+        ).rejects.toThrow('ed25519')
+      })
+    })
+
+    // EVM output with secp256k1 stealth address
+    describe('EVM output (secp256k1)', () => {
+      const solToEthRequest: SwapRequest = {
+        requestId: 'req_sol_to_eth',
+        privacyLevel: PrivacyLevel.SHIELDED,
+        inputAsset: NATIVE_TOKENS.solana,
+        inputAmount: 1000000000n, // 1 SOL (9 decimals)
+        outputAsset: NATIVE_TOKENS.ethereum,
+      }
+
+      it('should generate secp256k1 stealth address for EVM output', async () => {
+        const { metaAddress } = generateStealthMetaAddress('ethereum')
+
+        const prepared = await adapter.prepareSwap(
+          solToEthRequest,
+          metaAddress,
+          'So11111111111111111111111111111111111111111' // sender for refunds
+        )
+
+        expect(prepared.curve).toBe('secp256k1')
+        expect(prepared.nativeRecipientAddress).toBeDefined()
+        // ETH addresses are 0x + 40 hex chars
+        expect(prepared.nativeRecipientAddress).toMatch(/^0x[a-fA-F0-9]{40}$/)
+        expect(prepared.stealthAddress).toBeDefined()
+      })
+
+      it('should reject ed25519 meta-address for EVM output', async () => {
+        const { metaAddress } = generateEd25519StealthMetaAddress('solana') // ed25519
+
+        await expect(
+          adapter.prepareSwap(
+            solToEthRequest,
+            metaAddress,
+            'So11111111111111111111111111111111111111111'
+          )
+        ).rejects.toThrow('secp256k1')
+      })
+    })
+
+    // Cross-curve refund scenarios
+    describe('Cross-curve refund handling', () => {
+      it('should require sender address for cross-curve refunds (EVM input, ed25519 meta)', async () => {
+        const request: SwapRequest = {
+          requestId: 'req_cross_curve',
+          privacyLevel: PrivacyLevel.SHIELDED,
+          inputAsset: NATIVE_TOKENS.ethereum, // EVM input
+          inputAmount: 1000000000000000000n,
+          outputAsset: NATIVE_TOKENS.solana, // ed25519 output
+        }
+        const { metaAddress } = generateEd25519StealthMetaAddress('solana')
+
+        // Without sender address, should fail for cross-curve refunds
+        await expect(
+          adapter.prepareSwap(request, metaAddress)
+        ).rejects.toThrow('Cross-curve refunds not supported')
+      })
+
+      it('should work with matching curve for input and output', async () => {
+        // Solana to NEAR (both ed25519)
+        const request: SwapRequest = {
+          requestId: 'req_same_curve',
+          privacyLevel: PrivacyLevel.SHIELDED,
+          inputAsset: NATIVE_TOKENS.solana,
+          inputAmount: 1000000000n,
+          outputAsset: NATIVE_TOKENS.near, // Both are ed25519
+        }
+        const { metaAddress } = generateEd25519StealthMetaAddress('near')
+
+        const prepared = await adapter.prepareSwap(request, metaAddress)
+
+        expect(prepared.curve).toBe('ed25519')
+        expect(prepared.nativeRecipientAddress).toBeDefined()
+        // Refund address should be auto-generated (no error)
+        expect(prepared.quoteRequest.refundTo).toBeDefined()
+      })
+
+      it('should work with matching curve for EVM chains', async () => {
+        // Ethereum to Arbitrum (both secp256k1)
+        const request: SwapRequest = {
+          requestId: 'req_evm_to_evm',
+          privacyLevel: PrivacyLevel.SHIELDED,
+          inputAsset: NATIVE_TOKENS.ethereum,
+          inputAmount: 1000000000000000000n,
+          outputAsset: NATIVE_TOKENS.arbitrum, // Both are secp256k1
+        }
+        const { metaAddress } = generateStealthMetaAddress('arbitrum')
+
+        const prepared = await adapter.prepareSwap(request, metaAddress)
+
+        expect(prepared.curve).toBe('secp256k1')
+        expect(prepared.nativeRecipientAddress).toBeDefined()
+        // Refund address should be auto-generated
+        expect(prepared.quoteRequest.refundTo).toBeDefined()
+      })
+    })
+
+    // Curve metadata in PreparedSwap
+    describe('Curve metadata', () => {
+      it('should include curve metadata for ed25519 chains', async () => {
+        const request: SwapRequest = {
+          requestId: 'req_meta',
+          privacyLevel: PrivacyLevel.SHIELDED,
+          inputAsset: NATIVE_TOKENS.ethereum,
+          inputAmount: 1000000000000000000n,
+          outputAsset: NATIVE_TOKENS.solana,
+        }
+        const { metaAddress } = generateEd25519StealthMetaAddress('solana')
+
+        const prepared = await adapter.prepareSwap(
+          request,
+          metaAddress,
+          '0x1234567890123456789012345678901234567890'
+        )
+
+        expect(prepared.curve).toBe('ed25519')
+        expect(prepared.nativeRecipientAddress).toBeDefined()
+      })
+
+      it('should include curve metadata for secp256k1 chains', async () => {
+        const request: SwapRequest = {
+          requestId: 'req_meta_evm',
+          privacyLevel: PrivacyLevel.SHIELDED,
+          inputAsset: NATIVE_TOKENS.ethereum,
+          inputAmount: 1000000000000000000n,
+          outputAsset: NATIVE_TOKENS.arbitrum,
+        }
+        const { metaAddress } = generateStealthMetaAddress('arbitrum')
+
+        const prepared = await adapter.prepareSwap(request, metaAddress)
+
+        expect(prepared.curve).toBe('secp256k1')
+        expect(prepared.nativeRecipientAddress).toBeDefined()
+      })
+
+      it('should not include curve metadata for transparent mode', async () => {
+        const request: SwapRequest = {
+          requestId: 'req_transparent',
+          privacyLevel: PrivacyLevel.TRANSPARENT,
+          inputAsset: NATIVE_TOKENS.ethereum,
+          inputAmount: 1000000000000000000n,
+          outputAsset: NATIVE_TOKENS.arbitrum,
+        }
+
+        const prepared = await adapter.prepareSwap(
+          request,
+          undefined,
+          '0x1234567890123456789012345678901234567890'
+        )
+
+        expect(prepared.curve).toBeUndefined()
+        expect(prepared.nativeRecipientAddress).toBeUndefined()
+      })
     })
   })
 })

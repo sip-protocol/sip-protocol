@@ -75,6 +75,7 @@ export {
   publicKeyToEthAddress,
   // ed25519 (Solana, NEAR)
   isEd25519Chain,
+  getCurveForChain,
   generateEd25519StealthMetaAddress,
   generateEd25519StealthAddress,
   deriveEd25519StealthPrivateKey,
@@ -89,6 +90,8 @@ export {
   isValidNearImplicitAddress,
   isValidNearAccountId,
 } from './stealth'
+
+export type { StealthCurve } from './stealth'
 
 // Privacy utilities
 export {

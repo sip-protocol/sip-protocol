@@ -408,19 +408,38 @@ export function decodeStealthMetaAddress(encoded: string): StealthMetaAddress {
     )
   }
 
-  // Validate keys
-  if (!isValidCompressedPublicKey(spendingKey)) {
-    throw new ValidationError(
-      'spendingKey must be a valid compressed secp256k1 public key',
-      'encoded.spendingKey'
-    )
-  }
+  // Validate keys based on chain's curve type
+  const chainId = chain as ChainId
+  if (isEd25519Chain(chainId)) {
+    // Ed25519 chains (Solana, NEAR) use 32-byte public keys
+    if (!isValidEd25519PublicKey(spendingKey)) {
+      throw new ValidationError(
+        'spendingKey must be a valid 32-byte ed25519 public key',
+        'encoded.spendingKey'
+      )
+    }
 
-  if (!isValidCompressedPublicKey(viewingKey)) {
-    throw new ValidationError(
-      'viewingKey must be a valid compressed secp256k1 public key',
-      'encoded.viewingKey'
-    )
+    if (!isValidEd25519PublicKey(viewingKey)) {
+      throw new ValidationError(
+        'viewingKey must be a valid 32-byte ed25519 public key',
+        'encoded.viewingKey'
+      )
+    }
+  } else {
+    // secp256k1 chains (Ethereum, etc.) use 33-byte compressed public keys
+    if (!isValidCompressedPublicKey(spendingKey)) {
+      throw new ValidationError(
+        'spendingKey must be a valid compressed secp256k1 public key',
+        'encoded.spendingKey'
+      )
+    }
+
+    if (!isValidCompressedPublicKey(viewingKey)) {
+      throw new ValidationError(
+        'viewingKey must be a valid compressed secp256k1 public key',
+        'encoded.viewingKey'
+      )
+    }
   }
 
   return {
@@ -542,6 +561,21 @@ const ED25519_CHAINS: ChainId[] = ['solana', 'near']
  */
 export function isEd25519Chain(chain: ChainId): boolean {
   return ED25519_CHAINS.includes(chain)
+}
+
+/**
+ * Curve type used for stealth addresses
+ */
+export type StealthCurve = 'secp256k1' | 'ed25519'
+
+/**
+ * Get the curve type used by a chain for stealth addresses
+ *
+ * @param chain - Chain identifier
+ * @returns 'ed25519' for Solana/NEAR, 'secp256k1' for EVM chains
+ */
+export function getCurveForChain(chain: ChainId): StealthCurve {
+  return isEd25519Chain(chain) ? 'ed25519' : 'secp256k1'
 }
 
 /**

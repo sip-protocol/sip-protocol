@@ -22,7 +22,17 @@ import {
   OneClickRecipientType,
 } from '@sip-protocol/types'
 import { OneClickClient } from './oneclick-client'
-import { generateStealthAddress, decodeStealthMetaAddress, publicKeyToEthAddress } from '../stealth'
+import {
+  generateStealthAddress,
+  decodeStealthMetaAddress,
+  publicKeyToEthAddress,
+  isEd25519Chain,
+  generateEd25519StealthAddress,
+  ed25519PublicKeyToSolanaAddress,
+  ed25519PublicKeyToNearAddress,
+  getCurveForChain,
+  type StealthCurve,
+} from '../stealth'
 import { ValidationError } from '../errors'
 
 /**
@@ -59,6 +69,10 @@ export interface PreparedSwap {
   }
   /** Shared secret for stealth address derivation (keep private!) */
   sharedSecret?: HexString
+  /** Curve used for stealth address (for cross-chain compatibility) */
+  curve?: StealthCurve
+  /** Native recipient address (converted from stealth public key) */
+  nativeRecipientAddress?: string
 }
 
 /**
@@ -233,6 +247,10 @@ export class NEARIntentsAdapter {
     let stealthData: PreparedSwap['stealthAddress']
     let sharedSecret: HexString | undefined
 
+    // Track curve and native address for cross-chain metadata
+    let curve: StealthCurve | undefined
+    let nativeRecipientAddress: string | undefined
+
     if (request.privacyLevel !== PrivacyLevel.TRANSPARENT) {
       // Privacy mode requires stealth address
       if (!recipientMetaAddress) {
@@ -247,46 +265,128 @@ export class NEARIntentsAdapter {
         ? decodeStealthMetaAddress(recipientMetaAddress)
         : recipientMetaAddress
 
-      // Generate stealth address for recipient (output chain)
-      const { stealthAddress, sharedSecret: secret } = generateStealthAddress(metaAddr)
+      // Determine curve based on output chain
+      const outputChain = request.outputAsset.chain
+      const outputChainType = CHAIN_BLOCKCHAIN_MAP[outputChain]
 
-      // Stealth addresses are secp256k1-based (EIP-5564 style) and only work for EVM chains.
-      // Non-EVM chains (Solana, Bitcoin, etc.) use different cryptographic schemes
-      // and cannot receive funds at secp256k1-derived addresses.
-      const outputChainType = CHAIN_BLOCKCHAIN_MAP[request.outputAsset.chain]
-      if (outputChainType !== 'evm') {
+      if (isEd25519Chain(outputChain)) {
+        // Ed25519 chains (Solana, NEAR) use ed25519 stealth addresses
+        curve = 'ed25519'
+
+        // Validate that meta-address uses ed25519 keys (32 bytes)
+        const spendingKeyBytes = (metaAddr.spendingKey.length - 2) / 2
+        if (spendingKeyBytes !== 32) {
+          throw new ValidationError(
+            `Meta-address has ${spendingKeyBytes}-byte keys but ${outputChain} requires ed25519 (32-byte) keys. ` +
+            `Please generate an ed25519 meta-address using generateEd25519StealthMetaAddress('${outputChain}').`,
+            'recipientMetaAddress',
+            { outputChain, keySize: spendingKeyBytes, expectedSize: 32 }
+          )
+        }
+
+        // Generate ed25519 stealth address
+        const { stealthAddress, sharedSecret: secret } = generateEd25519StealthAddress(metaAddr)
+        stealthData = stealthAddress
+        sharedSecret = secret
+
+        // Convert stealth public key to native chain address
+        if (outputChain === 'solana') {
+          recipientAddress = ed25519PublicKeyToSolanaAddress(stealthAddress.address)
+        } else if (outputChain === 'near') {
+          recipientAddress = ed25519PublicKeyToNearAddress(stealthAddress.address)
+        } else {
+          // Future ed25519 chains
+          throw new ValidationError(
+            `ed25519 address derivation not implemented for ${outputChain}`,
+            'outputAsset',
+            { outputChain }
+          )
+        }
+        nativeRecipientAddress = recipientAddress
+      } else if (outputChainType === 'evm') {
+        // EVM chains use secp256k1 stealth addresses
+        curve = 'secp256k1'
+
+        // Validate that meta-address uses secp256k1 keys (33 bytes compressed)
+        const spendingKeyBytes = (metaAddr.spendingKey.length - 2) / 2
+        if (spendingKeyBytes !== 33) {
+          throw new ValidationError(
+            `Meta-address has ${spendingKeyBytes}-byte keys but ${outputChain} requires secp256k1 (33-byte compressed) keys. ` +
+            `Please generate a secp256k1 meta-address using generateStealthMetaAddress('${outputChain}').`,
+            'recipientMetaAddress',
+            { outputChain, keySize: spendingKeyBytes, expectedSize: 33 }
+          )
+        }
+
+        // Generate secp256k1 stealth address
+        const { stealthAddress, sharedSecret: secret } = generateStealthAddress(metaAddr)
+        stealthData = stealthAddress
+        sharedSecret = secret
+
+        // Convert stealth public key to ETH address format
+        // The 1Click API expects 20-byte Ethereum addresses
+        recipientAddress = publicKeyToEthAddress(stealthAddress.address)
+        nativeRecipientAddress = recipientAddress
+      } else {
+        // Unsupported chain type (e.g., Bitcoin, Zcash - different schemes)
         throw new ValidationError(
-          `Stealth addresses are not supported for ${request.outputAsset.chain} output. ` +
-          `SIP stealth addresses use secp256k1 (EIP-5564 style) which only works for EVM chains. ` +
-          `For ${request.outputAsset.chain} output, please connect a wallet or use an EVM output chain.`,
+          `Stealth addresses are not yet supported for ${outputChain} output. ` +
+          `Supported chains: EVM (Ethereum, Polygon, etc.), Solana, NEAR. ` +
+          `For ${outputChain}, please provide a direct wallet address.`,
           'outputAsset',
-          { outputChain: request.outputAsset.chain, outputChainType }
+          { outputChain, outputChainType }
         )
       }
 
-      // For EVM chains, convert stealth public key to ETH address format
-      // The 1Click API expects 20-byte Ethereum addresses, not 33-byte secp256k1 public keys
-      recipientAddress = publicKeyToEthAddress(stealthAddress.address)
-      stealthData = stealthAddress
-      sharedSecret = secret
-
       // Generate refund address for input chain (if no sender address provided)
       if (!senderAddress) {
-        const inputChainType = CHAIN_BLOCKCHAIN_MAP[request.inputAsset.chain]
-        if (inputChainType === 'evm') {
-          // For EVM input chains, generate a stealth address and convert to ETH address
-          const refundStealth = generateStealthAddress(metaAddr)
-          refundAddress = publicKeyToEthAddress(refundStealth.stealthAddress.address)
+        const inputChain = request.inputAsset.chain
+        const inputChainType = CHAIN_BLOCKCHAIN_MAP[inputChain]
+
+        if (isEd25519Chain(inputChain)) {
+          // For ed25519 input chains, generate ed25519 stealth address for refunds
+          // Note: This requires the meta-address to have ed25519 keys
+          const inputKeyBytes = (metaAddr.spendingKey.length - 2) / 2
+          if (inputKeyBytes === 32) {
+            const refundStealth = generateEd25519StealthAddress(metaAddr)
+            if (inputChain === 'solana') {
+              refundAddress = ed25519PublicKeyToSolanaAddress(refundStealth.stealthAddress.address)
+            } else if (inputChain === 'near') {
+              refundAddress = ed25519PublicKeyToNearAddress(refundStealth.stealthAddress.address)
+            }
+          } else {
+            // Cross-curve: output is secp256k1 but input is ed25519
+            // Cannot generate ed25519 refund address from secp256k1 meta-address
+            throw new ValidationError(
+              `Cross-curve refunds not supported: input chain ${inputChain} requires ed25519 but meta-address uses secp256k1. ` +
+              `Please provide a senderAddress for refunds, or use matching curves for input/output chains.`,
+              'senderAddress',
+              { inputChain, inputChainType, metaAddressCurve: 'secp256k1' }
+            )
+          }
+        } else if (inputChainType === 'evm') {
+          // For EVM input chains, generate secp256k1 stealth address for refunds
+          const inputKeyBytes = (metaAddr.spendingKey.length - 2) / 2
+          if (inputKeyBytes === 33) {
+            const refundStealth = generateStealthAddress(metaAddr)
+            refundAddress = publicKeyToEthAddress(refundStealth.stealthAddress.address)
+          } else {
+            // Cross-curve: output is ed25519 but input is EVM
+            // Cannot generate secp256k1 refund address from ed25519 meta-address
+            throw new ValidationError(
+              `Cross-curve refunds not supported: input chain ${inputChain} requires secp256k1 but meta-address uses ed25519. ` +
+              `Please provide a senderAddress for refunds, or use matching curves for input/output chains.`,
+              'senderAddress',
+              { inputChain, inputChainType, metaAddressCurve: 'ed25519' }
+            )
+          }
         } else {
-          // For non-EVM input chains (Solana, Bitcoin, etc.), we cannot generate
-          // valid stealth addresses because they use different cryptographic schemes.
-          // Require sender address for refunds on these chains.
+          // Unsupported input chain for refunds
           throw new ValidationError(
-            `senderAddress is required for refunds on ${request.inputAsset.chain}. ` +
-            `Stealth addresses are only supported for EVM-compatible chains. ` +
-            `Please connect a wallet or provide a sender address.`,
+            `senderAddress is required for refunds on ${inputChain}. ` +
+            `Automatic refund address generation is only supported for EVM, Solana, and NEAR chains.`,
             'senderAddress',
-            { inputChain: request.inputAsset.chain, inputChainType }
+            { inputChain, inputChainType }
           )
         }
       }
@@ -309,6 +409,8 @@ export class NEARIntentsAdapter {
       quoteRequest,
       stealthAddress: stealthData,
       sharedSecret,
+      curve,
+      nativeRecipientAddress,
     }
   }
 

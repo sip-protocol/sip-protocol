@@ -127,10 +127,11 @@ describe('NEAR Intents Integration', () => {
       expect(prepared.sharedSecret).toBeDefined()
     })
 
-    it('should reject non-EVM output chains for stealth addresses', async () => {
-      const { metaAddress } = generateStealthMetaAddress('solana')
+    it('should reject mismatched curve for ed25519 output chains', async () => {
+      // Using secp256k1 meta-address for Solana (ed25519) output
+      const { metaAddress } = generateStealthMetaAddress('ethereum') // secp256k1
 
-      // ETH → SOL: Solana output doesn't support secp256k1 stealth addresses
+      // ETH → SOL: Solana output requires ed25519 keys
       const request: SwapRequest = {
         requestId: `test_${Date.now()}`,
         privacyLevel: PrivacyLevel.SHIELDED,
@@ -140,14 +141,14 @@ describe('NEAR Intents Integration', () => {
       }
 
       // Should throw because Solana uses ed25519, not secp256k1
-      await expect(adapter.prepareSwap(request, metaAddress))
-        .rejects.toThrow('Stealth addresses are not supported for solana output')
+      await expect(adapter.prepareSwap(request, metaAddress, '0x1234567890123456789012345678901234567890'))
+        .rejects.toThrow('ed25519')
     })
 
-    it('should require sender address for non-EVM input chains', async () => {
-      const { metaAddress } = generateStealthMetaAddress('ethereum')
+    it('should require sender address for cross-curve refunds', async () => {
+      const { metaAddress } = generateStealthMetaAddress('ethereum') // secp256k1
 
-      // SOL → ETH: Solana input requires sender address
+      // SOL → ETH: Solana input with secp256k1 meta requires sender for cross-curve refunds
       const request: SwapRequest = {
         requestId: `test_${Date.now()}`,
         privacyLevel: PrivacyLevel.SHIELDED,
@@ -156,9 +157,9 @@ describe('NEAR Intents Integration', () => {
         outputAsset: NATIVE_TOKENS.ethereum,
       }
 
-      // No sender address - should throw for non-EVM input
+      // No sender address - should throw for cross-curve scenario
       await expect(adapter.prepareSwap(request, metaAddress))
-        .rejects.toThrow('senderAddress is required for refunds on solana')
+        .rejects.toThrow('Cross-curve refunds not supported')
     })
   })
 

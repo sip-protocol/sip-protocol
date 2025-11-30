@@ -14,6 +14,7 @@ import {
   checkStealthAddress,
   encodeStealthMetaAddress,
   decodeStealthMetaAddress,
+  generateEd25519StealthMetaAddress,
 } from '../../src/stealth'
 import type { ChainId, StealthMetaAddress, HexString } from '@sip-protocol/types'
 
@@ -264,14 +265,26 @@ describe('Stealth Addresses', () => {
     })
 
     it('should roundtrip correctly', () => {
-      const original = generateStealthMetaAddress('near' as ChainId)
-      const encoded = encodeStealthMetaAddress(original.metaAddress)
-      const decoded = decodeStealthMetaAddress(encoded)
+      // Test secp256k1 chain (Ethereum)
+      const secp256k1Original = generateStealthMetaAddress('ethereum')
+      const secp256k1Encoded = encodeStealthMetaAddress(secp256k1Original.metaAddress)
+      const secp256k1Decoded = decodeStealthMetaAddress(secp256k1Encoded)
 
-      expect(decoded).toEqual({
-        chain: original.metaAddress.chain,
-        spendingKey: original.metaAddress.spendingKey,
-        viewingKey: original.metaAddress.viewingKey,
+      expect(secp256k1Decoded).toEqual({
+        chain: secp256k1Original.metaAddress.chain,
+        spendingKey: secp256k1Original.metaAddress.spendingKey,
+        viewingKey: secp256k1Original.metaAddress.viewingKey,
+      })
+
+      // Test ed25519 chain (NEAR)
+      const ed25519Original = generateEd25519StealthMetaAddress('near')
+      const ed25519Encoded = encodeStealthMetaAddress(ed25519Original.metaAddress)
+      const ed25519Decoded = decodeStealthMetaAddress(ed25519Encoded)
+
+      expect(ed25519Decoded).toEqual({
+        chain: ed25519Original.metaAddress.chain,
+        spendingKey: ed25519Original.metaAddress.spendingKey,
+        viewingKey: ed25519Original.metaAddress.viewingKey,
       })
     })
 
