@@ -214,9 +214,9 @@ Connect demo UI to real SDK with actual blockchain transactions.
 
 ---
 
-### M8: Production Hardening ✅ Complete (Audit Pending)
+### M8: Production Hardening 🔄 In Progress
 
-Real ZK circuits implemented, security hardening complete.
+Real ZK circuits implemented, security hardening complete. Now adding multi-curve stealth support.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
@@ -226,8 +226,15 @@ Real ZK circuits implemented, security hardening complete.
 | [#65](../../issues/65) | Noir Fulfillment Proof circuit | ✅ Done |
 | [#66](../../issues/66) | Memory zeroization for secrets | ✅ Done |
 | [#67](../../issues/67) | External security audit | 🔲 Pending |
+| [#91](../../issues/91) | [EPIC] Multi-Curve Stealth Addresses | 🔲 Planned |
+| [#92](../../issues/92) | ed25519 stealth address implementation | 🔲 Planned |
+| [#93](../../issues/93) | Solana address derivation from ed25519 stealth | 🔲 Planned |
+| [#94](../../issues/94) | NEAR address derivation from ed25519 stealth | 🔲 Planned |
+| [#95](../../issues/95) | Multi-curve meta-address format | 🔲 Planned |
+| [#96](../../issues/96) | Update NEAR Intents adapter for multi-curve | 🔲 Planned |
+| [#97](../../issues/97) | Cross-chain stealth integration tests | 🔲 Planned |
 
-**Achievement**: All Noir circuits compiled and integrated. Secure memory handling implemented. External audit pending.
+**Achievement**: All Noir circuits compiled and integrated. Secure memory handling implemented. Multi-curve stealth addresses planned for cross-chain privacy. External audit pending.
 
 ---
 
@@ -334,12 +341,13 @@ Optimize for high-volume chains with native integrations.
 
 ## Status
 
-### Core Infrastructure (M1-M8) ✅ Complete
+### Core Infrastructure (M1-M8) 🔄 In Progress
 
 | Component | Status |
 |-----------|--------|
 | TypeScript Types | ✅ Complete |
-| Stealth Addresses | ✅ Complete |
+| Stealth Addresses (secp256k1) | ✅ Complete |
+| Stealth Addresses (ed25519) | 🔲 Planned |
 | Pedersen Commitments | ✅ Complete |
 | ZK Proof Specs | ✅ Complete |
 | ProofProvider Interface | ✅ Complete |
@@ -387,7 +395,7 @@ Optimize for high-volume chains with native integrations.
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Current focus areas:**
-- M8: Production hardening (Noir circuits, security audit)
+- M8: Production hardening (Multi-curve stealth addresses, security audit)
 - M10: Partnership integrations
 - M11: Fee mechanism design
 

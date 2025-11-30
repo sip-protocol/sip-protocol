@@ -57,7 +57,7 @@ importers:
         specifier: 1.0.0-beta.15
         version: 1.0.0-beta.15
       '@sip-protocol/types':
-        specifier: workspace:*
+        specifier: ^0.1.1
         version: link:../types
     devDependencies:
       '@vitest/coverage-v8':
