@@ -83,6 +83,11 @@ export {
   ed25519PublicKeyToSolanaAddress,
   solanaAddressToEd25519PublicKey,
   isValidSolanaAddress,
+  // NEAR address derivation
+  ed25519PublicKeyToNearAddress,
+  nearAddressToEd25519PublicKey,
+  isValidNearImplicitAddress,
+  isValidNearAccountId,
 } from './stealth'
 
 // Privacy utilities
