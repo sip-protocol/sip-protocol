@@ -169,20 +169,27 @@ Connect demo UI to real SDK with actual blockchain transactions.
 
 ---
 
-### M8: Production Hardening ✅ Complete
+### M8: Production Hardening 🔄 In Progress
 
-Replace mock proofs with real ZK circuits and security hardening.
+Real ZK circuits, multi-curve stealth addresses, and security hardening.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#62](../../issues/62) | [EPIC] Production Hardening | ✅ Done |
+| [#62](../../issues/62) | [EPIC] Production Hardening | 🔄 In Progress |
 | [#63](../../issues/63) | Noir Funding Proof circuit | ✅ Done |
 | [#64](../../issues/64) | Noir Validity Proof circuit | ✅ Done |
 | [#65](../../issues/65) | Noir Fulfillment Proof circuit | ✅ Done |
 | [#66](../../issues/66) | Memory zeroization for secrets | ✅ Done |
-| [#67](../../issues/67) | External security audit | ✅ Done |
+| [#91](../../issues/91) | [EPIC] Multi-Curve Stealth Addresses | 🔲 Planned |
+| [#92](../../issues/92) | ed25519 stealth address implementation | 🔲 Planned |
+| [#93](../../issues/93) | Solana address derivation from ed25519 stealth | 🔲 Planned |
+| [#94](../../issues/94) | NEAR address derivation from ed25519 stealth | 🔲 Planned |
+| [#95](../../issues/95) | Multi-curve meta-address format | 🔲 Planned |
+| [#96](../../issues/96) | Update NEAR Intents adapter for multi-curve | 🔲 Planned |
+| [#97](../../issues/97) | Cross-chain stealth integration tests | 🔲 Planned |
+| [#67](../../issues/67) | External security audit | 🔲 Pending |
 
-**Achievement**: Full Noir ZK circuits implemented, secure memory handling, audit documentation prepared.
+**Progress**: Noir circuits complete. Multi-curve stealth addresses needed for true cross-chain privacy (Solana, NEAR output chains).
 
 ---
 
@@ -208,15 +215,19 @@ New use cases and deeper integration.
 2. **Application Layer**: Fast to ship, easy to integrate
 3. **Privacy + Compliance**: Viewing keys for regulatory compatibility
 4. **Real Cryptography**: No mocked proofs or simulated security
+5. **Cross-Chain First**: Only private cross-chain solution in the market
 
 ---
 
 ## Status
 
+### Core Infrastructure (M1-M9) 🔄 In Progress
+
 | Component | Status |
 |-----------|--------|
 | TypeScript Types | ✅ Complete |
-| Stealth Addresses | ✅ Complete |
+| Stealth Addresses (secp256k1/EVM) | ✅ Complete |
+| Stealth Addresses (ed25519/Solana/NEAR) | 🔲 Planned |
 | Pedersen Commitments | ✅ Complete |
 | ZK Proof Specs | ✅ Complete |
 | ProofProvider Interface | ✅ Complete |
@@ -250,11 +261,15 @@ New use cases and deeper integration.
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-All planned milestones (M1-M9) are complete. Future areas of interest:
+**Current focus areas:**
+- M8: Multi-curve stealth addresses for true cross-chain privacy
+- ed25519 support for Solana/NEAR output chains
+
+**Future areas of interest:**
 - Additional chain integrations
 - Mobile wallet support
 - Advanced ZK optimizations
 
 ---
 
-*Last updated: November 28, 2025*
+*Last updated: November 30, 2025*
