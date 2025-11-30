@@ -974,3 +974,150 @@ export function checkEd25519StealthAddress(
     secureWipeAll(spendingPrivBytes, viewingPrivBytes)
   }
 }
+
+// ─── NEAR Address Derivation ────────────────────────────────────────────────────
+
+/**
+ * Convert ed25519 public key to NEAR implicit account address
+ *
+ * NEAR implicit accounts are lowercase hex-encoded ed25519 public keys (64 characters).
+ * No prefix, just raw 32 bytes as lowercase hex.
+ *
+ * @param publicKey - 32-byte ed25519 public key as hex string (with 0x prefix)
+ * @returns NEAR implicit account address (64 lowercase hex characters, no prefix)
+ * @throws {ValidationError} If public key is invalid
+ *
+ * @example
+ * ```typescript
+ * const { stealthAddress } = generateEd25519StealthAddress(metaAddress)
+ * const nearAddress = ed25519PublicKeyToNearAddress(stealthAddress.address)
+ * // Returns: "ab12cd34..." (64 hex chars)
+ * ```
+ */
+export function ed25519PublicKeyToNearAddress(publicKey: HexString): string {
+  // Validate input
+  if (!isValidHex(publicKey)) {
+    throw new ValidationError(
+      'publicKey must be a valid hex string with 0x prefix',
+      'publicKey'
+    )
+  }
+
+  if (!isValidEd25519PublicKey(publicKey)) {
+    throw new ValidationError(
+      'publicKey must be 32 bytes (64 hex characters)',
+      'publicKey'
+    )
+  }
+
+  // NEAR implicit accounts are lowercase hex without 0x prefix
+  return publicKey.slice(2).toLowerCase()
+}
+
+/**
+ * Convert NEAR implicit account address back to ed25519 public key
+ *
+ * @param address - NEAR implicit account address (64 hex characters)
+ * @returns ed25519 public key as HexString (with 0x prefix)
+ * @throws {ValidationError} If address is invalid
+ *
+ * @example
+ * ```typescript
+ * const publicKey = nearAddressToEd25519PublicKey("ab12cd34...")
+ * // Returns: "0xab12cd34..."
+ * ```
+ */
+export function nearAddressToEd25519PublicKey(address: string): HexString {
+  if (!isValidNearImplicitAddress(address)) {
+    throw new ValidationError(
+      'Invalid NEAR implicit address format',
+      'address'
+    )
+  }
+
+  return `0x${address.toLowerCase()}` as HexString
+}
+
+/**
+ * Validate a NEAR implicit account address
+ *
+ * NEAR implicit accounts are:
+ * - Exactly 64 lowercase hex characters
+ * - No prefix (no "0x")
+ * - Represent a 32-byte ed25519 public key
+ *
+ * @param address - Address to validate
+ * @returns true if valid NEAR implicit account address
+ *
+ * @example
+ * ```typescript
+ * isValidNearImplicitAddress("ab12cd34ef...") // true (64 hex chars)
+ * isValidNearImplicitAddress("0xab12...")     // false (has prefix)
+ * isValidNearImplicitAddress("alice.near")   // false (named account)
+ * isValidNearImplicitAddress("AB12CD...")    // false (uppercase)
+ * ```
+ */
+export function isValidNearImplicitAddress(address: string): boolean {
+  // Must be a string
+  if (typeof address !== 'string' || address.length === 0) {
+    return false
+  }
+
+  // Must be exactly 64 characters (32 bytes as hex)
+  if (address.length !== 64) {
+    return false
+  }
+
+  // Must be lowercase hex only (no 0x prefix)
+  return /^[0-9a-f]{64}$/.test(address)
+}
+
+/**
+ * Check if a string is a valid NEAR account ID (named or implicit)
+ *
+ * Supports both:
+ * - Named accounts: alice.near, bob.testnet
+ * - Implicit accounts: 64 hex characters
+ *
+ * @param accountId - Account ID to validate
+ * @returns true if valid NEAR account ID
+ *
+ * @example
+ * ```typescript
+ * isValidNearAccountId("alice.near")     // true
+ * isValidNearAccountId("ab12cd34ef...")  // true (64 hex chars)
+ * isValidNearAccountId("invalid!")       // false
+ * ```
+ */
+export function isValidNearAccountId(accountId: string): boolean {
+  if (typeof accountId !== 'string' || accountId.length === 0) {
+    return false
+  }
+
+  // Check for implicit account (64 hex chars)
+  if (isValidNearImplicitAddress(accountId)) {
+    return true
+  }
+
+  // Named account rules:
+  // - 2-64 characters
+  // - Lowercase alphanumeric, dashes, underscores, periods
+  // - Cannot start/end with special chars
+  // - Cannot have consecutive periods
+  if (accountId.length < 2 || accountId.length > 64) {
+    return false
+  }
+
+  // Must match NEAR account ID pattern
+  const nearAccountPattern = /^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$/
+  if (!nearAccountPattern.test(accountId)) {
+    return false
+  }
+
+  // Cannot have consecutive periods
+  if (accountId.includes('..')) {
+    return false
+  }
+
+  return true
+}

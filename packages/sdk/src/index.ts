@@ -79,6 +79,11 @@ export {
   generateEd25519StealthAddress,
   deriveEd25519StealthPrivateKey,
   checkEd25519StealthAddress,
+  // NEAR address derivation
+  ed25519PublicKeyToNearAddress,
+  nearAddressToEd25519PublicKey,
+  isValidNearImplicitAddress,
+  isValidNearAccountId,
 } from './stealth'
 
 // Privacy utilities
