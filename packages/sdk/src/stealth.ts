@@ -13,7 +13,9 @@
  */
 
 import { secp256k1 } from '@noble/curves/secp256k1'
+import { ed25519 } from '@noble/curves/ed25519'
 import { sha256 } from '@noble/hashes/sha256'
+import { sha512 } from '@noble/hashes/sha512'
 import { keccak_256 } from '@noble/hashes/sha3'
 import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils'
 import type {
@@ -28,6 +30,7 @@ import {
   isValidChainId,
   isValidHex,
   isValidCompressedPublicKey,
+  isValidEd25519PublicKey,
   isValidPrivateKey,
 } from './validation'
 import { secureWipe, secureWipeAll } from './secure-memory'
@@ -509,4 +512,465 @@ function toChecksumAddress(address: string): HexString {
   }
 
   return checksummed as HexString
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ED25519 STEALTH ADDRESSES
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// ed25519 stealth address implementation for Solana and NEAR chains.
+// Uses DKSAP (Dual-Key Stealth Address Protocol) pattern adapted for ed25519.
+//
+// Key differences from secp256k1:
+// - Public keys are 32 bytes (not 33 compressed)
+// - Uses SHA-512 for key derivation (matches ed25519 spec)
+// - Scalar arithmetic modulo ed25519 curve order (L)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * ed25519 curve order (L) - the order of the base point
+ */
+const ED25519_ORDER = 2n ** 252n + 27742317777372353535851937790883648493n
+
+/**
+ * Chains that use ed25519 for stealth addresses
+ */
+const ED25519_CHAINS: ChainId[] = ['solana', 'near']
+
+/**
+ * Check if a chain uses ed25519 for stealth addresses
+ */
+export function isEd25519Chain(chain: ChainId): boolean {
+  return ED25519_CHAINS.includes(chain)
+}
+
+/**
+ * Validate an ed25519 StealthMetaAddress object
+ */
+function validateEd25519StealthMetaAddress(
+  metaAddress: StealthMetaAddress,
+  field: string = 'recipientMetaAddress'
+): void {
+  if (!metaAddress || typeof metaAddress !== 'object') {
+    throw new ValidationError('must be an object', field)
+  }
+
+  // Validate chain is ed25519-compatible
+  if (!isValidChainId(metaAddress.chain)) {
+    throw new ValidationError(
+      `invalid chain '${metaAddress.chain}'`,
+      `${field}.chain`
+    )
+  }
+
+  if (!isEd25519Chain(metaAddress.chain)) {
+    throw new ValidationError(
+      `chain '${metaAddress.chain}' does not use ed25519, use secp256k1 functions instead`,
+      `${field}.chain`
+    )
+  }
+
+  // Validate spending key (32 bytes for ed25519)
+  if (!isValidEd25519PublicKey(metaAddress.spendingKey)) {
+    throw new ValidationError(
+      'spendingKey must be a valid ed25519 public key (32 bytes)',
+      `${field}.spendingKey`
+    )
+  }
+
+  // Validate viewing key (32 bytes for ed25519)
+  if (!isValidEd25519PublicKey(metaAddress.viewingKey)) {
+    throw new ValidationError(
+      'viewingKey must be a valid ed25519 public key (32 bytes)',
+      `${field}.viewingKey`
+    )
+  }
+}
+
+/**
+ * Validate an ed25519 StealthAddress object
+ */
+function validateEd25519StealthAddress(
+  stealthAddress: StealthAddress,
+  field: string = 'stealthAddress'
+): void {
+  if (!stealthAddress || typeof stealthAddress !== 'object') {
+    throw new ValidationError('must be an object', field)
+  }
+
+  // Validate address (32-byte ed25519 public key)
+  if (!isValidEd25519PublicKey(stealthAddress.address)) {
+    throw new ValidationError(
+      'address must be a valid ed25519 public key (32 bytes)',
+      `${field}.address`
+    )
+  }
+
+  // Validate ephemeral public key (32 bytes for ed25519)
+  if (!isValidEd25519PublicKey(stealthAddress.ephemeralPublicKey)) {
+    throw new ValidationError(
+      'ephemeralPublicKey must be a valid ed25519 public key (32 bytes)',
+      `${field}.ephemeralPublicKey`
+    )
+  }
+
+  // Validate view tag (0-255)
+  if (typeof stealthAddress.viewTag !== 'number' ||
+      !Number.isInteger(stealthAddress.viewTag) ||
+      stealthAddress.viewTag < 0 ||
+      stealthAddress.viewTag > 255) {
+    throw new ValidationError(
+      'viewTag must be an integer between 0 and 255',
+      `${field}.viewTag`
+    )
+  }
+}
+
+/**
+ * Get the scalar from an ed25519 private key
+ *
+ * ed25519 key derivation:
+ * 1. Hash the 32-byte seed with SHA-512 to get 64 bytes
+ * 2. First 32 bytes are the scalar (after clamping)
+ * 3. Last 32 bytes are used for nonce generation (not needed here)
+ */
+function getEd25519Scalar(privateKey: Uint8Array): bigint {
+  // Hash the private key seed with SHA-512
+  const hash = sha512(privateKey)
+
+  // Take first 32 bytes and clamp as per ed25519 spec
+  const scalar = hash.slice(0, 32)
+
+  // Clamp: clear lowest 3 bits, clear highest bit, set second highest bit
+  scalar[0] &= 248
+  scalar[31] &= 127
+  scalar[31] |= 64
+
+  // Convert to bigint (little-endian for ed25519)
+  return bytesToBigIntLE(scalar)
+}
+
+/**
+ * Convert bytes to bigint (little-endian, used by ed25519)
+ */
+function bytesToBigIntLE(bytes: Uint8Array): bigint {
+  let result = 0n
+  for (let i = bytes.length - 1; i >= 0; i--) {
+    result = (result << 8n) + BigInt(bytes[i])
+  }
+  return result
+}
+
+/**
+ * Convert bigint to bytes (little-endian, used by ed25519)
+ */
+function bigIntToBytesLE(value: bigint, length: number): Uint8Array {
+  const bytes = new Uint8Array(length)
+  for (let i = 0; i < length; i++) {
+    bytes[i] = Number(value & 0xffn)
+    value >>= 8n
+  }
+  return bytes
+}
+
+/**
+ * Generate a new ed25519 stealth meta-address keypair
+ *
+ * @param chain - Target chain (must be ed25519-compatible: solana, near)
+ * @param label - Optional human-readable label
+ * @returns Stealth meta-address and private keys
+ * @throws {ValidationError} If chain is invalid or not ed25519-compatible
+ */
+export function generateEd25519StealthMetaAddress(
+  chain: ChainId,
+  label?: string,
+): {
+  metaAddress: StealthMetaAddress
+  spendingPrivateKey: HexString
+  viewingPrivateKey: HexString
+} {
+  // Validate chain
+  if (!isValidChainId(chain)) {
+    throw new ValidationError(
+      `invalid chain '${chain}', must be one of: solana, ethereum, near, zcash, polygon, arbitrum, optimism, base`,
+      'chain'
+    )
+  }
+
+  if (!isEd25519Chain(chain)) {
+    throw new ValidationError(
+      `chain '${chain}' does not use ed25519, use generateStealthMetaAddress() for secp256k1 chains`,
+      'chain'
+    )
+  }
+
+  // Generate random private keys (32-byte seeds)
+  const spendingPrivateKey = randomBytes(32)
+  const viewingPrivateKey = randomBytes(32)
+
+  try {
+    // Derive public keys using ed25519
+    const spendingKey = ed25519.getPublicKey(spendingPrivateKey)
+    const viewingKey = ed25519.getPublicKey(viewingPrivateKey)
+
+    // Convert to hex strings before wiping buffers
+    const result = {
+      metaAddress: {
+        spendingKey: `0x${bytesToHex(spendingKey)}` as HexString,
+        viewingKey: `0x${bytesToHex(viewingKey)}` as HexString,
+        chain,
+        label,
+      },
+      spendingPrivateKey: `0x${bytesToHex(spendingPrivateKey)}` as HexString,
+      viewingPrivateKey: `0x${bytesToHex(viewingPrivateKey)}` as HexString,
+    }
+
+    return result
+  } finally {
+    // Securely wipe private key buffers
+    secureWipeAll(spendingPrivateKey, viewingPrivateKey)
+  }
+}
+
+/**
+ * Generate a one-time ed25519 stealth address for a recipient
+ *
+ * Algorithm (DKSAP for ed25519):
+ * 1. Generate ephemeral keypair (r, R = r*G)
+ * 2. Compute shared secret: S = r * P_spend (ephemeral scalar * spending public)
+ * 3. Hash shared secret: h = SHA256(S)
+ * 4. Derive stealth public key: P_stealth = P_view + h*G
+ *
+ * @param recipientMetaAddress - Recipient's published stealth meta-address
+ * @returns Stealth address data (address + ephemeral key for publication)
+ * @throws {ValidationError} If recipientMetaAddress is invalid
+ */
+export function generateEd25519StealthAddress(
+  recipientMetaAddress: StealthMetaAddress,
+): {
+  stealthAddress: StealthAddress
+  sharedSecret: HexString
+} {
+  // Validate input
+  validateEd25519StealthMetaAddress(recipientMetaAddress)
+
+  // Generate ephemeral keypair
+  const ephemeralPrivateKey = randomBytes(32)
+
+  try {
+    const ephemeralPublicKey = ed25519.getPublicKey(ephemeralPrivateKey)
+
+    // Parse recipient's keys (remove 0x prefix)
+    const spendingKeyBytes = hexToBytes(recipientMetaAddress.spendingKey.slice(2))
+    const viewingKeyBytes = hexToBytes(recipientMetaAddress.viewingKey.slice(2))
+
+    // Get ephemeral scalar from private key and reduce mod L
+    // ed25519 clamping produces values that may exceed L, so we reduce
+    const rawEphemeralScalar = getEd25519Scalar(ephemeralPrivateKey)
+    let ephemeralScalar = rawEphemeralScalar % ED25519_ORDER
+    if (ephemeralScalar === 0n) ephemeralScalar = 1n // Ensure non-zero
+
+    // Convert spending public key to extended point and multiply by ephemeral scalar
+    // S = ephemeral_scalar * P_spend
+    const spendingPoint = ed25519.ExtendedPoint.fromHex(spendingKeyBytes)
+    const sharedSecretPoint = spendingPoint.multiply(ephemeralScalar)
+
+    // Hash the shared secret point (compress to bytes first)
+    const sharedSecretHash = sha256(sharedSecretPoint.toRawBytes())
+
+    // Derive stealth public key: P_stealth = P_view + hash(S)*G
+    // Convert hash to scalar (mod L to ensure it's valid and non-zero)
+    let hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
+    if (hashScalar === 0n) hashScalar = 1n // Ensure non-zero
+
+    // Compute hash(S) * G
+    const hashTimesG = ed25519.ExtendedPoint.BASE.multiply(hashScalar)
+
+    // Add to viewing key: P_stealth = P_view + hash(S)*G
+    const viewingPoint = ed25519.ExtendedPoint.fromHex(viewingKeyBytes)
+    const stealthPoint = viewingPoint.add(hashTimesG)
+    const stealthAddressBytes = stealthPoint.toRawBytes()
+
+    // Compute view tag (first byte of hash for efficient scanning)
+    const viewTag = sharedSecretHash[0]
+
+    return {
+      stealthAddress: {
+        address: `0x${bytesToHex(stealthAddressBytes)}` as HexString,
+        ephemeralPublicKey: `0x${bytesToHex(ephemeralPublicKey)}` as HexString,
+        viewTag,
+      },
+      sharedSecret: `0x${bytesToHex(sharedSecretHash)}` as HexString,
+    }
+  } finally {
+    // Securely wipe ephemeral private key
+    secureWipe(ephemeralPrivateKey)
+  }
+}
+
+/**
+ * Derive the private key for an ed25519 stealth address (for recipient to claim funds)
+ *
+ * Algorithm:
+ * 1. Compute shared secret: S = spend_scalar * R (spending scalar * ephemeral public)
+ * 2. Hash shared secret: h = SHA256(S)
+ * 3. Derive stealth private key: s_stealth = s_view + h (mod L)
+ *
+ * @param stealthAddress - The stealth address to recover
+ * @param spendingPrivateKey - Recipient's spending private key
+ * @param viewingPrivateKey - Recipient's viewing private key
+ * @returns Recovery data including derived private key
+ * @throws {ValidationError} If any input is invalid
+ */
+export function deriveEd25519StealthPrivateKey(
+  stealthAddress: StealthAddress,
+  spendingPrivateKey: HexString,
+  viewingPrivateKey: HexString,
+): StealthAddressRecovery {
+  // Validate stealth address
+  validateEd25519StealthAddress(stealthAddress)
+
+  // Validate private keys (32 bytes)
+  if (!isValidPrivateKey(spendingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'spendingPrivateKey'
+    )
+  }
+
+  if (!isValidPrivateKey(viewingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'viewingPrivateKey'
+    )
+  }
+
+  // Parse keys
+  const spendingPrivBytes = hexToBytes(spendingPrivateKey.slice(2))
+  const viewingPrivBytes = hexToBytes(viewingPrivateKey.slice(2))
+  const ephemeralPubBytes = hexToBytes(stealthAddress.ephemeralPublicKey.slice(2))
+
+  try {
+    // Get spending scalar from private key and reduce mod L
+    const rawSpendingScalar = getEd25519Scalar(spendingPrivBytes)
+    let spendingScalar = rawSpendingScalar % ED25519_ORDER
+    if (spendingScalar === 0n) spendingScalar = 1n
+
+    // Compute shared secret: S = spending_scalar * R
+    const ephemeralPoint = ed25519.ExtendedPoint.fromHex(ephemeralPubBytes)
+    const sharedSecretPoint = ephemeralPoint.multiply(spendingScalar)
+
+    // Hash the shared secret
+    const sharedSecretHash = sha256(sharedSecretPoint.toRawBytes())
+
+    // Get viewing scalar from private key and reduce mod L
+    const rawViewingScalar = getEd25519Scalar(viewingPrivBytes)
+    let viewingScalar = rawViewingScalar % ED25519_ORDER
+    if (viewingScalar === 0n) viewingScalar = 1n
+
+    // Derive stealth private key: s_stealth = s_view + hash(S) mod L
+    let hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
+    if (hashScalar === 0n) hashScalar = 1n
+    let stealthPrivateScalar = (viewingScalar + hashScalar) % ED25519_ORDER
+    if (stealthPrivateScalar === 0n) stealthPrivateScalar = 1n
+
+    // Convert back to bytes (little-endian for ed25519)
+    // Note: We need to store this as a seed that will produce this scalar
+    // For simplicity, we store the scalar directly (32 bytes, little-endian)
+    const stealthPrivateKey = bigIntToBytesLE(stealthPrivateScalar, 32)
+
+    const result = {
+      stealthAddress: stealthAddress.address,
+      ephemeralPublicKey: stealthAddress.ephemeralPublicKey,
+      privateKey: `0x${bytesToHex(stealthPrivateKey)}` as HexString,
+    }
+
+    // Wipe derived key buffer after converting to hex
+    secureWipe(stealthPrivateKey)
+
+    return result
+  } finally {
+    // Securely wipe input private key buffers
+    secureWipeAll(spendingPrivBytes, viewingPrivBytes)
+  }
+}
+
+/**
+ * Check if an ed25519 stealth address was intended for this recipient
+ * Uses view tag for efficient filtering before full computation
+ *
+ * @param stealthAddress - Stealth address to check
+ * @param spendingPrivateKey - Recipient's spending private key
+ * @param viewingPrivateKey - Recipient's viewing private key
+ * @returns true if this address belongs to the recipient
+ * @throws {ValidationError} If any input is invalid
+ */
+export function checkEd25519StealthAddress(
+  stealthAddress: StealthAddress,
+  spendingPrivateKey: HexString,
+  viewingPrivateKey: HexString,
+): boolean {
+  // Validate stealth address
+  validateEd25519StealthAddress(stealthAddress)
+
+  // Validate private keys
+  if (!isValidPrivateKey(spendingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'spendingPrivateKey'
+    )
+  }
+
+  if (!isValidPrivateKey(viewingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'viewingPrivateKey'
+    )
+  }
+
+  // Parse keys
+  const spendingPrivBytes = hexToBytes(spendingPrivateKey.slice(2))
+  const viewingPrivBytes = hexToBytes(viewingPrivateKey.slice(2))
+  const ephemeralPubBytes = hexToBytes(stealthAddress.ephemeralPublicKey.slice(2))
+
+  try {
+    // Get spending scalar from private key and reduce mod L
+    const rawSpendingScalar = getEd25519Scalar(spendingPrivBytes)
+    let spendingScalar = rawSpendingScalar % ED25519_ORDER
+    if (spendingScalar === 0n) spendingScalar = 1n
+
+    // Compute shared secret: S = spending_scalar * R
+    const ephemeralPoint = ed25519.ExtendedPoint.fromHex(ephemeralPubBytes)
+    const sharedSecretPoint = ephemeralPoint.multiply(spendingScalar)
+
+    // Hash the shared secret
+    const sharedSecretHash = sha256(sharedSecretPoint.toRawBytes())
+
+    // View tag check (optimization - reject quickly if doesn't match)
+    if (sharedSecretHash[0] !== stealthAddress.viewTag) {
+      return false
+    }
+
+    // Full check: derive the expected stealth address
+    const rawViewingScalar = getEd25519Scalar(viewingPrivBytes)
+    let viewingScalar = rawViewingScalar % ED25519_ORDER
+    if (viewingScalar === 0n) viewingScalar = 1n
+
+    let hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
+    if (hashScalar === 0n) hashScalar = 1n
+    let stealthPrivateScalar = (viewingScalar + hashScalar) % ED25519_ORDER
+    if (stealthPrivateScalar === 0n) stealthPrivateScalar = 1n
+
+    // Compute expected public key from derived scalar
+    const expectedPubKey = ed25519.ExtendedPoint.BASE.multiply(stealthPrivateScalar)
+    const expectedPubKeyBytes = expectedPubKey.toRawBytes()
+
+    // Compare with provided stealth address
+    const providedAddress = hexToBytes(stealthAddress.address.slice(2))
+
+    return bytesToHex(expectedPubKeyBytes) === bytesToHex(providedAddress)
+  } finally {
+    // Securely wipe input private key buffers
+    secureWipeAll(spendingPrivBytes, viewingPrivBytes)
+  }
 }

@@ -65,6 +65,7 @@ export type { CreateIntentOptions } from './intent'
 
 // Stealth addresses
 export {
+  // secp256k1 (EVM chains)
   generateStealthMetaAddress,
   generateStealthAddress,
   deriveStealthPrivateKey,
@@ -72,6 +73,12 @@ export {
   encodeStealthMetaAddress,
   decodeStealthMetaAddress,
   publicKeyToEthAddress,
+  // ed25519 (Solana, NEAR)
+  isEd25519Chain,
+  generateEd25519StealthMetaAddress,
+  generateEd25519StealthAddress,
+  deriveEd25519StealthPrivateKey,
+  checkEd25519StealthAddress,
 } from './stealth'
 
 // Privacy utilities
@@ -133,6 +140,7 @@ export {
   isValidSlippage,
   isValidStealthMetaAddress,
   isValidCompressedPublicKey,
+  isValidEd25519PublicKey,
   isValidPrivateKey,
   isValidScalar,
   validateCreateIntentParams,
