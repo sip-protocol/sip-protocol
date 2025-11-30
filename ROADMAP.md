@@ -4,6 +4,51 @@
 
 ---
 
+## 🎯 ENDGAME
+
+**SIP becomes the default privacy layer for ALL cross-chain transactions.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           THE ENDGAME                                    │
+│                                                                          │
+│   "Every cross-chain swap has a privacy toggle. That toggle is SIP."    │
+│                                                                          │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│   📊 Success Metrics (2027):                                             │
+│   • $1B+ monthly volume through SIP                                      │
+│   • Privacy toggle in top 5 wallets (Phantom, Solflare, etc.)           │
+│   • Default option on Jupiter, Raydium                                   │
+│   • Protocol revenue: $100K+/month                                       │
+│   • 50%+ of NEAR Intents volume uses SIP                                │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🗺️ The Path to Endgame
+
+```
+PHASE 1: BUILD          PHASE 2: ADOPT         PHASE 3: DOMINATE       ENDGAME
+(2024-2025)             (2026)                 (2027)                  (2028+)
+    │                       │                      │                      │
+    ▼                       ▼                      ▼                      ▼
+┌─────────┐           ┌─────────┐            ┌─────────┐           ┌─────────┐
+│ M1-M8   │           │ M9-M10  │            │ M11-M12 │           │ Default │
+│ Core    │ ────────► │ Growth  │ ─────────► │ Moats   │ ────────► │ Privacy │
+│ Tech    │           │ & Adopt │            │ & Scale │           │ Layer   │
+└─────────┘           └─────────┘            └─────────┘           └─────────┘
+     │                     │                      │                      │
+• SDK ✅              • Partnerships         • Fee contract         • Industry
+• Circuits ✅         • Jupiter/Raydium      • Governance           • Standard
+• Demo ✅             • Wallet integrations  • Enterprise           • $1B+ vol
+• Audit 🔲            • Private payments     • Multi-chain          • Revenue
+```
+
+---
+
 ## Vision
 
 SIP is an **application layer** that brings privacy to intent-based cross-chain systems. We complement existing infrastructure (NEAR Intents, Zcash) rather than compete with it.
@@ -171,15 +216,16 @@ Connect demo UI to real SDK with actual blockchain transactions.
 
 ### M8: Production Hardening 🔄 In Progress
 
-Real ZK circuits, multi-curve stealth addresses, and security hardening.
+Real ZK circuits implemented, security hardening complete. Now adding multi-curve stealth support.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#62](../../issues/62) | [EPIC] Production Hardening | 🔄 In Progress |
+| [#62](../../issues/62) | [EPIC] Production Hardening | ✅ Done |
 | [#63](../../issues/63) | Noir Funding Proof circuit | ✅ Done |
 | [#64](../../issues/64) | Noir Validity Proof circuit | ✅ Done |
 | [#65](../../issues/65) | Noir Fulfillment Proof circuit | ✅ Done |
 | [#66](../../issues/66) | Memory zeroization for secrets | ✅ Done |
+| [#67](../../issues/67) | External security audit | 🔲 Pending |
 | [#91](../../issues/91) | [EPIC] Multi-Curve Stealth Addresses | 🔲 Planned |
 | [#92](../../issues/92) | ed25519 stealth address implementation | 🔲 Planned |
 | [#93](../../issues/93) | Solana address derivation from ed25519 stealth | 🔲 Planned |
@@ -187,25 +233,71 @@ Real ZK circuits, multi-curve stealth addresses, and security hardening.
 | [#95](../../issues/95) | Multi-curve meta-address format | 🔲 Planned |
 | [#96](../../issues/96) | Update NEAR Intents adapter for multi-curve | 🔲 Planned |
 | [#97](../../issues/97) | Cross-chain stealth integration tests | 🔲 Planned |
-| [#67](../../issues/67) | External security audit | 🔲 Pending |
 
-**Progress**: Noir circuits complete. Multi-curve stealth addresses needed for true cross-chain privacy (Solana, NEAR output chains).
+**Achievement**: All Noir circuits compiled and integrated. Secure memory handling implemented. Multi-curve stealth addresses planned for cross-chain privacy. External audit pending.
 
 ---
 
-### M9: Horizontal Expansion ✅ Complete
+### M9: Horizontal Expansion 🔲 Planned
 
 New use cases and deeper integration.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#68](../../issues/68) | [EPIC] Horizontal Expansion | ✅ Done |
-| [#69](../../issues/69) | Private Payments (stablecoin transfers) | ✅ Done |
-| [#70](../../issues/70) | DAO Treasury operations | ✅ Done |
-| [#71](../../issues/71) | Enterprise Compliance dashboard | ✅ Done |
-| [#72](../../issues/72) | Hardware wallet support (Ledger/Trezor) | ✅ Done |
+| [#68](../../issues/68) | [EPIC] Horizontal Expansion | 🔲 Planned |
+| [#69](../../issues/69) | Private Payments (stablecoin transfers) | 🔲 Planned |
+| [#70](../../issues/70) | DAO Treasury operations | 🔲 Planned |
+| [#71](../../issues/71) | Enterprise Compliance dashboard | 🔲 Planned |
+| [#72](../../issues/72) | Hardware wallet support (Ledger/Trezor) | 🔲 Planned |
 
-**Achievement**: 203 new tests across 4 modules: Private Payments (58), DAO Treasury (45), Enterprise Compliance (51), Hardware Wallets (49).
+**Target**: Q2 2026 - Expand beyond swaps to payments, treasury ops, enterprise.
+
+---
+
+### M10: Partnership & Distribution 🔲 Planned
+
+Build network effects through strategic partnerships.
+
+| Issue | Description | Priority |
+|-------|-------------|----------|
+| - | Wallet integration (Phantom, Solflare native) | 🔥 Critical |
+| - | DEX partnership (Jupiter, Raydium) | 🔥 Critical |
+| - | Solver partnerships (exclusive/preferred terms) | 🔥 High |
+| - | NEAR Foundation partnership | 🔥 High |
+| - | Zcash Foundation collaboration | Medium |
+
+**Goal**: Become the default privacy option in major wallets and DEXes.
+
+---
+
+### M11: Moat Building 🔲 Planned
+
+Create sustainable competitive advantages.
+
+| Issue | Description | Priority |
+|-------|-------------|----------|
+| - | NEAR fee contract (protocol revenue) | 🔥 High |
+| - | Institutional onboarding program | 🔥 High |
+| - | Compliance certifications | Medium |
+| - | Multi-language SDK (Python, Rust) | Medium |
+| - | Governance token design | Medium |
+
+**Goal**: Build defensible moats before competitors emerge.
+
+---
+
+### M12: Chain-Specific Optimization 🔲 Future
+
+Optimize for high-volume chains with native integrations.
+
+| Issue | Description | Priority |
+|-------|-------------|----------|
+| - | Solana-native features (potential Arcium integration) | Medium |
+| - | Ethereum same-chain optimization | Medium |
+| - | Bitcoin privacy enhancement | Low |
+| - | Move chains exploration (Aptos/Sui) | Low |
+
+**Goal**: Best-in-class privacy on each chain while maintaining cross-chain capability.
 
 ---
 
@@ -219,22 +311,50 @@ New use cases and deeper integration.
 
 ---
 
+## Competitive Advantage
+
+### The Market Gap
+
+**No one offers private cross-chain swaps today.**
+
+| Solution | Cross-Chain | Private | Status |
+|----------|-------------|---------|--------|
+| Wormhole/Portal | ✅ | ❌ | Transparent only |
+| deBridge | ✅ | ❌ | Transparent only |
+| Mayan Finance | ✅ | ❌ | Transparent only |
+| Arcium | ❌ | ✅ | Solana-only, NOT LIVE (Q4 2025) |
+| Aztec | ❌ | ✅ | Ethereum L2 only |
+| Railgun | ❌ | ✅ | Ethereum only, no compliance |
+| **SIP Protocol** | ✅ | ✅ | **Only solution** |
+
+### Our Moats
+
+| Moat Type | Description |
+|-----------|-------------|
+| **First Mover** | Only private cross-chain solution |
+| **Network Effects** | Solver liquidity compounds over time |
+| **Compliance** | Viewing keys for institutional adoption |
+| **Partnerships** | Default option in wallets/DEXes |
+| **NEAR Integration** | Deep integration with Intents ecosystem |
+
+---
+
 ## Status
 
-### Core Infrastructure (M1-M9) 🔄 In Progress
+### Core Infrastructure (M1-M8) 🔄 In Progress
 
 | Component | Status |
 |-----------|--------|
 | TypeScript Types | ✅ Complete |
-| Stealth Addresses (secp256k1/EVM) | ✅ Complete |
-| Stealth Addresses (ed25519/Solana/NEAR) | 🔲 Planned |
+| Stealth Addresses (secp256k1) | ✅ Complete |
+| Stealth Addresses (ed25519) | 🔲 Planned |
 | Pedersen Commitments | ✅ Complete |
 | ZK Proof Specs | ✅ Complete |
 | ProofProvider Interface | ✅ Complete |
 | SDK Core | ✅ Complete |
 | Input Validation | ✅ Complete |
 | Error Handling | ✅ Complete |
-| SDK Unit Tests (965 tests) | ✅ Complete |
+| SDK Unit Tests (745 tests) | ✅ Complete |
 | Integration Tests | ✅ Complete |
 | E2E Tests (128 tests) | ✅ Complete |
 | Performance Benchmarks | ✅ Complete |
@@ -249,11 +369,24 @@ New use cases and deeper integration.
 | Transaction Execution | ✅ Complete |
 | Noir ZK Circuits | ✅ Complete |
 | Secure Memory Handling | ✅ Complete |
-| Private Payments Module | ✅ Complete |
-| Stablecoin Registry | ✅ Complete |
-| DAO Treasury Module | ✅ Complete |
-| Enterprise Compliance | ✅ Complete |
-| Hardware Wallet Support | ✅ Complete |
+
+### Security Audit 🔲 Pending
+
+| Component | Status |
+|-----------|--------|
+| External Security Audit | 🔲 Pending |
+
+### Future Expansion (M9-M12) 🔲 Planned
+
+| Component | Status |
+|-----------|--------|
+| Private Payments Module | 🔲 Planned |
+| DAO Treasury Module | 🔲 Planned |
+| Enterprise Compliance | 🔲 Planned |
+| Hardware Wallet Support | 🔲 Planned |
+| Wallet Partnerships | 🔲 Planned |
+| DEX Integrations | 🔲 Planned |
+| NEAR Fee Contract | 🔲 Planned |
 
 ---
 
@@ -262,13 +395,15 @@ New use cases and deeper integration.
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Current focus areas:**
-- M8: Multi-curve stealth addresses for true cross-chain privacy
-- ed25519 support for Solana/NEAR output chains
+- M8: Production hardening (Multi-curve stealth addresses, security audit)
+- M10: Partnership integrations
+- M11: Fee mechanism design
 
 **Future areas of interest:**
 - Additional chain integrations
 - Mobile wallet support
 - Advanced ZK optimizations
+- Governance token design
 
 ---
 

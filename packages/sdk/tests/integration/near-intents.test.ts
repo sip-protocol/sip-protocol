@@ -9,6 +9,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import {
   NEARIntentsAdapter,
   generateStealthMetaAddress,
+  publicKeyToEthAddress,
   PrivacyLevel,
   NATIVE_TOKENS,
   type SwapRequest,
@@ -61,9 +62,12 @@ describe('NEAR Intents Integration', () => {
         outputAsset: NATIVE_TOKENS.ethereum,
       }
 
+      // NEAR input requires sender address for refunds
+      const senderAddress = 'user.near'
+
       // Generate two swaps
-      const prepared1 = await adapter.prepareSwap(request, metaAddress)
-      const prepared2 = await adapter.prepareSwap(request, metaAddress)
+      const prepared1 = await adapter.prepareSwap(request, metaAddress, senderAddress)
+      const prepared2 = await adapter.prepareSwap(request, metaAddress, senderAddress)
 
       // Stealth addresses should be different (fresh ephemeral keys each time)
       expect(prepared1.stealthAddress?.address).not.toBe(prepared2.stealthAddress?.address)
@@ -82,13 +86,21 @@ describe('NEAR Intents Integration', () => {
         outputAsset: NATIVE_TOKENS.ethereum,
       }
 
-      const prepared = await adapter.prepareSwap(request, metaAddress)
+      // NEAR input requires sender address for refunds
+      const senderAddress = 'user.near'
+      const prepared = await adapter.prepareSwap(request, metaAddress, senderAddress)
 
       // Verify quote request structure (NEP-141 format)
       expect(prepared.quoteRequest.originAsset).toBe('nep141:wrap.near')
       expect(prepared.quoteRequest.destinationAsset).toBe('nep141:eth.omft.near')
       expect(prepared.quoteRequest.amount).toBe('100000000000000000000000')
-      expect(prepared.quoteRequest.recipient).toBe(prepared.stealthAddress?.address)
+      // For EVM chains, recipient is the ETH address derived from stealth public key
+      const expectedRecipient = publicKeyToEthAddress(prepared.stealthAddress!.address)
+      expect(prepared.quoteRequest.recipient).toBe(expectedRecipient)
+      // ETH addresses are 20 bytes (42 chars with 0x prefix)
+      expect(prepared.quoteRequest.recipient).toMatch(/^0x[a-fA-F0-9]{40}$/)
+      // refundTo should be the sender address for NEAR input
+      expect(prepared.quoteRequest.refundTo).toBe(senderAddress)
       expect(prepared.quoteRequest.depositType).toBe('ORIGIN_CHAIN')
       expect(prepared.quoteRequest.recipientType).toBe('DESTINATION_CHAIN')
       expect(prepared.quoteRequest.slippageTolerance).toBeDefined()
@@ -106,11 +118,47 @@ describe('NEAR Intents Integration', () => {
         outputAsset: NATIVE_TOKENS.ethereum,
       }
 
-      const prepared = await adapter.prepareSwap(request, metaAddress)
+      // NEAR input requires sender address for refunds
+      const senderAddress = 'user.near'
+      const prepared = await adapter.prepareSwap(request, metaAddress, senderAddress)
 
       // Compliant mode still uses stealth addresses
       expect(prepared.stealthAddress).toBeDefined()
       expect(prepared.sharedSecret).toBeDefined()
+    })
+
+    it('should reject non-EVM output chains for stealth addresses', async () => {
+      const { metaAddress } = generateStealthMetaAddress('solana')
+
+      // ETH → SOL: Solana output doesn't support secp256k1 stealth addresses
+      const request: SwapRequest = {
+        requestId: `test_${Date.now()}`,
+        privacyLevel: PrivacyLevel.SHIELDED,
+        inputAsset: NATIVE_TOKENS.ethereum,
+        inputAmount: 1000000000000000000n, // 1 ETH
+        outputAsset: NATIVE_TOKENS.solana,
+      }
+
+      // Should throw because Solana uses ed25519, not secp256k1
+      await expect(adapter.prepareSwap(request, metaAddress))
+        .rejects.toThrow('Stealth addresses are not supported for solana output')
+    })
+
+    it('should require sender address for non-EVM input chains', async () => {
+      const { metaAddress } = generateStealthMetaAddress('ethereum')
+
+      // SOL → ETH: Solana input requires sender address
+      const request: SwapRequest = {
+        requestId: `test_${Date.now()}`,
+        privacyLevel: PrivacyLevel.SHIELDED,
+        inputAsset: NATIVE_TOKENS.solana,
+        inputAmount: 1000000000n, // 1 SOL
+        outputAsset: NATIVE_TOKENS.ethereum,
+      }
+
+      // No sender address - should throw for non-EVM input
+      await expect(adapter.prepareSwap(request, metaAddress))
+        .rejects.toThrow('senderAddress is required for refunds on solana')
     })
   })
 

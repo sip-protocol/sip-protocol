@@ -71,6 +71,7 @@ export {
   checkStealthAddress,
   encodeStealthMetaAddress,
   decodeStealthMetaAddress,
+  publicKeyToEthAddress,
 } from './stealth'
 
 // Privacy utilities

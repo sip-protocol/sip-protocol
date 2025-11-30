@@ -22,7 +22,7 @@ import {
   OneClickRecipientType,
 } from '@sip-protocol/types'
 import { OneClickClient } from './oneclick-client'
-import { generateStealthAddress, decodeStealthMetaAddress } from '../stealth'
+import { generateStealthAddress, decodeStealthMetaAddress, publicKeyToEthAddress } from '../stealth'
 import { ValidationError } from '../errors'
 
 /**
@@ -229,6 +229,7 @@ export class NEARIntentsAdapter {
 
     // Determine recipient address
     let recipientAddress: string
+    let refundAddress: string | undefined = senderAddress
     let stealthData: PreparedSwap['stealthAddress']
     let sharedSecret: HexString | undefined
 
@@ -246,12 +247,49 @@ export class NEARIntentsAdapter {
         ? decodeStealthMetaAddress(recipientMetaAddress)
         : recipientMetaAddress
 
-      // Generate stealth address
+      // Generate stealth address for recipient (output chain)
       const { stealthAddress, sharedSecret: secret } = generateStealthAddress(metaAddr)
 
-      recipientAddress = stealthAddress.address
+      // Stealth addresses are secp256k1-based (EIP-5564 style) and only work for EVM chains.
+      // Non-EVM chains (Solana, Bitcoin, etc.) use different cryptographic schemes
+      // and cannot receive funds at secp256k1-derived addresses.
+      const outputChainType = CHAIN_BLOCKCHAIN_MAP[request.outputAsset.chain]
+      if (outputChainType !== 'evm') {
+        throw new ValidationError(
+          `Stealth addresses are not supported for ${request.outputAsset.chain} output. ` +
+          `SIP stealth addresses use secp256k1 (EIP-5564 style) which only works for EVM chains. ` +
+          `For ${request.outputAsset.chain} output, please connect a wallet or use an EVM output chain.`,
+          'outputAsset',
+          { outputChain: request.outputAsset.chain, outputChainType }
+        )
+      }
+
+      // For EVM chains, convert stealth public key to ETH address format
+      // The 1Click API expects 20-byte Ethereum addresses, not 33-byte secp256k1 public keys
+      recipientAddress = publicKeyToEthAddress(stealthAddress.address)
       stealthData = stealthAddress
       sharedSecret = secret
+
+      // Generate refund address for input chain (if no sender address provided)
+      if (!senderAddress) {
+        const inputChainType = CHAIN_BLOCKCHAIN_MAP[request.inputAsset.chain]
+        if (inputChainType === 'evm') {
+          // For EVM input chains, generate a stealth address and convert to ETH address
+          const refundStealth = generateStealthAddress(metaAddr)
+          refundAddress = publicKeyToEthAddress(refundStealth.stealthAddress.address)
+        } else {
+          // For non-EVM input chains (Solana, Bitcoin, etc.), we cannot generate
+          // valid stealth addresses because they use different cryptographic schemes.
+          // Require sender address for refunds on these chains.
+          throw new ValidationError(
+            `senderAddress is required for refunds on ${request.inputAsset.chain}. ` +
+            `Stealth addresses are only supported for EVM-compatible chains. ` +
+            `Please connect a wallet or provide a sender address.`,
+            'senderAddress',
+            { inputChain: request.inputAsset.chain, inputChainType }
+          )
+        }
+      }
     } else {
       // Transparent mode uses direct address
       if (!senderAddress) {
@@ -264,7 +302,7 @@ export class NEARIntentsAdapter {
     }
 
     // Build quote request
-    const quoteRequest = this.buildQuoteRequest(request, recipientAddress, senderAddress)
+    const quoteRequest = this.buildQuoteRequest(request, recipientAddress, refundAddress)
 
     return {
       request,
@@ -456,6 +494,7 @@ export class NEARIntentsAdapter {
     // Use ORIGIN_CHAIN for deposits from external chains
     // Use DESTINATION_CHAIN for sending to external chains
     return {
+      dry: false, // Explicitly set to false for real quotes (1Click API requires boolean)
       swapType: OneClickSwapType.EXACT_INPUT,
       originAsset,
       destinationAsset,

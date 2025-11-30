@@ -67,7 +67,9 @@ export class OneClickClient {
     this.baseUrl = config.baseUrl ?? DEFAULTS.baseUrl
     this.jwtToken = config.jwtToken
     this.timeout = config.timeout ?? DEFAULTS.timeout
-    this.fetchFn = config.fetch ?? globalThis.fetch
+    // Bind fetch to globalThis to preserve 'this' context in browsers
+    // Without this, fetch() throws "Illegal invocation" when assigned to a property
+    this.fetchFn = config.fetch ?? globalThis.fetch.bind(globalThis)
   }
 
   /**
