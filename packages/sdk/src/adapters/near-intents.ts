@@ -229,6 +229,7 @@ export class NEARIntentsAdapter {
 
     // Determine recipient address
     let recipientAddress: string
+    let refundAddress: string | undefined = senderAddress
     let stealthData: PreparedSwap['stealthAddress']
     let sharedSecret: HexString | undefined
 
@@ -246,7 +247,7 @@ export class NEARIntentsAdapter {
         ? decodeStealthMetaAddress(recipientMetaAddress)
         : recipientMetaAddress
 
-      // Generate stealth address
+      // Generate stealth address for recipient (output chain)
       const { stealthAddress, sharedSecret: secret } = generateStealthAddress(metaAddr)
 
       // For EVM chains, convert stealth public key to ETH address format
@@ -259,6 +260,27 @@ export class NEARIntentsAdapter {
       }
       stealthData = stealthAddress
       sharedSecret = secret
+
+      // Generate refund address for input chain (if no sender address provided)
+      if (!senderAddress) {
+        const inputChainType = CHAIN_BLOCKCHAIN_MAP[request.inputAsset.chain]
+        if (inputChainType === 'evm') {
+          // For EVM input chains, generate a stealth address and convert to ETH address
+          const refundStealth = generateStealthAddress(metaAddr)
+          refundAddress = publicKeyToEthAddress(refundStealth.stealthAddress.address)
+        } else {
+          // For non-EVM input chains (Solana, Bitcoin, etc.), we cannot generate
+          // valid stealth addresses because they use different cryptographic schemes.
+          // Require sender address for refunds on these chains.
+          throw new ValidationError(
+            `senderAddress is required for refunds on ${request.inputAsset.chain}. ` +
+            `Stealth addresses are only supported for EVM-compatible chains. ` +
+            `Please connect a wallet or provide a sender address.`,
+            'senderAddress',
+            { inputChain: request.inputAsset.chain, inputChainType }
+          )
+        }
+      }
     } else {
       // Transparent mode uses direct address
       if (!senderAddress) {
@@ -271,7 +293,7 @@ export class NEARIntentsAdapter {
     }
 
     // Build quote request
-    const quoteRequest = this.buildQuoteRequest(request, recipientAddress, senderAddress)
+    const quoteRequest = this.buildQuoteRequest(request, recipientAddress, refundAddress)
 
     return {
       request,
