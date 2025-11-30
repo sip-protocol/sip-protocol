@@ -14,6 +14,7 @@
 
 import { secp256k1 } from '@noble/curves/secp256k1'
 import { sha256 } from '@noble/hashes/sha256'
+import { keccak_256 } from '@noble/hashes/sha3'
 import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils'
 import type {
   StealthMetaAddress,
@@ -443,4 +444,69 @@ function bigIntToBytes(value: bigint, length: number): Uint8Array {
     value >>= 8n
   }
   return bytes
+}
+
+/**
+ * Convert a secp256k1 public key to an Ethereum address
+ *
+ * Algorithm (EIP-5564 style):
+ * 1. Decompress the public key to uncompressed form (65 bytes)
+ * 2. Remove the 0x04 prefix (take last 64 bytes)
+ * 3. keccak256 hash of the 64 bytes
+ * 4. Take the last 20 bytes as the address
+ *
+ * @param publicKey - Compressed (33 bytes) or uncompressed (65 bytes) public key
+ * @returns Ethereum address (20 bytes, checksummed)
+ */
+export function publicKeyToEthAddress(publicKey: HexString): HexString {
+  // Remove 0x prefix if present
+  const keyHex = publicKey.startsWith('0x') ? publicKey.slice(2) : publicKey
+  const keyBytes = hexToBytes(keyHex)
+
+  let uncompressedBytes: Uint8Array
+
+  // Check if compressed (33 bytes) or uncompressed (65 bytes)
+  if (keyBytes.length === 33) {
+    // Decompress using secp256k1
+    const point = secp256k1.ProjectivePoint.fromHex(keyBytes)
+    uncompressedBytes = point.toRawBytes(false) // false = uncompressed
+  } else if (keyBytes.length === 65) {
+    uncompressedBytes = keyBytes
+  } else {
+    throw new ValidationError(
+      `invalid public key length: ${keyBytes.length}, expected 33 (compressed) or 65 (uncompressed)`,
+      'publicKey'
+    )
+  }
+
+  // Remove the 0x04 prefix (first byte of uncompressed key)
+  const pubKeyWithoutPrefix = uncompressedBytes.slice(1)
+
+  // keccak256 hash
+  const hash = keccak_256(pubKeyWithoutPrefix)
+
+  // Take last 20 bytes
+  const addressBytes = hash.slice(-20)
+
+  // Convert to checksummed address
+  return toChecksumAddress(`0x${bytesToHex(addressBytes)}`)
+}
+
+/**
+ * Convert address to EIP-55 checksummed format
+ */
+function toChecksumAddress(address: string): HexString {
+  const addr = address.toLowerCase().replace('0x', '')
+  const hash = bytesToHex(keccak_256(new TextEncoder().encode(addr)))
+
+  let checksummed = '0x'
+  for (let i = 0; i < addr.length; i++) {
+    if (parseInt(hash[i], 16) >= 8) {
+      checksummed += addr[i].toUpperCase()
+    } else {
+      checksummed += addr[i]
+    }
+  }
+
+  return checksummed as HexString
 }

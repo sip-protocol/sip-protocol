@@ -9,6 +9,7 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import {
   NEARIntentsAdapter,
   generateStealthMetaAddress,
+  publicKeyToEthAddress,
   PrivacyLevel,
   NATIVE_TOKENS,
   type SwapRequest,
@@ -88,7 +89,11 @@ describe('NEAR Intents Integration', () => {
       expect(prepared.quoteRequest.originAsset).toBe('nep141:wrap.near')
       expect(prepared.quoteRequest.destinationAsset).toBe('nep141:eth.omft.near')
       expect(prepared.quoteRequest.amount).toBe('100000000000000000000000')
-      expect(prepared.quoteRequest.recipient).toBe(prepared.stealthAddress?.address)
+      // For EVM chains, recipient is the ETH address derived from stealth public key
+      const expectedRecipient = publicKeyToEthAddress(prepared.stealthAddress!.address)
+      expect(prepared.quoteRequest.recipient).toBe(expectedRecipient)
+      // ETH addresses are 20 bytes (42 chars with 0x prefix)
+      expect(prepared.quoteRequest.recipient).toMatch(/^0x[a-fA-F0-9]{40}$/)
       expect(prepared.quoteRequest.depositType).toBe('ORIGIN_CHAIN')
       expect(prepared.quoteRequest.recipientType).toBe('DESTINATION_CHAIN')
       expect(prepared.quoteRequest.slippageTolerance).toBeDefined()

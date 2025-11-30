@@ -22,7 +22,7 @@ import {
   OneClickRecipientType,
 } from '@sip-protocol/types'
 import { OneClickClient } from './oneclick-client'
-import { generateStealthAddress, decodeStealthMetaAddress } from '../stealth'
+import { generateStealthAddress, decodeStealthMetaAddress, publicKeyToEthAddress } from '../stealth'
 import { ValidationError } from '../errors'
 
 /**
@@ -249,7 +249,14 @@ export class NEARIntentsAdapter {
       // Generate stealth address
       const { stealthAddress, sharedSecret: secret } = generateStealthAddress(metaAddr)
 
-      recipientAddress = stealthAddress.address
+      // For EVM chains, convert stealth public key to ETH address format
+      // The 1Click API expects 20-byte Ethereum addresses, not 33-byte secp256k1 public keys
+      const outputChainType = CHAIN_BLOCKCHAIN_MAP[request.outputAsset.chain]
+      if (outputChainType === 'evm') {
+        recipientAddress = publicKeyToEthAddress(stealthAddress.address)
+      } else {
+        recipientAddress = stealthAddress.address
+      }
       stealthData = stealthAddress
       sharedSecret = secret
     } else {
