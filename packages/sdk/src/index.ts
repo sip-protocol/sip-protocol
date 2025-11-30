@@ -79,6 +79,10 @@ export {
   generateEd25519StealthAddress,
   deriveEd25519StealthPrivateKey,
   checkEd25519StealthAddress,
+  // Solana address derivation
+  ed25519PublicKeyToSolanaAddress,
+  solanaAddressToEd25519PublicKey,
+  isValidSolanaAddress,
 } from './stealth'
 
 // Privacy utilities

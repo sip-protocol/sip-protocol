@@ -974,3 +974,178 @@ export function checkEd25519StealthAddress(
     secureWipeAll(spendingPrivBytes, viewingPrivBytes)
   }
 }
+
+// ─── Base58 Encoding for Solana ────────────────────────────────────────────────
+
+/** Base58 alphabet (Bitcoin/Solana standard) */
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+
+/**
+ * Encode bytes to base58 string
+ * Used for Solana address encoding
+ */
+function bytesToBase58(bytes: Uint8Array): string {
+  // Count leading zeros
+  let leadingZeros = 0
+  for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+    leadingZeros++
+  }
+
+  // Convert bytes to bigint
+  let value = 0n
+  for (const byte of bytes) {
+    value = value * 256n + BigInt(byte)
+  }
+
+  // Convert to base58
+  let result = ''
+  while (value > 0n) {
+    const remainder = value % 58n
+    value = value / 58n
+    result = BASE58_ALPHABET[Number(remainder)] + result
+  }
+
+  // Add leading '1's for each leading zero byte
+  return '1'.repeat(leadingZeros) + result
+}
+
+/**
+ * Decode base58 string to bytes
+ * Used for Solana address validation
+ */
+function base58ToBytes(str: string): Uint8Array {
+  // Count leading '1's (they represent leading zero bytes)
+  let leadingOnes = 0
+  for (let i = 0; i < str.length && str[i] === '1'; i++) {
+    leadingOnes++
+  }
+
+  // Convert from base58 to bigint
+  let value = 0n
+  for (const char of str) {
+    const index = BASE58_ALPHABET.indexOf(char)
+    if (index === -1) {
+      throw new ValidationError(`Invalid base58 character: ${char}`, 'address')
+    }
+    value = value * 58n + BigInt(index)
+  }
+
+  // Convert bigint to bytes
+  const bytes: number[] = []
+  while (value > 0n) {
+    bytes.unshift(Number(value % 256n))
+    value = value / 256n
+  }
+
+  // Add leading zeros
+  const result = new Uint8Array(leadingOnes + bytes.length)
+  for (let i = 0; i < leadingOnes; i++) {
+    result[i] = 0
+  }
+  for (let i = 0; i < bytes.length; i++) {
+    result[leadingOnes + i] = bytes[i]
+  }
+
+  return result
+}
+
+// ─── Solana Address Derivation ─────────────────────────────────────────────────
+
+/**
+ * Convert an ed25519 public key (hex) to a Solana address (base58)
+ *
+ * Solana addresses are base58-encoded 32-byte ed25519 public keys.
+ *
+ * @param publicKey - 32-byte ed25519 public key as hex string (with 0x prefix)
+ * @returns Base58-encoded Solana address
+ * @throws {ValidationError} If public key is invalid
+ *
+ * @example
+ * ```typescript
+ * const { stealthAddress } = generateEd25519StealthAddress(metaAddress)
+ * const solanaAddress = ed25519PublicKeyToSolanaAddress(stealthAddress.address)
+ * // Returns: "7Vbmv1jt4vyuqBZcpYPpnVhrqVe5e6ZPBJCyqLqzQPvN" (example)
+ * ```
+ */
+export function ed25519PublicKeyToSolanaAddress(publicKey: HexString): string {
+  // Validate input
+  if (!isValidHex(publicKey)) {
+    throw new ValidationError(
+      'publicKey must be a valid hex string with 0x prefix',
+      'publicKey'
+    )
+  }
+
+  if (!isValidEd25519PublicKey(publicKey)) {
+    throw new ValidationError(
+      'publicKey must be 32 bytes (64 hex characters)',
+      'publicKey'
+    )
+  }
+
+  // Convert hex to bytes (remove 0x prefix)
+  const publicKeyBytes = hexToBytes(publicKey.slice(2))
+
+  // Encode as base58
+  return bytesToBase58(publicKeyBytes)
+}
+
+/**
+ * Validate a Solana address format
+ *
+ * Checks that the address:
+ * - Is a valid base58 string
+ * - Decodes to exactly 32 bytes (ed25519 public key size)
+ *
+ * @param address - Base58-encoded Solana address
+ * @returns true if valid, false otherwise
+ *
+ * @example
+ * ```typescript
+ * isValidSolanaAddress('7Vbmv1jt4vyuqBZcpYPpnVhrqVe5e6ZPBJCyqLqzQPvN') // true
+ * isValidSolanaAddress('invalid') // false
+ * ```
+ */
+export function isValidSolanaAddress(address: string): boolean {
+  if (typeof address !== 'string' || address.length === 0) {
+    return false
+  }
+
+  // Solana addresses are typically 32-44 characters
+  if (address.length < 32 || address.length > 44) {
+    return false
+  }
+
+  try {
+    const decoded = base58ToBytes(address)
+    // Valid Solana address is exactly 32 bytes
+    return decoded.length === 32
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Convert a Solana address (base58) back to ed25519 public key (hex)
+ *
+ * @param address - Base58-encoded Solana address
+ * @returns 32-byte ed25519 public key as hex string (with 0x prefix)
+ * @throws {ValidationError} If address is invalid
+ *
+ * @example
+ * ```typescript
+ * const publicKey = solanaAddressToEd25519PublicKey('7Vbmv1jt4vyuqBZcpYPpnVhrqVe5e6ZPBJCyqLqzQPvN')
+ * // Returns: "0x..." (64 hex characters)
+ * ```
+ */
+export function solanaAddressToEd25519PublicKey(address: string): HexString {
+  if (!isValidSolanaAddress(address)) {
+    throw new ValidationError(
+      'Invalid Solana address format',
+      'address'
+    )
+  }
+
+  const decoded = base58ToBytes(address)
+  return `0x${bytesToHex(decoded)}` as HexString
+}
