@@ -181,47 +181,52 @@ describe('NEARIntentsAdapter', () => {
   // ─── prepareSwap ─────────────────────────────────────────────────────────────
 
   describe('prepareSwap', () => {
-    const validRequest: SwapRequest = {
+    // Use EVM chain as input for stealth address tests (stealth requires EVM)
+    const evmShieldedRequest: SwapRequest = {
       requestId: 'req_123',
       privacyLevel: PrivacyLevel.SHIELDED,
-      inputAsset: NATIVE_TOKENS.near,
-      inputAmount: 1000000000000000000000000n,
-      outputAsset: NATIVE_TOKENS.ethereum,
+      inputAsset: NATIVE_TOKENS.ethereum,
+      inputAmount: 1000000000000000000n, // 1 ETH (18 decimals)
+      outputAsset: NATIVE_TOKENS.arbitrum,
     }
 
     it('should prepare swap with stealth address for shielded mode', async () => {
-      const { metaAddress } = generateStealthMetaAddress('ethereum')
+      const { metaAddress } = generateStealthMetaAddress('arbitrum')
 
-      const prepared = await adapter.prepareSwap(validRequest, metaAddress)
+      const prepared = await adapter.prepareSwap(evmShieldedRequest, metaAddress)
 
-      expect(prepared.request).toBe(validRequest)
+      expect(prepared.request).toBe(evmShieldedRequest)
       expect(prepared.stealthAddress).toBeDefined()
       expect(prepared.stealthAddress?.address).toMatch(/^0x/)
       expect(prepared.stealthAddress?.ephemeralPublicKey).toMatch(/^0x/)
       expect(prepared.sharedSecret).toMatch(/^0x/)
       expect(prepared.quoteRequest.swapType).toBe(OneClickSwapType.EXACT_INPUT)
       // NEP-141 format asset IDs
-      expect(prepared.quoteRequest.originAsset).toBe('nep141:wrap.near')
-      expect(prepared.quoteRequest.destinationAsset).toBe('nep141:eth.omft.near')
+      expect(prepared.quoteRequest.originAsset).toBe('nep141:eth.omft.near')
+      expect(prepared.quoteRequest.destinationAsset).toBe('nep141:arb.omft.near')
     })
 
     it('should accept encoded stealth meta-address string', async () => {
-      const { metaAddress } = generateStealthMetaAddress('ethereum')
+      const { metaAddress } = generateStealthMetaAddress('arbitrum')
       const encoded = `sip:${metaAddress.chain}:${metaAddress.spendingKey}:${metaAddress.viewingKey}`
 
-      const prepared = await adapter.prepareSwap(validRequest, encoded)
+      const prepared = await adapter.prepareSwap(evmShieldedRequest, encoded)
 
       expect(prepared.stealthAddress).toBeDefined()
     })
 
-    it('should prepare swap for transparent mode without stealth', async () => {
-      const transparentRequest = {
-        ...validRequest,
-        privacyLevel: PrivacyLevel.TRANSPARENT,
-      }
+    // NEAR-based request for transparent mode tests (no stealth needed)
+    const nearTransparentRequest: SwapRequest = {
+      requestId: 'req_123',
+      privacyLevel: PrivacyLevel.TRANSPARENT,
+      inputAsset: NATIVE_TOKENS.near,
+      inputAmount: 1000000000000000000000000n, // 1 NEAR (24 decimals)
+      outputAsset: NATIVE_TOKENS.ethereum,
+    }
 
+    it('should prepare swap for transparent mode without stealth', async () => {
       const prepared = await adapter.prepareSwap(
-        transparentRequest,
+        nearTransparentRequest,
         undefined,
         'user.near'
       )
@@ -232,17 +237,12 @@ describe('NEARIntentsAdapter', () => {
     })
 
     it('should throw if stealth meta-address missing for shielded mode', async () => {
-      await expect(adapter.prepareSwap(validRequest))
+      await expect(adapter.prepareSwap(evmShieldedRequest))
         .rejects.toThrow('recipientMetaAddress is required')
     })
 
     it('should throw if sender address missing for transparent mode', async () => {
-      const transparentRequest = {
-        ...validRequest,
-        privacyLevel: PrivacyLevel.TRANSPARENT,
-      }
-
-      await expect(adapter.prepareSwap(transparentRequest))
+      await expect(adapter.prepareSwap(nearTransparentRequest))
         .rejects.toThrow('senderAddress is required')
     })
 
@@ -259,13 +259,14 @@ describe('NEARIntentsAdapter', () => {
 
   describe('getQuote', () => {
     it('should call client.quote with prepared request', async () => {
-      const { metaAddress } = generateStealthMetaAddress('ethereum')
+      const { metaAddress } = generateStealthMetaAddress('arbitrum')
+      // Use EVM chain as input for stealth address tests
       const request: SwapRequest = {
         requestId: 'req_123',
         privacyLevel: PrivacyLevel.SHIELDED,
-        inputAsset: NATIVE_TOKENS.near,
-        inputAmount: 1000000000000000000000000n,
-        outputAsset: NATIVE_TOKENS.ethereum,
+        inputAsset: NATIVE_TOKENS.ethereum,
+        inputAmount: 1000000000000000000n, // 1 ETH (18 decimals)
+        outputAsset: NATIVE_TOKENS.arbitrum,
       }
 
       const prepared = await adapter.prepareSwap(request, metaAddress)
@@ -280,13 +281,14 @@ describe('NEARIntentsAdapter', () => {
 
   describe('getDryQuote', () => {
     it('should call client.dryQuote', async () => {
-      const { metaAddress } = generateStealthMetaAddress('ethereum')
+      const { metaAddress } = generateStealthMetaAddress('arbitrum')
+      // Use EVM chain as input for stealth address tests
       const request: SwapRequest = {
         requestId: 'req_123',
         privacyLevel: PrivacyLevel.SHIELDED,
-        inputAsset: NATIVE_TOKENS.near,
-        inputAmount: 1000000000000000000000000n,
-        outputAsset: NATIVE_TOKENS.ethereum,
+        inputAsset: NATIVE_TOKENS.ethereum,
+        inputAmount: 1000000000000000000n, // 1 ETH (18 decimals)
+        outputAsset: NATIVE_TOKENS.arbitrum,
       }
 
       const prepared = await adapter.prepareSwap(request, metaAddress)
@@ -301,13 +303,14 @@ describe('NEARIntentsAdapter', () => {
 
   describe('initiateSwap', () => {
     it('should return full swap result with stealth data', async () => {
-      const { metaAddress } = generateStealthMetaAddress('ethereum')
+      const { metaAddress } = generateStealthMetaAddress('arbitrum')
+      // Use EVM chain as input for stealth address tests
       const request: SwapRequest = {
         requestId: 'req_123',
         privacyLevel: PrivacyLevel.SHIELDED,
-        inputAsset: NATIVE_TOKENS.near,
-        inputAmount: 1000000000000000000000000n,
-        outputAsset: NATIVE_TOKENS.ethereum,
+        inputAsset: NATIVE_TOKENS.ethereum,
+        inputAmount: 1000000000000000000n, // 1 ETH (18 decimals)
+        outputAsset: NATIVE_TOKENS.arbitrum,
       }
 
       const result = await adapter.initiateSwap(request, metaAddress)
@@ -315,6 +318,7 @@ describe('NEARIntentsAdapter', () => {
       expect(result.requestId).toBe('req_123')
       expect(result.quoteId).toBe('quote_123')
       expect(result.depositAddress).toBe('0xdeposit')
+      // Mock returns hardcoded values from the mock setup
       expect(result.amountIn).toBe('1000000000000000000000000')
       expect(result.amountOut).toBe('300000000000000000')
       expect(result.status).toBe(OneClickSwapStatus.PENDING_DEPOSIT)
