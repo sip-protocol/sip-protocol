@@ -132,6 +132,13 @@ export function isValidCompressedPublicKey(key: string): boolean {
 }
 
 /**
+ * Check if a public key is valid ed25519 (32 bytes)
+ */
+export function isValidEd25519PublicKey(key: string): boolean {
+  return isValidHexLength(key, 32)
+}
+
+/**
  * Check if a private key is valid (32 bytes)
  */
 export function isValidPrivateKey(key: string): boolean {
