@@ -1,0 +1,34 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "packages/sdk/src/index.ts",
+    "packages/types/src/index.ts"
+  ],
+  "out": "docs/reference",
+  "plugin": ["typedoc-plugin-markdown"],
+  "outputFileStrategy": "members",
+  "entryFileName": "index",
+  "exclude": ["**/tests/**", "**/node_modules/**"],
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "hideGenerator": true,
+  "readme": "none",
+  "name": "SIP Protocol SDK",
+  "includeVersion": true,
+  "categorizeByGroup": true,
+  "sort": ["alphabetical"],
+  "kindSortOrder": [
+    "Function",
+    "Class",
+    "Interface",
+    "TypeAlias",
+    "Enum",
+    "Variable"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "skipErrorChecking": true
+}

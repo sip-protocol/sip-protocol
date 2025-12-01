@@ -1,0 +1,42 @@
+name: Sync TypeDoc to docs-sip
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/sdk/src/**'
+      - 'packages/types/src/**'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate TypeDoc
+        run: pnpm docs:generate
+
+      - name: Push to docs-sip
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.DOCS_SYNC_TOKEN }}
+        with:
+          source-directory: 'docs/reference'
+          destination-github-username: 'sip-protocol'
+          destination-repository-name: 'docs-sip'
+          target-directory: 'src/content/docs/reference'
+          target-branch: 'main'
+          commit-message: 'docs: sync API reference from SDK ${{ github.sha }}'
