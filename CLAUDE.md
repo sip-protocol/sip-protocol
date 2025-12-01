@@ -191,29 +191,53 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 ## What is SIP?
 
-Shielded Intents Protocol enables private cross-chain swaps. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
+**SIP (Shielded Intents Protocol)** is the privacy standard for Web3 — like HTTPS for the internet. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Status:** M7 Complete | 745 SDK tests + 92 demo tests | Live at sip-protocol.org
+**Status:** M8 In Progress | 745 SDK tests + 92 demo tests | Live at sip-protocol.org
+
+**Endgame:** Privacy middleware between applications and blockchains. Chain-agnostic. Settlement-agnostic. The universal privacy layer.
 
 ---
 
-## Architecture
+## Architecture (C+B Hybrid Strategy)
+
+SIP combines **Settlement Aggregation (C)** for standardization with **Proof Composition (B)** for technical moat.
 
 ```
-User Intent → Privacy Layer (SIP) → NEAR Intents → Multi-chain Settlement
-
-┌─────────────────────────────────────────────────────────────┐
-│  PRIVACY LAYER (SIP)          ← We build this               │
-│  • Pedersen Commitments  • Stealth Addresses                │
-│  • Viewing Keys          • Shielded Intents                 │
-├─────────────────────────────────────────────────────────────┤
-│  SETTLEMENT LAYER             ← We leverage this            │
-│  • NEAR Intents         • Chain Signatures                  │
-├─────────────────────────────────────────────────────────────┤
-│  BLOCKCHAIN LAYER             ← We connect to this          │
-│  • NEAR  • Ethereum  • Solana  • Bitcoin  • More...         │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  APPLICATIONS                                                               │
+│  • Wallets  • DEXs  • DAOs  • Payments  • NFT  • Gaming  • Enterprise      │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │ "Add privacy with one toggle"
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  SIP PROTOCOL — THE PRIVACY STANDARD                    ◄═══ WE ARE HERE   │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ PRIVACY LAYER (Core Value)                                            │ │
+│  │ • Stealth Addresses    • Pedersen Commitments   • Viewing Keys        │ │
+│  │ • Privacy Levels       • Unified API            • Compliance Ready    │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ PROOF COMPOSITION (Technical Moat) [Future M13-M14]                   │ │
+│  │ • Zcash → Privacy execution     • Mina → Succinct verification        │ │
+│  │ • Noir  → Validity proofs       • Compose proofs from multiple systems│ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │ "Settle anywhere"
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  SETTLEMENT LAYER (Pluggable)                                               │
+│  • NEAR Intents  • Mina Protocol [Future]  • Direct Chain [Future]         │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  BLOCKCHAIN LAYER                                                           │
+│  • Ethereum  • Solana  • NEAR  • Bitcoin  • Cosmos  • Move chains  • More  │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**One-liner**: SIP is privacy middleware — we sit between apps and chains, making any transaction private.
 
 **Key Files:**
 - `packages/sdk/src/stealth.ts` - Stealth address generation (EIP-5564, secp256k1)
@@ -332,9 +356,24 @@ interface Commitment {
 
 ## Strategic Direction
 
-**Positioning:** Application layer for NEAR Intents ecosystem
-**Target users:** DAOs, institutions needing compliant privacy
-**Expansion:** Horizontal (payments, treasury) before vertical (more chains)
+**Vision:** THE privacy standard for Web3 — like HTTPS for the internet
+**Positioning:** Privacy middleware (chain-agnostic, settlement-agnostic)
+**Target users:** DAOs, institutions, wallets, DEXs needing compliant privacy
+**Strategy:** C+B Hybrid
+- **Option C (Core):** Settlement Aggregator — one privacy layer, settle anywhere
+- **Option B (Moat):** Proof Composition — compose proofs from Zcash + Mina + Noir
+
+**Expansion Path:**
+1. Phase 1 (M1-M8): Foundation — Core tech, NEAR Intents ✅
+2. Phase 2 (M9-M12): Standard — Multi-backend, multi-foundation grants
+3. Phase 3 (M13-M15): Ecosystem — Proof composition, technical moat, SIP-EIP
+
+**Multi-Foundation Approach:** Chain-agnostic = loved by all = funded by all
+- NEAR Foundation (Intents privacy)
+- Zcash Foundation (privacy expertise)
+- Mina Foundation (succinct verification)
+- Ethereum Foundation (EVM privacy)
+- Solana Foundation (SOL users)
 
 See `.strategy/ROADMAP-INTERNAL.md` for detailed strategy (private).
 
@@ -389,17 +428,32 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ## Milestones
 
-| Milestone | Focus |
-|-----------|-------|
-| M1: Architecture & Specification | Specs, proofs design |
-| M2: Cryptographic Core | Real crypto primitives |
-| M3: SDK Production | Production SDK |
-| M4: Network Integration | NEAR, Zcash, wallets |
-| M5: Documentation & Launch | Docs, whitepaper |
-| M6: Launch & Publish | npm publish, docs site |
-| M7: Real Demo Integration | Live demo with wallets, 92 tests |
-| M8: Production Hardening | Noir circuits, security |
-| M9: Horizontal Expansion | New use cases |
+### Phase 1: Foundation (2024-2025) ✅
+| Milestone | Focus | Status |
+|-----------|-------|--------|
+| M1: Architecture & Specification | Specs, proofs design | ✅ |
+| M2: Cryptographic Core | Real crypto primitives | ✅ |
+| M3: SDK Production | Production SDK | ✅ |
+| M4: Network Integration | NEAR, Zcash, wallets | ✅ |
+| M5: Documentation & Launch | Docs, whitepaper | ✅ |
+| M6: Launch & Publish | npm publish, docs site | ✅ |
+| M7: Real Demo Integration | Live demo, 92 tests | ✅ |
+| M8: Production Hardening | Noir circuits, multi-curve, security | 🔄 |
+
+### Phase 2: Standard (2026)
+| Milestone | Focus | Status |
+|-----------|-------|--------|
+| M9: Horizontal Expansion | Payments, treasury, enterprise | 🔲 |
+| M10: Multi-Foundation Grants | NEAR, Zcash, Mina, ETH grants | 🔲 |
+| M11: Settlement Abstraction | Multi-backend support, Mina research | 🔲 |
+| M12: Partnership & Distribution | Wallets, DEXs, institutions | 🔲 |
+
+### Phase 3: Ecosystem (2027)
+| Milestone | Focus | Status |
+|-----------|-------|--------|
+| M13: Proof Composition Research | Halo2 + Kimchi feasibility | 🔲 |
+| M14: Technical Moat | Proof composition v1, multi-lang SDK | 🔲 |
+| M15: Standard Proposal | SIP-EIP, industry working group | 🔲 |
 
 ---
 
@@ -470,5 +524,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2025-11-28
-**Status:** M7 Complete - Live
+**Last Updated:** 2025-12-01
+**Status:** M8 In Progress | C+B Hybrid Strategy Defined
