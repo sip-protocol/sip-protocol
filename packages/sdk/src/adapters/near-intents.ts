@@ -3,6 +3,12 @@
  *
  * Bridges SIP SDK with NEAR 1Click API, providing privacy-preserving
  * cross-chain swaps using stealth addresses.
+ *
+ * IMPORTANT: NEAR Intents (1Click API) operates on MAINNET ONLY.
+ * There is no testnet deployment. For testing:
+ * - Use `dry: true` for quote-only mode (real quotes, no execution)
+ * - Use MockSolver for unit tests
+ * - Use small mainnet amounts ($5-10) for integration testing
  */
 
 import {

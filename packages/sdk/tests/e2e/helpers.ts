@@ -1,8 +1,13 @@
 /**
  * E2E Test Helpers
  *
- * Utilities for end-to-end testnet integration testing.
- * Provides mock wallets, testnet configurations, and test utilities.
+ * Utilities for end-to-end integration testing.
+ * Provides mock wallets, network configurations, and test utilities.
+ *
+ * NETWORK NOTES:
+ * - Individual chain RPCs (Solana, Ethereum, NEAR, Zcash) can use testnets
+ * - NEAR Intents (1Click API) is MAINNET ONLY - no testnet deployment exists
+ * - For 1Click swap testing, use MockSolver or small mainnet amounts ($5-10)
  */
 
 import { vi } from 'vitest'
@@ -30,15 +35,16 @@ import {
 import { commit, verifyOpening } from '../../src/commitment'
 import { generateViewingKey, encryptForViewing, decryptWithViewing } from '../../src/privacy'
 
-// ─── Testnet Configuration ──────────────────────────────────────────────────────
+// ─── Network Configuration ──────────────────────────────────────────────────────
 
 /**
- * Testnet environment configuration
+ * Test network configuration for wallet/RPC testing
+ * NOTE: These are chain-level testnets, NOT for NEAR Intents (which is mainnet-only)
  */
 export interface TestnetConfig {
   /** Network identifier */
   network: 'testnet'
-  /** RPC endpoints for each chain */
+  /** RPC endpoints for each chain (testnet) */
   rpcEndpoints: Partial<Record<ChainId, string>>
   /** Test account addresses */
   accounts: Partial<Record<ChainId, string>>
@@ -47,7 +53,8 @@ export interface TestnetConfig {
 }
 
 /**
- * Default testnet configuration
+ * Default testnet configuration for wallet/RPC testing
+ * NOTE: NEAR Intents (1Click) swaps require mainnet - use MockSolver for tests
  */
 export const TESTNET_CONFIG: TestnetConfig = {
   network: 'testnet',

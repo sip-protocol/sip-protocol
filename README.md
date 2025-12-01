@@ -255,9 +255,12 @@ yarn add @sip-protocol/sdk
 import { SIP, PrivacyLevel } from '@sip-protocol/sdk';
 
 const sip = new SIP({
-  network: 'mainnet', // or 'testnet'
+  network: 'mainnet', // NEAR Intents is mainnet-only (no testnet)
 });
 ```
+
+> **Note:** NEAR Intents (1Click API) operates on **mainnet only**. There is no testnet deployment.
+> For testing: use `MockSolver` for unit tests, or small mainnet amounts ($5-10) for integration testing.
 
 ### 2. Create a Shielded Intent
 
