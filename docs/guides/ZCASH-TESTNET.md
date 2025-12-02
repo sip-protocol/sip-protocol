@@ -1,148 +1,189 @@
 # Zcash Testnet Setup Guide
 
-This guide walks you through setting up a zcashd testnet node for development with SIP Protocol.
+Complete guide to running a zcashd testnet node for SIP Protocol development.
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Installation](#installation)
+3. [Configuration](#configuration)
+4. [Running zcashd](#running-zcashd)
+5. [Getting Testnet TAZ](#getting-testnet-taz)
+6. [Verifying Shielded Operations](#verifying-shielded-operations)
+7. [SIP Protocol Integration](#sip-protocol-integration)
+8. [Troubleshooting](#troubleshooting)
 
 ## Overview
 
-SIP Protocol's `ZcashRPCClient` connects to zcashd via JSON-RPC. For development, we recommend using testnet to avoid risking real funds.
+The Zcash testnet allows you to test shielded transactions without using real ZEC. Testnet coins (TAZ) are free and have no monetary value.
 
-**Testnet Benefits:**
-- Free TAZ (testnet ZEC) from faucets
-- Same functionality as mainnet
-- Safe environment for testing shielded transactions
-
-## Prerequisites
-
-- macOS, Linux, or Windows (WSL2)
-- 10GB+ free disk space (for blockchain data)
-- Basic terminal knowledge
+**Network Details:**
+- Network: `testnet`
+- Default RPC port: `18232`
+- Block time: ~75 seconds
+- Currency: TAZ (testnet ZEC)
 
 ## Installation
 
 ### macOS (Homebrew)
 
 ```bash
+# Add Zcash tap
+brew tap zcash/zcash
+
 # Install zcashd
-brew install zcash
+brew install zcashd
 
 # Verify installation
 zcashd --version
 ```
 
-### Linux (Ubuntu/Debian)
+### Linux (Debian/Ubuntu)
 
 ```bash
 # Add Zcash repository
-sudo apt-get install apt-transport-https wget gnupg
-wget -qO - https://apt.z.cash/zcash.asc | gpg --import
-gpg --export 3FE63B67F85EA808DE9B880E6DEF3BAF272766C0 | sudo apt-key add -
-
-echo "deb [arch=amd64] https://apt.z.cash/ buster main" | sudo tee /etc/apt/sources.list.d/zcash.list
+wget -qO - https://apt.z.cash/zcash.asc | sudo gpg --dearmor -o /usr/share/keyrings/zcash-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/zcash-archive-keyring.gpg] https://apt.z.cash/ bookworm main" | sudo tee /etc/apt/sources.list.d/zcash.list
 
 # Install
-sudo apt-get update && sudo apt-get install zcash
+sudo apt update
+sudo apt install zcash
 
-# Fetch parameters (required, ~1.7GB download)
+# Fetch parameters (required on first run)
 zcash-fetch-params
 ```
 
-### Docker (Alternative)
+### Linux (Binary)
+
+```bash
+# Download latest release
+wget https://z.cash/downloads/zcash-5.8.0-linux64-debian-bullseye.tar.gz
+
+# Extract
+tar -xvf zcash-5.8.0-linux64-debian-bullseye.tar.gz
+cd zcash-5.8.0/bin
+
+# Fetch parameters (required on first run)
+./zcash-fetch-params
+```
+
+### Docker
 
 ```bash
 # Pull official image
 docker pull electriccoinco/zcashd
 
-# Run testnet node
+# Run testnet
 docker run -d \
   --name zcashd-testnet \
   -p 18232:18232 \
   -v zcash-data:/root/.zcash \
   electriccoinco/zcashd \
-  -testnet \
-  -rpcuser=siprpc \
-  -rpcpassword=sippassword \
-  -rpcallowip=0.0.0.0/0
+  -testnet
 ```
 
 ## Configuration
 
-### 1. Create Config Directory
-
-```bash
-# Linux/macOS
-mkdir -p ~/.zcash
-
-# Windows (WSL2)
-mkdir -p /mnt/c/Users/YourUser/AppData/Roaming/Zcash
-```
-
-### 2. Create Configuration File
+### Create Configuration File
 
 Create `~/.zcash/zcash.conf`:
 
 ```ini
-# ─── Network ─────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════
+# Zcash Testnet Configuration for SIP Protocol
+# ═══════════════════════════════════════════════════════════════════
+
+# Network
 testnet=1
 
-# ─── RPC Configuration ───────────────────────────────────────────────────────
-# Enable RPC server
+# RPC Server
 server=1
+rpcuser=sip_testnet_user
+rpcpassword=your_secure_password_here
 
-# RPC credentials (CHANGE THESE!)
-rpcuser=siprpc
-rpcpassword=your-secure-password-here
-
-# Allow connections from localhost
+# RPC Binding (localhost only for security)
+rpcbind=127.0.0.1
 rpcallowip=127.0.0.1
 
-# Testnet RPC port (default: 18232)
-rpcport=18232
+# Performance
+dbcache=512
+maxconnections=40
 
-# ─── Wallet ──────────────────────────────────────────────────────────────────
-# Enable wallet functionality
-disablewallet=0
+# Logging
+debug=rpc
+printtoconsole=1
 
-# ─── Performance (optional) ──────────────────────────────────────────────────
-# Reduce memory usage
-dbcache=256
-
-# Limit connections
-maxconnections=16
+# Wallet
+keypool=100
 ```
 
-### 3. Fetch Zcash Parameters
+### Security Notes
 
-Required on first run (downloads ~1.7GB of cryptographic parameters):
+1. **Never use simple passwords** - Generate a secure password:
+   ```bash
+   openssl rand -hex 32
+   ```
+
+2. **Never expose RPC to internet** - Keep `rpcbind=127.0.0.1`
+
+3. **Use different credentials per environment** - Don't reuse mainnet credentials
+
+### Environment Variables
+
+Add to your shell profile (`~/.bashrc`, `~/.zshrc`):
 
 ```bash
-zcash-fetch-params
+# Zcash Testnet credentials
+export ZCASH_RPC_USER="sip_testnet_user"
+export ZCASH_RPC_PASS="your_secure_password_here"
+export ZCASH_RPC_HOST="127.0.0.1"
+export ZCASH_RPC_PORT="18232"
+export ZCASH_TESTNET="true"
+```
+
+Reload:
+```bash
+source ~/.zshrc  # or ~/.bashrc
 ```
 
 ## Running zcashd
 
-### Start the Node
+### Start Testnet Node
 
 ```bash
-# Start in foreground (see logs)
+# Foreground (with logs)
 zcashd -testnet
 
-# Or start as daemon
+# Background (daemon mode)
 zcashd -testnet -daemon
 
-# Check if running
-zcash-cli -testnet getblockchaininfo
+# With specific config
+zcashd -testnet -conf=/path/to/zcash.conf
 ```
 
-### Monitor Sync Progress
+### Check Status
+
+```bash
+# Get blockchain info
+zcash-cli -testnet getblockchaininfo
+
+# Get network info
+zcash-cli -testnet getnetworkinfo
+
+# Check sync progress
+zcash-cli -testnet getblockchaininfo | jq '.verificationprogress'
+```
+
+### Wait for Sync
+
+Initial sync can take several hours. Monitor progress:
 
 ```bash
 # Watch sync progress
-watch -n 5 'zcash-cli -testnet getblockchaininfo | grep -E "(blocks|verificationprogress)"'
+watch -n 10 'zcash-cli -testnet getblockchaininfo | jq ".blocks, .verificationprogress"'
 ```
 
-Initial sync takes 1-4 hours depending on your connection.
-
-### Stop the Node
+### Stop Node
 
 ```bash
 zcash-cli -testnet stop
@@ -150,155 +191,198 @@ zcash-cli -testnet stop
 
 ## Getting Testnet TAZ
 
-### Faucet Options
+### Faucets
 
-1. **Zcash Testnet Faucet** (Official)
-   - URL: https://faucet.zecpages.com/testnet
-   - Requires unified address
+1. **ZecPages Faucet** (recommended):
+   - https://faucet.zecpages.com/
+   - Select "Testnet"
+   - Enter your testnet address
 
-2. **Community Faucets**
-   - Check Zcash Discord for active faucets
+2. **Community Faucets**:
+   - Ask in Zcash Discord #testnet channel
+   - https://discord.gg/zcash
 
-### Generate Address for Faucet
+### Get Your Address
 
 ```bash
-# Create a new account
+# Create account and get unified address
 zcash-cli -testnet z_getnewaccount
+# Returns: { "account": 0 }
 
-# Get unified address for account 0
 zcash-cli -testnet z_getaddressforaccount 0
-
-# Copy the "address" field and paste into faucet
+# Returns: { "account": 0, "address": "utest1..." }
 ```
-
-## Verify Setup with SIP Protocol
-
-### 1. Set Environment Variables
-
-```bash
-export ZCASH_RPC_HOST=127.0.0.1
-export ZCASH_RPC_PORT=18232
-export ZCASH_RPC_USER=siprpc
-export ZCASH_RPC_PASS=your-secure-password-here
-export ZCASH_TESTNET=true
-```
-
-### 2. Run Connection Example
-
-```bash
-cd /path/to/sip-protocol
-npx ts-node examples/zcash-connection.ts
-```
-
-Expected output:
-```
-Zcash RPC Connection Example
-════════════════════════════════════════════════════════════════
-Connecting to 127.0.0.1:18232 (testnet)...
-
-1. Checking connection...
-   ✓ Connected! Current block height: 2654321
-
-2. Getting blockchain info...
-   ✓ Chain: test
-   ✓ Blocks: 2654321
-   ...
-```
-
-### 3. Use in Your Code
-
-```typescript
-import { ZcashRPCClient } from '@sip-protocol/sdk'
-
-const client = new ZcashRPCClient({
-  host: process.env.ZCASH_RPC_HOST || '127.0.0.1',
-  port: parseInt(process.env.ZCASH_RPC_PORT || '18232', 10),
-  username: process.env.ZCASH_RPC_USER!,
-  password: process.env.ZCASH_RPC_PASS!,
-  testnet: true,
-})
-
-// Check connection
-const info = await client.getBlockchainInfo()
-console.log(`Connected to Zcash ${info.chain}`)
-
-// Get balance
-const balance = await client.getAccountBalance(0)
-console.log(`Balance: ${balance.pools.orchard?.valueZat / 1e8} ZEC`)
-```
-
-## Common Operations
 
 ### Check Balance
 
 ```bash
-# All pools
+# Account balance
 zcash-cli -testnet z_getbalanceforaccount 0
 
-# Specific pool
-zcash-cli -testnet z_getbalanceforviewingkey "your-viewing-key"
+# Wallet total
+zcash-cli -testnet z_gettotalbalance
+```
+
+## Verifying Shielded Operations
+
+### Create Shielded Address
+
+```bash
+# Get unified address with Orchard support
+zcash-cli -testnet z_getaddressforaccount 0 '["orchard", "sapling"]'
 ```
 
 ### Send Shielded Transaction
 
 ```bash
-# Send to shielded address
-zcash-cli -testnet z_sendmany "your-source-address" '[{"address":"recipient-address","amount":0.1}]'
-
-# Check operation status
-zcash-cli -testnet z_getoperationstatus
+# Send to another shielded address
+zcash-cli -testnet z_sendmany "utest1your_address..." \
+  '[{"address": "utest1recipient...", "amount": 0.1, "memo": "Test payment"}]' \
+  1 null "FullPrivacy"
 ```
 
-### Using SIP SDK
+### Check Operation Status
+
+```bash
+# List operations
+zcash-cli -testnet z_listoperationids
+
+# Check specific operation
+zcash-cli -testnet z_getoperationstatus '["opid-xxx"]'
+
+# Get result (removes from queue)
+zcash-cli -testnet z_getoperationresult '["opid-xxx"]'
+```
+
+### List Unspent Notes
+
+```bash
+# All unspent shielded notes
+zcash-cli -testnet z_listunspent
+```
+
+### Export Viewing Key
+
+```bash
+# Export viewing key for an address
+zcash-cli -testnet z_exportviewingkey "utest1your_address..."
+```
+
+## SIP Protocol Integration
+
+### Run the Example
+
+```bash
+# From sip-protocol repository
+cd /path/to/sip-protocol
+
+# Install dependencies
+pnpm install
+
+# Run Zcash connection example
+ZCASH_RPC_USER=sip_testnet_user \
+ZCASH_RPC_PASS=your_password \
+npx ts-node examples/zcash-connection/index.ts
+```
+
+### Integration Code
 
 ```typescript
-// Send shielded transaction via SDK
-const opId = await client.sendShielded({
-  fromAddress: sourceAddress,
-  recipients: [{ address: recipientAddress, amount: 0.1 }],
+import { ZcashRPCClient, ZcashShieldedService, PrivacyLevel } from '@sip-protocol/sdk'
+
+// Low-level client
+const client = new ZcashRPCClient({
+  username: process.env.ZCASH_RPC_USER!,
+  password: process.env.ZCASH_RPC_PASS!,
+  testnet: true,
 })
 
-// Wait for completion
-const result = await client.waitForOperation(opId)
-console.log(`Transaction: ${result.result?.txid}`)
+// Verify connection
+const info = await client.getBlockchainInfo()
+console.log(`Connected to ${info.chain} at block ${info.blocks}`)
+
+// High-level service
+const service = new ZcashShieldedService({
+  rpcConfig: {
+    username: process.env.ZCASH_RPC_USER!,
+    password: process.env.ZCASH_RPC_PASS!,
+    testnet: true,
+  },
+})
+
+await service.initialize()
+
+// Get balance
+const balance = await service.getBalance()
+console.log(`Balance: ${balance.confirmed} ZEC`)
+
+// Send shielded (when you have TAZ)
+const result = await service.sendShielded({
+  to: recipientAddress,
+  amount: 0.1,
+  memo: 'SIP Protocol test',
+  privacyLevel: PrivacyLevel.SHIELDED,
+})
+console.log(`TX: ${result.txid}`)
+```
+
+### Run Integration Tests
+
+```bash
+# Run optional Zcash integration tests
+ZCASH_RPC_USER=user ZCASH_RPC_PASS=pass \
+ZCASH_INTEGRATION=true \
+pnpm test -- tests/integration/zcash.integration.test.ts --run
 ```
 
 ## Troubleshooting
 
-### Connection Refused
+### Cannot Connect (ECONNREFUSED)
 
 ```
-Error: Cannot connect to zcashd. Is it running?
+Error: connect ECONNREFUSED 127.0.0.1:18232
 ```
 
-**Solution:** Start zcashd with `zcashd -testnet -daemon`
+**Solutions:**
+1. Check if zcashd is running: `ps aux | grep zcashd`
+2. Start zcashd: `zcashd -testnet -daemon`
+3. Check port: `lsof -i :18232`
 
-### Authentication Failed
-
-```
-Error: Authentication failed (401)
-```
-
-**Solution:** Check `rpcuser` and `rpcpassword` in `~/.zcash/zcash.conf` match your environment variables
-
-### Wallet Not Found
+### Authentication Failed (401)
 
 ```
-Error: Wallet not found
+Error: 401 Unauthorized
 ```
 
-**Solution:** Ensure `disablewallet=0` in config and restart zcashd
+**Solutions:**
+1. Verify credentials match zcash.conf
+2. Check environment variables: `echo $ZCASH_RPC_USER`
+3. Restart zcashd after config changes
 
-### Sync Not Complete
+### Wallet Locked
 
 ```
-Error: Loading block index... or Verifying blocks...
+Error: Error: Please enter the wallet passphrase with walletpassphrase first.
 ```
 
-**Solution:** Wait for initial sync to complete. Check progress with:
+**Solutions:**
 ```bash
-zcash-cli -testnet getblockchaininfo | grep verificationprogress
+# Unlock wallet for 60 seconds
+zcash-cli -testnet walletpassphrase "your_passphrase" 60
 ```
+
+### Node Not Synced
+
+```
+Error: Block height too low
+```
+
+**Solutions:**
+1. Wait for initial sync to complete
+2. Check sync progress:
+   ```bash
+   zcash-cli -testnet getblockchaininfo | jq '.verificationprogress'
+   ```
 
 ### Insufficient Funds
 
@@ -306,29 +390,68 @@ zcash-cli -testnet getblockchaininfo | grep verificationprogress
 Error: Insufficient funds
 ```
 
-**Solution:** Get testnet TAZ from a faucet (see above)
+**Solutions:**
+1. Get TAZ from faucet
+2. Wait for confirmations (1-10 minutes)
+3. Check balance: `zcash-cli -testnet z_gettotalbalance`
 
-## Security Notes
+### Slow Sync
 
-1. **Never use testnet credentials on mainnet**
-2. **Keep RPC credentials secure** - don't commit to git
-3. **Use `rpcallowip=127.0.0.1`** for local development
-4. **For production**, consider:
-   - TLS/SSL for RPC
-   - Firewall rules
-   - Dedicated RPC user with limited permissions
+**Solutions:**
+1. Increase `dbcache` in zcash.conf
+2. Ensure sufficient disk space (100GB+ recommended)
+3. Check network connectivity
 
-## Resources
+### macOS Gatekeeper Issues
+
+```
+"zcashd" cannot be opened because the developer cannot be verified.
+```
+
+**Solutions:**
+```bash
+# Remove quarantine attribute
+xattr -d com.apple.quarantine /path/to/zcashd
+```
+
+## Useful Commands Reference
+
+```bash
+# ═══════════════════════════════════════════════════════════════════
+# Zcash CLI Quick Reference
+# ═══════════════════════════════════════════════════════════════════
+
+# Network
+zcash-cli -testnet getblockchaininfo
+zcash-cli -testnet getnetworkinfo
+zcash-cli -testnet getpeerinfo
+
+# Wallet
+zcash-cli -testnet z_getnewaccount
+zcash-cli -testnet z_getaddressforaccount 0
+zcash-cli -testnet z_listaddresses
+zcash-cli -testnet z_getbalanceforaccount 0
+zcash-cli -testnet z_gettotalbalance
+
+# Transactions
+zcash-cli -testnet z_sendmany "from_addr" '[{"address":"to_addr","amount":0.1}]'
+zcash-cli -testnet z_listoperationids
+zcash-cli -testnet z_getoperationstatus '["opid-xxx"]'
+zcash-cli -testnet z_listunspent
+
+# Keys
+zcash-cli -testnet z_exportviewingkey "address"
+zcash-cli -testnet z_importviewingkey "key"
+
+# Node management
+zcash-cli -testnet stop
+zcash-cli -testnet help
+```
+
+## Related Resources
 
 - [Zcash Documentation](https://zcash.readthedocs.io/)
-- [zcashd RPC Reference](https://zcash.github.io/rpc/)
-- [Zcash Discord](https://discord.gg/zcash) - #testnet channel
-- [SIP Protocol SDK Docs](https://docs.sip-protocol.org)
-
-## Next Steps
-
-After setup:
-1. Run the connection example to verify
-2. Get testnet TAZ from a faucet
-3. Try shielded transactions via SDK
-4. Integrate with SIP Protocol for cross-chain privacy
+- [Zcash RPC Reference](https://zcash.github.io/rpc/)
+- [ZIP-317 Fees](https://zips.z.cash/zip-0317)
+- [Zcash Discord](https://discord.gg/zcash)
+- [SIP Protocol SDK](https://github.com/sip-protocol/sip-protocol)

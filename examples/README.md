@@ -20,7 +20,7 @@ npx ts-node examples/<example-name>/index.ts
 | [Private Swap](./private-swap/) | Cross-chain swap with privacy | Shielded intents, NEAR Intents, quotes |
 | [Compliance](./compliance/) | Selective disclosure for auditors | Viewing keys, encryption, hierarchical keys |
 | [Wallet Integration](./wallet-integration/) | Connect to Phantom, MetaMask, Ledger | Wallet adapters, signing, multi-chain |
-| [Zcash Connection](./zcash-connection.ts) | Connect to zcashd node | RPC client, shielded pools |
+| [Zcash Connection](./zcash-connection/) | Connect to zcashd node | RPC client, ShieldedService, testnet |
 
 ## Example Flow
 
@@ -176,8 +176,10 @@ LIVE_QUOTES=true npx ts-node examples/private-swap/index.ts
 ### Zcash Testnet
 
 ```bash
-ZCASH_RPC_USER=user ZCASH_RPC_PASS=pass npx ts-node examples/zcash-connection.ts
+ZCASH_RPC_USER=user ZCASH_RPC_PASS=pass npx ts-node examples/zcash-connection/index.ts
 ```
+
+See [docs/guides/ZCASH-TESTNET.md](../docs/guides/ZCASH-TESTNET.md) for full setup instructions.
 
 ## Project Structure
 
@@ -200,7 +202,10 @@ examples/
 │   ├── README.md
 │   ├── package.json
 │   └── index.ts
-└── zcash-connection.ts          # Standalone Zcash example
+└── zcash-connection/
+    ├── README.md               # Testnet setup, API reference
+    ├── package.json
+    └── index.ts                # RPC client + ShieldedService demo
 ```
 
 ## Dependencies
