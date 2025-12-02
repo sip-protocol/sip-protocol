@@ -164,12 +164,13 @@ export {
 } from './validation'
 
 // Proof providers
+// NOTE: BrowserNoirProvider is NOT exported here to avoid bundling WASM in server builds.
+// Import from '@sip-protocol/sdk/browser' for browser environments.
 export {
   MockProofProvider,
   NoirProofProvider,
-  BrowserNoirProvider,
   ProofGenerationError,
-  // Browser utilities
+  // Browser utilities (safe - no WASM)
   isBrowser,
   supportsWebWorkers,
   supportsSharedArrayBuffer,

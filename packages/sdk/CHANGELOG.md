@@ -1,5 +1,14 @@
 # @sip-protocol/sdk
 
+## 0.2.1
+
+### Patch Changes
+
+- fix: Remove BrowserNoirProvider from main entry to fix WASM bundling in SSR
+  - BrowserNoirProvider is now only available via `@sip-protocol/sdk/browser`
+  - Prevents WASM from being bundled in server-side builds (e.g., Next.js SSR)
+  - Browser utilities (isBrowser, etc.) remain available from main entry
+
 ## 0.2.0
 
 ### Minor Changes

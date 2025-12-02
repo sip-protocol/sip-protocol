@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Core SDK for Shielded Intents Protocol - Privacy layer for cross-chain transactions",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",
@@ -26,9 +26,6 @@
       "import": "./dist/browser.mjs",
       "require": "./dist/browser.js"
     }
-  },
-  "browser": {
-    "./dist/index.mjs": "./dist/browser.mjs"
   },
   "files": [
     "dist",

@@ -19,9 +19,11 @@
 // Re-export everything from main entry
 export * from './index'
 
-// Browser-specific exports (already in main, but explicit here)
+// Browser-specific exports (import directly from browser module to get WASM support)
+export { BrowserNoirProvider } from './proofs/browser'
+
+// Re-export utilities that are already in main (for convenience)
 export {
-  BrowserNoirProvider,
   isBrowser,
   supportsWebWorkers,
   supportsSharedArrayBuffer,
