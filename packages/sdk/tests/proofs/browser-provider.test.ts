@@ -310,12 +310,16 @@ describe('BrowserNoirProvider', () => {
 })
 
 describe('Browser Export', () => {
-  it('should NOT export BrowserNoirProvider from main entry (to avoid WASM in server builds)', async () => {
+  it('should NOT export NoirProofProvider or BrowserNoirProvider from main entry (to avoid WASM in server builds)', async () => {
     const main = await import('../../src/index')
 
-    // BrowserNoirProvider is intentionally NOT exported from main entry
+    // Noir providers are intentionally NOT exported from main entry
     // to prevent WASM from being bundled in server-side builds (e.g., Next.js SSR)
-    expect(main.BrowserNoirProvider).toBeUndefined()
+    expect((main as Record<string, unknown>).BrowserNoirProvider).toBeUndefined()
+    expect((main as Record<string, unknown>).NoirProofProvider).toBeUndefined()
+
+    // MockProofProvider is still exported (no WASM dependency)
+    expect(main.MockProofProvider).toBeDefined()
 
     // Browser utilities are still exported (they have no WASM dependency)
     expect(main.isBrowser).toBeDefined()
@@ -333,6 +337,13 @@ describe('Browser Export', () => {
     expect(browser.BrowserNoirProvider).toBeDefined()
     expect(browser.isBrowser).toBeDefined()
     expect(browser.supportsWebWorkers).toBeDefined()
+  })
+
+  it('should export NoirProofProvider from proofs/noir entry', async () => {
+    const noir = await import('../../src/proofs/noir')
+
+    // NoirProofProvider is ONLY available from /proofs/noir subpath
+    expect(noir.NoirProofProvider).toBeDefined()
   })
 })
 

@@ -1,5 +1,15 @@
 # @sip-protocol/sdk
 
+## 0.2.2
+
+### Patch Changes
+
+- fix: Remove NoirProofProvider from main entry to fully fix WASM bundling in SSR
+  - NoirProofProvider now available via `@sip-protocol/sdk/proofs/noir`
+  - BrowserNoirProvider available via `@sip-protocol/sdk/browser`
+  - Main entry (`@sip-protocol/sdk`) has no WASM dependencies
+  - MockProofProvider still available from main entry (no WASM)
+
 ## 0.2.1
 
 ### Patch Changes
