@@ -312,6 +312,8 @@ viewingKey: generateViewingKey()
 ## 🏗️ Architecture
 
 > **Full architecture documentation**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+>
+> **Design decisions**: [Why Noir over Halo2?](docs/decisions/NOIR-VS-HALO2.md)
 
 ### Component Overview
 
