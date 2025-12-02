@@ -32,6 +32,32 @@ Before creating an issue, please:
 - Follow existing code style
 - Write meaningful commit messages
 
+### Adding a Changeset
+
+For any changes that affect the public API or fix bugs, add a changeset:
+
+```bash
+# Create a changeset for your PR
+pnpm changeset
+```
+
+This will prompt you to:
+1. Select which packages are affected (`@sip-protocol/sdk`, `@sip-protocol/types`)
+2. Choose the bump type (patch/minor/major)
+3. Write a summary of the change
+
+**When to add a changeset:**
+- Bug fixes → `patch`
+- New features (backward compatible) → `minor`
+- Breaking changes → `major`
+
+**When NOT to add a changeset:**
+- Documentation-only changes
+- Internal refactoring with no API changes
+- CI/tooling updates
+
+The changeset will be committed with your PR and automatically included in the next release.
+
 ## Development Setup
 
 ```bash
@@ -107,9 +133,40 @@ pnpm test:coverage
 - Use clear, concise language
 - Include code examples where helpful
 
+## Release Process
+
+SIP Protocol uses [Changesets](https://github.com/changesets/changesets) for automated releases.
+
+### How it works
+
+1. **Contributors add changesets** with their PRs (`pnpm changeset`)
+2. **On merge to main**, a "Release" PR is automatically created/updated
+3. **The Release PR** accumulates all changesets and shows a changelog preview
+4. **When merged**, packages are automatically published to npm
+
+### For Maintainers
+
+```bash
+# View pending changesets
+pnpm changeset status
+
+# Manually version packages (rarely needed)
+pnpm version
+
+# Manually release (rarely needed)
+pnpm release
+```
+
+The automated workflow handles:
+- Version bumping based on changesets
+- CHANGELOG.md generation
+- npm publishing
+- GitHub release creation
+- Syncing changelog to docs site
+
 ## Getting Help
 
-- Open a [GitHub Discussion](https://github.com/RECTOR-LABS/sip-protocol/discussions) for questions
+- Open a [GitHub Discussion](https://github.com/sip-protocol/sip-protocol/discussions) for questions
 - Join our community channels (links in README)
 
 ## License
