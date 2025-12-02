@@ -30,7 +30,7 @@ jobs:
         run: pnpm docs:generate
 
       - name: Push to docs-sip
-        uses: cpina/github-action-push-to-another-repository@main
+        uses: cpina/github-action-push-to-another-repository@v1.7.3
         env:
           API_TOKEN_GITHUB: ${{ secrets.DOCS_SYNC_TOKEN }}
         with:
