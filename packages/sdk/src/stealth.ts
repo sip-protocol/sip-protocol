@@ -801,7 +801,7 @@ export function generateEd25519StealthAddress(
     // Get ephemeral scalar from private key and reduce mod L
     // ed25519 clamping produces values that may exceed L, so we reduce
     const rawEphemeralScalar = getEd25519Scalar(ephemeralPrivateKey)
-    let ephemeralScalar = rawEphemeralScalar % ED25519_ORDER
+    const ephemeralScalar = rawEphemeralScalar % ED25519_ORDER
     if (ephemeralScalar === 0n) {
       throw new Error('CRITICAL: Zero ephemeral scalar after reduction - investigate RNG')
     }
@@ -816,7 +816,7 @@ export function generateEd25519StealthAddress(
 
     // Derive stealth public key: P_stealth = P_view + hash(S)*G
     // Convert hash to scalar (mod L to ensure it's valid and non-zero)
-    let hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
+    const hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
     if (hashScalar === 0n) {
       throw new Error('CRITICAL: Zero hash scalar after reduction - investigate hash computation')
     }
@@ -891,7 +891,7 @@ export function deriveEd25519StealthPrivateKey(
   try {
     // Get spending scalar from private key and reduce mod L
     const rawSpendingScalar = getEd25519Scalar(spendingPrivBytes)
-    let spendingScalar = rawSpendingScalar % ED25519_ORDER
+    const spendingScalar = rawSpendingScalar % ED25519_ORDER
     if (spendingScalar === 0n) {
       throw new Error('CRITICAL: Zero spending scalar after reduction - investigate key derivation')
     }
@@ -905,17 +905,17 @@ export function deriveEd25519StealthPrivateKey(
 
     // Get viewing scalar from private key and reduce mod L
     const rawViewingScalar = getEd25519Scalar(viewingPrivBytes)
-    let viewingScalar = rawViewingScalar % ED25519_ORDER
+    const viewingScalar = rawViewingScalar % ED25519_ORDER
     if (viewingScalar === 0n) {
       throw new Error('CRITICAL: Zero viewing scalar after reduction - investigate key derivation')
     }
 
     // Derive stealth private key: s_stealth = s_view + hash(S) mod L
-    let hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
+    const hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
     if (hashScalar === 0n) {
       throw new Error('CRITICAL: Zero hash scalar after reduction - investigate hash computation')
     }
-    let stealthPrivateScalar = (viewingScalar + hashScalar) % ED25519_ORDER
+    const stealthPrivateScalar = (viewingScalar + hashScalar) % ED25519_ORDER
     if (stealthPrivateScalar === 0n) {
       throw new Error('CRITICAL: Zero stealth scalar after reduction - investigate key derivation')
     }
@@ -982,7 +982,7 @@ export function checkEd25519StealthAddress(
   try {
     // Get spending scalar from private key and reduce mod L
     const rawSpendingScalar = getEd25519Scalar(spendingPrivBytes)
-    let spendingScalar = rawSpendingScalar % ED25519_ORDER
+    const spendingScalar = rawSpendingScalar % ED25519_ORDER
     if (spendingScalar === 0n) {
       throw new Error('CRITICAL: Zero spending scalar after reduction - investigate key derivation')
     }
@@ -1001,16 +1001,16 @@ export function checkEd25519StealthAddress(
 
     // Full check: derive the expected stealth address
     const rawViewingScalar = getEd25519Scalar(viewingPrivBytes)
-    let viewingScalar = rawViewingScalar % ED25519_ORDER
+    const viewingScalar = rawViewingScalar % ED25519_ORDER
     if (viewingScalar === 0n) {
       throw new Error('CRITICAL: Zero viewing scalar after reduction - investigate key derivation')
     }
 
-    let hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
+    const hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
     if (hashScalar === 0n) {
       throw new Error('CRITICAL: Zero hash scalar after reduction - investigate hash computation')
     }
-    let stealthPrivateScalar = (viewingScalar + hashScalar) % ED25519_ORDER
+    const stealthPrivateScalar = (viewingScalar + hashScalar) % ED25519_ORDER
     if (stealthPrivateScalar === 0n) {
       throw new Error('CRITICAL: Zero stealth scalar after reduction - investigate key derivation')
     }
