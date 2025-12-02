@@ -43,11 +43,17 @@ describe('Pedersen Commitments', () => {
     })
 
     it('should create same commitment with same blinding', () => {
-      const blinding = hexToBytes('0'.repeat(64))
+      // Use non-zero deterministic blinding (zero blinding now throws)
+      const blinding = hexToBytes('01'.repeat(32))
       const c1 = commit(100n, blinding)
       const c2 = commit(100n, blinding)
 
       expect(c1.commitment).toBe(c2.commitment)
+    })
+
+    it('should reject zero blinding', () => {
+      const zeroBlinding = hexToBytes('0'.repeat(64))
+      expect(() => commit(100n, zeroBlinding)).toThrow('CRITICAL: Zero blinding scalar')
     })
 
     it('should handle zero value', () => {
@@ -117,10 +123,16 @@ describe('Pedersen Commitments', () => {
 
   describe('commitZero()', () => {
     it('should create commitment to zero', () => {
-      const blinding = hexToBytes('0'.repeat(64))
+      // Use non-zero deterministic blinding (zero blinding now throws)
+      const blinding = hexToBytes('01'.repeat(32))
       const { commitment, blinding: returnedBlinding } = commitZero(blinding)
 
       expect(verifyOpening(commitment, 0n, returnedBlinding)).toBe(true)
+    })
+
+    it('should reject zero blinding', () => {
+      const zeroBlinding = hexToBytes('0'.repeat(64))
+      expect(() => commitZero(zeroBlinding)).toThrow('CRITICAL: Zero blinding scalar')
     })
   })
 

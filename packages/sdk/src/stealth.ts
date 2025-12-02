@@ -802,7 +802,9 @@ export function generateEd25519StealthAddress(
     // ed25519 clamping produces values that may exceed L, so we reduce
     const rawEphemeralScalar = getEd25519Scalar(ephemeralPrivateKey)
     let ephemeralScalar = rawEphemeralScalar % ED25519_ORDER
-    if (ephemeralScalar === 0n) ephemeralScalar = 1n // Ensure non-zero
+    if (ephemeralScalar === 0n) {
+      throw new Error('CRITICAL: Zero ephemeral scalar after reduction - investigate RNG')
+    }
 
     // Convert spending public key to extended point and multiply by ephemeral scalar
     // S = ephemeral_scalar * P_spend
@@ -815,7 +817,9 @@ export function generateEd25519StealthAddress(
     // Derive stealth public key: P_stealth = P_view + hash(S)*G
     // Convert hash to scalar (mod L to ensure it's valid and non-zero)
     let hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
-    if (hashScalar === 0n) hashScalar = 1n // Ensure non-zero
+    if (hashScalar === 0n) {
+      throw new Error('CRITICAL: Zero hash scalar after reduction - investigate hash computation')
+    }
 
     // Compute hash(S) * G
     const hashTimesG = ed25519.ExtendedPoint.BASE.multiply(hashScalar)
@@ -888,7 +892,9 @@ export function deriveEd25519StealthPrivateKey(
     // Get spending scalar from private key and reduce mod L
     const rawSpendingScalar = getEd25519Scalar(spendingPrivBytes)
     let spendingScalar = rawSpendingScalar % ED25519_ORDER
-    if (spendingScalar === 0n) spendingScalar = 1n
+    if (spendingScalar === 0n) {
+      throw new Error('CRITICAL: Zero spending scalar after reduction - investigate key derivation')
+    }
 
     // Compute shared secret: S = spending_scalar * R
     const ephemeralPoint = ed25519.ExtendedPoint.fromHex(ephemeralPubBytes)
@@ -900,13 +906,19 @@ export function deriveEd25519StealthPrivateKey(
     // Get viewing scalar from private key and reduce mod L
     const rawViewingScalar = getEd25519Scalar(viewingPrivBytes)
     let viewingScalar = rawViewingScalar % ED25519_ORDER
-    if (viewingScalar === 0n) viewingScalar = 1n
+    if (viewingScalar === 0n) {
+      throw new Error('CRITICAL: Zero viewing scalar after reduction - investigate key derivation')
+    }
 
     // Derive stealth private key: s_stealth = s_view + hash(S) mod L
     let hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
-    if (hashScalar === 0n) hashScalar = 1n
+    if (hashScalar === 0n) {
+      throw new Error('CRITICAL: Zero hash scalar after reduction - investigate hash computation')
+    }
     let stealthPrivateScalar = (viewingScalar + hashScalar) % ED25519_ORDER
-    if (stealthPrivateScalar === 0n) stealthPrivateScalar = 1n
+    if (stealthPrivateScalar === 0n) {
+      throw new Error('CRITICAL: Zero stealth scalar after reduction - investigate key derivation')
+    }
 
     // Convert back to bytes (little-endian for ed25519)
     // Note: We need to store this as a seed that will produce this scalar
@@ -971,7 +983,9 @@ export function checkEd25519StealthAddress(
     // Get spending scalar from private key and reduce mod L
     const rawSpendingScalar = getEd25519Scalar(spendingPrivBytes)
     let spendingScalar = rawSpendingScalar % ED25519_ORDER
-    if (spendingScalar === 0n) spendingScalar = 1n
+    if (spendingScalar === 0n) {
+      throw new Error('CRITICAL: Zero spending scalar after reduction - investigate key derivation')
+    }
 
     // Compute shared secret: S = spending_scalar * R
     const ephemeralPoint = ed25519.ExtendedPoint.fromHex(ephemeralPubBytes)
@@ -988,12 +1002,18 @@ export function checkEd25519StealthAddress(
     // Full check: derive the expected stealth address
     const rawViewingScalar = getEd25519Scalar(viewingPrivBytes)
     let viewingScalar = rawViewingScalar % ED25519_ORDER
-    if (viewingScalar === 0n) viewingScalar = 1n
+    if (viewingScalar === 0n) {
+      throw new Error('CRITICAL: Zero viewing scalar after reduction - investigate key derivation')
+    }
 
     let hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
-    if (hashScalar === 0n) hashScalar = 1n
+    if (hashScalar === 0n) {
+      throw new Error('CRITICAL: Zero hash scalar after reduction - investigate hash computation')
+    }
     let stealthPrivateScalar = (viewingScalar + hashScalar) % ED25519_ORDER
-    if (stealthPrivateScalar === 0n) stealthPrivateScalar = 1n
+    if (stealthPrivateScalar === 0n) {
+      throw new Error('CRITICAL: Zero stealth scalar after reduction - investigate key derivation')
+    }
 
     // Compute expected public key from derived scalar
     const expectedPubKey = ed25519.ExtendedPoint.BASE.multiply(stealthPrivateScalar)
