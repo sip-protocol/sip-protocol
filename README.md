@@ -475,6 +475,14 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 SIP is experimental software. Use at your own risk.
 
+### Threat Model
+
+See our comprehensive [Threat Model](docs/security/THREAT-MODEL.md) for:
+- Identified attack vectors and mitigations
+- Trust assumptions and security boundaries
+- Severity ratings for each threat category
+- Security recommendations for users, integrators, and operators
+
 ### Zcash RPC Security
 
 **CRITICAL:** Always use HTTPS/TLS when connecting to Zcash nodes in production.
