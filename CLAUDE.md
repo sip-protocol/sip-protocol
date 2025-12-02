@@ -102,7 +102,7 @@ pnpm build                      # Build all packages
 **Key Commands:**
 ```bash
 pnpm dev                        # Dev server (localhost:3000)
-pnpm test -- --run              # Run tests (92 tests)
+pnpm test -- --run              # Run tests (123 tests)
 pnpm build                      # Build for production
 pnpm typecheck                  # Type check
 ```
@@ -113,7 +113,7 @@ pnpm typecheck                  # Type check
 - `src/stores/` - Zustand stores (wallet, toast)
 - `tests/` - Test suites
 
-**Features:** Wallet connection, quote fetching, swap execution, privacy toggle
+**Features:** Wallet connection, quote fetching, swap execution, privacy toggle, SDK showcase, grants pitch pages
 **Deployment:** sip-protocol.org (Docker + GHCR)
 **CLAUDE.md:** [sip-website/CLAUDE.md](https://github.com/sip-protocol/sip-website/blob/main/CLAUDE.md)
 
@@ -193,7 +193,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **SIP (Shielded Intents Protocol)** is the privacy standard for Web3 — like HTTPS for the internet. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Status:** M8 In Progress | 745 SDK tests + 92 demo tests | Live at sip-protocol.org
+**Status:** M8 In Progress | 745 SDK tests + 123 demo tests | Live at sip-protocol.org
 
 **Endgame:** Privacy middleware between applications and blockchains. Chain-agnostic. Settlement-agnostic. The universal privacy layer.
 
@@ -291,7 +291,7 @@ pnpm build
 
 ---
 
-## Test Suite (745 SDK + 92 Demo = 837 tests)
+## Test Suite (745 SDK + 123 Demo = 868 tests)
 
 ### SDK Tests (sip-protocol)
 
@@ -524,5 +524,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2025-12-01
+**Last Updated:** 2025-12-02
 **Status:** M8 In Progress | C+B Hybrid Strategy Defined
