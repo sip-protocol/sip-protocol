@@ -854,10 +854,26 @@ export function generateEd25519StealthAddress(
  * 2. Hash shared secret: h = SHA256(S)
  * 3. Derive stealth private key: s_stealth = s_view + h (mod L)
  *
+ * **IMPORTANT: Derived Key Format**
+ *
+ * The returned `privateKey` is a **raw scalar** in little-endian format, NOT a standard
+ * ed25519 seed. This is because the stealth private key is derived mathematically
+ * (s_view + hash), not generated from a seed.
+ *
+ * To compute the public key from the derived private key:
+ * ```typescript
+ * // CORRECT: Direct scalar multiplication
+ * const scalar = bytesToBigIntLE(hexToBytes(privateKey.slice(2)))
+ * const publicKey = ed25519.ExtendedPoint.BASE.multiply(scalar)
+ *
+ * // WRONG: Do NOT use ed25519.getPublicKey() - it will hash and clamp the input,
+ * // producing a different (incorrect) public key
+ * ```
+ *
  * @param stealthAddress - The stealth address to recover
  * @param spendingPrivateKey - Recipient's spending private key
  * @param viewingPrivateKey - Recipient's viewing private key
- * @returns Recovery data including derived private key
+ * @returns Recovery data including derived private key (raw scalar, little-endian)
  * @throws {ValidationError} If any input is invalid
  */
 export function deriveEd25519StealthPrivateKey(

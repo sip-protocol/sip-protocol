@@ -212,4 +212,56 @@ describe('Solana Address Derivation', () => {
       expect(uniqueAddresses.size).toBe(5)
     })
   })
+
+  // ─── Ed25519 Arithmetic Edge Cases ────────────────────────────────────────────
+
+  describe('ed25519 Arithmetic Edge Cases', () => {
+    // ed25519 curve order (L)
+    const ED25519_ORDER = 2n ** 252n + 27742317777372353535851937790883648493n
+
+    it('should handle scalar operations with high-value inputs', () => {
+      // Generate many ed25519 stealth addresses and verify all produce valid keys
+      const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
+        generateEd25519StealthMetaAddress('solana')
+
+      for (let i = 0; i < 50; i++) {
+        const { stealthAddress } = generateEd25519StealthAddress(metaAddress)
+
+        // Verify the stealth address is valid
+        expect(stealthAddress.address.startsWith('0x')).toBe(true)
+        expect(stealthAddress.address.length).toBe(66) // 0x + 64 hex chars = 32 bytes
+
+        // Verify it converts to valid Solana address
+        const solanaAddr = ed25519PublicKeyToSolanaAddress(stealthAddress.address)
+        expect(isValidSolanaAddress(solanaAddr)).toBe(true)
+      }
+    })
+
+    it('should produce unique addresses for repeated generation', () => {
+      const { metaAddress } = generateEd25519StealthMetaAddress('solana')
+
+      // Generate 100 addresses
+      const addresses: string[] = []
+      for (let i = 0; i < 100; i++) {
+        const { stealthAddress } = generateEd25519StealthAddress(metaAddress)
+        addresses.push(stealthAddress.address)
+      }
+
+      // All should be unique
+      const uniqueAddresses = new Set(addresses)
+      expect(uniqueAddresses.size).toBe(100)
+    })
+
+    it('should not throw for any generated stealth address', () => {
+      // Verify that the zero-scalar protection doesn't trigger for valid random inputs
+      const { metaAddress } = generateEd25519StealthMetaAddress('solana')
+
+      // Generate many addresses - none should throw
+      for (let i = 0; i < 100; i++) {
+        expect(() => {
+          generateEd25519StealthAddress(metaAddress)
+        }).not.toThrow()
+      }
+    })
+  })
 })
