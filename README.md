@@ -17,11 +17,13 @@
 
 *One toggle to shield them all • Stealth addresses • Zero-knowledge proofs • Selective disclosure • Multi-chain support*
 
+[![CI](https://github.com/sip-protocol/sip-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/sip-protocol/sip-protocol/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![NEAR](https://img.shields.io/badge/NEAR-Intents-00C08B?logo=near&logoColor=white)](https://near.org/)
 [![Zcash](https://img.shields.io/badge/Zcash-Shielded-F4B728?logo=zcash&logoColor=black)](https://z.cash/)
+[![Circuits](https://img.shields.io/badge/Noir-Circuits-8B5CF6?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIgZmlsbD0id2hpdGUiLz48L3N2Zz4=)](docs/specs/CIRCUITS.md)
 [![pnpm](https://img.shields.io/badge/pnpm-Monorepo-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
