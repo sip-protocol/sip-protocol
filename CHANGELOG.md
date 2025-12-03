@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-12-03
+
+### Added - M13: Compliance & Enterprise
+
+#### Compliance Reporting
+- **ComplianceReporter** - Generate audit reports from viewing keys
+- **JSON export** - Decrypted transaction reports with summary statistics
+- **PDF export** - Professional formatted audit reports (lightweight, no deps)
+- **FATF Travel Rule export** - Cross-border transfer format
+- **FINCEN SAR export** - US regulatory format
+- **CSV export** - Generic comma-separated values
+
+#### Threshold & Conditional Disclosure
+- **Threshold viewing keys** - N-of-M Shamir's Secret Sharing
+- **Time-locked disclosure** - Auto-reveal after specified time/block
+- **Amount threshold disclosure** - Range proofs for regulatory reporting
+
+#### Enterprise Features
+- **Auditor key derivation** - BIP-44 style paths (PRIMARY, REGULATORY, INTERNAL, TAX)
+- **ComplianceManager dashboard API** - Metrics, auditor list, disclosure history
+
+### Changed
+- 7 new compliance source files added
+- 264 new tests (2,025 → 2,289 total)
+- Full compliance module with enterprise features
+
+### Issues Closed
+- #161: Audit report generation (JSON format)
+- #162: PDF export for audit reports
+- #163: Regulatory export formats (FATF, FINCEN)
+- #164: Threshold viewing keys (N-of-M)
+- #165: Time-locked disclosure
+- #166: Amount threshold disclosure
+- #167: Auditor key derivation paths
+- #168: Dashboard data API
+
 ## [0.4.0] - 2025-12-03
 
 ### Added - M12: Multi-Chain Expansion

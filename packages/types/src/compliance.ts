@@ -380,3 +380,19 @@ export interface AuditLogEntry {
   /** IP address (if available) */
   ipAddress?: string
 }
+
+/**
+ * Compliance metrics for dashboard UI
+ */
+export interface ComplianceMetrics {
+  /** Total number of auditors (active + inactive) */
+  totalAuditors: number
+  /** Total number of disclosures made */
+  totalDisclosures: number
+  /** Number of pending disclosure requests */
+  pendingDisclosures: number
+  /** Approval rate (approved / total resolved requests, 0-1) */
+  approvalRate: number
+  /** Average processing time for disclosure requests (in seconds) */
+  averageProcessingTime?: number
+}

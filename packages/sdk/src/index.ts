@@ -536,7 +536,35 @@ export type { CreatePaymentOptions, StablecoinInfo } from './payment'
 export { Treasury } from './treasury'
 
 // Enterprise Compliance
-export { ComplianceManager } from './compliance'
+export {
+  ComplianceManager,
+  ComplianceReporter,
+  generatePdfReport,
+  ConditionalDisclosure,
+  AuditorKeyDerivation,
+  AuditorType,
+  ThresholdViewingKey,
+  type GenerateAuditReportParams,
+  type AuditReport,
+  type DecryptedTransaction,
+  type PdfExportOptions,
+  type ExportForRegulatorParams,
+  type RegulatoryExport,
+  type RegulatoryFormat,
+  type Jurisdiction,
+  type FATFExport,
+  type FATFTransaction,
+  type FINCENExport,
+  type FINCENTransaction,
+  type CSVExport,
+  type DerivedViewingKey,
+  type DeriveViewingKeyParams,
+  type DeriveMultipleParams,
+  type ThresholdShares,
+  type TimeLockResult,
+  type UnlockResult,
+  type TimeLockParams,
+} from './compliance'
 
 // Wallet Adapters
 export {

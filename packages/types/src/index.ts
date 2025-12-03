@@ -179,6 +179,7 @@ export type {
   GenerateReportParams,
   DisclosureRequest,
   AuditLogEntry,
+  ComplianceMetrics,
 } from './compliance'
 
 // Wallet Adapters
