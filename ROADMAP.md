@@ -524,7 +524,7 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 | npm Publish | ✅ Complete |
 | Documentation Site | ✅ Complete |
 | Demo UI (122 tests) | ✅ Complete |
-| SDK Tests (745 tests) | ✅ Complete |
+| SDK Tests (1,293 tests) | ✅ Complete |
 | Multi-curve Stealth | ✅ Complete |
 | External Security Audit | 🔲 Pending |
 

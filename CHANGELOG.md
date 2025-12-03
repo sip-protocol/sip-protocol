@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NEAR Intents adapter integration
 - Zcash RPC client with shielded transaction support
 - Wallet adapters (abstract interface + Solana/Ethereum)
-- Comprehensive test suite (741 tests)
+- Comprehensive test suite (1,293 tests)
 - ZK proof specifications and mock implementations
 
 ### Security
