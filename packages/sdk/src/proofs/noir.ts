@@ -256,21 +256,15 @@ export class NoirProofProvider implements ProofProvider {
         console.log('[NoirProofProvider] Generating funding proof...')
       }
 
-      // Compute the commitment hash that the circuit expects
-      // The circuit computes: pedersen_hash([commitment.x, commitment.y, asset_id])
-      // We need to compute this to pass as a public input
-      const { commitmentHash, blindingField } = await this.computeCommitmentHash(
-        params.balance,
-        params.blindingFactor,
-        params.assetId
-      )
+      // Convert blinding factor to field element
+      const blindingField = this.bytesToField(params.blindingFactor)
 
       // Prepare witness inputs for the circuit
+      // New circuit signature: (minimum_required: pub u64, asset_id: pub Field, balance: u64, blinding: Field) -> [u8; 32]
       const witnessInputs = {
         // Public inputs
-        commitment_hash: commitmentHash,
         minimum_required: params.minimumRequired.toString(),
-        asset_id: this.assetIdToField(params.assetId),
+        asset_id: `0x${this.assetIdToField(params.assetId)}`,
         // Private inputs
         balance: params.balance.toString(),
         blinding: blindingField,
@@ -278,16 +272,16 @@ export class NoirProofProvider implements ProofProvider {
 
       if (this.config.verbose) {
         console.log('[NoirProofProvider] Witness inputs:', {
-          commitment_hash: commitmentHash,
           minimum_required: params.minimumRequired.toString(),
-          asset_id: this.assetIdToField(params.assetId),
+          asset_id: `0x${this.assetIdToField(params.assetId)}`,
           balance: '[PRIVATE]',
           blinding: '[PRIVATE]',
         })
       }
 
       // Execute circuit to generate witness
-      const { witness } = await this.fundingNoir.execute(witnessInputs)
+      // The circuit returns the commitment hash as [u8; 32]
+      const { witness, returnValue } = await this.fundingNoir.execute(witnessInputs)
 
       if (this.config.verbose) {
         console.log('[NoirProofProvider] Witness generated, creating proof...')
@@ -300,11 +294,17 @@ export class NoirProofProvider implements ProofProvider {
         console.log('[NoirProofProvider] Proof generated successfully')
       }
 
+      // Extract commitment hash from circuit return value
+      const { bytesToHex } = await import('@noble/hashes/utils')
+      const commitmentHashBytes = returnValue as number[]
+      const commitmentHashHex = bytesToHex(new Uint8Array(commitmentHashBytes))
+
       // Extract public inputs from the proof
+      // Order: minimum_required, asset_id, commitment_hash (return value)
       const publicInputs: `0x${string}`[] = [
-        `0x${commitmentHash}`,
         `0x${params.minimumRequired.toString(16).padStart(16, '0')}`,
         `0x${this.assetIdToField(params.assetId)}`,
+        `0x${commitmentHashHex}`,
       ]
 
       // Create ZKProof object
