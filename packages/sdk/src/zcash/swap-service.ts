@@ -55,7 +55,7 @@ export interface ZcashSwapServiceConfig {
   zcashService?: ZcashShieldedService
   /** Operating mode */
   mode: 'demo' | 'production'
-  /** Bridge provider (for production) */
+  /** Bridge provider (required for production mode) */
   bridgeProvider?: BridgeProvider
   /** Price feed for quotes */
   priceFeed?: PriceFeed
@@ -245,7 +245,15 @@ export type ZcashSwapStatus =
 // ─── Mock Price Data ───────────────────────────────────────────────────────────
 
 /**
- * Mock prices for demo mode (in USD)
+ * Mock prices for demo mode calculations.
+ *
+ * ⚠️ DEMO VALUES ONLY - Not for production use!
+ *
+ * These prices are approximate values for testing and demonstration.
+ * They do not reflect real market conditions.
+ *
+ * @lastUpdated 2024-12-03
+ * @note Update quarterly or when prices diverge significantly from market
  */
 const MOCK_PRICES: Record<string, number> = {
   ETH: 2500,
@@ -276,6 +284,8 @@ const TOKEN_DECIMALS: Record<string, number> = {
  * Zcash Swap Service
  *
  * Enables cross-chain swaps from ETH/SOL/NEAR to Zcash's shielded pool.
+ *
+ * @throws {IntentError} If production mode is configured without a bridge provider
  */
 export class ZcashSwapService {
   private readonly config: Required<Omit<ZcashSwapServiceConfig, 'zcashService' | 'bridgeProvider' | 'priceFeed'>>
@@ -286,6 +296,14 @@ export class ZcashSwapService {
   private readonly swaps: Map<string, ZcashSwapResult> = new Map()
 
   constructor(config: ZcashSwapServiceConfig) {
+    // Fail-fast validation for production mode
+    if (config.mode === 'production' && !config.bridgeProvider) {
+      throw new IntentError(
+        'Bridge provider required for production mode',
+        ErrorCode.INTENT_INVALID_STATE,
+      )
+    }
+
     this.config = {
       mode: config.mode,
       defaultSlippage: config.defaultSlippage ?? 100, // 1%

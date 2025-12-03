@@ -29,9 +29,29 @@ describe('ZcashSwapService', () => {
       expect(svc).toBeInstanceOf(ZcashSwapService)
     })
 
-    it('should create service in production mode', () => {
-      const svc = new ZcashSwapService({ mode: 'production' })
+    it('should create service in production mode with bridge provider', () => {
+      const mockBridgeProvider: BridgeProvider = {
+        name: 'MockBridge',
+        getQuote: vi.fn(),
+        executeSwap: vi.fn(),
+        getSupportedChains: vi.fn(),
+      }
+
+      const svc = new ZcashSwapService({
+        mode: 'production',
+        bridgeProvider: mockBridgeProvider,
+      })
       expect(svc).toBeInstanceOf(ZcashSwapService)
+    })
+
+    it('should throw in production mode without bridge provider', () => {
+      expect(() => {
+        new ZcashSwapService({ mode: 'production' })
+      }).toThrow(IntentError)
+
+      expect(() => {
+        new ZcashSwapService({ mode: 'production' })
+      }).toThrow('Bridge provider required for production mode')
     })
 
     it('should accept custom slippage', () => {

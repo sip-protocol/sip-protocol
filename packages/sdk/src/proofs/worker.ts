@@ -181,6 +181,211 @@ export function createWorkerBlobURL(): string {
       }
     }
 
+    // Generate validity proof
+    async function generateValidityProof(id, params) {
+      if (!isReady) {
+        sendError(id, new Error('Worker not initialized'));
+        return;
+      }
+
+      try {
+        sendProgress(id, 'witness', 20, 'Preparing validity witness...');
+
+        // Import noble crypto for hashing
+        const { sha256 } = await import('@noble/hashes/sha256');
+
+        // Convert inputs to field elements
+        const intentHashField = hexToField(params.intentHash);
+        const senderAddressField = hexToField(params.senderAddress);
+        const senderBlindingField = bytesToField(params.senderBlinding);
+        const senderSecretField = bytesToField(params.senderSecret);
+        const nonceField = bytesToField(params.nonce);
+
+        // Compute sender commitment
+        const addressBytes = hexToBytes(senderAddressField);
+        const blindingBytes = hexToBytes(senderBlindingField.padStart(64, '0'));
+        const commitmentPreimage = new Uint8Array([...addressBytes, ...blindingBytes]);
+        const commitmentHash = sha256(commitmentPreimage);
+        const commitmentX = bytesToHex(commitmentHash.slice(0, 16)).padStart(64, '0');
+        const commitmentY = bytesToHex(commitmentHash.slice(16, 32)).padStart(64, '0');
+
+        // Compute nullifier
+        const secretBytes = hexToBytes(senderSecretField.padStart(64, '0'));
+        const intentBytes = hexToBytes(intentHashField);
+        const nonceBytes = hexToBytes(nonceField.padStart(64, '0'));
+        const nullifierPreimage = new Uint8Array([...secretBytes, ...intentBytes, ...nonceBytes]);
+        const nullifierHash = sha256(nullifierPreimage);
+        const nullifier = bytesToHex(nullifierHash);
+
+        const signature = Array.from(params.authorizationSignature);
+        const messageHash = fieldToBytes32(intentHashField);
+
+        // Get public key coordinates
+        let pubKeyX, pubKeyY;
+        if (params.senderPublicKey) {
+          pubKeyX = Array.from(params.senderPublicKey.x);
+          pubKeyY = Array.from(params.senderPublicKey.y);
+        } else {
+          // Derive from secret
+          const { secp256k1 } = await import('@noble/curves/secp256k1');
+          const uncompressedPubKey = secp256k1.getPublicKey(params.senderSecret, false);
+          pubKeyX = Array.from(uncompressedPubKey.slice(1, 33));
+          pubKeyY = Array.from(uncompressedPubKey.slice(33, 65));
+        }
+
+        const witnessInputs = {
+          intent_hash: intentHashField,
+          sender_commitment_x: commitmentX,
+          sender_commitment_y: commitmentY,
+          nullifier: nullifier,
+          timestamp: params.timestamp.toString(),
+          expiry: params.expiry.toString(),
+          sender_address: senderAddressField,
+          sender_blinding: senderBlindingField,
+          sender_secret: senderSecretField,
+          pub_key_x: pubKeyX,
+          pub_key_y: pubKeyY,
+          signature: signature,
+          message_hash: messageHash,
+          nonce: nonceField,
+        };
+
+        sendProgress(id, 'witness', 40, 'Executing validity circuit...');
+        const { witness } = await validityNoir.execute(witnessInputs);
+
+        sendProgress(id, 'proving', 60, 'Generating validity proof...');
+        const proofData = await validityBackend.generateProof(witness);
+
+        sendProgress(id, 'complete', 100, 'Validity proof generated');
+
+        const publicInputs = [
+          '0x' + intentHashField,
+          '0x' + commitmentX,
+          '0x' + commitmentY,
+          '0x' + nullifier,
+          '0x' + params.timestamp.toString(16).padStart(16, '0'),
+          '0x' + params.expiry.toString(16).padStart(16, '0'),
+        ];
+
+        const proof = {
+          type: 'validity',
+          proof: '0x' + bytesToHex(proofData.proof),
+          publicInputs,
+        };
+
+        sendSuccess(id, { proof, publicInputs });
+      } catch (error) {
+        sendError(id, error);
+      }
+    }
+
+    // Generate fulfillment proof
+    async function generateFulfillmentProof(id, params) {
+      if (!isReady) {
+        sendError(id, new Error('Worker not initialized'));
+        return;
+      }
+
+      try {
+        sendProgress(id, 'witness', 20, 'Preparing fulfillment witness...');
+
+        // Import noble crypto for hashing
+        const { sha256 } = await import('@noble/hashes/sha256');
+
+        const intentHashField = hexToField(params.intentHash);
+        const recipientStealthField = hexToField(params.recipientStealth);
+
+        // Compute output commitment
+        const amountBytes = bigintToBytes(params.outputAmount, 8);
+        const blindingBytes = params.outputBlinding.slice(0, 32);
+        const outputPreimage = new Uint8Array([...amountBytes, ...blindingBytes]);
+        const outputHash = sha256(outputPreimage);
+        const commitmentX = bytesToHex(outputHash.slice(0, 16)).padStart(64, '0');
+        const commitmentY = bytesToHex(outputHash.slice(16, 32)).padStart(64, '0');
+
+        const solverSecretField = bytesToField(params.solverSecret);
+
+        // Compute solver ID
+        const solverSecretBytes = hexToBytes(solverSecretField.padStart(64, '0'));
+        const solverIdHash = sha256(solverSecretBytes);
+        const solverId = bytesToHex(solverIdHash);
+
+        const outputBlindingField = bytesToField(params.outputBlinding);
+
+        const attestation = params.oracleAttestation;
+        const attestationRecipientField = hexToField(attestation.recipient);
+        const attestationTxHashField = hexToField(attestation.txHash);
+        const oracleSignature = Array.from(attestation.signature);
+
+        // Compute oracle message hash
+        const recipientBytes = hexToBytes(attestationRecipientField);
+        const attestationAmountBytes = bigintToBytes(attestation.amount, 8);
+        const txHashBytes = hexToBytes(attestationTxHashField);
+        const blockBytes = bigintToBytes(attestation.blockNumber, 8);
+        const oraclePreimage = new Uint8Array([
+          ...recipientBytes,
+          ...attestationAmountBytes,
+          ...txHashBytes,
+          ...blockBytes,
+        ]);
+        const oracleMessageHash = Array.from(sha256(oraclePreimage));
+
+        const oraclePubKeyX = config.oraclePublicKey?.x ?? new Array(32).fill(0);
+        const oraclePubKeyY = config.oraclePublicKey?.y ?? new Array(32).fill(0);
+
+        const witnessInputs = {
+          intent_hash: intentHashField,
+          output_commitment_x: commitmentX,
+          output_commitment_y: commitmentY,
+          recipient_stealth: recipientStealthField,
+          min_output_amount: params.minOutputAmount.toString(),
+          solver_id: solverId,
+          fulfillment_time: params.fulfillmentTime.toString(),
+          expiry: params.expiry.toString(),
+          output_amount: params.outputAmount.toString(),
+          output_blinding: outputBlindingField,
+          solver_secret: solverSecretField,
+          attestation_recipient: attestationRecipientField,
+          attestation_amount: attestation.amount.toString(),
+          attestation_tx_hash: attestationTxHashField,
+          attestation_block: attestation.blockNumber.toString(),
+          oracle_signature: oracleSignature,
+          oracle_message_hash: oracleMessageHash,
+          oracle_pub_key_x: oraclePubKeyX,
+          oracle_pub_key_y: oraclePubKeyY,
+        };
+
+        sendProgress(id, 'witness', 40, 'Executing fulfillment circuit...');
+        const { witness } = await fulfillmentNoir.execute(witnessInputs);
+
+        sendProgress(id, 'proving', 60, 'Generating fulfillment proof...');
+        const proofData = await fulfillmentBackend.generateProof(witness);
+
+        sendProgress(id, 'complete', 100, 'Fulfillment proof generated');
+
+        const publicInputs = [
+          '0x' + intentHashField,
+          '0x' + commitmentX,
+          '0x' + commitmentY,
+          '0x' + recipientStealthField,
+          '0x' + params.minOutputAmount.toString(16).padStart(16, '0'),
+          '0x' + solverId,
+          '0x' + params.fulfillmentTime.toString(16).padStart(16, '0'),
+          '0x' + params.expiry.toString(16).padStart(16, '0'),
+        ];
+
+        const proof = {
+          type: 'fulfillment',
+          proof: '0x' + bytesToHex(proofData.proof),
+          publicInputs,
+        };
+
+        sendSuccess(id, { proof, publicInputs });
+      } catch (error) {
+        sendError(id, error);
+      }
+    }
+
     // Helper functions
     function bytesToField(bytes) {
       let result = 0n;
@@ -208,6 +413,39 @@ export function createWorkerBlobURL(): string {
       return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
+    function hexToBytes(hex) {
+      const h = hex.startsWith('0x') ? hex.slice(2) : hex;
+      const bytes = new Uint8Array(h.length / 2);
+      for (let i = 0; i < h.length; i += 2) {
+        bytes[i / 2] = parseInt(h.slice(i, i + 2), 16);
+      }
+      return bytes;
+    }
+
+    function hexToField(hex) {
+      const h = hex.startsWith('0x') ? hex.slice(2) : hex;
+      return h.padStart(64, '0');
+    }
+
+    function fieldToBytes32(field) {
+      const hex = field.padStart(64, '0');
+      const bytes = [];
+      for (let i = 0; i < 32; i++) {
+        bytes.push(parseInt(hex.slice(i * 2, i * 2 + 2), 16));
+      }
+      return bytes;
+    }
+
+    function bigintToBytes(value, length) {
+      const bytes = new Uint8Array(length);
+      let v = value;
+      for (let i = length - 1; i >= 0; i--) {
+        bytes[i] = Number(v & 0xffn);
+        v = v >> 8n;
+      }
+      return bytes;
+    }
+
     // Message handler
     self.onmessage = async function(event) {
       const { id, type, params, config: initConfig } = event.data;
@@ -220,12 +458,10 @@ export function createWorkerBlobURL(): string {
           await generateFundingProof(id, params);
           break;
         case 'generateValidityProof':
-          // TODO: Implement
-          sendError(id, new Error('Validity proof not yet implemented in worker'));
+          await generateValidityProof(id, params);
           break;
         case 'generateFulfillmentProof':
-          // TODO: Implement
-          sendError(id, new Error('Fulfillment proof not yet implemented in worker'));
+          await generateFulfillmentProof(id, params);
           break;
         case 'destroy':
           // Cleanup
