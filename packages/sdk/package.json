@@ -52,8 +52,8 @@
     "@noble/ciphers": "^2.0.1",
     "@noble/curves": "^1.3.0",
     "@noble/hashes": "^1.3.3",
-    "@noir-lang/noir_js": "^1.0.0-beta.15",
-    "@noir-lang/types": "1.0.0-beta.15",
+    "@noir-lang/noir_js": "^1.0.0-beta.16",
+    "@noir-lang/types": "1.0.0-beta.16",
     "@sip-protocol/types": "^0.1.1"
   },
   "devDependencies": {
