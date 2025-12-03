@@ -57,6 +57,27 @@ describe('MockProofProvider', () => {
       expect(warnSpy).toHaveBeenCalledTimes(1)
       warnSpy.mockRestore()
     })
+
+    it('should not log warning when silent option is true', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const silentProvider = new MockProofProvider({ silent: true })
+
+      await silentProvider.initialize()
+
+      expect(warnSpy).not.toHaveBeenCalled()
+      expect(silentProvider.isReady).toBe(true)
+      warnSpy.mockRestore()
+    })
+
+    it('should still log warning when silent option is false', async () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const explicitProvider = new MockProofProvider({ silent: false })
+
+      await explicitProvider.initialize()
+
+      expect(warnSpy).toHaveBeenCalled()
+      warnSpy.mockRestore()
+    })
   })
 
   describe('generateFundingProof()', () => {

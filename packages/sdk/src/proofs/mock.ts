@@ -45,6 +45,21 @@ const WARNING_MESSAGE = `
 `
 
 /**
+ * Configuration options for MockProofProvider
+ */
+export interface MockProofProviderOptions {
+  /**
+   * Suppress the console warning about mock usage.
+   *
+   * Use this ONLY for SSR fallback scenarios where the mock provider
+   * is a placeholder and real proofs will be generated client-side.
+   *
+   * @default false
+   */
+  silent?: boolean
+}
+
+/**
  * Mock Proof Provider for testing
  *
  * @example
@@ -59,11 +74,27 @@ const WARNING_MESSAGE = `
  *   // ... other params
  * })
  * ```
+ *
+ * @example
+ * ```typescript
+ * // SSR fallback (silent mode)
+ * const ssrFallback = new MockProofProvider({ silent: true })
+ * ```
  */
 export class MockProofProvider implements ProofProvider {
   readonly framework: ProofFramework = 'mock'
   private _isReady = false
   private _warningShown = false
+  private _silent: boolean
+
+  /**
+   * Create a new MockProofProvider
+   *
+   * @param options - Configuration options
+   */
+  constructor(options?: MockProofProviderOptions) {
+    this._silent = options?.silent ?? false
+  }
 
   get isReady(): boolean {
     return this._isReady
@@ -72,10 +103,10 @@ export class MockProofProvider implements ProofProvider {
   /**
    * Initialize the mock provider
    *
-   * Logs a warning to console about mock usage.
+   * Logs a warning to console about mock usage (unless silent mode is enabled).
    */
   async initialize(): Promise<void> {
-    if (!this._warningShown) {
+    if (!this._warningShown && !this._silent) {
       console.warn(WARNING_MESSAGE)
       this._warningShown = true
     }

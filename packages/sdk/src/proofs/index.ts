@@ -46,6 +46,7 @@ export { ProofGenerationError } from './interface'
 
 // Mock provider (testing only)
 export { MockProofProvider } from './mock'
+export type { MockProofProviderOptions } from './mock'
 
 // NOTE: NoirProofProvider is NOT exported from main entry to avoid bundling WASM
 // in server-side builds (e.g., Next.js SSR). Import directly if needed:
