@@ -76,7 +76,7 @@ export class MockSuiAdapter extends BaseWalletAdapter {
   readonly chain = 'sui' as const
   readonly name = 'mock-sui'
 
-  private mockAddress: string
+  private mockAddress: HexString
   private mockPublicKey: HexString
   private mockBalance: bigint
   private mockTokenBalances: Map<string, bigint>
@@ -93,8 +93,8 @@ export class MockSuiAdapter extends BaseWalletAdapter {
 
   constructor(config: MockSuiAdapterConfig = {}) {
     super()
-    this.mockAddress = config.address ?? '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
-    this.mockPublicKey = config.publicKey ?? '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd' as HexString
+    this.mockAddress = (config.address ?? '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef') as HexString
+    this.mockPublicKey = (config.publicKey ?? '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd') as HexString
     this.mockBalance = config.balance ?? 1_000_000_000n // 1 SUI default
     this.mockTokenBalances = new Map(Object.entries(config.tokenBalances ?? {}))
     this.shouldFailConnect = config.shouldFailConnect ?? false
@@ -305,10 +305,10 @@ export class MockSuiAdapter extends BaseWalletAdapter {
   /**
    * Simulate an account change event
    */
-  simulateAccountChange(newAddress: string, newPublicKey?: HexString): void {
+  simulateAccountChange(newAddress: HexString, newPublicKey?: HexString): void {
     const previousAddress = this._address
     this.mockAddress = newAddress
-    this._address = newAddress
+    this._address = newAddress as string
 
     if (newPublicKey) {
       this.mockPublicKey = newPublicKey

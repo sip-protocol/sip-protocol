@@ -284,7 +284,7 @@ export class CosmosWalletAdapter extends BaseWalletAdapter {
       } else {
         throw new WalletError(
           'Transaction must contain either aminoSignDoc or directSignDoc',
-          WalletErrorCode.INVALID_PARAMS
+          WalletErrorCode.INVALID_TRANSACTION
         )
       }
 

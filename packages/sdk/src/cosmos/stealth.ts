@@ -320,7 +320,7 @@ export class CosmosStealthService {
    */
   decodeBech32Address(address: string): { prefix: string; hash: Uint8Array } {
     try {
-      const decoded = bech32.decode(address)
+      const decoded = bech32.decode(address as `${string}1${string}`)
       const hash = bech32.fromWords(decoded.words)
 
       if (hash.length !== 20) {

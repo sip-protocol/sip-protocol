@@ -12,6 +12,7 @@ export {
   MockCosmosAdapter,
   createMockCosmosAdapter,
   createMockCosmosProvider,
+  type MockCosmosAdapterConfig,
 } from './mock'
 
 // Types
@@ -48,9 +49,6 @@ export type {
   CosmosAdapterConfig,
   CosmosUnsignedTransaction,
   CosmosSignature,
-
-  // Mock configuration
-  MockCosmosAdapterConfig,
 } from './types'
 
 // Utilities

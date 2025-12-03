@@ -13,6 +13,7 @@ export {
   MockBitcoinAdapter,
   createMockBitcoinAdapter,
   createMockBitcoinProvider,
+  type MockBitcoinAdapterConfig,
 } from './mock'
 
 // Types and utilities
@@ -34,6 +35,4 @@ export type {
   BitcoinWalletName,
   BitcoinAdapterConfig,
   UnisatAPI,
-  MockBitcoinAdapterConfig,
 } from './types'
-export type { MockBitcoinAdapterConfig as MockBitcoinConfig } from './mock'

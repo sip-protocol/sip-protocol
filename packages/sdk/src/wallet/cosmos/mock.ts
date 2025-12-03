@@ -554,7 +554,7 @@ export function createMockCosmosProvider(
       return true
     },
 
-    async getOfflineSignerAuto() {
+    async getOfflineSignerAuto(_chainId: string) {
       return {
         async getAccounts(): Promise<readonly CosmosAccountData[]> {
           return [{ address, algo, pubkey: mockPubKey }]
@@ -565,7 +565,7 @@ export function createMockCosmosProvider(
       } as any
     },
 
-    async getOfflineSignerOnlyAmino() {
+    async getOfflineSignerOnlyAmino(_chainId: string) {
       return {
         async getAccounts(): Promise<readonly CosmosAccountData[]> {
           return [{ address, algo, pubkey: mockPubKey }]
@@ -576,8 +576,8 @@ export function createMockCosmosProvider(
       } as any
     },
 
-    async getOfflineSigner() {
-      return this.getOfflineSignerAuto()
+    async getOfflineSigner(chainId: string) {
+      return this.getOfflineSignerAuto(chainId)
     },
 
     async experimentalSuggestChain() {
