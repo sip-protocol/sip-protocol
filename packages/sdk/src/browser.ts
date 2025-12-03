@@ -21,6 +21,8 @@ export * from './index'
 
 // Browser-specific exports (import directly from browser module to get WASM support)
 export { BrowserNoirProvider } from './proofs/browser'
+export { ProofWorker, createWorkerBlobURL } from './proofs/worker'
+export type { WorkerRequest, WorkerResponse, WorkerMessageType } from './proofs/worker'
 
 // Re-export utilities that are already in main (for convenience)
 export {

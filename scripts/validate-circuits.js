@@ -22,7 +22,8 @@ const CIRCUITS = [
   {
     name: 'funding_proof',
     path: 'packages/sdk/src/proofs/circuits/funding_proof.json',
-    requiredParams: ['commitment_hash', 'minimum_required', 'asset_id', 'balance', 'blinding'],
+    // Note: commitment_hash is now a return value, not an input parameter
+    requiredParams: ['minimum_required', 'asset_id', 'balance', 'blinding'],
   },
   {
     name: 'validity_proof',

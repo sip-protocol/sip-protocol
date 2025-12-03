@@ -304,11 +304,94 @@ export class BrowserNoirProvider implements ProofProvider {
    * Initialize Web Worker for off-main-thread proof generation
    */
   private async initializeWorker(): Promise<void> {
-    // Worker initialization is optional - proof gen works on main thread too
-    // For now, we'll do main-thread proof gen with async/await
-    // Full worker implementation would require bundling worker code separately
-    if (this.config.verbose) {
-      console.log('[BrowserNoirProvider] Worker support: using async main-thread')
+    // Check if workers are supported
+    if (!supportsWebWorkers()) {
+      if (this.config.verbose) {
+        console.log('[BrowserNoirProvider] Web Workers not supported, using main thread')
+      }
+      return
+    }
+
+    try {
+      // Create worker from inline blob URL for bundler compatibility
+      const workerCode = this.getWorkerCode()
+      const blob = new Blob([workerCode], { type: 'application/javascript' })
+      const workerURL = URL.createObjectURL(blob)
+
+      this.worker = new Worker(workerURL, { type: 'module' })
+
+      // Set up message handler
+      this.worker.onmessage = (event) => {
+        this.handleWorkerMessage(event.data)
+      }
+
+      this.worker.onerror = (error) => {
+        console.error('[BrowserNoirProvider] Worker error:', error)
+        // Reject all pending requests and fall back to main thread
+        for (const [id, { reject }] of this.workerPending) {
+          reject(new Error(`Worker error: ${error.message}`))
+          this.workerPending.delete(id)
+        }
+        // Disable worker for future requests
+        this.worker?.terminate()
+        this.worker = null
+      }
+
+      // Cleanup blob URL
+      URL.revokeObjectURL(workerURL)
+
+      if (this.config.verbose) {
+        console.log('[BrowserNoirProvider] Web Worker initialized successfully')
+      }
+    } catch (error) {
+      if (this.config.verbose) {
+        console.warn('[BrowserNoirProvider] Failed to initialize worker, using main thread:', error)
+      }
+      this.worker = null
+    }
+  }
+
+  /**
+   * Get inline worker code for bundler compatibility
+   */
+  private getWorkerCode(): string {
+    // Minimal worker that delegates back for now
+    // Full implementation would inline the Noir execution logic
+    return `
+      self.onmessage = async function(event) {
+        const { id, type } = event.data;
+        // Signal that worker received message but proof gen happens on main thread
+        self.postMessage({ id, type: 'fallback', message: 'Worker initialized, using main thread for proofs' });
+      };
+    `
+  }
+
+  /**
+   * Handle messages from worker
+   */
+  private handleWorkerMessage(data: {
+    id: string
+    type: 'success' | 'error' | 'progress' | 'fallback'
+    result?: ProofResult
+    error?: string
+    progress?: { stage: string; percent: number; message: string }
+  }): void {
+    const pending = this.workerPending.get(data.id)
+    if (!pending) return
+
+    switch (data.type) {
+      case 'success':
+        this.workerPending.delete(data.id)
+        pending.resolve(data.result as ProofResult)
+        break
+      case 'error':
+        this.workerPending.delete(data.id)
+        pending.reject(new Error(data.error))
+        break
+      case 'fallback':
+        // Worker acknowledged, but we'll generate on main thread
+        // This is handled by the calling method
+        break
     }
   }
 
@@ -337,17 +420,13 @@ export class BrowserNoirProvider implements ProofProvider {
         message: 'Preparing witness inputs...',
       })
 
-      // Compute commitment hash
-      const { commitmentHash, blindingField } = await this.computeCommitmentHash(
-        params.balance,
-        params.blindingFactor,
-        params.assetId
-      )
+      // Convert blinding factor to field element
+      const blindingField = this.bytesToField(params.blindingFactor)
 
+      // New circuit signature: (minimum_required: pub u64, asset_id: pub Field, balance: u64, blinding: Field) -> [u8; 32]
       const witnessInputs = {
-        commitment_hash: commitmentHash,
         minimum_required: params.minimumRequired.toString(),
-        asset_id: this.assetIdToField(params.assetId),
+        asset_id: `0x${this.assetIdToField(params.assetId)}`,
         balance: params.balance.toString(),
         blinding: blindingField,
       }
@@ -358,8 +437,8 @@ export class BrowserNoirProvider implements ProofProvider {
         message: 'Generating witness...',
       })
 
-      // Generate witness
-      const { witness } = await this.fundingNoir.execute(witnessInputs)
+      // Generate witness - circuit returns commitment hash as [u8; 32]
+      const { witness, returnValue } = await this.fundingNoir.execute(witnessInputs)
 
       onProgress?.({
         stage: 'proving',
@@ -376,10 +455,15 @@ export class BrowserNoirProvider implements ProofProvider {
         message: 'Proof generated successfully',
       })
 
+      // Extract commitment hash from circuit return value
+      const commitmentHashBytes = returnValue as number[]
+      const commitmentHashHex = bytesToHex(new Uint8Array(commitmentHashBytes))
+
+      // Order: minimum_required, asset_id, commitment_hash (return value)
       const publicInputs: `0x${string}`[] = [
-        `0x${commitmentHash}`,
         `0x${params.minimumRequired.toString(16).padStart(16, '0')}`,
         `0x${this.assetIdToField(params.assetId)}`,
+        `0x${commitmentHashHex}`,
       ]
 
       const proof: ZKProof = {
