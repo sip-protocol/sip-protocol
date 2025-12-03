@@ -359,8 +359,9 @@ describe('ZcashSwapService', () => {
         recipientZAddress: 'zs1testaddress1234567890abcdef',
       })
 
-      // Wait for expiration (1.5 seconds to ensure it's expired)
-      await new Promise((r) => setTimeout(r, 1500))
+      // Wait for expiration (2.5 seconds to ensure it's definitely expired)
+      // Using longer wait to avoid timing edge cases in CI environments
+      await new Promise((r) => setTimeout(r, 2500))
 
       await expect(shortValidityService.executeSwapToShielded({
         ...validSwapParams,

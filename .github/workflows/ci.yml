@@ -50,3 +50,37 @@ jobs:
 
       - name: Validate circuit artifacts
         run: node scripts/validate-circuits.js
+
+  benchmarks:
+    runs-on: ubuntu-latest
+    # Only run on push to main or manual trigger
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build SDK
+        run: pnpm --filter @sip-protocol/sdk build
+
+      - name: Run benchmarks
+        working-directory: packages/sdk
+        run: npx vitest bench tests/benchmarks/proof-generation.bench.ts --run
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: packages/sdk/benchmarks/
+          retention-days: 30
