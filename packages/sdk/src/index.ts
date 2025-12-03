@@ -297,6 +297,12 @@ export type {
   CreatePaymentParams,
   PaymentReceipt,
   TrackedPayment,
+  // NFT types
+  PrivateNFTOwnership,
+  OwnershipProof,
+  CreatePrivateOwnershipParams,
+  ProveOwnershipParams,
+  OwnershipVerification,
 } from '@sip-protocol/types'
 
 // Payment status enum
@@ -565,6 +571,39 @@ export {
   type UnlockResult,
   type TimeLockParams,
 } from './compliance'
+
+// Sealed-Bid Auctions
+export {
+  SealedBidAuction,
+  createSealedBidAuction,
+} from './auction'
+
+export type {
+  SealedBid,
+  BidReceipt,
+  CreateBidParams,
+  VerifyBidParams,
+} from './auction'
+
+// Governance (Private Voting)
+export {
+  PrivateVoting,
+  createPrivateVoting,
+} from './governance'
+
+export type {
+  EncryptedVote,
+  RevealedVote,
+  CastVoteParams,
+} from './governance'
+
+// NFT Module
+export {
+  PrivateNFT,
+  createPrivateOwnership,
+  proveOwnership,
+  verifyOwnership,
+} from './nft'
 
 // Wallet Adapters
 export {

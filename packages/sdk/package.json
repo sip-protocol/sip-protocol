@@ -45,7 +45,8 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "bench": "vitest bench --config vitest.bench.config.ts",
-    "bench:json": "vitest bench --config vitest.bench.config.ts --outputJson benchmarks/results.json"
+    "bench:json": "vitest bench --config vitest.bench.config.ts --outputJson benchmarks/results.json",
+    "demo:auction": "tsx examples/auction-demo.ts"
   },
   "dependencies": {
     "@aztec/bb.js": "^0.63.1",

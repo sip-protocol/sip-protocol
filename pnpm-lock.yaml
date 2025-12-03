@@ -44,6 +44,9 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.3.1(react@18.3.1)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
       turbo:
         specifier: ^2.0.0
         version: 2.6.1
@@ -63,10 +66,10 @@ importers:
   packages/api:
     dependencies:
       '@sip-protocol/sdk':
-        specifier: ^0.5.1
+        specifier: ^0.6.0
         version: link:../sdk
       '@sip-protocol/types':
-        specifier: ^0.1.1
+        specifier: ^0.2.0
         version: link:../types
       compression:
         specifier: ^1.8.1
@@ -115,10 +118,10 @@ importers:
   packages/cli:
     dependencies:
       '@sip-protocol/sdk':
-        specifier: ^0.5.1
+        specifier: ^0.6.0
         version: link:../sdk
       '@sip-protocol/types':
-        specifier: ^0.1.1
+        specifier: ^0.2.0
         version: link:../types
       chalk:
         specifier: ^4.1.2
@@ -149,10 +152,10 @@ importers:
   packages/react:
     dependencies:
       '@sip-protocol/sdk':
-        specifier: ^0.5.1
+        specifier: ^0.6.0
         version: link:../sdk
       '@sip-protocol/types':
-        specifier: ^0.1.1
+        specifier: ^0.2.0
         version: link:../types
       react:
         specifier: ^18.0.0
@@ -210,7 +213,7 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       '@sip-protocol/types':
-        specifier: ^0.1.1
+        specifier: ^0.2.0
         version: link:../types
     devDependencies:
       '@vitest/coverage-v8':
