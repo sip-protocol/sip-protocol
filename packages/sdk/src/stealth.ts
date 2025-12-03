@@ -36,12 +36,66 @@ import {
 import { secureWipe, secureWipeAll } from './secure-memory'
 
 /**
- * Generate a new stealth meta-address keypair
+ * Generate a new stealth meta-address keypair for receiving private payments
  *
- * @param chain - Target chain for the addresses
- * @param label - Optional human-readable label
- * @returns Stealth meta-address and private keys
- * @throws {ValidationError} If chain is invalid
+ * Creates a reusable meta-address that senders can use to derive one-time stealth
+ * addresses. The recipient publishes the meta-address publicly, and senders generate
+ * unique payment addresses from it.
+ *
+ * **Security:** Private keys must be stored securely and never shared. The meta-address
+ * (containing only public keys) can be safely published.
+ *
+ * **Algorithm:** Uses secp256k1 elliptic curve (EIP-5564 style) for:
+ * - Ethereum, Polygon, Arbitrum, Optimism, Base, Bitcoin, Zcash
+ *
+ * For Solana/NEAR/Aptos/Sui chains, use {@link generateEd25519StealthMetaAddress} instead.
+ *
+ * @param chain - Target blockchain network (determines address format)
+ * @param label - Optional human-readable label for identification
+ * @returns Object containing:
+ *   - `metaAddress`: Public keys to share with senders
+ *   - `spendingPrivateKey`: Secret key for claiming funds (keep secure!)
+ *   - `viewingPrivateKey`: Secret key for scanning incoming payments (keep secure!)
+ *
+ * @throws {ValidationError} If chain is invalid or not supported
+ *
+ * @example Generate stealth keys for Ethereum
+ * ```typescript
+ * import { generateStealthMetaAddress, encodeStealthMetaAddress } from '@sip-protocol/sdk'
+ *
+ * // Generate keys
+ * const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
+ *   generateStealthMetaAddress('ethereum', 'My Privacy Wallet')
+ *
+ * // Encode for sharing (QR code, website, etc.)
+ * const encoded = encodeStealthMetaAddress(metaAddress)
+ * console.log('Share this:', encoded)
+ * // Output: "sip:ethereum:0x02abc...123:0x03def...456"
+ *
+ * // Store private keys securely (e.g., encrypted keystore)
+ * secureStorage.save({
+ *   spendingPrivateKey,
+ *   viewingPrivateKey,
+ * })
+ * ```
+ *
+ * @example Multi-chain setup
+ * ```typescript
+ * // Generate different stealth keys for each chain
+ * const ethKeys = generateStealthMetaAddress('ethereum', 'ETH Privacy')
+ * const zkKeys = generateStealthMetaAddress('zcash', 'ZEC Privacy')
+ *
+ * // Publish meta-addresses
+ * publishToProfile({
+ *   ethereum: encodeStealthMetaAddress(ethKeys.metaAddress),
+ *   zcash: encodeStealthMetaAddress(zkKeys.metaAddress),
+ * })
+ * ```
+ *
+ * @see {@link generateStealthAddress} to generate payment addresses as a sender
+ * @see {@link encodeStealthMetaAddress} to encode for sharing
+ * @see {@link deriveStealthPrivateKey} to claim funds as a recipient
+ * @see {@link generateEd25519StealthMetaAddress} for Solana/NEAR chains
  */
 export function generateStealthMetaAddress(
   chain: ChainId,
@@ -125,11 +179,68 @@ function validateStealthMetaAddress(
 }
 
 /**
- * Generate a one-time stealth address for a recipient
+ * Generate a one-time stealth address for sending funds to a recipient
  *
- * @param recipientMetaAddress - Recipient's published stealth meta-address
- * @returns Stealth address data (address + ephemeral key for publication)
- * @throws {ValidationError} If recipientMetaAddress is invalid
+ * As a sender, use this function to create a unique, unlinkable payment address
+ * from the recipient's public meta-address. Each call generates a new address
+ * that only the recipient can link to their identity.
+ *
+ * **Privacy Properties:**
+ * - Address is unique per transaction (prevents on-chain linkability)
+ * - Only recipient can detect and claim payments
+ * - Third-party observers cannot link payments to the same recipient
+ * - View tag enables efficient payment scanning
+ *
+ * **Algorithm (EIP-5564 DKSAP):**
+ * 1. Generate ephemeral keypair (r, R = r*G)
+ * 2. Compute shared secret: S = r * P_spend
+ * 3. Derive stealth address: A = P_view + hash(S)*G
+ * 4. Publish (R, A) on-chain; keep r secret
+ *
+ * @param recipientMetaAddress - Recipient's public stealth meta-address
+ * @returns Object containing:
+ *   - `stealthAddress`: One-time payment address to publish on-chain
+ *   - `sharedSecret`: Secret for sender's records (optional, don't publish!)
+ *
+ * @throws {ValidationError} If meta-address is invalid or malformed
+ *
+ * @example Send shielded payment
+ * ```typescript
+ * import { generateStealthAddress, decodeStealthMetaAddress } from '@sip-protocol/sdk'
+ *
+ * // Recipient shares their meta-address (e.g., on website, profile)
+ * const recipientMetaAddr = 'sip:ethereum:0x02abc...123:0x03def...456'
+ *
+ * // Decode the meta-address
+ * const metaAddress = decodeStealthMetaAddress(recipientMetaAddr)
+ *
+ * // Generate one-time payment address
+ * const { stealthAddress } = generateStealthAddress(metaAddress)
+ *
+ * // Use the stealth address in your transaction
+ * await sendPayment({
+ *   to: stealthAddress.address,        // One-time address
+ *   amount: '1000000000000000000',     // 1 ETH
+ *   ephemeralKey: stealthAddress.ephemeralPublicKey, // Publish for recipient
+ *   viewTag: stealthAddress.viewTag,   // For efficient scanning
+ * })
+ * ```
+ *
+ * @example Integrate with SIP intent
+ * ```typescript
+ * // In a shielded intent, the recipient stealth address is generated automatically
+ * const intent = await sip.createIntent({
+ *   input: { asset: { chain: 'solana', symbol: 'SOL', address: null, decimals: 9 }, amount: 10n },
+ *   output: { asset: { chain: 'ethereum', symbol: 'ETH', address: null, decimals: 18 }, minAmount: 0n, maxSlippage: 0.01 },
+ *   privacy: PrivacyLevel.SHIELDED,
+ *   recipientMetaAddress: 'sip:ethereum:0x02abc...123:0x03def...456',
+ * })
+ * // intent.recipientStealth contains the generated stealth address
+ * ```
+ *
+ * @see {@link generateStealthMetaAddress} to create meta-address as recipient
+ * @see {@link deriveStealthPrivateKey} for recipient to claim funds
+ * @see {@link checkStealthAddress} to scan for incoming payments
  */
 export function generateStealthAddress(
   recipientMetaAddress: StealthMetaAddress,

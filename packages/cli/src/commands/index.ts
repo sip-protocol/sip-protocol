@@ -1,0 +1,8 @@
+export { createInitCommand } from './init'
+export { createKeygenCommand } from './keygen'
+export { createCommitCommand } from './commit'
+export { createProveCommand } from './prove'
+export { createVerifyCommand } from './verify'
+export { createQuoteCommand } from './quote'
+export { createSwapCommand } from './swap'
+export { createScanCommand } from './scan'

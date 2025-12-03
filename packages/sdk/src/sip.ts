@@ -32,50 +32,145 @@ import { isValidChainId } from './validation'
 import { NEARIntentsAdapter, type NEARIntentsAdapterConfig, type SwapRequest } from './adapters'
 
 /**
- * SIP SDK configuration
+ * Configuration options for the SIP SDK client
+ *
+ * Controls network selection, privacy defaults, proof generation, and settlement backend.
+ *
+ * @example Basic configuration
+ * ```typescript
+ * const sip = new SIP({
+ *   network: 'testnet',
+ *   defaultPrivacy: PrivacyLevel.SHIELDED
+ * })
+ * ```
+ *
+ * @example Production configuration with NEAR Intents
+ * ```typescript
+ * const sip = new SIP({
+ *   network: 'mainnet',
+ *   mode: 'production',
+ *   proofProvider: new MockProofProvider(),
+ *   intentsAdapter: {
+ *     jwtToken: process.env.NEAR_INTENTS_JWT
+ *   }
+ * })
+ * ```
  */
 export interface SIPConfig {
-  /** Network: mainnet or testnet */
-  network: 'mainnet' | 'testnet'
   /**
-   * Mode: 'demo' for mock data, 'production' for real NEAR Intents
+   * Network to operate on
+   *
+   * - `'mainnet'`: Production network with real assets
+   * - `'testnet'`: Test network for development
+   */
+  network: 'mainnet' | 'testnet'
+
+  /**
+   * Operating mode for quote fetching and execution
+   *
+   * - `'demo'`: Returns mock quotes for testing (default)
+   * - `'production'`: Uses real NEAR Intents 1Click API
+   *
    * @default 'demo'
    */
   mode?: 'demo' | 'production'
-  /** Default privacy level */
-  defaultPrivacy?: PrivacyLevel
-  /** RPC endpoints for chains */
-  rpcEndpoints?: Partial<Record<ChainId, string>>
+
   /**
-   * Proof provider for ZK proof generation
+   * Default privacy level for new intents
    *
-   * If not provided, proof generation will not be available.
-   * Use MockProofProvider for testing, NoirProofProvider for production.
+   * Can be overridden per intent. See {@link PrivacyLevel} for options.
+   *
+   * @default PrivacyLevel.SHIELDED
+   */
+  defaultPrivacy?: PrivacyLevel
+
+  /**
+   * Custom RPC endpoints for blockchain connections
+   *
+   * Maps chain IDs to RPC URLs. Used for direct blockchain interactions
+   * when not using settlement adapters.
    *
    * @example
+   * ```typescript
+   * {
+   *   rpcEndpoints: {
+   *     ethereum: 'https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY',
+   *     solana: 'https://api.mainnet-beta.solana.com'
+   *   }
+   * }
+   * ```
+   */
+  rpcEndpoints?: Partial<Record<ChainId, string>>
+
+  /**
+   * Proof provider for zero-knowledge proof generation
+   *
+   * Required for SHIELDED and COMPLIANT privacy modes. If not provided,
+   * intents will be created without proofs (must be attached later).
+   *
+   * **Available providers:**
+   * - {@link MockProofProvider}: For testing and development
+   * - `NoirProofProvider`: For production (import from '@sip-protocol/sdk/proofs/noir')
+   * - `BrowserNoirProvider`: For browser environments (import from '@sip-protocol/sdk/browser')
+   *
+   * @example Testing with mock proofs
    * ```typescript
    * import { MockProofProvider } from '@sip-protocol/sdk'
    *
    * const sip = new SIP({
    *   network: 'testnet',
-   *   proofProvider: new MockProofProvider(),
+   *   proofProvider: new MockProofProvider()
+   * })
+   * ```
+   *
+   * @example Production with Noir proofs (Node.js)
+   * ```typescript
+   * import { NoirProofProvider } from '@sip-protocol/sdk/proofs/noir'
+   *
+   * const provider = new NoirProofProvider()
+   * await provider.initialize()
+   *
+   * const sip = new SIP({
+   *   network: 'mainnet',
+   *   proofProvider: provider
    * })
    * ```
    */
   proofProvider?: ProofProvider
+
   /**
-   * NEAR Intents adapter configuration
+   * NEAR Intents adapter for production mode
    *
-   * Required for production mode. Provides connection to 1Click API.
+   * Required when `mode: 'production'`. Provides connection to the 1Click API
+   * for real cross-chain swaps via NEAR Intents.
    *
-   * @example
+   * Can be either:
+   * - Configuration object ({@link NEARIntentsAdapterConfig})
+   * - Pre-configured adapter instance ({@link NEARIntentsAdapter})
+   *
+   * @example With JWT token
    * ```typescript
    * const sip = new SIP({
    *   network: 'mainnet',
    *   mode: 'production',
    *   intentsAdapter: {
-   *     jwtToken: process.env.NEAR_INTENTS_JWT,
-   *   },
+   *     jwtToken: process.env.NEAR_INTENTS_JWT
+   *   }
+   * })
+   * ```
+   *
+   * @example With pre-configured adapter
+   * ```typescript
+   * import { createNEARIntentsAdapter } from '@sip-protocol/sdk'
+   *
+   * const adapter = createNEARIntentsAdapter({
+   *   jwtToken: process.env.NEAR_INTENTS_JWT
+   * })
+   *
+   * const sip = new SIP({
+   *   network: 'mainnet',
+   *   mode: 'production',
+   *   intentsAdapter: adapter
    * })
    * ```
    */
@@ -83,33 +178,212 @@ export interface SIPConfig {
 }
 
 /**
- * Wallet adapter interface
+ * Wallet adapter interface for blockchain interactions
+ *
+ * Provides a unified interface for signing messages and transactions
+ * across different blockchain wallets (Ethereum, Solana, etc.).
+ *
+ * @example Implementing a wallet adapter
+ * ```typescript
+ * class MyWalletAdapter implements WalletAdapter {
+ *   chain = 'ethereum' as const
+ *   address = '0x...'
+ *
+ *   async signMessage(message: string): Promise<string> {
+ *     return await wallet.signMessage(message)
+ *   }
+ *
+ *   async signTransaction(tx: unknown): Promise<unknown> {
+ *     return await wallet.signTransaction(tx)
+ *   }
+ * }
+ * ```
  */
 export interface WalletAdapter {
-  /** Connected chain */
+  /**
+   * Blockchain network this wallet is connected to
+   *
+   * Must match one of the supported {@link ChainId} values.
+   */
   chain: ChainId
-  /** Wallet address */
+
+  /**
+   * Wallet address on the connected chain
+   *
+   * Format depends on the chain:
+   * - Ethereum: `0x...` (checksummed)
+   * - Solana: Base58-encoded public key
+   * - NEAR: Account ID or implicit address
+   */
   address: string
-  /** Sign a message */
+
+  /**
+   * Sign a message with the wallet's private key
+   *
+   * @param message - UTF-8 string to sign
+   * @returns Signature as hex string or base58 (chain-dependent)
+   *
+   * @example
+   * ```typescript
+   * const signature = await wallet.signMessage('Hello SIP!')
+   * ```
+   */
   signMessage(message: string): Promise<string>
-  /** Sign a transaction */
+
+  /**
+   * Sign a transaction without broadcasting
+   *
+   * @param tx - Chain-specific transaction object
+   * @returns Signed transaction ready for broadcast
+   *
+   * @example
+   * ```typescript
+   * const signedTx = await wallet.signTransaction(tx)
+   * ```
+   */
   signTransaction(tx: unknown): Promise<unknown>
-  /** Send a transaction (optional) */
+
+  /**
+   * Sign and broadcast a transaction (optional)
+   *
+   * If implemented, allows the wallet to handle both signing and sending.
+   * If not implemented, caller must broadcast the signed transaction separately.
+   *
+   * @param tx - Chain-specific transaction object
+   * @returns Transaction hash after broadcast
+   *
+   * @example
+   * ```typescript
+   * if (wallet.sendTransaction) {
+   *   const txHash = await wallet.sendTransaction(tx)
+   * }
+   * ```
+   */
   sendTransaction?(tx: unknown): Promise<string>
 }
 
 /**
- * Extended quote with deposit info for production mode
+ * Extended quote with production-specific metadata
+ *
+ * In production mode, quotes include deposit addresses and raw API responses
+ * from the NEAR 1Click API for advanced use cases.
  */
 export interface ProductionQuote extends Quote {
-  /** Deposit address for input tokens (production mode only) */
+  /**
+   * Deposit address for input tokens
+   *
+   * When using NEAR Intents in production mode, users deposit funds to this
+   * address to initiate the swap.
+   *
+   * Only present in production mode quotes.
+   */
   depositAddress?: string
-  /** Raw 1Click quote response (production mode only) */
+
+  /**
+   * Raw response from NEAR 1Click API
+   *
+   * Contains the complete quote data from the settlement backend.
+   * Useful for debugging or accessing provider-specific metadata.
+   *
+   * Only present in production mode quotes.
+   */
   rawQuote?: OneClickQuoteResponse
 }
 
 /**
- * Main SIP SDK class
+ * Main SIP SDK client for privacy-preserving cross-chain transactions
+ *
+ * The SIP class is the primary interface for interacting with the Shielded Intents Protocol.
+ * It provides methods for:
+ *
+ * - Creating shielded intents with privacy guarantees
+ * - Fetching quotes from solvers/market makers
+ * - Executing cross-chain swaps via settlement backends
+ * - Managing stealth addresses and viewing keys
+ * - Generating zero-knowledge proofs
+ *
+ * **Key Concepts:**
+ *
+ * - **Intent**: A declaration of desired output (e.g., "I want 95+ ZEC on Zcash")
+ * - **Privacy Levels**: transparent (public), shielded (private), compliant (private + auditable)
+ * - **Stealth Address**: One-time recipient address for unlinkable transactions
+ * - **Commitment**: Cryptographic hiding of amounts using Pedersen commitments
+ * - **Viewing Key**: Selective disclosure key for compliance/auditing
+ *
+ * @example Basic usage (demo mode)
+ * ```typescript
+ * import { SIP, PrivacyLevel } from '@sip-protocol/sdk'
+ *
+ * // Initialize client
+ * const sip = new SIP({ network: 'testnet' })
+ *
+ * // Create a shielded intent
+ * const intent = await sip.createIntent({
+ *   input: {
+ *     asset: { chain: 'solana', symbol: 'SOL', address: null, decimals: 9 },
+ *     amount: 10n * 10n**9n, // 10 SOL
+ *   },
+ *   output: {
+ *     asset: { chain: 'ethereum', symbol: 'ETH', address: null, decimals: 18 },
+ *     minAmount: 0n, // Accept any amount
+ *     maxSlippage: 0.01, // 1%
+ *   },
+ *   privacy: PrivacyLevel.SHIELDED,
+ * })
+ *
+ * // Get quotes from solvers
+ * const quotes = await sip.getQuotes(intent)
+ *
+ * // Execute with best quote
+ * const result = await sip.execute(intent, quotes[0])
+ * console.log('Swap completed:', result.txHash)
+ * ```
+ *
+ * @example Production mode with NEAR Intents
+ * ```typescript
+ * import { SIP, PrivacyLevel, MockProofProvider } from '@sip-protocol/sdk'
+ *
+ * // Initialize with production backend
+ * const sip = new SIP({
+ *   network: 'mainnet',
+ *   mode: 'production',
+ *   proofProvider: new MockProofProvider(), // Use NoirProofProvider in prod
+ *   intentsAdapter: {
+ *     jwtToken: process.env.NEAR_INTENTS_JWT,
+ *   },
+ * })
+ *
+ * // Connect wallet
+ * sip.connect(myWalletAdapter)
+ *
+ * // Generate stealth keys for receiving
+ * const stealthMetaAddress = sip.generateStealthKeys('ethereum', 'My Privacy Wallet')
+ *
+ * // Create intent with stealth recipient
+ * const intent = await sip.createIntent({
+ *   input: { asset: { chain: 'near', symbol: 'NEAR', address: null, decimals: 24 }, amount: 100n },
+ *   output: { asset: { chain: 'zcash', symbol: 'ZEC', address: null, decimals: 8 }, minAmount: 0n, maxSlippage: 0.01 },
+ *   privacy: PrivacyLevel.SHIELDED,
+ *   recipientMetaAddress: sip.getStealthAddress(),
+ * })
+ *
+ * // Get real quotes
+ * const quotes = await sip.getQuotes(intent)
+ *
+ * // Execute with deposit callback
+ * const result = await sip.execute(intent, quotes[0], {
+ *   onDepositRequired: async (depositAddr, amount) => {
+ *     console.log(`Deposit ${amount} to ${depositAddr}`)
+ *     const tx = await wallet.transfer(depositAddr, amount)
+ *     return tx.hash
+ *   },
+ *   onStatusUpdate: (status) => console.log('Status:', status),
+ * })
+ * ```
+ *
+ * @see {@link SIPConfig} for configuration options
+ * @see {@link createShieldedIntent} for intent creation
+ * @see {@link PrivacyLevel} for privacy modes
  */
 export class SIP {
   private config: SIPConfig & { mode: 'demo' | 'production' }
@@ -124,6 +398,31 @@ export class SIP {
   /** Cache of pending swaps by intent ID */
   private pendingSwaps: Map<string, { depositAddress: string; quote: OneClickQuoteResponse }> = new Map()
 
+  /**
+   * Create a new SIP SDK client
+   *
+   * @param config - Configuration options for the client
+   * @throws {ValidationError} If configuration is invalid
+   *
+   * @example Minimal configuration
+   * ```typescript
+   * const sip = new SIP({ network: 'testnet' })
+   * ```
+   *
+   * @example Full configuration
+   * ```typescript
+   * const sip = new SIP({
+   *   network: 'mainnet',
+   *   mode: 'production',
+   *   defaultPrivacy: PrivacyLevel.COMPLIANT,
+   *   proofProvider: await NoirProofProvider.create(),
+   *   intentsAdapter: { jwtToken: process.env.JWT },
+   *   rpcEndpoints: {
+   *     ethereum: 'https://eth-mainnet.g.alchemy.com/v2/KEY',
+   *   },
+   * })
+   * ```
+   */
   constructor(config: SIPConfig) {
     // Validate config
     if (!config || typeof config !== 'object') {

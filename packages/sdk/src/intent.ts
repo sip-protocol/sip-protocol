@@ -41,19 +41,97 @@ import {
 
 /**
  * Options for creating a shielded intent
+ *
+ * Additional configuration passed to {@link createShieldedIntent} that
+ * affects proof generation and sender identification.
  */
 export interface CreateIntentOptions {
-  /** Sender address (for ownership proof) */
-  senderAddress?: string
   /**
-   * Proof provider for generating ZK proofs
-   * If provided and privacy level requires proofs, they will be generated automatically
+   * Wallet address of the sender
+   *
+   * Used for:
+   * - Generating ownership proofs (proving control of input funds)
+   * - Creating sender commitments
+   * - Enabling refunds if transaction fails
+   *
+   * Optional but recommended for production use.
+   */
+  senderAddress?: string
+
+  /**
+   * Proof provider for automatic ZK proof generation
+   *
+   * If provided and privacy level is SHIELDED or COMPLIANT, proofs will be
+   * generated automatically during intent creation. If not provided, proofs
+   * must be attached later using {@link attachProofs}.
+   *
+   * **Available providers:**
+   * - {@link MockProofProvider}: For testing
+   * - `NoirProofProvider`: For production (Node.js)
+   * - `BrowserNoirProvider`: For browsers
+   *
+   * @example
+   * ```typescript
+   * import { NoirProofProvider } from '@sip-protocol/sdk/proofs/noir'
+   *
+   * const provider = new NoirProofProvider()
+   * await provider.initialize()
+   *
+   * const intent = await createShieldedIntent(params, {
+   *   senderAddress: wallet.address,
+   *   proofProvider: provider,
+   * })
+   * ```
    */
   proofProvider?: ProofProvider
 }
 
 /**
- * Builder class for creating shielded intents
+ * Fluent builder for creating shielded intents
+ *
+ * Provides a chainable API for constructing intents step-by-step.
+ * More ergonomic than passing a large parameter object directly.
+ *
+ * **Builder Methods:**
+ * - {@link input}: Set input asset and amount
+ * - {@link output}: Set output asset and constraints
+ * - {@link privacy}: Set privacy level
+ * - {@link recipient}: Set recipient stealth meta-address
+ * - {@link slippage}: Set slippage tolerance
+ * - {@link ttl}: Set time-to-live
+ * - {@link withProvider}: Set proof provider
+ * - {@link build}: Create the intent
+ *
+ * @example Basic intent
+ * ```typescript
+ * const intent = await new IntentBuilder()
+ *   .input('solana', 'SOL', 10n * 10n**9n)
+ *   .output('ethereum', 'ETH', 0n)
+ *   .privacy(PrivacyLevel.SHIELDED)
+ *   .build()
+ * ```
+ *
+ * @example Full-featured intent with proofs
+ * ```typescript
+ * import { IntentBuilder, PrivacyLevel, MockProofProvider } from '@sip-protocol/sdk'
+ *
+ * const builder = new IntentBuilder()
+ * const intent = await builder
+ *   .input('near', 'NEAR', 100n * 10n**24n, wallet.address) // 100 NEAR
+ *   .output('zcash', 'ZEC', 95n * 10n**8n)                   // Min 95 ZEC
+ *   .privacy(PrivacyLevel.COMPLIANT)
+ *   .recipient('sip:zcash:0x02abc...123:0x03def...456')
+ *   .slippage(1) // 1%
+ *   .ttl(600)    // 10 minutes
+ *   .withProvider(new MockProofProvider())
+ *   .build()
+ *
+ * console.log('Intent created:', intent.intentId)
+ * console.log('Has proofs:', !!intent.fundingProof && !!intent.validityProof)
+ * ```
+ *
+ * @see {@link createShieldedIntent} for the underlying implementation
+ * @see {@link CreateIntentParams} for parameter types
  */
 export class IntentBuilder {
   private params: Partial<CreateIntentParams> = {}

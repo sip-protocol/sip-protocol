@@ -1,0 +1,57 @@
+{
+  "name": "@sip-protocol/cli",
+  "version": "0.1.0",
+  "description": "Command-line tool for Shielded Intents Protocol (SIP) operations",
+  "author": "SIP Protocol <hello@sip-protocol.org>",
+  "homepage": "https://sip-protocol.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sip-protocol/sip-protocol.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/sip-protocol/sip-protocol/issues"
+  },
+  "bin": {
+    "sip": "./bin/sip.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "bin",
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts && chmod +x bin/sip.js",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint --ext .ts src/",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@sip-protocol/sdk": "^0.5.1",
+    "@sip-protocol/types": "^0.1.1",
+    "commander": "^12.0.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "conf": "^10.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0"
+  },
+  "keywords": [
+    "sip",
+    "cli",
+    "privacy",
+    "intents",
+    "cross-chain",
+    "stealth-addresses",
+    "zcash"
+  ],
+  "license": "MIT"
+}

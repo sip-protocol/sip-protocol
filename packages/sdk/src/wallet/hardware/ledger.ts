@@ -303,9 +303,8 @@ export class LedgerWalletAdapter extends BaseWalletAdapter {
    */
   private async loadTransport(): Promise<TransportWebUSBType> {
     try {
-      // @ts-expect-error - Dynamic import
       const module = await import('@ledgerhq/hw-transport-webusb')
-      return module.default
+      return module.default as unknown as TransportWebUSBType
     } catch {
       throw new HardwareWalletError(
         'Failed to load Ledger transport. Install @ledgerhq/hw-transport-webusb',

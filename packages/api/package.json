@@ -1,0 +1,59 @@
+{
+  "name": "@sip-protocol/api",
+  "version": "0.1.0",
+  "description": "REST API service for SIP Protocol SDK - Optional wrapper for non-JS backends",
+  "author": "SIP Protocol <hello@sip-protocol.org>",
+  "homepage": "https://sip-protocol.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sip-protocol/sip-protocol.git",
+    "directory": "packages/api"
+  },
+  "bugs": {
+    "url": "https://github.com/sip-protocol/sip-protocol/issues"
+  },
+  "main": "./dist/server.js",
+  "types": "./dist/server.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "build": "tsup src/server.ts src/routes/index.ts --format cjs --dts",
+    "lint": "eslint --ext .ts src/",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@sip-protocol/sdk": "^0.5.1",
+    "@sip-protocol/types": "^0.1.1",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "express": "^4.22.1",
+    "helmet": "^7.2.0",
+    "morgan": "^1.10.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.25",
+    "@types/morgan": "^1.9.10",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0"
+  },
+  "keywords": [
+    "sip",
+    "privacy",
+    "rest-api",
+    "stealth-addresses",
+    "commitments",
+    "api"
+  ],
+  "license": "MIT"
+}

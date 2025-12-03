@@ -48,7 +48,41 @@ export interface PrivacyConfig {
 }
 
 /**
- * Get privacy configuration for a privacy level
+ * Get privacy configuration for a given privacy level
+ *
+ * Returns a configuration object that determines which privacy features
+ * to enable for an intent. Used internally by the SDK to configure
+ * privacy behavior.
+ *
+ * **Privacy Levels:**
+ * - `'transparent'`: No privacy, fully public on-chain
+ * - `'shielded'`: Full privacy, hidden sender/amount/recipient
+ * - `'compliant'`: Privacy with viewing key for regulatory compliance
+ *
+ * @param level - Privacy level to configure
+ * @param viewingKey - Required for compliant mode, optional otherwise
+ * @returns Configuration object specifying privacy features
+ *
+ * @throws {ValidationError} If compliant mode specified without viewing key
+ *
+ * @example
+ * ```typescript
+ * // Transparent (no privacy)
+ * const config = getPrivacyConfig('transparent')
+ * // { level: 'transparent', useStealth: false, encryptData: false }
+ *
+ * // Shielded (full privacy)
+ * const config = getPrivacyConfig('shielded')
+ * // { level: 'shielded', useStealth: true, encryptData: true }
+ *
+ * // Compliant (privacy + audit)
+ * const viewingKey = generateViewingKey()
+ * const config = getPrivacyConfig('compliant', viewingKey)
+ * // { level: 'compliant', viewingKey, useStealth: true, encryptData: true }
+ * ```
+ *
+ * @see {@link PrivacyLevel} for available privacy levels
+ * @see {@link generateViewingKey} to create viewing keys
  */
 export function getPrivacyConfig(
   level: PrivacyLevel,
@@ -96,7 +130,59 @@ export function getPrivacyConfig(
 }
 
 /**
- * Generate a new viewing key
+ * Generate a new viewing key for compliant privacy mode
+ *
+ * Creates a cryptographically random viewing key that enables selective
+ * disclosure of transaction details to auditors or regulators while
+ * maintaining on-chain privacy.
+ *
+ * **Use Cases:**
+ * - Regulatory compliance (AML/KYC audits)
+ * - Internal accounting and reconciliation
+ * - Voluntary disclosure to trusted parties
+ * - Hierarchical key management (via derivation paths)
+ *
+ * **Security:**
+ * - Keep viewing keys secret - they decrypt all transaction details
+ * - Use hierarchical derivation for key management (BIP32-style paths)
+ * - Rotate keys periodically for forward secrecy
+ *
+ * @param path - Hierarchical derivation path (BIP32-style, e.g., "m/0", "m/44'/0'/0'")
+ * @returns Viewing key object with key, path, and hash
+ *
+ * @example Generate master viewing key
+ * ```typescript
+ * const masterKey = generateViewingKey('m/0')
+ * console.log(masterKey.key)  // "0xabc123..."
+ * console.log(masterKey.path) // "m/0"
+ * console.log(masterKey.hash) // "0xdef456..." (for identification)
+ * ```
+ *
+ * @example Generate organization-specific keys
+ * ```typescript
+ * const auditKey = generateViewingKey('m/0/audit')
+ * const accountingKey = generateViewingKey('m/0/accounting')
+ *
+ * // Share different keys with different departments
+ * shareWithAuditor(auditKey)
+ * shareWithAccounting(accountingKey)
+ * ```
+ *
+ * @example Use in compliant intent
+ * ```typescript
+ * const viewingKey = generateViewingKey()
+ *
+ * const intent = await sip.createIntent({
+ *   input: { asset: { chain: 'near', symbol: 'NEAR', address: null, decimals: 24 }, amount: 100n },
+ *   output: { asset: { chain: 'zcash', symbol: 'ZEC', address: null, decimals: 8 }, minAmount: 0n, maxSlippage: 0.01 },
+ *   privacy: PrivacyLevel.COMPLIANT,
+ *   viewingKey: viewingKey.key,
+ * })
+ * ```
+ *
+ * @see {@link deriveViewingKey} to derive child keys hierarchically
+ * @see {@link encryptForViewing} to encrypt data with viewing key
+ * @see {@link decryptWithViewing} to decrypt data with viewing key
  */
 export function generateViewingKey(path: string = 'm/0'): ViewingKey {
   const keyBytes = randomBytes(32)
