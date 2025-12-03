@@ -93,21 +93,25 @@ describe('OneClickClient', () => {
     }
 
     it('should request a quote with valid parameters', async () => {
-      const mockResponse = {
-        quoteId: 'quote_123',
-        depositAddress: '0xdeposit...',
-        amountIn: '1000000000000000000000000',
-        amountInFormatted: '1.0',
-        amountOut: '300000000000000000',
-        amountOutFormatted: '0.3',
-        deadline: '2024-12-01T00:00:00.000Z',
-        timeEstimate: 120,
+      // Mock response matches actual 1Click API structure (nested)
+      const mockApiResponse = {
+        quote: {
+          depositAddress: '0xdeposit...',
+          amountIn: '1000000000000000000000000',
+          amountInFormatted: '1.0',
+          amountOut: '300000000000000000',
+          amountOutFormatted: '0.3',
+          deadline: '2024-12-01T00:00:00.000Z',
+          timeEstimate: 120,
+        },
+        quoteRequest: validQuoteRequest,
         signature: '0x...',
+        timestamp: '2024-12-01T00:00:00.000Z',
       }
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(mockResponse),
+        json: () => Promise.resolve(mockApiResponse),
       })
 
       const quote = await client.quote(validQuoteRequest)
@@ -119,7 +123,11 @@ describe('OneClickClient', () => {
           body: JSON.stringify(validQuoteRequest),
         })
       )
-      expect(quote).toEqual(mockResponse)
+      // Client flattens the response
+      expect(quote.depositAddress).toBe('0xdeposit...')
+      expect(quote.amountIn).toBe('1000000000000000000000000')
+      expect(quote.amountOut).toBe('300000000000000000')
+      expect(quote.signature).toBe('0x...')
     })
 
     it('should throw ValidationError for missing required fields', async () => {
@@ -135,9 +143,23 @@ describe('OneClickClient', () => {
         fetch: mockFetch as unknown as typeof fetch,
       })
 
+      // Mock response with nested structure
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ quoteId: 'quote_123' }),
+        json: () => Promise.resolve({
+          quote: {
+            depositAddress: '0x...',
+            amountIn: '1000',
+            amountInFormatted: '0.001',
+            amountOut: '500',
+            amountOutFormatted: '0.0005',
+            deadline: '2024-12-01T00:00:00.000Z',
+            timeEstimate: 120,
+          },
+          quoteRequest: validQuoteRequest,
+          signature: '0x...',
+          timestamp: '2024-12-01T00:00:00.000Z',
+        }),
       })
 
       await authClient.quote(validQuoteRequest)
@@ -158,9 +180,23 @@ describe('OneClickClient', () => {
 
   describe('dryQuote', () => {
     it('should set dry flag automatically', async () => {
+      // Mock response with nested structure
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ quoteId: 'dry_quote' }),
+        json: () => Promise.resolve({
+          quote: {
+            depositAddress: '',
+            amountIn: '1000',
+            amountInFormatted: '0.001',
+            amountOut: '500',
+            amountOutFormatted: '0.0005',
+            deadline: '2024-12-01T00:00:00.000Z',
+            timeEstimate: 120,
+          },
+          quoteRequest: {},
+          signature: '0x...',
+          timestamp: '2024-12-01T00:00:00.000Z',
+        }),
       })
 
       await client.dryQuote({

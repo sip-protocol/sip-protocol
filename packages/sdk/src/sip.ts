@@ -320,11 +320,13 @@ export class SIP {
    *
    * @param params - Intent parameters (CreateIntentParams for production, ShieldedIntent/CreateIntentParams for demo)
    * @param recipientMetaAddress - Optional stealth meta-address for privacy modes
+   * @param senderAddress - Optional sender wallet address for cross-curve refunds
    * @returns Array of quotes (with deposit info in production mode)
    */
   async getQuotes(
     params: CreateIntentParams | ShieldedIntent,
     recipientMetaAddress?: StealthMetaAddress | string,
+    senderAddress?: string,
   ): Promise<ProductionQuote[]> {
     // Production mode - use real NEAR Intents
     if (this.isProductionMode()) {
@@ -335,7 +337,7 @@ export class SIP {
           'params'
         )
       }
-      return this.getQuotesProduction(params, recipientMetaAddress)
+      return this.getQuotesProduction(params, recipientMetaAddress, senderAddress)
     }
 
     // Demo mode - return mock quotes
@@ -400,6 +402,7 @@ export class SIP {
   private async getQuotesProduction(
     params: CreateIntentParams,
     recipientMetaAddress?: StealthMetaAddress | string,
+    senderAddress?: string,
   ): Promise<ProductionQuote[]> {
     if (!this.intentsAdapter) {
       throw new ValidationError(
@@ -437,12 +440,23 @@ export class SIP {
 
     try {
       // Get quote from 1Click API
+      // Use provided senderAddress or fallback to connected wallet address (for cross-curve refunds)
       const prepared = await this.intentsAdapter.prepareSwap(
         swapRequest,
         metaAddr,
-        this.wallet?.address,
+        senderAddress ?? this.wallet?.address,
       )
       const rawQuote = await this.intentsAdapter.getQuote(prepared)
+
+      // Validate quote response has required fields
+      if (!rawQuote.amountOut || !rawQuote.amountIn) {
+        throw new ValidationError(
+          `Invalid quote response from 1Click API: missing ${!rawQuote.amountOut ? 'amountOut' : 'amountIn'}. ` +
+          `This may indicate the trading pair is not supported or the amount is too small.`,
+          'quote',
+          { rawQuote }
+        )
+      }
 
       // Cache for execute()
       this.pendingSwaps.set(requestId, {

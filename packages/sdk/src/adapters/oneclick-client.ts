@@ -91,7 +91,39 @@ export class OneClickClient {
    */
   async quote(request: OneClickQuoteRequest): Promise<OneClickQuoteResponse> {
     this.validateQuoteRequest(request)
-    return this.post<OneClickQuoteResponse>('/v0/quote', request)
+    // The 1Click API returns a nested structure: { quote: {...}, signature, timestamp }
+    // We flatten it to match our OneClickQuoteResponse type
+    const rawResponse = await this.post<{
+      quote: {
+        amountIn: string
+        amountInFormatted: string
+        amountInUsd?: string
+        amountOut: string
+        amountOutFormatted: string
+        amountOutUsd?: string
+        depositAddress: string
+        deadline: string
+        timeEstimate: number
+      }
+      quoteRequest: OneClickQuoteRequest
+      signature: string
+      timestamp: string
+    }>('/v0/quote', request)
+
+    // Flatten the response
+    return {
+      quoteId: rawResponse.timestamp, // Use timestamp as quoteId since API doesn't provide one
+      depositAddress: rawResponse.quote.depositAddress,
+      amountIn: rawResponse.quote.amountIn,
+      amountInFormatted: rawResponse.quote.amountInFormatted,
+      amountOut: rawResponse.quote.amountOut,
+      amountOutFormatted: rawResponse.quote.amountOutFormatted,
+      amountOutUsd: rawResponse.quote.amountOutUsd,
+      deadline: rawResponse.quote.deadline,
+      timeEstimate: rawResponse.quote.timeEstimate,
+      signature: rawResponse.signature,
+      request: rawResponse.quoteRequest,
+    }
   }
 
   /**

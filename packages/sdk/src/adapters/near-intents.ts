@@ -40,6 +40,7 @@ import {
   type StealthCurve,
 } from '../stealth'
 import { ValidationError } from '../errors'
+import { isAddressValidForChain, getChainAddressType } from '../validation'
 
 /**
  * Swap request parameters (simplified interface for adapter)
@@ -137,26 +138,53 @@ const DEFAULT_ASSET_MAPPINGS: Record<string, DefuseAssetId> = {
   // NEAR assets
   'near:NEAR': 'nep141:wrap.near',
   'near:wNEAR': 'nep141:wrap.near',
+  'near:USDC': 'nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1',
 
   // Ethereum assets (via OMFT bridge)
   'ethereum:ETH': 'nep141:eth.omft.near',
-  'ethereum:USDC': 'nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1',
-  'ethereum:USDT': 'nep141:usdt.tether-token.near',
+  'ethereum:USDC': 'nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near',
+  'ethereum:USDT': 'nep141:eth-0xdac17f958d2ee523a2206206994597c13d831ec7.omft.near',
 
   // Solana assets (via OMFT bridge)
   'solana:SOL': 'nep141:sol.omft.near',
+  'solana:USDC': 'nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near',
+  'solana:USDT': 'nep141:sol-c800a4bd850783ccb82c2b2c7e84175443606352.omft.near',
 
   // Zcash assets
   'zcash:ZEC': 'nep141:zec.omft.near',
 
   // Arbitrum assets
   'arbitrum:ETH': 'nep141:arb.omft.near',
+  'arbitrum:ARB': 'nep141:arb-0x912ce59144191c1204e64559fe8253a0e49e6548.omft.near',
+  'arbitrum:USDC': 'nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near',
 
   // Base assets
   'base:ETH': 'nep141:base.omft.near',
+  'base:USDC': 'nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near',
 
-  // Polygon assets
-  'polygon:MATIC': 'nep141:matic.omft.near',
+  // Optimism assets (via HOT bridge - uses nep245)
+  'optimism:ETH': 'nep245:v2_1.omni.hot.tg:10_11111111111111111111',
+  'optimism:OP': 'nep245:v2_1.omni.hot.tg:10_vLAiSt9KfUGKpw5cD3vsSyNYBo7',
+  'optimism:USDC': 'nep245:v2_1.omni.hot.tg:10_A2ewyUyDp6qsue1jqZsGypkCxRJ',
+
+  // Polygon assets (via HOT bridge - uses nep245)
+  'polygon:POL': 'nep245:v2_1.omni.hot.tg:137_11111111111111111111',
+  'polygon:MATIC': 'nep245:v2_1.omni.hot.tg:137_11111111111111111111', // POL is the rebranded MATIC
+  'polygon:USDC': 'nep245:v2_1.omni.hot.tg:137_qiStmoQJDQPTebaPjgx5VBxZv6L',
+
+  // BNB Chain assets (via HOT bridge - uses nep245)
+  'bsc:BNB': 'nep245:v2_1.omni.hot.tg:56_11111111111111111111',
+  'bsc:USDC': 'nep245:v2_1.omni.hot.tg:56_2w93GqMcEmQFDru84j3HZZWt557r',
+
+  // Avalanche assets (via HOT bridge - uses nep245)
+  'avalanche:AVAX': 'nep245:v2_1.omni.hot.tg:43114_11111111111111111111',
+  'avalanche:USDC': 'nep245:v2_1.omni.hot.tg:43114_3atVJH3r5c4GqiSYmg9fECvjc47o',
+
+  // Bitcoin
+  'bitcoin:BTC': 'nep141:btc.omft.near',
+
+  // Aptos
+  'aptos:APT': 'nep141:aptos.omft.near',
 }
 
 /**
@@ -246,6 +274,30 @@ export class NEARIntentsAdapter {
   ): Promise<PreparedSwap> {
     // Validate request
     this.validateRequest(request)
+
+    // Validate senderAddress matches input chain if provided
+    const inputChain = request.inputAsset.chain
+    if (senderAddress) {
+      if (!isAddressValidForChain(senderAddress, inputChain)) {
+        const inputChainType = getChainAddressType(inputChain)
+        const senderFormat = senderAddress.startsWith('0x') ? 'EVM' :
+          /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(senderAddress) ? 'Solana' :
+          /^[0-9a-f]{64}$/.test(senderAddress) || /^[a-z0-9._-]+$/.test(senderAddress) ? 'NEAR' : 'unknown'
+
+        throw new ValidationError(
+          `Wallet address format doesn't match input chain. ` +
+          `You're swapping FROM ${inputChain} (${inputChainType} format) but your connected wallet uses ${senderFormat} format. ` +
+          `Please connect a wallet that matches the source chain (${inputChain}).`,
+          'senderAddress',
+          {
+            inputChain,
+            expectedFormat: inputChainType,
+            receivedFormat: senderFormat,
+            hint: `For ${inputChain} swaps, connect a ${inputChainType === 'evm' ? 'MetaMask or EVM' : inputChainType} wallet.`
+          }
+        )
+      }
+    }
 
     // Determine recipient address
     let recipientAddress: string

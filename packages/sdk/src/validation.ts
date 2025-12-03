@@ -377,6 +377,132 @@ export function validateTimestamp(
   }
 }
 
+// ─── Address Format Validation ──────────────────────────────────────────────────
+
+/**
+ * Check if an address is a valid EVM address (0x + 40 hex chars)
+ */
+export function isValidEvmAddress(address: string): boolean {
+  if (typeof address !== 'string') return false
+  return /^0x[0-9a-fA-F]{40}$/.test(address)
+}
+
+/**
+ * Check if an address is a valid Solana address (base58, 32-44 chars)
+ */
+export function isValidSolanaAddressFormat(address: string): boolean {
+  if (typeof address !== 'string') return false
+  // Solana addresses are base58-encoded 32-byte public keys
+  // Typically 32-44 characters, using base58 alphabet (no 0, O, I, l)
+  return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address)
+}
+
+/**
+ * Check if an address is a valid NEAR account ID (named or implicit)
+ */
+export function isValidNearAddressFormat(address: string): boolean {
+  if (typeof address !== 'string') return false
+
+  // Implicit account: 64 hex characters
+  if (/^[0-9a-f]{64}$/.test(address)) return true
+
+  // Named account: 2-64 chars, lowercase alphanumeric with . _ -
+  if (address.length < 2 || address.length > 64) return false
+  if (!/^[a-z0-9]([a-z0-9._-]*[a-z0-9])?$/.test(address)) return false
+  if (address.includes('..')) return false
+
+  return true
+}
+
+/**
+ * Get the expected address format for a chain
+ */
+export function getChainAddressType(chain: ChainId): 'evm' | 'solana' | 'near' | 'zcash' | 'unknown' {
+  switch (chain) {
+    case 'ethereum':
+    case 'polygon':
+    case 'arbitrum':
+    case 'optimism':
+    case 'base':
+      return 'evm'
+    case 'solana':
+      return 'solana'
+    case 'near':
+      return 'near'
+    case 'zcash':
+      return 'zcash'
+    default:
+      return 'unknown'
+  }
+}
+
+/**
+ * Validate that an address matches the expected chain format
+ *
+ * @param address - The address to validate
+ * @param chain - The chain the address should be valid for
+ * @param field - Field name for error messages
+ * @throws {ValidationError} If address format doesn't match chain
+ */
+export function validateAddressForChain(address: string, chain: ChainId, field: string = 'address'): void {
+  const addressType = getChainAddressType(chain)
+
+  switch (addressType) {
+    case 'evm':
+      if (!isValidEvmAddress(address)) {
+        throw new ValidationError(
+          `Invalid address format for ${chain}. Expected EVM address (0x + 40 hex chars), got: ${address.slice(0, 20)}...`,
+          field,
+          { chain, expectedFormat: '0x...', receivedFormat: address.startsWith('0x') ? 'hex but wrong length' : 'not hex' }
+        )
+      }
+      break
+    case 'solana':
+      if (!isValidSolanaAddressFormat(address)) {
+        throw new ValidationError(
+          `Invalid address format for ${chain}. Expected Solana address (base58, 32-44 chars), got: ${address.slice(0, 20)}...`,
+          field,
+          { chain, expectedFormat: 'base58', receivedFormat: address.startsWith('0x') ? 'looks like EVM' : 'unknown' }
+        )
+      }
+      break
+    case 'near':
+      if (!isValidNearAddressFormat(address)) {
+        throw new ValidationError(
+          `Invalid address format for ${chain}. Expected NEAR account ID (named or implicit), got: ${address.slice(0, 20)}...`,
+          field,
+          { chain, expectedFormat: 'alice.near or 64 hex chars' }
+        )
+      }
+      break
+    case 'zcash':
+      // Zcash has multiple formats (t-addr, z-addr, u-addr) - accept any non-empty string for now
+      if (!address || address.length === 0) {
+        throw new ValidationError(
+          `Invalid address format for ${chain}. Expected Zcash address.`,
+          field,
+          { chain }
+        )
+      }
+      break
+    default:
+      // Unknown chain - skip validation
+      break
+  }
+}
+
+/**
+ * Check if an address format matches a chain (non-throwing version)
+ */
+export function isAddressValidForChain(address: string, chain: ChainId): boolean {
+  try {
+    validateAddressForChain(address, chain)
+    return true
+  } catch {
+    return false
+  }
+}
+
 // ─── Composite Validators ──────────────────────────────────────────────────────
 
 /**
