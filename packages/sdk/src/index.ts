@@ -372,6 +372,8 @@ export {
   createZcashClient,
   ZcashShieldedService,
   createZcashShieldedService,
+  ZcashSwapService,
+  createZcashSwapService,
 } from './zcash'
 export { ZcashErrorCode } from '@sip-protocol/types'
 
@@ -382,6 +384,16 @@ export type {
   ReceivedNote,
   ShieldedBalance,
   ExportedViewingKey,
+  ZcashSwapServiceConfig,
+  ZcashSwapSourceChain,
+  ZcashSwapSourceToken,
+  ZcashQuoteParams,
+  ZcashQuote,
+  ZcashSwapParams,
+  ZcashSwapResult,
+  ZcashSwapStatus,
+  BridgeProvider,
+  PriceFeed,
 } from './zcash'
 
 export type {
