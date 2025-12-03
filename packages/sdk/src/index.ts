@@ -365,6 +365,38 @@ export type {
   DefuseAssetId,
 } from '@sip-protocol/types'
 
+// Settlement Backend Abstraction
+export {
+  SwapStatus,
+  SettlementRegistry,
+  SettlementRegistryError,
+  type SettlementBackendName,
+  type QuoteParams as SettlementQuoteParams,
+  type Quote as SettlementQuote,
+  type SwapRoute as SettlementSwapRoute,
+  type SwapRouteStep as SettlementSwapRouteStep,
+  type SwapParams as SettlementSwapParams,
+  type SwapResult as SettlementSwapResult,
+  type SwapStatusResponse,
+  type BackendCapabilities,
+  type SettlementBackend,
+  type SettlementBackendFactory,
+  type SettlementBackendRegistry,
+  type Route,
+  // Smart Router
+  SmartRouter,
+  createSmartRouter,
+  type RouteWithQuote,
+  type QuoteComparison,
+  type FindBestRouteParams,
+  // Settlement backends
+  NEARIntentsBackend,
+  createNEARIntentsBackend,
+  ZcashNativeBackend,
+  createZcashNativeBackend,
+  type ZcashNativeBackendConfig,
+} from './settlement'
+
 // Zcash
 export {
   ZcashRPCClient,
