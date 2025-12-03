@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 import { MockProofProvider } from '@sip-protocol/sdk'
-import type { ProofResult } from '@sip-protocol/sdk'
+import type { ZKProof } from '@sip-protocol/types'
 import { success, error, heading, info, spinner } from '../utils/output'
 
 export function createVerifyCommand(): Command {
@@ -20,35 +20,26 @@ export function createVerifyCommand(): Command {
           ? JSON.parse(options.publicInputs)
           : []
 
-        const proofResult: ProofResult = {
-          proof: proofHex,
+        // Ensure proof is hex string format
+        const proofHexStr = proofHex.startsWith('0x') ? proofHex : `0x${proofHex}`
+
+        const zkProof: ZKProof = {
+          type: options.type as 'funding' | 'validity' | 'fulfillment',
+          proof: proofHexStr as `0x${string}`,
           publicInputs,
-          framework: 'mock',
         }
 
         const spin = spinner('Verifying proof...')
-        const provider = new MockProofProvider()
+        const provider = new MockProofProvider({ silent: true })
         await provider.initialize()
 
-        let isValid = false
-        switch (options.type) {
-          case 'funding':
-            isValid = await provider.verifyFundingProof(proofResult)
-            break
-          case 'validity':
-            isValid = await provider.verifyValidityProof(proofResult)
-            break
-          case 'fulfillment':
-            isValid = await provider.verifyFulfillmentProof(proofResult)
-            break
-          default:
-            throw new Error(`Unknown proof type: ${options.type}`)
-        }
+        // MockProofProvider uses single verifyProof method for all proof types
+        const isValid = await provider.verifyProof(zkProof)
 
         spin.stop()
 
         if (isValid) {
-          success('Proof is valid')
+          success(`Proof is valid (type: ${options.type})`)
         } else {
           error('Proof is invalid')
           process.exit(1)

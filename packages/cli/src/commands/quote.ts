@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { createSIP } from '@sip-protocol/sdk'
+import { createSIP, NATIVE_TOKENS } from '@sip-protocol/sdk'
 import { PrivacyLevel } from '@sip-protocol/types'
 import type { ChainId } from '@sip-protocol/types'
 import { getConfig } from '../utils/config'
@@ -21,20 +21,34 @@ export function createQuoteCommand(): Command {
         const amount = BigInt(amountStr)
         const privacy = (options.privacy || config.defaultPrivacy) as PrivacyLevel
 
-        const sip = createSIP({ network: config.network })
+        const sip = createSIP(config.network)
 
         const spin = spinner('Fetching quotes...')
+
+        // Get native tokens for chains
+        const inputAsset = NATIVE_TOKENS[fromChain as ChainId] || {
+          chain: fromChain as ChainId,
+          symbol: options.token || 'native',
+          address: null,
+          decimals: 18,
+        }
+        const outputAsset = NATIVE_TOKENS[toChain as ChainId] || {
+          chain: toChain as ChainId,
+          symbol: options.token || 'native',
+          address: null,
+          decimals: 18,
+        }
 
         // Create intent
         const intent = await sip.createIntent({
           input: {
-            chain: fromChain as ChainId,
-            token: options.token || 'native',
+            asset: inputAsset,
             amount,
           },
           output: {
-            chain: toChain as ChainId,
-            token: options.token || 'native',
+            asset: outputAsset,
+            minAmount: 0n, // Accept any amount for quote discovery
+            maxSlippage: 0.05, // 5% slippage tolerance
           },
           privacy,
         })
@@ -50,13 +64,12 @@ export function createQuoteCommand(): Command {
 
         // Display quotes in table
         console.log()
-        const headers = ['Solver', 'Output Amount', 'Fee', 'Rate', 'Time']
+        const headers = ['Solver', 'Output Amount', 'Fee', 'Time (s)']
         const rows = quotes.map(q => [
-          q.solver,
+          q.solverId,
           formatAmount(q.outputAmount),
-          q.fee ? formatAmount(BigInt(q.fee)) : 'N/A',
-          q.rate ? q.rate.toFixed(6) : 'N/A',
-          q.estimatedTime || 'N/A',
+          formatAmount(q.fee),
+          q.estimatedTime.toString(),
         ])
 
         table(headers, rows)
@@ -65,9 +78,9 @@ export function createQuoteCommand(): Command {
         const best = quotes[0]
         console.log()
         success('Best quote:')
-        keyValue('Solver', best.solver)
+        keyValue('Solver', best.solverId)
         keyValue('Output Amount', formatAmount(best.outputAmount))
-        keyValue('Estimated Time', best.estimatedTime || 'Unknown')
+        keyValue('Estimated Time', `${best.estimatedTime}s`)
       } catch (err) {
         console.error('Failed to get quote:', err)
         process.exit(1)

@@ -1,7 +1,8 @@
 import { Command } from 'commander'
 import { MockProofProvider } from '@sip-protocol/sdk'
 import type { FundingProofParams, ValidityProofParams } from '@sip-protocol/sdk'
-import { success, keyValue, heading, info, spinner } from '../utils/output'
+import type { HexString } from '@sip-protocol/types'
+import { success, keyValue, heading, spinner } from '../utils/output'
 
 export function createProveCommand(): Command {
   const prove = new Command('prove')
@@ -33,15 +34,15 @@ export function createProveCommand(): Command {
         }
 
         const spin = spinner('Generating proof...')
-        const provider = new MockProofProvider()
+        const provider = new MockProofProvider({ silent: true })
         await provider.initialize()
         const result = await provider.generateFundingProof(params)
         spin.succeed('Proof generated')
 
         success('Funding proof created')
-        keyValue('Proof', typeof result.proof === 'string' ? result.proof : JSON.stringify(result.proof))
+        keyValue('Proof', result.proof.proof)
         keyValue('Public Inputs', JSON.stringify(result.publicInputs))
-        keyValue('Framework', result.framework)
+        keyValue('Type', result.proof.type)
       } catch (err) {
         console.error('Failed to generate proof:', err)
         process.exit(1)
@@ -63,27 +64,29 @@ export function createProveCommand(): Command {
         const senderSecret = new Uint8Array(32)
         const authorizationSignature = new Uint8Array(64)
         const nonce = new Uint8Array(32)
+        const now = Math.floor(Date.now() / 1000)
 
         const params: ValidityProofParams = {
-          intentHash: options.intent,
+          intentHash: options.intent as HexString,
           senderAddress: options.sender,
           senderBlinding,
           senderSecret,
           authorizationSignature,
           nonce,
-          timestamp: Date.now(),
+          timestamp: now,
+          expiry: now + 300, // 5 minutes from now
         }
 
         const spin = spinner('Generating proof...')
-        const provider = new MockProofProvider()
+        const provider = new MockProofProvider({ silent: true })
         await provider.initialize()
         const result = await provider.generateValidityProof(params)
         spin.succeed('Proof generated')
 
         success('Validity proof created')
-        keyValue('Proof', typeof result.proof === 'string' ? result.proof : JSON.stringify(result.proof))
+        keyValue('Proof', result.proof.proof)
         keyValue('Public Inputs', JSON.stringify(result.publicInputs))
-        keyValue('Framework', result.framework)
+        keyValue('Type', result.proof.type)
       } catch (err) {
         console.error('Failed to generate proof:', err)
         process.exit(1)

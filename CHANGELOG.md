@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-12-03
+
+### Added - M14: Developer Experience
+
+#### New Packages
+- **@sip-protocol/react** - React hooks for SIP integration
+  - `SIPProvider` - Context provider for SIP client
+  - `useSIP()` - Access SIP client instance
+  - `useStealthAddress()` - Generate stealth addresses
+  - `usePrivateSwap()` - Execute private swaps with status tracking
+  - `useViewingKey()` - Manage viewing keys for compliance
+- **@sip-protocol/cli** - Command-line interface
+  - `sip init` - Initialize configuration
+  - `sip keygen` - Generate stealth meta-address
+  - `sip commit` - Create Pedersen commitment
+  - `sip prove` - Generate ZK proofs (funding/validity)
+  - `sip verify` - Verify proofs
+  - `sip quote` / `sip swap` - Get quotes and execute swaps
+  - `sip scan` - Scan for stealth payments
+- **@sip-protocol/api** - REST API service
+  - Express.js server with Zod validation
+  - Endpoints: stealth/generate, commitment/create, proof/funding, quote, swap
+  - Docker-ready deployment
+
+#### Documentation
+- **TypeDoc JSDoc** - Comprehensive API documentation (474 exports)
+- **SDK Cookbook** - 10 practical recipes in docs-sip
+- **Error Handling Guide** - 62 error codes documented
+- **React Native Research** - Feasibility study for mobile SDK
+
+#### Integration Tests
+- 53 new integration tests across all packages
+- SDK + React, SDK + CLI, SDK + API test suites
+
+### Changed
+- 72 new files added
+- 10,279 lines of new code
+- 41 React tests + 53 integration tests
+
+### Issues Closed
+- #169: Create @sip-protocol/react package
+- #170: Implement useSIP hook
+- #171: Implement useStealthAddress hook
+- #172: Implement usePrivateSwap hook
+- #173: Implement useViewingKey hook
+- #174: Create @sip-protocol/cli package
+- #175: Create REST API service package
+- #176: Add comprehensive TypeDoc documentation
+- #177: Research React Native SDK support
+- #178: Create SDK cookbook/recipes documentation
+- #179: Add error handling best practices guide
+- #180: Create integration test suite
+
 ## [0.5.1] - 2025-12-03
 
 ### Fixed
@@ -172,6 +225,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Milestone | Highlights |
 |---------|------|-----------|------------|
+| 0.6.0 | 2025-12-03 | M14 | React hooks, CLI, REST API, docs |
+| 0.5.1 | 2025-12-03 | Bugfix | CI test fix, TypeScript build fix |
+| 0.5.0 | 2025-12-03 | M13 | Compliance, threshold keys, enterprise |
+| 0.4.0 | 2025-12-03 | M12 | Bitcoin, Cosmos, Aptos, Sui chains |
 | 0.3.2 | 2025-12-03 | Security | slippageTolerance validation fix |
 | 0.3.1 | 2025-12-03 | Bugfix | Web Workers, fail-fast validation, docs |
 | 0.3.0 | 2025-12-03 | M11 | Settlement abstraction, SmartRouter, 3 backends |

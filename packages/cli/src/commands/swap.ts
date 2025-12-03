@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { createSIP } from '@sip-protocol/sdk'
+import { createSIP, NATIVE_TOKENS } from '@sip-protocol/sdk'
 import { PrivacyLevel } from '@sip-protocol/types'
 import type { ChainId } from '@sip-protocol/types'
 import { getConfig } from '../utils/config'
@@ -23,26 +23,40 @@ export function createSwapCommand(): Command {
         const amount = BigInt(amountStr)
         const privacy = (options.privacy || config.defaultPrivacy) as PrivacyLevel
 
-        const sip = createSIP({ network: config.network })
+        const sip = createSIP(config.network)
+
+        // Get native tokens for chains
+        const inputAsset = NATIVE_TOKENS[fromChain as ChainId] || {
+          chain: fromChain as ChainId,
+          symbol: options.token || 'native',
+          address: null,
+          decimals: 18,
+        }
+        const outputAsset = NATIVE_TOKENS[toChain as ChainId] || {
+          chain: toChain as ChainId,
+          symbol: options.token || 'native',
+          address: null,
+          decimals: 18,
+        }
 
         // Create intent
         info('Creating shielded intent...')
         const intent = await sip.createIntent({
           input: {
-            chain: fromChain as ChainId,
-            token: options.token || 'native',
+            asset: inputAsset,
             amount,
           },
           output: {
-            chain: toChain as ChainId,
-            token: options.token || 'native',
+            asset: outputAsset,
+            minAmount: 0n, // Accept any amount
+            maxSlippage: 0.05, // 5% slippage tolerance
           },
           privacy,
-          recipient: options.recipient,
+          recipientMetaAddress: options.recipient,
         })
 
         success('Intent created')
-        keyValue('Intent ID', formatHash(intent.id))
+        keyValue('Intent ID', formatHash(intent.intentId))
 
         // Get quotes
         const spin = spinner('Fetching quotes...')
@@ -56,7 +70,7 @@ export function createSwapCommand(): Command {
 
         // Select quote
         const selectedQuote = options.solver
-          ? quotes.find(q => q.solver === options.solver)
+          ? quotes.find(q => q.solverId === options.solver)
           : quotes[0]
 
         if (!selectedQuote) {
@@ -64,7 +78,7 @@ export function createSwapCommand(): Command {
           process.exit(1)
         }
 
-        info(`Using solver: ${selectedQuote.solver}`)
+        info(`Using solver: ${selectedQuote.solverId}`)
         keyValue('Output Amount', formatAmount(selectedQuote.outputAmount))
 
         // Execute swap
@@ -73,13 +87,13 @@ export function createSwapCommand(): Command {
         executeSpin.succeed('Swap executed')
 
         success('Swap completed successfully')
-        keyValue('Transaction Hash', formatHash(result.transactionHash))
-        keyValue('Output Amount', formatAmount(result.outputAmount))
-        keyValue('Status', result.status)
-
-        if (result.receipt) {
-          keyValue('Block', result.receipt.blockNumber?.toString() || 'Pending')
+        if (result.txHash) {
+          keyValue('Transaction Hash', formatHash(result.txHash))
         }
+        if (result.outputAmount) {
+          keyValue('Output Amount', formatAmount(result.outputAmount))
+        }
+        keyValue('Status', result.status)
       } catch (err) {
         console.error('Failed to execute swap:', err)
         process.exit(1)
