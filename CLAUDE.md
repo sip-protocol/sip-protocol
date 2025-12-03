@@ -14,7 +14,7 @@
 
 | Repo | Purpose | Tech Stack | Version |
 |------|---------|------------|---------|
-| `sip-protocol/sip-protocol` | **Core** - SDK + Types monorepo | TypeScript, Vitest | v0.2.2 |
+| `sip-protocol/sip-protocol` | **Core** - SDK + Types monorepo | TypeScript, Vitest | v0.2.3 |
 | `sip-protocol/sip-website` | Demo app + Marketing site | Next.js 14, Tailwind | v0.1.0 |
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro, MDX | v0.0.1 |
 | `sip-protocol/circuits` | Noir ZK circuits | Noir, Barretenberg | - |
@@ -263,7 +263,7 @@ SIP combines **Settlement Aggregation (C)** for standardization with **Proof Com
 | Wallet adapters | Done | Abstract interface + Solana/Ethereum |
 | E2E test suite | Done | 128 tests covering all flows |
 | ZK proof specs | Done | Funding, Validity, Fulfillment |
-| Noir circuits | Planned | M8 - stubs ready in SDK |
+| Noir circuits | Done | BrowserNoirProvider for browser, compiled circuits |
 
 ---
 
@@ -437,8 +437,8 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | M4: Network Integration | NEAR, Zcash, wallets | ✅ |
 | M5: Documentation & Launch | Docs, whitepaper | ✅ |
 | M6: Launch & Publish | npm publish, docs site | ✅ |
-| M7: Real Demo Integration | Live demo, 92 tests | ✅ |
-| M8: Production Hardening | Noir circuits, multi-curve, security | 🔄 |
+| M7: Real Demo Integration | Live demo, 1,419 tests | ✅ |
+| M8: Production Hardening | Noir circuits ✅, multi-curve, security | 🔄 |
 
 ### Phase 2: Standard (2026)
 | Milestone | Focus | Status |
@@ -524,5 +524,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2025-12-02
+**Last Updated:** 2025-12-03
 **Status:** M8 In Progress | C+B Hybrid Strategy Defined
