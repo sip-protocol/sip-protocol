@@ -155,7 +155,7 @@ describe('NEARIntentsAdapter', () => {
     })
 
     it('should throw for unknown asset', () => {
-      expect(() => adapter.mapAsset('bitcoin' as any, 'BTC'))
+      expect(() => adapter.mapAsset('dogecoin' as any, 'DOGE'))
         .toThrow(ValidationError)
     })
   })

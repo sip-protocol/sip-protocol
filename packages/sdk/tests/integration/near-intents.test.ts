@@ -37,14 +37,14 @@ describe('NEAR Intents Integration', () => {
       expect(adapter.mapAsset('zcash', 'ZEC')).toBe('nep141:zec.omft.near')
       expect(adapter.mapAsset('arbitrum', 'ETH')).toBe('nep141:arb.omft.near')
       expect(adapter.mapAsset('base', 'ETH')).toBe('nep141:base.omft.near')
-      expect(adapter.mapAsset('polygon', 'MATIC')).toBe('nep141:matic.omft.near')
+      expect(adapter.mapAsset('polygon', 'MATIC')).toBe('nep245:v2_1.omni.hot.tg:137_11111111111111111111')
     })
 
     it('should map common stablecoins', () => {
       expect(adapter.mapAsset('ethereum', 'USDC'))
-        .toBe('nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1')
+        .toBe('nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near')
       expect(adapter.mapAsset('ethereum', 'USDT'))
-        .toBe('nep141:usdt.tether-token.near')
+        .toBe('nep141:eth-0xdac17f958d2ee523a2206206994597c13d831ec7.omft.near')
     })
   })
 
@@ -224,7 +224,7 @@ describe('NEAR Intents Integration', () => {
 
   describe('Error Handling', () => {
     it('should reject unsupported asset pairs', () => {
-      expect(() => adapter.mapAsset('bitcoin' as any, 'BTC'))
+      expect(() => adapter.mapAsset('dogecoin' as any, 'DOGE'))
         .toThrow('Unknown asset mapping')
     })
 
