@@ -91,3 +91,4 @@ tmp/
 temp/
 packages/sdk/benchmarks/results.json
 .claude/
+.playwright-mcp/
