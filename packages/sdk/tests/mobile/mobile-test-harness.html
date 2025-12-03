@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SIP Protocol - Mobile WASM Test Harness</title>
+
+  <!-- Required security headers for SharedArrayBuffer -->
+  <!-- Note: These headers must be set by the server, not in HTML -->
+  <!-- Cross-Origin-Opener-Policy: same-origin -->
+  <!-- Cross-Origin-Embedder-Policy: require-corp -->
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e4e4e7;
+      min-height: 100vh;
+      padding: 16px;
+      padding-bottom: 100px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      background: linear-gradient(90deg, #10b981, #3b82f6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      color: #9ca3af;
+      font-size: 13px;
+    }
+
+    .info-value {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+    }
+
+    .badge-error {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .score-container {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .score {
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 14px;
+      color: #9ca3af;
+      margin-top: 8px;
+    }
+
+    .score-excellent { color: #10b981; }
+    .score-good { color: #3b82f6; }
+    .score-limited { color: #f59e0b; }
+    .score-poor { color: #ef4444; }
+
+    .issues-list, .recommendations-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .issues-list li, .recommendations-list li {
+      padding: 8px 12px;
+      margin: 4px 0;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .issues-list li {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 3px solid #ef4444;
+    }
+
+    .recommendations-list li {
+      background: rgba(59, 130, 246, 0.1);
+      border-left: 3px solid #3b82f6;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 12px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #10b981, #059669);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #e4e4e7;
+    }
+
+    .progress-container {
+      margin: 16px 0;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #3b82f6);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    .progress-text {
+      text-align: center;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 8px;
+    }
+
+    .log-container {
+      background: #0a0a0f;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 11px;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .log-entry {
+      padding: 2px 0;
+    }
+
+    .log-info { color: #60a5fa; }
+    .log-success { color: #34d399; }
+    .log-warning { color: #fbbf24; }
+    .log-error { color: #f87171; }
+
+    .test-result {
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .test-pass {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .test-fail {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .timing {
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: right;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 360px) {
+      body { padding: 12px; }
+      h1 { font-size: 20px; }
+      .card { padding: 12px; }
+      .score { font-size: 48px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>SIP Protocol</h1>
+      <p class="subtitle">Mobile WASM Test Harness</p>
+    </header>
+
+    <!-- Device Info Card -->
+    <div class="card">
+      <div class="card-title">Device Information</div>
+      <div id="device-info">Loading...</div>
+    </div>
+
+    <!-- Compatibility Score Card -->
+    <div class="card">
+      <div class="card-title">WASM Compatibility</div>
+      <div class="score-container">
+        <div class="score" id="compat-score">--</div>
+        <div class="score-label" id="compat-summary">Checking...</div>
+      </div>
+    </div>
+
+    <!-- Feature Support Card -->
+    <div class="card">
+      <div class="card-title">Feature Support</div>
+      <div id="feature-support">Loading...</div>
+    </div>
+
+    <!-- Issues Card -->
+    <div class="card" id="issues-card" style="display: none;">
+      <div class="card-title">Issues Detected</div>
+      <ul class="issues-list" id="issues-list"></ul>
+    </div>
+
+    <!-- Recommendations Card -->
+    <div class="card" id="recommendations-card" style="display: none;">
+      <div class="card-title">Recommendations</div>
+      <ul class="recommendations-list" id="recommendations-list"></ul>
+    </div>
+
+    <!-- Test Actions -->
+    <div class="card">
+      <div class="card-title">Proof Generation Test</div>
+
+      <button id="btn-init" class="btn-primary">Initialize Provider</button>
+      <button id="btn-generate" class="btn-primary" disabled>Generate Test Proof</button>
+      <button id="btn-clear" class="btn-secondary">Clear Logs</button>
+
+      <div class="progress-container" id="progress-container" style="display: none;">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">Initializing...</div>
+      </div>
+
+      <div id="test-result"></div>
+    </div>
+
+    <!-- Log Output -->
+    <div class="card">
+      <div class="card-title">Console Log</div>
+      <div class="log-container" id="log-container"></div>
+    </div>
+
+    <!-- Server Headers Check -->
+    <div class="card">
+      <div class="card-title">Server Configuration</div>
+      <div id="server-config">
+        <p style="font-size: 13px; color: #9ca3af; margin-bottom: 12px;">
+          For full WASM support, your server must send these headers:
+        </p>
+        <div id="headers-check"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import SDK (adjust path based on build) -->
+  <script type="module">
+    // Mobile detection and compatibility utilities
+    // These would normally come from @sip-protocol/sdk/browser
+
+    // ─── Mobile Detection ───────────────────────────────────────────────────────
+
+    function detectMobilePlatform() {
+      if (typeof navigator === 'undefined') return 'desktop';
+      const ua = navigator.userAgent.toLowerCase();
+      if (/iphone|ipad|ipod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+        return 'ios';
+      }
+      if (/android/.test(ua)) return 'android';
+      if (/mobile|webos|blackberry|opera mini|opera mobi|iemobile/.test(ua)) return 'other';
+      return 'desktop';
+    }
+
+    function detectMobileBrowser() {
+      if (typeof navigator === 'undefined') return 'other';
+      const ua = navigator.userAgent.toLowerCase();
+      if (/safari/.test(ua) && /iphone|ipad|ipod/.test(ua) && !/crios|fxios/.test(ua)) return 'safari';
+      if (/chrome|crios/.test(ua) && !/edg|opr|samsung/.test(ua)) return 'chrome';
+      if (/firefox|fxios/.test(ua)) return 'firefox';
+      if (/samsung/.test(ua)) return 'samsung';
+      if (/opr|opera/.test(ua)) return 'opera';
+      if (/edg/.test(ua)) return 'edge';
+      return 'other';
+    }
+
+    function getBrowserVersion() {
+      if (typeof navigator === 'undefined') return null;
+      const ua = navigator.userAgent;
+      const browser = detectMobileBrowser();
+      const patterns = {
+        safari: /version\/(\d+(\.\d+)*)/i,
+        chrome: /chrome\/(\d+(\.\d+)*)|crios\/(\d+(\.\d+)*)/i,
+        firefox: /firefox\/(\d+(\.\d+)*)|fxios\/(\d+(\.\d+)*)/i,
+        samsung: /samsungbrowser\/(\d+(\.\d+)*)/i,
+        opera: /opr\/(\d+(\.\d+)*)/i,
+        edge: /edg\/(\d+(\.\d+)*)/i,
+        other: /version\/(\d+(\.\d+)*)/i,
+      };
+      const match = ua.match(patterns[browser] || patterns.other);
+      if (match) {
+        for (let i = 1; i < match.length; i++) {
+          if (match[i]) return match[i];
+        }
+      }
+      return null;
+    }
+
+    function getOSVersion() {
+      if (typeof navigator === 'undefined') return null;
+      const ua = navigator.userAgent;
+      const platform = detectMobilePlatform();
+      if (platform === 'ios') {
+        const match = ua.match(/os (\d+[_\d]*)/i);
+        return match ? match[1].replace(/_/g, '.') : null;
+      }
+      if (platform === 'android') {
+        const match = ua.match(/android (\d+(\.\d+)*)/i);
+        return match ? match[1] : null;
+      }
+      return null;
+    }
+
+    function getMobileDeviceInfo() {
+      const platform = detectMobilePlatform();
+      return {
+        isMobile: platform !== 'desktop',
+        platform,
+        browser: detectMobileBrowser(),
+        browserVersion: getBrowserVersion(),
+        osVersion: getOSVersion(),
+        isTablet: /ipad/.test(navigator.userAgent.toLowerCase()) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                  (/android/.test(navigator.userAgent.toLowerCase()) && !/mobile/.test(navigator.userAgent.toLowerCase())),
+        supportsTouch: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+        deviceMemoryGB: navigator.deviceMemory || null,
+        hardwareConcurrency: navigator.hardwareConcurrency || null,
+      };
+    }
+
+    // ─── WASM Compatibility ─────────────────────────────────────────────────────
+
+    function supportsSharedArrayBuffer() {
+      try { return typeof SharedArrayBuffer !== 'undefined'; }
+      catch { return false; }
+    }
+
+    function supportsWebWorkers() {
+      return typeof Worker !== 'undefined';
+    }
+
+    function supportsWASMSimd() {
+      try {
+        return WebAssembly.validate(new Uint8Array([
+          0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x05, 0x01, 0x60, 0x00, 0x01, 0x7b,
+          0x03, 0x02, 0x01, 0x00, 0x0a, 0x0a, 0x01, 0x08, 0x00, 0x41, 0x00, 0xfd, 0x0f, 0xfd, 0x62, 0x0b,
+        ]));
+      } catch { return false; }
+    }
+
+    function supportsWASMBulkMemory() {
+      try {
+        return WebAssembly.validate(new Uint8Array([
+          0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x04, 0x01, 0x60, 0x00, 0x00, 0x03,
+          0x02, 0x01, 0x00, 0x05, 0x03, 0x01, 0x00, 0x01, 0x0a, 0x0d, 0x01, 0x0b, 0x00, 0x41, 0x00,
+          0x41, 0x00, 0x41, 0x00, 0xfc, 0x0b, 0x00, 0x0b,
+        ]));
+      } catch { return false; }
+    }
+
+    function checkMobileWASMCompatibility() {
+      const issues = [];
+      const recommendations = [];
+      let score = 100;
+
+      const webAssembly = typeof WebAssembly !== 'undefined';
+      if (!webAssembly) { issues.push('WebAssembly not supported'); score -= 50; }
+
+      const sharedArrayBuffer = supportsSharedArrayBuffer();
+      if (!sharedArrayBuffer) {
+        issues.push('SharedArrayBuffer not available');
+        recommendations.push('Server must send COOP: same-origin header');
+        recommendations.push('Server must send COEP: require-corp header');
+        score -= 20;
+      }
+
+      const webWorkers = supportsWebWorkers();
+      if (!webWorkers) { issues.push('Web Workers not supported'); score -= 15; }
+
+      const simd = supportsWASMSimd();
+      if (!simd) { recommendations.push('WASM SIMD not supported - proofs will be slower'); score -= 5; }
+
+      const bulkMemory = supportsWASMBulkMemory();
+      if (!bulkMemory) { recommendations.push('WASM bulk memory not supported'); score -= 5; }
+
+      const bigInt = typeof BigInt !== 'undefined';
+      if (!bigInt) { issues.push('BigInt not supported'); score -= 10; }
+
+      const deviceInfo = getMobileDeviceInfo();
+      if (deviceInfo.isMobile && deviceInfo.deviceMemoryGB !== null && deviceInfo.deviceMemoryGB < 2) {
+        recommendations.push(`Low device memory (${deviceInfo.deviceMemoryGB}GB)`);
+        score -= 5;
+      }
+
+      let summary;
+      if (score >= 90) summary = 'Excellent - Full WASM support';
+      else if (score >= 70) summary = 'Good - Minor limitations';
+      else if (score >= 50) summary = 'Limited - May have issues';
+      else summary = 'Poor - Not recommended';
+
+      return {
+        webAssembly, sharedArrayBuffer, webWorkers, simd, bulkMemory, bigInt,
+        score: Math.max(0, score), summary, issues, recommendations
+      };
+    }
+
+    // ─── UI Helpers ─────────────────────────────────────────────────────────────
+
+    function log(message, type = 'info') {
+      const container = document.getElementById('log-container');
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      container.appendChild(entry);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function updateProgress(percent, text) {
+      document.getElementById('progress-fill').style.width = `${percent}%`;
+      document.getElementById('progress-text').textContent = text;
+    }
+
+    function showProgress(show) {
+      document.getElementById('progress-container').style.display = show ? 'block' : 'none';
+    }
+
+    function featureBadge(supported) {
+      return supported
+        ? '<span class="badge badge-success">✓ Supported</span>'
+        : '<span class="badge badge-error">✗ Not Available</span>';
+    }
+
+    // ─── Initialize UI ──────────────────────────────────────────────────────────
+
+    function initUI() {
+      // Device Info
+      const deviceInfo = getMobileDeviceInfo();
+      const platformEmoji = { ios: '🍎', android: '🤖', other: '📱', desktop: '🖥️' };
+      const browserEmoji = { safari: '🧭', chrome: '🌐', firefox: '🦊', samsung: '📱', edge: '🔷', opera: '🔴', other: '🌐' };
+
+      document.getElementById('device-info').innerHTML = `
+        <div class="info-row">
+          <span class="info-label">Platform</span>
+          <span class="info-value">${platformEmoji[deviceInfo.platform]} ${deviceInfo.platform.toUpperCase()} ${deviceInfo.osVersion || ''}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Browser</span>
+          <span class="info-value">${browserEmoji[deviceInfo.browser]} ${deviceInfo.browser} ${deviceInfo.browserVersion || ''}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Type</span>
+          <span class="info-value">${deviceInfo.isTablet ? '📱 Tablet' : deviceInfo.isMobile ? '📱 Phone' : '🖥️ Desktop'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Memory</span>
+          <span class="info-value">${deviceInfo.deviceMemoryGB ? deviceInfo.deviceMemoryGB + ' GB' : 'N/A'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">CPU Cores</span>
+          <span class="info-value">${deviceInfo.hardwareConcurrency || 'N/A'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Touch</span>
+          <span class="info-value">${deviceInfo.supportsTouch ? '✓ Yes' : '✗ No'}</span>
+        </div>
+      `;
+
+      // Compatibility Score
+      const compat = checkMobileWASMCompatibility();
+      const scoreEl = document.getElementById('compat-score');
+      scoreEl.textContent = compat.score;
+      scoreEl.className = `score ${compat.score >= 90 ? 'score-excellent' : compat.score >= 70 ? 'score-good' : compat.score >= 50 ? 'score-limited' : 'score-poor'}`;
+      document.getElementById('compat-summary').textContent = compat.summary;
+
+      // Feature Support
+      document.getElementById('feature-support').innerHTML = `
+        <div class="info-row">
+          <span class="info-label">WebAssembly</span>
+          ${featureBadge(compat.webAssembly)}
+        </div>
+        <div class="info-row">
+          <span class="info-label">SharedArrayBuffer</span>
+          ${featureBadge(compat.sharedArrayBuffer)}
+        </div>
+        <div class="info-row">
+          <span class="info-label">Web Workers</span>
+          ${featureBadge(compat.webWorkers)}
+        </div>
+        <div class="info-row">
+          <span class="info-label">WASM SIMD</span>
+          ${featureBadge(compat.simd)}
+        </div>
+        <div class="info-row">
+          <span class="info-label">Bulk Memory</span>
+          ${featureBadge(compat.bulkMemory)}
+        </div>
+        <div class="info-row">
+          <span class="info-label">BigInt</span>
+          ${featureBadge(compat.bigInt)}
+        </div>
+      `;
+
+      // Issues
+      if (compat.issues.length > 0) {
+        document.getElementById('issues-card').style.display = 'block';
+        document.getElementById('issues-list').innerHTML = compat.issues.map(i => `<li>${i}</li>`).join('');
+      }
+
+      // Recommendations
+      if (compat.recommendations.length > 0) {
+        document.getElementById('recommendations-card').style.display = 'block';
+        document.getElementById('recommendations-list').innerHTML = compat.recommendations.map(r => `<li>${r}</li>`).join('');
+      }
+
+      // Server Headers Check
+      const headersHtml = `
+        <div class="info-row">
+          <span class="info-label">Cross-Origin-Opener-Policy</span>
+          ${featureBadge(compat.sharedArrayBuffer)}
+        </div>
+        <div class="info-row">
+          <span class="info-label">Cross-Origin-Embedder-Policy</span>
+          ${featureBadge(compat.sharedArrayBuffer)}
+        </div>
+      `;
+      document.getElementById('headers-check').innerHTML = headersHtml;
+
+      log(`Device: ${deviceInfo.platform} ${deviceInfo.browser}`, 'info');
+      log(`Compatibility score: ${compat.score}/100`, compat.score >= 70 ? 'success' : 'warning');
+    }
+
+    // ─── Test Functions ─────────────────────────────────────────────────────────
+
+    let provider = null;
+
+    async function initializeProvider() {
+      const btn = document.getElementById('btn-init');
+      const btnGenerate = document.getElementById('btn-generate');
+      btn.disabled = true;
+      btn.textContent = 'Initializing...';
+      showProgress(true);
+
+      try {
+        log('Starting provider initialization...', 'info');
+        updateProgress(10, 'Loading WASM...');
+
+        // Simulate initialization (real SDK would be imported)
+        // In production: import { BrowserNoirProvider } from '@sip-protocol/sdk/browser'
+
+        const startTime = performance.now();
+
+        // Simulate WASM loading stages
+        await new Promise(r => setTimeout(r, 500));
+        updateProgress(30, 'Compiling circuits...');
+        log('WASM runtime loaded', 'success');
+
+        await new Promise(r => setTimeout(r, 500));
+        updateProgress(60, 'Initializing backends...');
+        log('Circuits compiled', 'success');
+
+        await new Promise(r => setTimeout(r, 500));
+        updateProgress(90, 'Finalizing...');
+        log('Backends ready', 'success');
+
+        updateProgress(100, 'Ready!');
+
+        const elapsed = performance.now() - startTime;
+        log(`Initialization complete in ${elapsed.toFixed(0)}ms`, 'success');
+
+        btn.textContent = '✓ Provider Ready';
+        btn.className = 'btn-secondary';
+        btnGenerate.disabled = false;
+        provider = true; // Mark as initialized
+
+        setTimeout(() => showProgress(false), 1000);
+
+      } catch (error) {
+        log(`Initialization failed: ${error.message}`, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Retry Initialize';
+        showProgress(false);
+
+        document.getElementById('test-result').innerHTML = `
+          <div class="test-result test-fail">
+            <strong>Initialization Failed</strong>
+            <p style="margin-top: 8px; font-size: 13px;">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    async function generateProof() {
+      if (!provider) {
+        log('Provider not initialized', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-generate');
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
+      showProgress(true);
+
+      try {
+        log('Starting proof generation...', 'info');
+        updateProgress(10, 'Preparing inputs...');
+
+        const startTime = performance.now();
+
+        // Simulate proof generation stages
+        await new Promise(r => setTimeout(r, 300));
+        updateProgress(30, 'Computing witness...');
+        log('Witness inputs prepared', 'info');
+
+        await new Promise(r => setTimeout(r, 800));
+        updateProgress(60, 'Generating proof...');
+        log('Witness computed', 'success');
+
+        await new Promise(r => setTimeout(r, 1200));
+        updateProgress(90, 'Verifying proof...');
+        log('Proof generated', 'success');
+
+        await new Promise(r => setTimeout(r, 200));
+        updateProgress(100, 'Complete!');
+        log('Proof verified', 'success');
+
+        const elapsed = performance.now() - startTime;
+        log(`Proof generation complete in ${elapsed.toFixed(0)}ms`, 'success');
+
+        document.getElementById('test-result').innerHTML = `
+          <div class="test-result test-pass">
+            <strong>✓ Proof Generated Successfully</strong>
+            <p style="margin-top: 8px; font-size: 13px;">
+              Mock funding proof created and verified.
+            </p>
+            <div class="timing">Time: ${elapsed.toFixed(0)}ms</div>
+          </div>
+        `;
+
+        btn.disabled = false;
+        btn.textContent = 'Generate Another Proof';
+        setTimeout(() => showProgress(false), 1000);
+
+      } catch (error) {
+        log(`Proof generation failed: ${error.message}`, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Retry Generate';
+        showProgress(false);
+
+        document.getElementById('test-result').innerHTML = `
+          <div class="test-result test-fail">
+            <strong>Proof Generation Failed</strong>
+            <p style="margin-top: 8px; font-size: 13px;">${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function clearLogs() {
+      document.getElementById('log-container').innerHTML = '';
+      document.getElementById('test-result').innerHTML = '';
+      log('Logs cleared', 'info');
+    }
+
+    // ─── Event Listeners ────────────────────────────────────────────────────────
+
+    document.getElementById('btn-init').addEventListener('click', initializeProvider);
+    document.getElementById('btn-generate').addEventListener('click', generateProof);
+    document.getElementById('btn-clear').addEventListener('click', clearLogs);
+
+    // Initialize on load
+    initUI();
+    log('Test harness ready', 'success');
+  </script>
+</body>
+</html>

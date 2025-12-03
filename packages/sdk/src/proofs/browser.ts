@@ -36,7 +36,10 @@ import {
   hexToBytes,
   bytesToHex,
   getBrowserInfo,
+  getMobileDeviceInfo,
+  checkMobileWASMCompatibility,
 } from './browser-utils'
+import type { MobileDeviceInfo, MobileWASMCompatibility } from './browser-utils'
 
 // Import Noir JS (works in browser with WASM)
 import { Noir } from '@noir-lang/noir_js'
@@ -86,9 +89,23 @@ export interface BrowserNoirProviderConfig {
 
   /**
    * Maximum time for proof generation before timeout (ms)
-   * @default 60000 (60 seconds)
+   * @default 60000 (60 seconds), mobile: 120000 (2 minutes)
    */
   timeout?: number
+
+  /**
+   * Enable mobile-optimized mode (auto-detected by default)
+   * When true, adjusts memory usage and timeout for mobile devices
+   * @default auto-detected
+   */
+  mobileMode?: boolean
+
+  /**
+   * Allow initialization even with poor compatibility score
+   * Use with caution on mobile devices
+   * @default false
+   */
+  forceInitialize?: boolean
 }
 
 /**
@@ -127,6 +144,10 @@ export class BrowserNoirProvider implements ProofProvider {
   private _isReady = false
   private config: Required<BrowserNoirProviderConfig>
 
+  // Mobile device info (cached)
+  private deviceInfo: MobileDeviceInfo | null = null
+  private wasmCompatibility: MobileWASMCompatibility | null = null
+
   // Circuit instances
   private fundingNoir: Noir | null = null
   private fundingBackend: UltraHonkBackend | null = null
@@ -143,11 +164,20 @@ export class BrowserNoirProvider implements ProofProvider {
   > = new Map()
 
   constructor(config: BrowserNoirProviderConfig = {}) {
+    // Detect mobile environment
+    this.deviceInfo = getMobileDeviceInfo()
+    const isMobile = this.deviceInfo.isMobile
+
+    // Set mobile-appropriate defaults
+    const defaultTimeout = isMobile ? 120000 : 60000 // 2 min for mobile, 1 min for desktop
+
     this.config = {
       useWorker: config.useWorker ?? true,
       verbose: config.verbose ?? false,
       oraclePublicKey: config.oraclePublicKey ?? undefined,
-      timeout: config.timeout ?? 60000,
+      timeout: config.timeout ?? defaultTimeout,
+      mobileMode: config.mobileMode ?? isMobile,
+      forceInitialize: config.forceInitialize ?? false,
     } as Required<BrowserNoirProviderConfig>
 
     // Warn if not in browser
@@ -156,6 +186,11 @@ export class BrowserNoirProvider implements ProofProvider {
         '[BrowserNoirProvider] Not running in browser environment. ' +
           'Consider using NoirProofProvider for Node.js.'
       )
+    }
+
+    // Log mobile detection in verbose mode
+    if (this.config.verbose && this.deviceInfo) {
+      console.log('[BrowserNoirProvider] Device info:', this.deviceInfo)
     }
   }
 
@@ -200,6 +235,83 @@ export class BrowserNoirProvider implements ProofProvider {
   }
 
   /**
+   * Get detailed mobile device information
+   */
+  static getMobileInfo(): MobileDeviceInfo {
+    return getMobileDeviceInfo()
+  }
+
+  /**
+   * Check mobile WASM compatibility
+   *
+   * Returns detailed compatibility information including:
+   * - Feature support (WASM, SharedArrayBuffer, Workers, SIMD)
+   * - Compatibility score (0-100)
+   * - Issues and recommendations
+   *
+   * @example
+   * ```typescript
+   * const compat = BrowserNoirProvider.checkMobileCompatibility()
+   * if (compat.score < 70) {
+   *   console.warn('Limited mobile support:', compat.issues)
+   * }
+   * ```
+   */
+  static checkMobileCompatibility(): MobileWASMCompatibility {
+    return checkMobileWASMCompatibility()
+  }
+
+  /**
+   * Check if the current device is mobile
+   */
+  static isMobile(): boolean {
+    return getMobileDeviceInfo().isMobile
+  }
+
+  /**
+   * Get recommended configuration for the current device
+   *
+   * Automatically adjusts settings based on device capabilities:
+   * - Mobile devices get longer timeouts
+   * - Low-memory devices disable workers
+   * - Tablets get intermediate settings
+   */
+  static getRecommendedConfig(): Partial<BrowserNoirProviderConfig> {
+    const deviceInfo = getMobileDeviceInfo()
+    const compat = checkMobileWASMCompatibility()
+
+    const config: Partial<BrowserNoirProviderConfig> = {}
+
+    if (deviceInfo.isMobile) {
+      // Mobile-specific settings
+      config.timeout = 120000 // 2 minutes for mobile
+      config.mobileMode = true
+
+      // Disable workers on very low memory devices
+      if (deviceInfo.deviceMemoryGB !== null && deviceInfo.deviceMemoryGB < 2) {
+        config.useWorker = false
+      }
+
+      // iOS Safari specific optimizations
+      if (deviceInfo.platform === 'ios' && deviceInfo.browser === 'safari') {
+        // Safari has good WASM support, keep workers enabled if SAB available
+        config.useWorker = compat.sharedArrayBuffer
+      }
+    } else if (deviceInfo.isTablet) {
+      // Tablet settings (more capable than phones)
+      config.timeout = 90000 // 1.5 minutes
+      config.mobileMode = true
+    }
+
+    // Force initialize only if score is reasonable
+    if (compat.score < 50) {
+      config.forceInitialize = false
+    }
+
+    return config
+  }
+
+  /**
    * Derive secp256k1 public key coordinates from a private key
    */
   static derivePublicKey(privateKey: Uint8Array): PublicKeyCoordinates {
@@ -207,6 +319,20 @@ export class BrowserNoirProvider implements ProofProvider {
     const x = Array.from(uncompressedPubKey.slice(1, 33))
     const y = Array.from(uncompressedPubKey.slice(33, 65))
     return { x, y }
+  }
+
+  /**
+   * Get the cached WASM compatibility info (available after construction)
+   */
+  getWASMCompatibility(): MobileWASMCompatibility | null {
+    return this.wasmCompatibility
+  }
+
+  /**
+   * Get the cached device info (available after construction)
+   */
+  getDeviceInfo(): MobileDeviceInfo | null {
+    return this.deviceInfo
   }
 
   /**
@@ -222,8 +348,25 @@ export class BrowserNoirProvider implements ProofProvider {
       return
     }
 
+    // Check mobile compatibility
+    this.wasmCompatibility = checkMobileWASMCompatibility()
+
+    if (this.config.verbose) {
+      console.log('[BrowserNoirProvider] WASM compatibility:', this.wasmCompatibility)
+    }
+
+    // Warn on poor compatibility
+    if (this.wasmCompatibility.score < 50 && !this.config.forceInitialize) {
+      throw new ProofError(
+        `Device has poor WASM compatibility (score: ${this.wasmCompatibility.score}). ` +
+          `Issues: ${this.wasmCompatibility.issues.join(', ')}. ` +
+          `Set forceInitialize: true to override.`,
+        ErrorCode.PROOF_PROVIDER_NOT_READY
+      )
+    }
+
     const { supported, missing } = BrowserNoirProvider.checkBrowserSupport()
-    if (!supported) {
+    if (!supported && !this.config.forceInitialize) {
       throw new ProofError(
         `Browser missing required features: ${missing.join(', ')}`,
         ErrorCode.PROOF_PROVIDER_NOT_READY

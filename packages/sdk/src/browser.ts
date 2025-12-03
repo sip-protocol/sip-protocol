@@ -34,4 +34,25 @@ export {
   browserBytesToHex,
 } from './proofs'
 
+// Mobile browser detection utilities
+export {
+  detectMobilePlatform,
+  detectMobileBrowser,
+  getMobileDeviceInfo,
+  checkMobileWASMCompatibility,
+  getBrowserVersion,
+  getOSVersion,
+  isTablet,
+  supportsTouch,
+  supportsWASMSimd,
+  supportsWASMBulkMemory,
+} from './proofs/browser-utils'
+
+export type {
+  MobilePlatform,
+  MobileBrowser,
+  MobileDeviceInfo,
+  MobileWASMCompatibility,
+} from './proofs/browser-utils'
+
 export type { BrowserNoirProviderConfig, ProofProgressCallback } from './proofs'
