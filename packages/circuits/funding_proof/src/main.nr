@@ -16,23 +16,24 @@ use std::hash::pedersen_commitment;
 /// Private inputs: balance, blinding
 ///
 /// Constraints:
-/// 1. balance >= minimum_required (range proof via u64)
+/// 1. balance >= minimum_required (using Field for unlimited precision)
 /// 2. commitment = Pedersen(balance, blinding)
 /// 3. hash(commitment, asset_id) == commitment_hash
 pub fn main(
     commitment_hash: pub Field,
-    minimum_required: pub u64,
+    minimum_required: pub Field,
     asset_id: pub Field,
-    balance: u64,
+    balance: Field,
     blinding: Field,
 ) {
     // Constraint 1: Sufficient Funds
-    assert(balance >= minimum_required, "Insufficient balance");
-    
+    // Using Field comparison - works for values up to ~2^254
+    assert(balance.lt(minimum_required) == false, "Insufficient balance");
+
     // Constraint 2: Compute Pedersen Commitment
     // Uses Noir's built-in pedersen_commitment which returns (x, y) point
-    let commitment = pedersen_commitment([balance as Field, blinding]);
-    
+    let commitment = pedersen_commitment([balance, blinding]);
+
     // Constraint 3: Verify Commitment Hash
     let computed_hash = pedersen_hash([commitment.x, commitment.y, asset_id]);
     assert(computed_hash == commitment_hash, "Commitment hash mismatch");
@@ -42,13 +43,13 @@ pub fn main(
 
 #[test]
 fn test_valid_funding_proof() {
-    let balance: u64 = 100;
-    let minimum_required: u64 = 50;
+    let balance: Field = 100;
+    let minimum_required: Field = 50;
     let blinding: Field = 12345;
     let asset_id: Field = 0xABCD;
 
     // Compute commitment using same method as circuit
-    let commitment = pedersen_commitment([balance as Field, blinding]);
+    let commitment = pedersen_commitment([balance, blinding]);
     let commitment_hash = pedersen_hash([commitment.x, commitment.y, asset_id]);
 
     // This should pass
@@ -57,12 +58,12 @@ fn test_valid_funding_proof() {
 
 #[test(should_fail_with = "Insufficient balance")]
 fn test_insufficient_balance() {
-    let balance: u64 = 50;
-    let minimum_required: u64 = 100;
+    let balance: Field = 50;
+    let minimum_required: Field = 100;
     let blinding: Field = 12345;
     let asset_id: Field = 0xABCD;
 
-    let commitment = pedersen_commitment([balance as Field, blinding]);
+    let commitment = pedersen_commitment([balance, blinding]);
     let commitment_hash = pedersen_hash([commitment.x, commitment.y, asset_id]);
 
     // This should fail - balance < minimum
@@ -71,8 +72,8 @@ fn test_insufficient_balance() {
 
 #[test(should_fail_with = "Commitment hash mismatch")]
 fn test_wrong_commitment_hash() {
-    let balance: u64 = 100;
-    let minimum_required: u64 = 50;
+    let balance: Field = 100;
+    let minimum_required: Field = 50;
     let blinding: Field = 12345;
     let asset_id: Field = 0xABCD;
     let wrong_hash: Field = 0xDEADBEEF;
@@ -83,16 +84,32 @@ fn test_wrong_commitment_hash() {
 
 #[test(should_fail_with = "Commitment hash mismatch")]
 fn test_wrong_blinding() {
-    let balance: u64 = 100;
-    let minimum_required: u64 = 50;
+    let balance: Field = 100;
+    let minimum_required: Field = 50;
     let correct_blinding: Field = 12345;
     let wrong_blinding: Field = 54321;
     let asset_id: Field = 0xABCD;
 
     // Compute hash with correct blinding
-    let commitment = pedersen_commitment([balance as Field, correct_blinding]);
+    let commitment = pedersen_commitment([balance, correct_blinding]);
     let commitment_hash = pedersen_hash([commitment.x, commitment.y, asset_id]);
 
     // Try to prove with wrong blinding - should fail
     main(commitment_hash, minimum_required, asset_id, balance, wrong_blinding);
+}
+
+#[test]
+fn test_large_values_near_scale() {
+    // Test with NEAR-scale values (24 decimals)
+    // 1.5 NEAR = 1500000000000000000000000 yoctoNEAR
+    let balance: Field = 1500000000000000000000000;
+    let minimum_required: Field = 1000000000000000000000000; // 1 NEAR
+    let blinding: Field = 999999999;
+    let asset_id: Field = 0x4e454152; // "NEAR"
+
+    let commitment = pedersen_commitment([balance, blinding]);
+    let commitment_hash = pedersen_hash([commitment.x, commitment.y, asset_id]);
+
+    // Should pass - balance > minimum
+    main(commitment_hash, minimum_required, asset_id, balance, blinding);
 }

@@ -145,10 +145,11 @@ export function createWorkerBlobURL(): string {
         // Convert blinding factor to field
         const blindingField = bytesToField(params.blindingFactor);
 
+        // Circuit uses Field type for unlimited precision
         const witnessInputs = {
-          minimum_required: params.minimumRequired.toString(),
+          minimum_required: '0x' + params.minimumRequired.toString(16),
           asset_id: '0x' + assetIdToField(params.assetId),
-          balance: params.balance.toString(),
+          balance: '0x' + params.balance.toString(16),
           blinding: blindingField,
         };
 
@@ -163,8 +164,9 @@ export function createWorkerBlobURL(): string {
         // Extract commitment hash from return value
         const commitmentHashHex = bytesToHex(new Uint8Array(returnValue));
 
+        // Field values padded to 64 hex chars (32 bytes)
         const publicInputs = [
-          '0x' + params.minimumRequired.toString(16).padStart(16, '0'),
+          '0x' + params.minimumRequired.toString(16).padStart(64, '0'),
           '0x' + assetIdToField(params.assetId),
           '0x' + commitmentHashHex,
         ];

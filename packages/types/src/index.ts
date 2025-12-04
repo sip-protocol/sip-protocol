@@ -83,6 +83,7 @@ export type {
   OneClickQuoteRequest,
   OneClickQuoteResponse,
   OneClickDepositSubmit,
+  OneClickChainTx,
   OneClickStatusResponse,
   OneClickWithdrawal,
   SolverQuoteRequest,

@@ -138,12 +138,12 @@ export class MockProofProvider implements ProofProvider {
         proof: proofData,
         publicInputs: [
           this.hashToHex(params.assetId),
-          `0x${params.minimumRequired.toString(16).padStart(16, '0')}`,
+          `0x${params.minimumRequired.toString(16).padStart(64, '0')}`,
         ],
       },
       publicInputs: [
         this.hashToHex(params.assetId),
-        `0x${params.minimumRequired.toString(16).padStart(16, '0')}`,
+        `0x${params.minimumRequired.toString(16).padStart(64, '0')}`,
       ],
     }
   }

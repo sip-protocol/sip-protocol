@@ -207,15 +207,29 @@ export interface OneClickDepositSubmit {
 }
 
 /**
+ * Transaction hash with explorer URL from 1Click API
+ */
+export interface OneClickChainTx {
+  /** Transaction hash */
+  hash: string
+  /** Block explorer URL for this transaction */
+  explorerUrl: string
+}
+
+/**
  * Status response from GET /v0/status
  */
 export interface OneClickStatusResponse {
   /** Current swap status */
   status: OneClickSwapStatus
-  /** Deposit transaction hash */
+  /** Deposit transaction hash (legacy field) */
   depositTxHash?: string
-  /** Settlement transaction hash */
+  /** Settlement transaction hash (derived from destinationChainTxHashes) */
   settlementTxHash?: string
+  /** Destination chain transaction hashes (actual API response) */
+  destinationChainTxHashes?: OneClickChainTx[]
+  /** Origin chain transaction hashes (actual API response) */
+  originChainTxHashes?: OneClickChainTx[]
   /** Actual input amount */
   amountIn?: string
   /** Actual output amount */

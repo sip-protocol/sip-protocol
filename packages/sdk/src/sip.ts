@@ -603,10 +603,29 @@ export class SIP {
    * Uses the SIP client's configured proof provider (if any) to generate proofs
    * automatically for SHIELDED and COMPLIANT privacy levels.
    */
-  async createIntent(params: CreateIntentParams): Promise<TrackedIntent> {
+  async createIntent(
+    params: CreateIntentParams,
+    options?: {
+      /** Allow placeholder signatures for proof generation (demo/testing only) */
+      allowPlaceholders?: boolean
+      /** Ownership signature proving wallet control */
+      ownershipSignature?: Uint8Array
+      /** Sender secret for nullifier derivation */
+      senderSecret?: Uint8Array
+      /** Authorization signature for this intent */
+      authorizationSignature?: Uint8Array
+    }
+  ): Promise<TrackedIntent> {
+    // Allow placeholders if explicitly set, or in demo mode
+    const allowPlaceholders = options?.allowPlaceholders ?? this.config.mode === 'demo'
+
     const intent = await createShieldedIntent(params, {
       senderAddress: this.wallet?.address,
       proofProvider: this.proofProvider,
+      allowPlaceholders,
+      ownershipSignature: options?.ownershipSignature,
+      senderSecret: options?.senderSecret,
+      authorizationSignature: options?.authorizationSignature,
     })
     return trackIntent(intent)
   }
@@ -620,12 +639,14 @@ export class SIP {
    * @param params - Intent parameters (CreateIntentParams for production, ShieldedIntent/CreateIntentParams for demo)
    * @param recipientMetaAddress - Optional stealth meta-address for privacy modes
    * @param senderAddress - Optional sender wallet address for cross-curve refunds
+   * @param transparentRecipient - Optional explicit recipient address for transparent mode (defaults to senderAddress)
    * @returns Array of quotes (with deposit info in production mode)
    */
   async getQuotes(
     params: CreateIntentParams | ShieldedIntent,
     recipientMetaAddress?: StealthMetaAddress | string,
     senderAddress?: string,
+    transparentRecipient?: string,
   ): Promise<ProductionQuote[]> {
     // Production mode - use real NEAR Intents
     if (this.isProductionMode()) {
@@ -636,7 +657,7 @@ export class SIP {
           'params'
         )
       }
-      return this.getQuotesProduction(params, recipientMetaAddress, senderAddress)
+      return this.getQuotesProduction(params, recipientMetaAddress, senderAddress, transparentRecipient)
     }
 
     // Demo mode - return mock quotes
@@ -702,6 +723,7 @@ export class SIP {
     params: CreateIntentParams,
     recipientMetaAddress?: StealthMetaAddress | string,
     senderAddress?: string,
+    transparentRecipient?: string,
   ): Promise<ProductionQuote[]> {
     if (!this.intentsAdapter) {
       throw new ValidationError(
@@ -744,6 +766,7 @@ export class SIP {
         swapRequest,
         metaAddr,
         senderAddress ?? this.wallet?.address,
+        transparentRecipient,
       )
       const rawQuote = await this.intentsAdapter.getQuote(prepared)
 
@@ -820,7 +843,7 @@ export class SIP {
       // Validate txHash format before proceeding
       if (!depositTxHash || !this.isValidTxHash(depositTxHash)) {
         throw new ValidationError(
-          'Invalid deposit transaction hash. Expected 0x-prefixed hex string (32-66 bytes).',
+          'Invalid deposit transaction hash. Expected 0x-prefixed hex (64-132 chars) or base58 (32-88 chars).',
           'depositTxHash',
           { received: depositTxHash }
         )

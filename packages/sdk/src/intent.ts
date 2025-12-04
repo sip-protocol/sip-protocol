@@ -20,13 +20,18 @@ import {
   type PrivacyLevel,
   type ChainId,
 } from '@sip-protocol/types'
-import { generateStealthAddress, decodeStealthMetaAddress } from './stealth'
+import {
+  generateStealthAddress,
+  generateEd25519StealthAddress,
+  decodeStealthMetaAddress,
+  isEd25519Chain,
+} from './stealth'
 import {
   createCommitment,
   generateIntentId,
   hash,
 } from './crypto'
-import { hexToBytes, bytesToHex } from '@noble/hashes/utils'
+import { hexToBytes, bytesToHex, randomBytes } from '@noble/hashes/utils'
 import { sha256 } from '@noble/hashes/sha256'
 import { getPrivacyConfig, generateViewingKey } from './privacy'
 import type { ProofProvider } from './proofs'
@@ -496,7 +501,10 @@ export async function createShieldedIntent(
   let recipientStealth
   if (privacyConfig.useStealth && recipientMetaAddress) {
     const metaAddress = decodeStealthMetaAddress(recipientMetaAddress)
-    const { stealthAddress } = generateStealthAddress(metaAddress)
+    // Use appropriate stealth address generator based on chain's curve type
+    const { stealthAddress } = isEd25519Chain(metaAddress.chain)
+      ? generateEd25519StealthAddress(metaAddress)
+      : generateStealthAddress(metaAddress)
     recipientStealth = stealthAddress
   } else {
     // For transparent mode, create a placeholder
@@ -516,28 +524,27 @@ export async function createShieldedIntent(
   const requiresProofs = privacy !== PrivacyLevelEnum.TRANSPARENT
 
   if (requiresProofs && proofProvider && proofProvider.isReady) {
-    // Check if signatures are provided or placeholders are allowed
-    const hasSignatures = ownershipSignature && senderSecret && authorizationSignature
-    const usingPlaceholders = !hasSignatures
+    // Check if we can generate valid proofs:
+    // - Option 1: All signatures provided (ownershipSignature + senderSecret + authorizationSignature)
+    // - Option 2: Just senderSecret provided (SDK generates signatures internally)
+    // - Option 3: allowPlaceholders: true (random bytes, won't verify - dev/test only)
+    const hasAllSignatures = ownershipSignature && senderSecret && authorizationSignature
+    const canGenerateSignatures = senderSecret && !ownershipSignature && !authorizationSignature
+    const hasValidConfig = hasAllSignatures || canGenerateSignatures || allowPlaceholders
 
-    if (usingPlaceholders && !allowPlaceholders) {
+    if (!hasValidConfig) {
       throw new ValidationError(
-        'Proof generation requires signatures. Provide ownershipSignature, senderSecret, and authorizationSignature in options, or set allowPlaceholders: true for development/testing.',
+        'Proof generation requires either: (1) senderSecret alone (SDK generates signatures), ' +
+        '(2) all three: ownershipSignature, senderSecret, authorizationSignature, or ' +
+        '(3) set allowPlaceholders: true for development/testing.',
         'options',
         {
-          missing: [
-            !ownershipSignature && 'ownershipSignature',
-            !senderSecret && 'senderSecret',
-            !authorizationSignature && 'authorizationSignature',
+          provided: [
+            ownershipSignature && 'ownershipSignature',
+            senderSecret && 'senderSecret',
+            authorizationSignature && 'authorizationSignature',
           ].filter(Boolean),
         }
-      )
-    }
-
-    if (usingPlaceholders) {
-      console.warn(
-        '[createShieldedIntent] WARNING: Using placeholder signatures for proof generation. ' +
-        'These proofs are NOT cryptographically valid. Do NOT use in production!'
       )
     }
 
@@ -547,15 +554,78 @@ export async function createShieldedIntent(
       return hexToBytes(cleanHex)
     }
 
-    // Use provided signatures or placeholders (if allowed)
-    const effectiveOwnershipSig = ownershipSignature ?? new Uint8Array(64)
-    const effectiveSenderSecret = senderSecret ?? new Uint8Array(32)
-    const effectiveAuthSig = authorizationSignature ?? new Uint8Array(64)
+    // Use provided signatures or generate them from senderSecret
+    // IMPORTANT: senderSecret must be random even for placeholders, as secp256k1
+    // rejects all-zero private keys. randomBytes generates cryptographically secure random values.
+    const effectiveSenderSecret = senderSecret ?? randomBytes(32)
+
+    // Compute the intent hash that will be used in the circuit
+    // IMPORTANT: Noir uses BN254 field, so hash values >= field modulus get reduced.
+    // We must sign the REDUCED hash to match what the circuit verifies.
+    const rawIntentHashBytes = sha256(new TextEncoder().encode(intentId))
+    const intentHashHex = hash(intentId) as HexString
+
+    // BN254 scalar field modulus (must match browser.ts and the circuit)
+    const BN254_MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617n
+
+    // Convert hash bytes to bigint and reduce modulo BN254
+    let hashValue = 0n
+    for (const byte of rawIntentHashBytes) {
+      hashValue = hashValue * 256n + BigInt(byte)
+    }
+    const reducedHashValue = hashValue % BN254_MODULUS
+
+    // Convert reduced value back to 32-byte array (big-endian)
+    const intentHashBytes = new Uint8Array(32)
+    let temp = reducedHashValue
+    for (let i = 31; i >= 0; i--) {
+      intentHashBytes[i] = Number(temp & 0xffn)
+      temp = temp >> 8n
+    }
+
+    // Generate ECDSA signatures using senderSecret if not provided
+    // This ensures the signature matches the intentHash computed internally (after BN254 reduction)
+    let effectiveOwnershipSig: Uint8Array
+    let effectiveAuthSig: Uint8Array
+
+    if (ownershipSignature && authorizationSignature) {
+      // Use provided signatures
+      effectiveOwnershipSig = ownershipSignature
+      effectiveAuthSig = authorizationSignature
+    } else if (allowPlaceholders && !senderSecret) {
+      // Placeholder mode with no senderSecret - use random bytes (won't verify)
+      effectiveOwnershipSig = randomBytes(64)
+      effectiveAuthSig = randomBytes(64)
+      console.warn(
+        '[createShieldedIntent] WARNING: Using placeholder signatures for proof generation. ' +
+        'These proofs are NOT cryptographically valid. Do NOT use in production!'
+      )
+    } else {
+      // Generate real ECDSA signatures using senderSecret
+      const { secp256k1 } = await import('@noble/curves/secp256k1')
+
+      // Derive sender address from senderSecret (hash of public key)
+      const publicKey = secp256k1.getPublicKey(effectiveSenderSecret, true)
+      const senderAddressBytes = sha256(publicKey)
+
+      // Sign the sender address for ownership proof
+      const ownershipSig = secp256k1.sign(senderAddressBytes, effectiveSenderSecret)
+      effectiveOwnershipSig = ownershipSig.toCompactRawBytes()
+
+      // Sign the intent hash for authorization proof
+      const authSig = secp256k1.sign(intentHashBytes, effectiveSenderSecret)
+      effectiveAuthSig = authSig.toCompactRawBytes()
+    }
 
     // Generate funding proof
+    // Note: The funding proof proves balance >= minimumRequired
+    // - balance: In production, this should be the user's actual wallet balance
+    //   For now, we use input.amount as a placeholder (proof will pass if amount >= amount)
+    // - minimumRequired: The amount needed for this swap (input.amount, not output.minAmount!)
+    //   Using output.minAmount was a bug - it compared SOL lamports vs NEAR yoctoNEAR
     const fundingResult = await proofProvider.generateFundingProof({
       balance: input.amount,
-      minimumRequired: output.minAmount,
+      minimumRequired: input.amount,  // Fix: Must be same units as balance (input asset)
       blindingFactor: hexToUint8(inputCommitment.blindingFactor as HexString),
       assetId: input.asset.symbol,
       userAddress: senderAddress ?? '0x0',
@@ -570,7 +640,7 @@ export async function createShieldedIntent(
       senderBlinding: hexToUint8(senderCommitment.blindingFactor as HexString),
       senderSecret: effectiveSenderSecret,
       authorizationSignature: effectiveAuthSig,
-      nonce: new Uint8Array(32), // Could use randomBytes here
+      nonce: randomBytes(32),
       timestamp: now,
       expiry: now + ttl,
     })

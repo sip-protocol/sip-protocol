@@ -277,19 +277,20 @@ export class NoirProofProvider implements ProofProvider {
       const blindingField = this.bytesToField(params.blindingFactor)
 
       // Prepare witness inputs for the circuit
-      // New circuit signature: (minimum_required: pub u64, asset_id: pub Field, balance: u64, blinding: Field) -> [u8; 32]
+      // Circuit signature: (minimum_required: pub Field, asset_id: pub Field, balance: Field, blinding: Field) -> [u8; 32]
+      // Using Field type for unlimited precision (handles NEAR's 24 decimals, etc.)
       const witnessInputs = {
         // Public inputs
-        minimum_required: params.minimumRequired.toString(),
+        minimum_required: `0x${params.minimumRequired.toString(16)}`,
         asset_id: `0x${this.assetIdToField(params.assetId)}`,
         // Private inputs
-        balance: params.balance.toString(),
+        balance: `0x${params.balance.toString(16)}`,
         blinding: blindingField,
       }
 
       if (this.config.verbose) {
         console.log('[NoirProofProvider] Witness inputs:', {
-          minimum_required: params.minimumRequired.toString(),
+          minimum_required: `0x${params.minimumRequired.toString(16)}`,
           asset_id: `0x${this.assetIdToField(params.assetId)}`,
           balance: '[PRIVATE]',
           blinding: '[PRIVATE]',
@@ -318,8 +319,9 @@ export class NoirProofProvider implements ProofProvider {
 
       // Extract public inputs from the proof
       // Order: minimum_required, asset_id, commitment_hash (return value)
+      // Field values padded to 64 hex chars (32 bytes)
       const publicInputs: `0x${string}`[] = [
-        `0x${params.minimumRequired.toString(16).padStart(16, '0')}`,
+        `0x${params.minimumRequired.toString(16).padStart(64, '0')}`,
         `0x${this.assetIdToField(params.assetId)}`,
         `0x${commitmentHashHex}`,
       ]
