@@ -271,6 +271,7 @@ describe('SIP Production Mode', () => {
         }),
         expect.anything(), // stealth meta address
         undefined, // no wallet connected
+        undefined, // no explicit recipient
       )
     })
   })
