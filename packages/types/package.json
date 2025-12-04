@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/types",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript type definitions for SIP Protocol",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",

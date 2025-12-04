@@ -72,20 +72,20 @@ describe('Performance Benchmarks', () => {
 
   describe('Stealth Addresses', () => {
     it('generateStealthMetaAddress() performance', () => {
-      const { result, timeMs } = measureTime(() => generateStealthMetaAddress('near' as ChainId))
+      const { result, timeMs } = measureTime(() => generateStealthMetaAddress('ethereum' as ChainId))
       console.log(`  generateStealthMetaAddress(): ${timeMs.toFixed(3)}ms`)
       expect(result.metaAddress).toBeDefined()
     })
 
     it('generateStealthAddress() performance', () => {
-      const { metaAddress } = generateStealthMetaAddress('near' as ChainId)
+      const { metaAddress } = generateStealthMetaAddress('ethereum' as ChainId)
       const { result, timeMs } = measureTime(() => generateStealthAddress(metaAddress))
       console.log(`  generateStealthAddress(): ${timeMs.toFixed(3)}ms`)
       expect(result.stealthAddress).toBeDefined()
     })
 
     it('checkStealthAddress() performance', () => {
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
       const { stealthAddress } = generateStealthAddress(recipient.metaAddress)
 
       const { result, timeMs } = measureTime(() =>
@@ -100,7 +100,7 @@ describe('Performance Benchmarks', () => {
     })
 
     it('deriveStealthPrivateKey() performance', () => {
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
       const { stealthAddress } = generateStealthAddress(recipient.metaAddress)
 
       const { result, timeMs } = measureTime(() =>
@@ -117,7 +117,7 @@ describe('Performance Benchmarks', () => {
     it('full stealth flow performance', () => {
       const start = performance.now()
 
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
       const { stealthAddress } = generateStealthAddress(recipient.metaAddress)
       const isOurs = checkStealthAddress(
         stealthAddress,
@@ -194,7 +194,7 @@ describe('Performance Benchmarks', () => {
 
   describe('Batch Operations', () => {
     it('scan 100 stealth addresses performance', () => {
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
 
       const addresses = Array.from({ length: 100 }, () =>
         generateStealthAddress(recipient.metaAddress).stealthAddress

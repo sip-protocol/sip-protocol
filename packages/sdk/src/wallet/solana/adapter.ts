@@ -293,8 +293,11 @@ export class SolanaWalletAdapter extends BaseWalletAdapter {
 
       const { signature } = await this.provider.signAndSendTransaction(solTx, sendOptions)
 
+      // Phantom/Solflare return signature as base58 string
+      // The SDK validation accepts both base58 (32-88 chars) and 0x-prefixed hex formats
+      // Return the base58 signature directly - no need to convert
       return {
-        txHash: ('0x' + Buffer.from(signature).toString('hex')) as HexString,
+        txHash: signature as HexString,
         status: 'pending', // Transaction is sent but not confirmed yet
         timestamp: Date.now(),
       }

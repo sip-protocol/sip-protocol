@@ -275,12 +275,14 @@ export class NEARIntentsAdapter {
    * @param request - Swap request parameters
    * @param recipientMetaAddress - Recipient's stealth meta-address (for privacy modes)
    * @param senderAddress - Sender's address for refunds
+   * @param transparentRecipient - Explicit recipient address for transparent mode (defaults to senderAddress)
    * @returns Prepared swap with quote request
    */
   async prepareSwap(
     request: SwapRequest,
     recipientMetaAddress?: StealthMetaAddress | string,
     senderAddress?: string,
+    transparentRecipient?: string,
   ): Promise<PreparedSwap> {
     // Validate request
     this.validateRequest(request)
@@ -467,14 +469,35 @@ export class NEARIntentsAdapter {
         }
       }
     } else {
-      // Transparent mode uses direct address
-      if (!senderAddress) {
+      // Transparent mode uses explicit recipient or falls back to sender
+      const directRecipient = transparentRecipient ?? senderAddress
+      if (!directRecipient) {
         throw new ValidationError(
-          'senderAddress is required for transparent mode (or use stealth address)',
-          'senderAddress'
+          'recipientAddress or senderAddress is required for transparent mode (or use stealth address)',
+          'recipientAddress'
         )
       }
-      recipientAddress = senderAddress
+      // Validate recipient address matches output chain
+      const outputChain = request.outputAsset.chain
+      if (!isAddressValidForChain(directRecipient, outputChain)) {
+        const outputChainType = getChainAddressType(outputChain)
+        const recipientFormat = directRecipient.startsWith('0x') ? 'EVM' :
+          /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(directRecipient) ? 'Solana' :
+          /^[0-9a-f]{64}$/.test(directRecipient) || /^[a-z0-9._-]+$/.test(directRecipient) ? 'NEAR' : 'unknown'
+
+        throw new ValidationError(
+          `Recipient address format doesn't match output chain. ` +
+          `You're swapping TO ${outputChain} (${outputChainType} format) but the recipient address uses ${recipientFormat} format. ` +
+          `Please provide a recipient address that matches the destination chain (${outputChain}).`,
+          'recipientAddress',
+          {
+            outputChain,
+            expectedFormat: outputChainType,
+            actualFormat: recipientFormat,
+          }
+        )
+      }
+      recipientAddress = directRecipient
     }
 
     // Build quote request

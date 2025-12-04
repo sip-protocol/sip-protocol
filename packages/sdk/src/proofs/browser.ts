@@ -156,6 +156,9 @@ export class BrowserNoirProvider implements ProofProvider {
   private fulfillmentNoir: Noir | null = null
   private fulfillmentBackend: UltraHonkBackend | null = null
 
+  // Mutex for WASM operations (prevents BorrowMutError from concurrent access)
+  private wasmMutex: Promise<void> = Promise.resolve()
+
   // Worker instance (optional)
   private worker: Worker | null = null
   private workerPending: Map<
@@ -556,74 +559,80 @@ export class BrowserNoirProvider implements ProofProvider {
       throw new ProofGenerationError('funding', 'Funding circuit not initialized')
     }
 
-    try {
-      onProgress?.({
-        stage: 'witness',
-        percent: 10,
-        message: 'Preparing witness inputs...',
-      })
+    // Use mutex to prevent concurrent WASM access (causes BorrowMutError)
+    return this.acquireWasmLock(async () => {
+      try {
+        onProgress?.({
+          stage: 'witness',
+          percent: 10,
+          message: 'Preparing witness inputs...',
+        })
 
-      // Convert blinding factor to field element
-      const blindingField = this.bytesToField(params.blindingFactor)
+        // Convert blinding factor to field element
+        const blindingField = this.bytesToField(params.blindingFactor)
 
-      // New circuit signature: (minimum_required: pub u64, asset_id: pub Field, balance: u64, blinding: Field) -> [u8; 32]
-      const witnessInputs = {
-        minimum_required: params.minimumRequired.toString(),
-        asset_id: `0x${this.assetIdToField(params.assetId)}`,
-        balance: params.balance.toString(),
-        blinding: blindingField,
+        // Circuit signature: (minimum_required: pub Field, asset_id: pub Field, balance: Field, blinding: Field) -> [u8; 32]
+        // Using Field type for unlimited precision (handles NEAR's 24 decimals, etc.)
+        // Noir expects field values as hex strings with 0x prefix
+        const witnessInputs = {
+          minimum_required: `0x${params.minimumRequired.toString(16)}`,
+          asset_id: `0x${this.assetIdToField(params.assetId)}`,
+          balance: `0x${params.balance.toString(16)}`,
+          blinding: `0x${blindingField}`,
+        }
+
+        onProgress?.({
+          stage: 'witness',
+          percent: 30,
+          message: 'Generating witness...',
+        })
+
+        // Generate witness - circuit returns commitment hash as [u8; 32]
+        const { witness, returnValue } = await this.fundingNoir!.execute(witnessInputs)
+
+        onProgress?.({
+          stage: 'proving',
+          percent: 50,
+          message: 'Generating proof (this may take a moment)...',
+        })
+
+        // Generate proof
+        const proofData = await this.fundingBackend!.generateProof(witness)
+
+        onProgress?.({
+          stage: 'complete',
+          percent: 100,
+          message: 'Proof generated successfully',
+        })
+
+        // Extract commitment hash from circuit return value
+        const commitmentHashBytes = returnValue as number[]
+        const commitmentHashHex = bytesToHex(new Uint8Array(commitmentHashBytes))
+
+        // Order: minimum_required, asset_id, commitment_hash (return value)
+        // Field values padded to 64 hex chars (32 bytes)
+        const publicInputs: `0x${string}`[] = [
+          `0x${params.minimumRequired.toString(16).padStart(64, '0')}`,
+          `0x${this.assetIdToField(params.assetId)}`,
+          `0x${commitmentHashHex}`,
+        ]
+
+        const proof: ZKProof = {
+          type: 'funding',
+          proof: `0x${bytesToHex(proofData.proof)}`,
+          publicInputs,
+        }
+
+        return { proof, publicInputs }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new ProofGenerationError(
+          'funding',
+          `Failed to generate funding proof: ${message}`,
+          error instanceof Error ? error : undefined
+        )
       }
-
-      onProgress?.({
-        stage: 'witness',
-        percent: 30,
-        message: 'Generating witness...',
-      })
-
-      // Generate witness - circuit returns commitment hash as [u8; 32]
-      const { witness, returnValue } = await this.fundingNoir.execute(witnessInputs)
-
-      onProgress?.({
-        stage: 'proving',
-        percent: 50,
-        message: 'Generating proof (this may take a moment)...',
-      })
-
-      // Generate proof
-      const proofData = await this.fundingBackend.generateProof(witness)
-
-      onProgress?.({
-        stage: 'complete',
-        percent: 100,
-        message: 'Proof generated successfully',
-      })
-
-      // Extract commitment hash from circuit return value
-      const commitmentHashBytes = returnValue as number[]
-      const commitmentHashHex = bytesToHex(new Uint8Array(commitmentHashBytes))
-
-      // Order: minimum_required, asset_id, commitment_hash (return value)
-      const publicInputs: `0x${string}`[] = [
-        `0x${params.minimumRequired.toString(16).padStart(16, '0')}`,
-        `0x${this.assetIdToField(params.assetId)}`,
-        `0x${commitmentHashHex}`,
-      ]
-
-      const proof: ZKProof = {
-        type: 'funding',
-        proof: `0x${bytesToHex(proofData.proof)}`,
-        publicInputs,
-      }
-
-      return { proof, publicInputs }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      throw new ProofGenerationError(
-        'funding',
-        `Failed to generate funding proof: ${message}`,
-        error instanceof Error ? error : undefined
-      )
-    }
+    })
   }
 
   /**
@@ -641,105 +650,132 @@ export class BrowserNoirProvider implements ProofProvider {
       throw new ProofGenerationError('validity', 'Validity circuit not initialized')
     }
 
-    try {
-      onProgress?.({
-        stage: 'witness',
-        percent: 10,
-        message: 'Preparing validity witness...',
-      })
+    // Use mutex to prevent concurrent WASM access (causes BorrowMutError)
+    return this.acquireWasmLock(async () => {
+      try {
+        onProgress?.({
+          stage: 'witness',
+          percent: 10,
+          message: 'Preparing validity witness...',
+        })
 
-      // Convert inputs to field elements
-      const intentHashField = this.hexToField(params.intentHash)
-      const senderAddressField = this.hexToField(params.senderAddress)
-      const senderBlindingField = this.bytesToField(params.senderBlinding)
-      const senderSecretField = this.bytesToField(params.senderSecret)
-      const nonceField = this.bytesToField(params.nonce)
+        // Convert inputs to field elements
+        const intentHashField = this.hexToField(params.intentHash)
+        const senderAddressField = this.hexToField(params.senderAddress)
+        const senderBlindingField = this.bytesToField(params.senderBlinding)
+        const senderSecretField = this.bytesToField(params.senderSecret)
+        const nonceField = this.bytesToField(params.nonce)
 
-      // Compute derived values
-      const { commitmentX, commitmentY } = await this.computeSenderCommitment(
-        senderAddressField,
-        senderBlindingField
-      )
-      const nullifier = await this.computeNullifier(senderSecretField, intentHashField, nonceField)
+        // Compute derived values
+        const { commitmentX, commitmentY } = await this.computeSenderCommitment(
+          senderAddressField,
+          senderBlindingField
+        )
+        const nullifier = await this.computeNullifier(senderSecretField, intentHashField, nonceField)
 
-      const signature = Array.from(params.authorizationSignature)
-      const messageHash = this.fieldToBytes32(intentHashField)
+        // Normalize signature s-value for Noir (BIP-0062 requirement)
+        // Noir requires s <= order/2 to prevent signature malleability
+        const normalizedSig = this.normalizeSignature(params.authorizationSignature)
+        const signature = Array.from(normalizedSig)
+        const messageHash = this.fieldToBytes32(intentHashField)
 
-      // Get public key
-      let pubKeyX: number[]
-      let pubKeyY: number[]
-      if (params.senderPublicKey) {
-        pubKeyX = Array.from(params.senderPublicKey.x)
-        pubKeyY = Array.from(params.senderPublicKey.y)
-      } else {
-        const coords = this.getPublicKeyCoordinates(params.senderSecret)
-        pubKeyX = coords.x
-        pubKeyY = coords.y
+        // Get public key
+        let pubKeyX: number[]
+        let pubKeyY: number[]
+        if (params.senderPublicKey) {
+          pubKeyX = Array.from(params.senderPublicKey.x)
+          pubKeyY = Array.from(params.senderPublicKey.y)
+        } else {
+          // Ensure senderSecret is a proper Uint8Array (handles bundler serialization)
+          const senderSecretBytes = this.ensureUint8Array(params.senderSecret)
+
+          // Debug: Check if bytes were read correctly
+          const hasNonZero = senderSecretBytes.some((b) => b !== 0)
+          if (!hasNonZero && senderSecretBytes.length === 32) {
+            // Log detailed debug info to help diagnose serialization issues
+            const inputType = Object.prototype.toString.call(params.senderSecret)
+            const inputKeys = Object.keys(params.senderSecret as object).slice(0, 5)
+            const inputLength =
+              'length' in (params.senderSecret as object) ? (params.senderSecret as { length: number }).length : 'N/A'
+            console.error(
+              '[BrowserNoirProvider] senderSecret appears to be all zeros after ensureUint8Array!',
+              '\n  Input type:', inputType,
+              '\n  Input length:', inputLength,
+              '\n  Sample keys:', inputKeys,
+              '\n  First few raw values:', [0, 1, 2, 3].map((i) => (params.senderSecret as Record<number, unknown>)[i])
+            )
+          }
+
+          const coords = this.getPublicKeyCoordinates(senderSecretBytes)
+          pubKeyX = coords.x
+          pubKeyY = coords.y
+        }
+
+        // Noir expects field values as hex strings with 0x prefix
+        const witnessInputs = {
+          intent_hash: `0x${intentHashField}`,
+          sender_commitment_x: `0x${commitmentX}`,
+          sender_commitment_y: `0x${commitmentY}`,
+          nullifier: `0x${nullifier}`,
+          timestamp: params.timestamp.toString(),
+          expiry: params.expiry.toString(),
+          sender_address: `0x${senderAddressField}`,
+          sender_blinding: `0x${senderBlindingField}`,
+          sender_secret: `0x${senderSecretField}`,
+          pub_key_x: pubKeyX,
+          pub_key_y: pubKeyY,
+          signature: signature,
+          message_hash: messageHash,
+          nonce: `0x${nonceField}`,
+        }
+
+        onProgress?.({
+          stage: 'witness',
+          percent: 30,
+          message: 'Generating witness...',
+        })
+
+        const { witness } = await this.validityNoir!.execute(witnessInputs)
+
+        onProgress?.({
+          stage: 'proving',
+          percent: 50,
+          message: 'Generating validity proof...',
+        })
+
+        const proofData = await this.validityBackend!.generateProof(witness)
+
+        onProgress?.({
+          stage: 'complete',
+          percent: 100,
+          message: 'Validity proof generated',
+        })
+
+        const publicInputs: `0x${string}`[] = [
+          `0x${intentHashField}`,
+          `0x${commitmentX}`,
+          `0x${commitmentY}`,
+          `0x${nullifier}`,
+          `0x${params.timestamp.toString(16).padStart(16, '0')}`,
+          `0x${params.expiry.toString(16).padStart(16, '0')}`,
+        ]
+
+        const proof: ZKProof = {
+          type: 'validity',
+          proof: `0x${bytesToHex(proofData.proof)}`,
+          publicInputs,
+        }
+
+        return { proof, publicInputs }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new ProofGenerationError(
+          'validity',
+          `Failed to generate validity proof: ${message}`,
+          error instanceof Error ? error : undefined
+        )
       }
-
-      const witnessInputs = {
-        intent_hash: intentHashField,
-        sender_commitment_x: commitmentX,
-        sender_commitment_y: commitmentY,
-        nullifier: nullifier,
-        timestamp: params.timestamp.toString(),
-        expiry: params.expiry.toString(),
-        sender_address: senderAddressField,
-        sender_blinding: senderBlindingField,
-        sender_secret: senderSecretField,
-        pub_key_x: pubKeyX,
-        pub_key_y: pubKeyY,
-        signature: signature,
-        message_hash: messageHash,
-        nonce: nonceField,
-      }
-
-      onProgress?.({
-        stage: 'witness',
-        percent: 30,
-        message: 'Generating witness...',
-      })
-
-      const { witness } = await this.validityNoir.execute(witnessInputs)
-
-      onProgress?.({
-        stage: 'proving',
-        percent: 50,
-        message: 'Generating validity proof...',
-      })
-
-      const proofData = await this.validityBackend.generateProof(witness)
-
-      onProgress?.({
-        stage: 'complete',
-        percent: 100,
-        message: 'Validity proof generated',
-      })
-
-      const publicInputs: `0x${string}`[] = [
-        `0x${intentHashField}`,
-        `0x${commitmentX}`,
-        `0x${commitmentY}`,
-        `0x${nullifier}`,
-        `0x${params.timestamp.toString(16).padStart(16, '0')}`,
-        `0x${params.expiry.toString(16).padStart(16, '0')}`,
-      ]
-
-      const proof: ZKProof = {
-        type: 'validity',
-        proof: `0x${bytesToHex(proofData.proof)}`,
-        publicInputs,
-      }
-
-      return { proof, publicInputs }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      throw new ProofGenerationError(
-        'validity',
-        `Failed to generate validity proof: ${message}`,
-        error instanceof Error ? error : undefined
-      )
-    }
+    })
   }
 
   /**
@@ -757,109 +793,113 @@ export class BrowserNoirProvider implements ProofProvider {
       throw new ProofGenerationError('fulfillment', 'Fulfillment circuit not initialized')
     }
 
-    try {
-      onProgress?.({
-        stage: 'witness',
-        percent: 10,
-        message: 'Preparing fulfillment witness...',
-      })
+    // Use mutex to prevent concurrent WASM access (causes BorrowMutError)
+    return this.acquireWasmLock(async () => {
+      try {
+        onProgress?.({
+          stage: 'witness',
+          percent: 10,
+          message: 'Preparing fulfillment witness...',
+        })
 
-      const intentHashField = this.hexToField(params.intentHash)
-      const recipientStealthField = this.hexToField(params.recipientStealth)
+        const intentHashField = this.hexToField(params.intentHash)
+        const recipientStealthField = this.hexToField(params.recipientStealth)
 
-      const { commitmentX, commitmentY } = await this.computeOutputCommitment(
-        params.outputAmount,
-        params.outputBlinding
-      )
+        const { commitmentX, commitmentY } = await this.computeOutputCommitment(
+          params.outputAmount,
+          params.outputBlinding
+        )
 
-      const solverSecretField = this.bytesToField(params.solverSecret)
-      const solverId = await this.computeSolverId(solverSecretField)
-      const outputBlindingField = this.bytesToField(params.outputBlinding)
+        const solverSecretField = this.bytesToField(params.solverSecret)
+        const solverId = await this.computeSolverId(solverSecretField)
+        const outputBlindingField = this.bytesToField(params.outputBlinding)
 
-      const attestation = params.oracleAttestation
-      const attestationRecipientField = this.hexToField(attestation.recipient)
-      const attestationTxHashField = this.hexToField(attestation.txHash)
-      const oracleSignature = Array.from(attestation.signature)
-      const oracleMessageHash = await this.computeOracleMessageHash(
-        attestation.recipient,
-        attestation.amount,
-        attestation.txHash,
-        attestation.blockNumber
-      )
+        const attestation = params.oracleAttestation
+        const attestationRecipientField = this.hexToField(attestation.recipient)
+        const attestationTxHashField = this.hexToField(attestation.txHash)
+        const oracleSignature = Array.from(attestation.signature)
+        const oracleMessageHash = await this.computeOracleMessageHash(
+          attestation.recipient,
+          attestation.amount,
+          attestation.txHash,
+          attestation.blockNumber
+        )
 
-      const oraclePubKeyX = this.config.oraclePublicKey?.x ?? new Array(32).fill(0)
-      const oraclePubKeyY = this.config.oraclePublicKey?.y ?? new Array(32).fill(0)
+        const oraclePubKeyX = this.config.oraclePublicKey?.x ?? new Array(32).fill(0)
+        const oraclePubKeyY = this.config.oraclePublicKey?.y ?? new Array(32).fill(0)
 
-      const witnessInputs = {
-        intent_hash: intentHashField,
-        output_commitment_x: commitmentX,
-        output_commitment_y: commitmentY,
-        recipient_stealth: recipientStealthField,
-        min_output_amount: params.minOutputAmount.toString(),
-        solver_id: solverId,
-        fulfillment_time: params.fulfillmentTime.toString(),
-        expiry: params.expiry.toString(),
-        output_amount: params.outputAmount.toString(),
-        output_blinding: outputBlindingField,
-        solver_secret: solverSecretField,
-        attestation_recipient: attestationRecipientField,
-        attestation_amount: attestation.amount.toString(),
-        attestation_tx_hash: attestationTxHashField,
-        attestation_block: attestation.blockNumber.toString(),
-        oracle_signature: oracleSignature,
-        oracle_message_hash: oracleMessageHash,
-        oracle_pub_key_x: oraclePubKeyX,
-        oracle_pub_key_y: oraclePubKeyY,
+        // Noir expects field values as hex strings with 0x prefix
+        const witnessInputs = {
+          intent_hash: `0x${intentHashField}`,
+          output_commitment_x: `0x${commitmentX}`,
+          output_commitment_y: `0x${commitmentY}`,
+          recipient_stealth: `0x${recipientStealthField}`,
+          min_output_amount: params.minOutputAmount.toString(),
+          solver_id: `0x${solverId}`,
+          fulfillment_time: params.fulfillmentTime.toString(),
+          expiry: params.expiry.toString(),
+          output_amount: params.outputAmount.toString(),
+          output_blinding: `0x${outputBlindingField}`,
+          solver_secret: `0x${solverSecretField}`,
+          attestation_recipient: `0x${attestationRecipientField}`,
+          attestation_amount: attestation.amount.toString(),
+          attestation_tx_hash: `0x${attestationTxHashField}`,
+          attestation_block: attestation.blockNumber.toString(),
+          oracle_signature: oracleSignature,
+          oracle_message_hash: oracleMessageHash,
+          oracle_pub_key_x: oraclePubKeyX,
+          oracle_pub_key_y: oraclePubKeyY,
+        }
+
+        onProgress?.({
+          stage: 'witness',
+          percent: 30,
+          message: 'Generating witness...',
+        })
+
+        const { witness } = await this.fulfillmentNoir!.execute(witnessInputs)
+
+        onProgress?.({
+          stage: 'proving',
+          percent: 50,
+          message: 'Generating fulfillment proof...',
+        })
+
+        const proofData = await this.fulfillmentBackend!.generateProof(witness)
+
+        onProgress?.({
+          stage: 'complete',
+          percent: 100,
+          message: 'Fulfillment proof generated',
+        })
+
+        const publicInputs: `0x${string}`[] = [
+          `0x${intentHashField}`,
+          `0x${commitmentX}`,
+          `0x${commitmentY}`,
+          `0x${recipientStealthField}`,
+          `0x${params.minOutputAmount.toString(16).padStart(16, '0')}`,
+          `0x${solverId}`,
+          `0x${params.fulfillmentTime.toString(16).padStart(16, '0')}`,
+          `0x${params.expiry.toString(16).padStart(16, '0')}`,
+        ]
+
+        const proof: ZKProof = {
+          type: 'fulfillment',
+          proof: `0x${bytesToHex(proofData.proof)}`,
+          publicInputs,
+        }
+
+        return { proof, publicInputs }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        throw new ProofGenerationError(
+          'fulfillment',
+          `Failed to generate fulfillment proof: ${message}`,
+          error instanceof Error ? error : undefined
+        )
       }
-
-      onProgress?.({
-        stage: 'witness',
-        percent: 30,
-        message: 'Generating witness...',
-      })
-
-      const { witness } = await this.fulfillmentNoir.execute(witnessInputs)
-
-      onProgress?.({
-        stage: 'proving',
-        percent: 50,
-        message: 'Generating fulfillment proof...',
-      })
-
-      const proofData = await this.fulfillmentBackend.generateProof(witness)
-
-      onProgress?.({
-        stage: 'complete',
-        percent: 100,
-        message: 'Fulfillment proof generated',
-      })
-
-      const publicInputs: `0x${string}`[] = [
-        `0x${intentHashField}`,
-        `0x${commitmentX}`,
-        `0x${commitmentY}`,
-        `0x${recipientStealthField}`,
-        `0x${params.minOutputAmount.toString(16).padStart(16, '0')}`,
-        `0x${solverId}`,
-        `0x${params.fulfillmentTime.toString(16).padStart(16, '0')}`,
-        `0x${params.expiry.toString(16).padStart(16, '0')}`,
-      ]
-
-      const proof: ZKProof = {
-        type: 'fulfillment',
-        proof: `0x${bytesToHex(proofData.proof)}`,
-        publicInputs,
-      }
-
-      return { proof, publicInputs }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      throw new ProofGenerationError(
-        'fulfillment',
-        `Failed to generate fulfillment proof: ${message}`,
-        error instanceof Error ? error : undefined
-      )
-    }
+    })
   }
 
   /**
@@ -891,24 +931,29 @@ export class BrowserNoirProvider implements ProofProvider {
       )
     }
 
-    try {
-      const proofHex = proof.proof.startsWith('0x') ? proof.proof.slice(2) : proof.proof
-      const proofBytes = hexToBytes(proofHex)
+    const backendToUse = backend
 
-      const isValid = await backend.verifyProof({
-        proof: proofBytes,
-        publicInputs: proof.publicInputs.map((input) =>
-          input.startsWith('0x') ? input.slice(2) : input
-        ),
-      })
+    // Use mutex to prevent concurrent WASM access (causes BorrowMutError)
+    return this.acquireWasmLock(async () => {
+      try {
+        const proofHex = proof.proof.startsWith('0x') ? proof.proof.slice(2) : proof.proof
+        const proofBytes = hexToBytes(proofHex)
 
-      return isValid
-    } catch (error) {
-      if (this.config.verbose) {
-        console.error('[BrowserNoirProvider] Verification error:', error)
+        const isValid = await backendToUse.verifyProof({
+          proof: proofBytes,
+          publicInputs: proof.publicInputs.map((input) =>
+            input.startsWith('0x') ? input.slice(2) : input
+          ),
+        })
+
+        return isValid
+      } catch (error) {
+        if (this.config.verbose) {
+          console.error('[BrowserNoirProvider] Verification error:', error)
+        }
+        return false
       }
-      return false
-    }
+    })
   }
 
   /**
@@ -938,6 +983,34 @@ export class BrowserNoirProvider implements ProofProvider {
   }
 
   // ─── Private Utility Methods ────────────────────────────────────────────────
+
+  /**
+   * Acquire WASM mutex lock for exclusive access
+   *
+   * The ACVM WASM module uses Rust RefCell internally which panics on
+   * concurrent mutable borrows. This mutex ensures serial execution.
+   */
+  private async acquireWasmLock<T>(operation: () => Promise<T>): Promise<T> {
+    // Wait for any pending operation to complete
+    const previousLock = this.wasmMutex
+
+    // Create a new lock that will be released when our operation completes
+    let releaseLock: () => void
+    this.wasmMutex = new Promise<void>((resolve) => {
+      releaseLock = resolve
+    })
+
+    try {
+      // Wait for previous operation
+      await previousLock
+
+      // Execute our operation
+      return await operation()
+    } finally {
+      // Release the lock
+      releaseLock!()
+    }
+  }
 
   private ensureReady(): void {
     if (!this._isReady) {
@@ -982,13 +1055,20 @@ export class BrowserNoirProvider implements ProofProvider {
     return result.toString(16).padStart(64, '0')
   }
 
-  private bytesToField(bytes: Uint8Array): string {
+  private bytesToField(bytes: Uint8Array | ArrayLike<number>): string {
+    // Ensure we have a proper Uint8Array (handles bundler serialization)
+    const arr = this.ensureUint8Array(bytes)
     let result = 0n
-    const len = Math.min(bytes.length, 31)
+    // Read all bytes (up to 32) to capture full value
+    const len = Math.min(arr.length, 32)
     for (let i = 0; i < len; i++) {
-      result = result * 256n + BigInt(bytes[i])
+      result = result * 256n + BigInt(arr[i])
     }
-    return result.toString()
+    // Reduce modulo BN254 if value exceeds field modulus
+    const reduced = result % BrowserNoirProvider.BN254_MODULUS
+    // Return hex format WITHOUT prefix (consistent with hexToField)
+    // Prefix is added when building witnessInputs for Noir
+    return reduced.toString(16).padStart(64, '0')
   }
 
   private bigintToBytes(value: bigint, length: number): Uint8Array {
@@ -1001,9 +1081,68 @@ export class BrowserNoirProvider implements ProofProvider {
     return bytes
   }
 
+  /**
+   * Ensure input is a proper Uint8Array (handles serialization from bundlers)
+   *
+   * When Uint8Array passes through Next.js/bundlers, several issues can occur:
+   * 1. Object becomes {0: x, 1: y, ...} (plain object with numeric keys)
+   * 2. ArrayBuffer gets detached, making Array.from() return empty
+   * 3. instanceof checks fail across different execution contexts
+   *
+   * This implementation ALWAYS reads bytes by index to be robust against all cases.
+   */
+  private ensureUint8Array(input: Uint8Array | ArrayLike<number> | Record<string, unknown>): Uint8Array {
+    // Determine length from object properties
+    let length = 0
+
+    if (typeof input === 'object' && input !== null) {
+      // Try to get length from the object
+      if ('length' in input && typeof (input as { length: unknown }).length === 'number') {
+        length = (input as { length: number }).length
+      } else if ('byteLength' in input && typeof (input as { byteLength: unknown }).byteLength === 'number') {
+        // ArrayBuffer or TypedArray with byteLength
+        length = (input as { byteLength: number }).byteLength
+      } else {
+        // Count numeric keys for plain objects like {0: x, 1: y, ...}
+        const numericKeys = Object.keys(input).filter(k => /^\d+$/.test(k))
+        length = numericKeys.length > 0 ? Math.max(...numericKeys.map(Number)) + 1 : 0
+      }
+    }
+
+    // Create result array and copy bytes by index
+    const result = new Uint8Array(length)
+    for (let i = 0; i < length; i++) {
+      // Access by index - works for Uint8Array, Array, and plain objects
+      const val = (input as Record<number, unknown>)[i]
+      if (typeof val === 'number') {
+        result[i] = val & 0xff
+      } else if (val !== undefined && val !== null) {
+        result[i] = Number(val) & 0xff
+      }
+      // else: leave as 0 (default)
+    }
+
+    return result
+  }
+
+  // BN254 scalar field modulus (the max value Noir Field can hold)
+  private static readonly BN254_MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617n
+
+  /**
+   * Convert hex to field element, reducing modulo BN254 if needed.
+   *
+   * Noir's Field type uses the BN254 scalar field (~254 bits).
+   * SHA256 hashes are 256-bit, so they can exceed the field modulus.
+   * We reduce modulo the field to ensure valid witness values.
+   */
   private hexToField(hex: string): string {
     const h = hex.startsWith('0x') ? hex.slice(2) : hex
-    return h.padStart(64, '0')
+    const value = BigInt('0x' + h)
+
+    // Reduce modulo BN254 if value exceeds field modulus
+    const reduced = value % BrowserNoirProvider.BN254_MODULUS
+
+    return reduced.toString(16).padStart(64, '0')
   }
 
   private fieldToBytes32(field: string): number[] {
@@ -1015,39 +1154,147 @@ export class BrowserNoirProvider implements ProofProvider {
     return bytes
   }
 
+  /**
+   * Compute sender commitment using Pedersen commitment (matches Noir stdlib).
+   *
+   * The Noir circuit computes: pedersen_commitment([sender_address, sender_blinding])
+   * We use Barretenberg's native Pedersen to ensure consistency.
+   */
   private async computeSenderCommitment(
     senderAddressField: string,
     senderBlindingField: string
   ): Promise<{ commitmentX: string; commitmentY: string }> {
-    const { sha256 } = await import('@noble/hashes/sha256')
-    const { bytesToHex: nobleToHex } = await import('@noble/hashes/utils')
+    // Import Barretenberg for Pedersen commitment
+    const { Barretenberg } = await import('@aztec/bb.js')
 
-    const addressBytes = hexToBytes(senderAddressField)
-    const blindingBytes = hexToBytes(senderBlindingField.padStart(64, '0'))
-    const preimage = new Uint8Array([...addressBytes, ...blindingBytes])
-    const hash = sha256(preimage)
+    // Create Barretenberg instance for Pedersen computation
+    const api = await Barretenberg.new()
 
-    const commitmentX = nobleToHex(hash.slice(0, 16)).padStart(64, '0')
-    const commitmentY = nobleToHex(hash.slice(16, 32)).padStart(64, '0')
+    try {
+      // Convert hex strings to Uint8Array (Fr in bb.js is just Uint8Array)
+      const addressBytes = hexToBytes(senderAddressField.padStart(64, '0'))
+      const blindingBytes = hexToBytes(senderBlindingField.padStart(64, '0'))
 
-    return { commitmentX, commitmentY }
+      // Compute Pedersen commitment - matches Noir's pedersen_commitment([addr, blinding])
+      // hashIndex 0 is the default generator index
+      const result = await api.pedersenCommit({ inputs: [addressBytes, blindingBytes], hashIndex: 0 })
+
+      // Extract x and y coordinates from the point (they're Uint8Arrays)
+      const commitmentX = bytesToHex(result.point.x).padStart(64, '0')
+      const commitmentY = bytesToHex(result.point.y).padStart(64, '0')
+
+      return { commitmentX, commitmentY }
+    } finally {
+      await api.destroy()
+    }
   }
 
+  /**
+   * Compute nullifier using Pedersen hash (matches Noir stdlib).
+   *
+   * The Noir circuit computes: pedersen_hash([sender_secret, intent_hash, nonce])
+   * We use Barretenberg's native Pedersen hash to ensure consistency.
+   */
   private async computeNullifier(
     senderSecretField: string,
     intentHashField: string,
     nonceField: string
   ): Promise<string> {
-    const { sha256 } = await import('@noble/hashes/sha256')
-    const { bytesToHex: nobleToHex } = await import('@noble/hashes/utils')
+    // Import Barretenberg for Pedersen hash
+    const { Barretenberg } = await import('@aztec/bb.js')
 
-    const secretBytes = hexToBytes(senderSecretField.padStart(64, '0'))
-    const intentBytes = hexToBytes(intentHashField)
-    const nonceBytes = hexToBytes(nonceField.padStart(64, '0'))
-    const preimage = new Uint8Array([...secretBytes, ...intentBytes, ...nonceBytes])
-    const hash = sha256(preimage)
+    // Create Barretenberg instance for Pedersen computation
+    const api = await Barretenberg.new()
 
-    return nobleToHex(hash)
+    try {
+      // Convert hex strings to Uint8Array (Fr in bb.js is just Uint8Array)
+      const secretBytes = hexToBytes(senderSecretField.padStart(64, '0'))
+      const intentBytes = hexToBytes(intentHashField.padStart(64, '0'))
+      const nonceBytes = hexToBytes(nonceField.padStart(64, '0'))
+
+      // Compute Pedersen hash - matches Noir's pedersen_hash([secret, intent, nonce])
+      // hashIndex 0 is the default generator index
+      const result = await api.pedersenHash({ inputs: [secretBytes, intentBytes, nonceBytes], hashIndex: 0 })
+
+      // Convert hash result to hex string (without 0x prefix)
+      const nullifier = bytesToHex(result.hash).padStart(64, '0')
+
+      return nullifier
+    } finally {
+      await api.destroy()
+    }
+  }
+
+  /**
+   * Reduce a hex string value modulo the BN254 field modulus.
+   * Used for SHA256 outputs that may exceed the field.
+   */
+  private reduceToField(hex: string): string {
+    const h = hex.startsWith('0x') ? hex.slice(2) : hex
+    const value = BigInt('0x' + h)
+    const reduced = value % BrowserNoirProvider.BN254_MODULUS
+    return reduced.toString(16).padStart(64, '0')
+  }
+
+  // secp256k1 curve order
+  private static readonly SECP256K1_ORDER = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141n
+  // Half of the curve order (for signature normalization)
+  private static readonly SECP256K1_HALF_ORDER = BrowserNoirProvider.SECP256K1_ORDER / 2n
+
+  /**
+   * Normalize ECDSA signature to low-s form (BIP-0062).
+   *
+   * Noir's ecdsa_secp256k1::verify_signature requires s <= order/2.
+   * If s > order/2, we replace it with order - s.
+   *
+   * @param signature - 64-byte signature (r || s)
+   * @returns Normalized signature with low-s
+   */
+  private normalizeSignature(signature: Uint8Array): Uint8Array {
+    const sig = this.ensureUint8Array(signature)
+
+    if (sig.length !== 64) {
+      console.warn(`[BrowserNoirProvider] Unexpected signature length: ${sig.length}, expected 64`)
+      return sig
+    }
+
+    // Extract r (first 32 bytes) and s (last 32 bytes)
+    const r = sig.slice(0, 32)
+    const s = sig.slice(32, 64)
+
+    // Convert s to BigInt
+    let sValue = 0n
+    for (let i = 0; i < 32; i++) {
+      sValue = sValue * 256n + BigInt(s[i])
+    }
+
+    // Check if s needs normalization (s > order/2)
+    if (sValue > BrowserNoirProvider.SECP256K1_HALF_ORDER) {
+      // Normalize: s' = order - s
+      const normalizedS = BrowserNoirProvider.SECP256K1_ORDER - sValue
+
+      // Convert back to bytes
+      const normalizedSBytes = new Uint8Array(32)
+      let temp = normalizedS
+      for (let i = 31; i >= 0; i--) {
+        normalizedSBytes[i] = Number(temp & 0xffn)
+        temp = temp >> 8n
+      }
+
+      // Return normalized signature (r || s')
+      const result = new Uint8Array(64)
+      result.set(r, 0)
+      result.set(normalizedSBytes, 32)
+
+      if (this.config.verbose) {
+        console.log('[BrowserNoirProvider] Normalized signature s-value (was > order/2)')
+      }
+
+      return result
+    }
+
+    // s is already in low form
+    return sig
   }
 
   private async computeOutputCommitment(
@@ -1075,7 +1322,8 @@ export class BrowserNoirProvider implements ProofProvider {
     const secretBytes = hexToBytes(solverSecretField.padStart(64, '0'))
     const hash = sha256(secretBytes)
 
-    return nobleToHex(hash)
+    // Reduce modulo BN254 to ensure valid field element
+    return this.reduceToField(nobleToHex(hash))
   }
 
   private async computeOracleMessageHash(

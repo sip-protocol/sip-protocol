@@ -113,7 +113,12 @@ export function generateStealthMetaAddress(
     )
   }
 
-  // Generate random private keys
+  // Dispatch to curve-specific implementation
+  if (isEd25519Chain(chain)) {
+    return generateEd25519StealthMetaAddress(chain, label)
+  }
+
+  // secp256k1 implementation for EVM chains
   const spendingPrivateKey = randomBytes(32)
   const viewingPrivateKey = randomBytes(32)
 
@@ -144,6 +149,7 @@ export function generateStealthMetaAddress(
 
 /**
  * Validate a StealthMetaAddress object
+ * Supports both secp256k1 (EVM chains) and ed25519 (Solana, NEAR, etc.) key formats
  */
 function validateStealthMetaAddress(
   metaAddress: StealthMetaAddress,
@@ -161,20 +167,37 @@ function validateStealthMetaAddress(
     )
   }
 
-  // Validate spending key
-  if (!isValidCompressedPublicKey(metaAddress.spendingKey)) {
-    throw new ValidationError(
-      'spendingKey must be a valid compressed secp256k1 public key (33 bytes, starting with 02 or 03)',
-      `${field}.spendingKey`
-    )
-  }
+  // Determine key type based on chain (ed25519 vs secp256k1)
+  const isEd25519 = isEd25519Chain(metaAddress.chain)
 
-  // Validate viewing key
-  if (!isValidCompressedPublicKey(metaAddress.viewingKey)) {
-    throw new ValidationError(
-      'viewingKey must be a valid compressed secp256k1 public key (33 bytes, starting with 02 or 03)',
-      `${field}.viewingKey`
-    )
+  if (isEd25519) {
+    // Ed25519 chains (Solana, NEAR, Aptos, Sui) use 32-byte public keys
+    if (!isValidEd25519PublicKey(metaAddress.spendingKey)) {
+      throw new ValidationError(
+        'spendingKey must be a valid ed25519 public key (32 bytes)',
+        `${field}.spendingKey`
+      )
+    }
+    if (!isValidEd25519PublicKey(metaAddress.viewingKey)) {
+      throw new ValidationError(
+        'viewingKey must be a valid ed25519 public key (32 bytes)',
+        `${field}.viewingKey`
+      )
+    }
+  } else {
+    // Secp256k1 chains (Ethereum, etc.) use 33-byte compressed public keys
+    if (!isValidCompressedPublicKey(metaAddress.spendingKey)) {
+      throw new ValidationError(
+        'spendingKey must be a valid compressed secp256k1 public key (33 bytes, starting with 02 or 03)',
+        `${field}.spendingKey`
+      )
+    }
+    if (!isValidCompressedPublicKey(metaAddress.viewingKey)) {
+      throw new ValidationError(
+        'viewingKey must be a valid compressed secp256k1 public key (33 bytes, starting with 02 or 03)',
+        `${field}.viewingKey`
+      )
+    }
   }
 }
 
@@ -251,7 +274,12 @@ export function generateStealthAddress(
   // Validate input
   validateStealthMetaAddress(recipientMetaAddress)
 
-  // Generate ephemeral keypair
+  // Dispatch to curve-specific implementation based on chain
+  if (isEd25519Chain(recipientMetaAddress.chain)) {
+    return generateEd25519StealthAddress(recipientMetaAddress)
+  }
+
+  // secp256k1 implementation for EVM chains
   const ephemeralPrivateKey = randomBytes(32)
 
   try {

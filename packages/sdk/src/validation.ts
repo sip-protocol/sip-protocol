@@ -118,9 +118,11 @@ export function isValidSlippage(value: number): boolean {
 /**
  * SIP stealth meta-address format:
  * sip:<chain>:<spendingKey>:<viewingKey>
- * Each key is 33 bytes compressed (66 hex chars with 0x prefix)
+ * Keys can be:
+ * - secp256k1: 33 bytes compressed (66 hex chars with 0x prefix)
+ * - ed25519: 32 bytes (64 hex chars with 0x prefix)
  */
-const STEALTH_META_ADDRESS_REGEX = /^sip:[a-z]+:0x[0-9a-fA-F]{66}:0x[0-9a-fA-F]{66}$/
+const STEALTH_META_ADDRESS_REGEX = /^sip:[a-z]+:0x[0-9a-fA-F]{64,66}:0x[0-9a-fA-F]{64,66}$/
 
 /**
  * Check if a string is a valid stealth meta-address

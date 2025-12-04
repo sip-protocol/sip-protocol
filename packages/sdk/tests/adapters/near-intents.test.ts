@@ -230,15 +230,17 @@ describe('NEARIntentsAdapter', () => {
     }
 
     it('should prepare swap for transparent mode without stealth', async () => {
+      // Recipient must be EVM address since output chain is Ethereum
+      const evmRecipient = '0x1234567890123456789012345678901234567890'
       const prepared = await adapter.prepareSwap(
         nearTransparentRequest,
         undefined,
-        'user.near'
+        evmRecipient
       )
 
       expect(prepared.stealthAddress).toBeUndefined()
       expect(prepared.sharedSecret).toBeUndefined()
-      expect(prepared.quoteRequest.recipient).toBe('user.near')
+      expect(prepared.quoteRequest.recipient).toBe(evmRecipient)
     })
 
     it('should throw if stealth meta-address missing for shielded mode', async () => {

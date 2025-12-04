@@ -161,7 +161,7 @@ export class OneClickClient {
    *
    * @param depositAddress - Deposit address from quote
    * @param depositMemo - Optional memo for memo-based deposits
-   * @returns Current swap status
+   * @returns Current swap status with normalized transaction hashes
    */
   async getStatus(depositAddress: string, depositMemo?: string): Promise<OneClickStatusResponse> {
     if (!depositAddress) {
@@ -173,7 +173,33 @@ export class OneClickClient {
       params.set('depositMemo', depositMemo)
     }
 
-    return this.get<OneClickStatusResponse>(`/v0/status?${params.toString()}`)
+    // Type for raw API response with nested swapDetails
+    interface RawStatusResponse extends OneClickStatusResponse {
+      swapDetails?: {
+        destinationChainTxHashes?: { hash: string; explorerUrl: string }[]
+        originChainTxHashes?: { hash: string; explorerUrl: string }[]
+        nearTxHashes?: string[]
+      }
+    }
+
+    const rawStatus = await this.get<RawStatusResponse>(`/v0/status?${params.toString()}`)
+
+    // Normalize response: extract settlement tx hash from swapDetails.destinationChainTxHashes
+    // The 1Click API returns tx hashes nested inside swapDetails object
+    const settlementTxHash = rawStatus.settlementTxHash
+      ?? rawStatus.swapDetails?.destinationChainTxHashes?.[0]?.hash
+      ?? rawStatus.destinationChainTxHashes?.[0]?.hash // fallback for flat response
+
+    // Extract deposit tx hash from swapDetails.originChainTxHashes if not already present
+    const depositTxHash = rawStatus.depositTxHash
+      ?? rawStatus.swapDetails?.originChainTxHashes?.[0]?.hash
+      ?? rawStatus.originChainTxHashes?.[0]?.hash // fallback for flat response
+
+    return {
+      ...rawStatus,
+      settlementTxHash,
+      depositTxHash,
+    }
   }
 
   /**

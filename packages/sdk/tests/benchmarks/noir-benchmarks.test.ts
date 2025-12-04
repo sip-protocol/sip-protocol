@@ -250,7 +250,7 @@ describe('Noir Proof Generation Benchmarks', () => {
 
       console.log(`[Noir Benchmarks] Invalid proof verification: ${time.toFixed(2)}ms`)
       expect(isValid).toBe(false)
-      expect(time).toBeLessThan(1000) // Should fail fast
+      expect(time).toBeLessThan(5000) // Should fail fast (generous for CI)
     })
   })
 

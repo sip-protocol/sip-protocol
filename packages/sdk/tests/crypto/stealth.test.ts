@@ -22,11 +22,11 @@ describe('Stealth Addresses', () => {
   describe('generateStealthMetaAddress()', () => {
     it('should generate valid meta-address', () => {
       const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
-        generateStealthMetaAddress('near' as ChainId)
+        generateStealthMetaAddress('ethereum' as ChainId)
 
       expect(metaAddress.spendingKey).toBeDefined()
       expect(metaAddress.viewingKey).toBeDefined()
-      expect(metaAddress.chain).toBe('near')
+      expect(metaAddress.chain).toBe('ethereum')
 
       // Keys should be valid hex
       expect(metaAddress.spendingKey.startsWith('0x')).toBe(true)
@@ -42,8 +42,8 @@ describe('Stealth Addresses', () => {
     })
 
     it('should generate different keys each time', () => {
-      const gen1 = generateStealthMetaAddress('near' as ChainId)
-      const gen2 = generateStealthMetaAddress('near' as ChainId)
+      const gen1 = generateStealthMetaAddress('ethereum' as ChainId)
+      const gen2 = generateStealthMetaAddress('ethereum' as ChainId)
 
       expect(gen1.metaAddress.spendingKey).not.toBe(gen2.metaAddress.spendingKey)
       expect(gen1.metaAddress.viewingKey).not.toBe(gen2.metaAddress.viewingKey)
@@ -58,7 +58,7 @@ describe('Stealth Addresses', () => {
 
     it('should derive valid public keys from private keys', () => {
       const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
-        generateStealthMetaAddress('near' as ChainId)
+        generateStealthMetaAddress('ethereum' as ChainId)
 
       // Derive public key from private key and compare
       const derivedSpending = secp256k1.getPublicKey(
@@ -77,7 +77,7 @@ describe('Stealth Addresses', () => {
 
   describe('generateStealthAddress()', () => {
     it('should generate valid stealth address for recipient', () => {
-      const { metaAddress } = generateStealthMetaAddress('near' as ChainId)
+      const { metaAddress } = generateStealthMetaAddress('ethereum' as ChainId)
       const { stealthAddress, sharedSecret } = generateStealthAddress(metaAddress)
 
       expect(stealthAddress.address).toBeDefined()
@@ -100,7 +100,7 @@ describe('Stealth Addresses', () => {
     })
 
     it('should generate different addresses for same recipient', () => {
-      const { metaAddress } = generateStealthMetaAddress('near' as ChainId)
+      const { metaAddress } = generateStealthMetaAddress('ethereum' as ChainId)
 
       const addr1 = generateStealthAddress(metaAddress)
       const addr2 = generateStealthAddress(metaAddress)
@@ -113,8 +113,8 @@ describe('Stealth Addresses', () => {
     })
 
     it('should generate different addresses for different recipients', () => {
-      const recipient1 = generateStealthMetaAddress('near' as ChainId)
-      const recipient2 = generateStealthMetaAddress('near' as ChainId)
+      const recipient1 = generateStealthMetaAddress('ethereum' as ChainId)
+      const recipient2 = generateStealthMetaAddress('ethereum' as ChainId)
 
       const addr1 = generateStealthAddress(recipient1.metaAddress)
       const addr2 = generateStealthAddress(recipient2.metaAddress)
@@ -126,7 +126,7 @@ describe('Stealth Addresses', () => {
   describe('deriveStealthPrivateKey()', () => {
     it('should derive correct private key for stealth address', () => {
       const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
-        generateStealthMetaAddress('near' as ChainId)
+        generateStealthMetaAddress('ethereum' as ChainId)
       const { stealthAddress } = generateStealthAddress(metaAddress)
 
       const recovery = deriveStealthPrivateKey(
@@ -149,7 +149,7 @@ describe('Stealth Addresses', () => {
 
     it('should work for multiple stealth addresses', () => {
       const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
-        generateStealthMetaAddress('near' as ChainId)
+        generateStealthMetaAddress('ethereum' as ChainId)
 
       // Generate multiple stealth addresses
       for (let i = 0; i < 5; i++) {
@@ -174,7 +174,7 @@ describe('Stealth Addresses', () => {
   describe('checkStealthAddress()', () => {
     it('should return true for own stealth address', () => {
       const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
-        generateStealthMetaAddress('near' as ChainId)
+        generateStealthMetaAddress('ethereum' as ChainId)
       const { stealthAddress } = generateStealthAddress(metaAddress)
 
       const isOurs = checkStealthAddress(
@@ -187,8 +187,8 @@ describe('Stealth Addresses', () => {
     })
 
     it('should return false for someone else\'s stealth address', () => {
-      const recipient1 = generateStealthMetaAddress('near' as ChainId)
-      const recipient2 = generateStealthMetaAddress('near' as ChainId)
+      const recipient1 = generateStealthMetaAddress('ethereum' as ChainId)
+      const recipient2 = generateStealthMetaAddress('ethereum' as ChainId)
 
       // Generate address for recipient1
       const { stealthAddress } = generateStealthAddress(recipient1.metaAddress)
@@ -205,7 +205,7 @@ describe('Stealth Addresses', () => {
 
     it('should use view tag for efficient filtering', () => {
       const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
-        generateStealthMetaAddress('near' as ChainId)
+        generateStealthMetaAddress('ethereum' as ChainId)
       const { stealthAddress } = generateStealthAddress(metaAddress)
 
       // Create a modified stealth address with wrong view tag
@@ -227,7 +227,7 @@ describe('Stealth Addresses', () => {
 
     it('should handle multiple addresses efficiently', () => {
       const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
-        generateStealthMetaAddress('near' as ChainId)
+        generateStealthMetaAddress('ethereum' as ChainId)
 
       // Generate many addresses from different senders
       const addresses = []
@@ -245,11 +245,11 @@ describe('Stealth Addresses', () => {
 
   describe('encodeStealthMetaAddress() / decodeStealthMetaAddress()', () => {
     it('should encode meta-address to string', () => {
-      const { metaAddress } = generateStealthMetaAddress('near' as ChainId)
+      const { metaAddress } = generateStealthMetaAddress('ethereum' as ChainId)
       const encoded = encodeStealthMetaAddress(metaAddress)
 
       expect(encoded.startsWith('sip:')).toBe(true)
-      expect(encoded).toContain(':near:')
+      expect(encoded).toContain(':ethereum:')
       expect(encoded).toContain(metaAddress.spendingKey)
       expect(encoded).toContain(metaAddress.viewingKey)
     })
@@ -301,7 +301,7 @@ describe('Stealth Addresses', () => {
   describe('End-to-End Flow', () => {
     it('should complete full stealth payment flow', () => {
       // 1. Recipient generates and publishes meta-address
-      const recipient = generateStealthMetaAddress('near' as ChainId, 'Bob')
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId, 'Bob')
 
       // 2. Sender generates stealth address for payment
       const { stealthAddress } = generateStealthAddress(recipient.metaAddress)
@@ -333,7 +333,8 @@ describe('Stealth Addresses', () => {
     })
 
     it('should support multiple senders to same recipient', () => {
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      // Use EVM chain (secp256k1) since we're testing secp256k1 operations below
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
 
       // Multiple senders generate stealth addresses
       const payments = Array.from({ length: 5 }, () =>
@@ -367,7 +368,8 @@ describe('Stealth Addresses', () => {
 
   describe('Security Properties', () => {
     it('stealth addresses should be unlinkable', () => {
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      // Use EVM chain (secp256k1) for consistency with other tests
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
 
       // Generate many stealth addresses for same recipient
       const addresses = Array.from({ length: 100 }, () =>
@@ -380,11 +382,12 @@ describe('Stealth Addresses', () => {
     })
 
     it('cannot derive private key without spending private key', () => {
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      // Use EVM chain (secp256k1) since we're testing secp256k1 operations below
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
       const { stealthAddress } = generateStealthAddress(recipient.metaAddress)
 
       // Try with wrong spending key - should produce different result
-      const wrongSpendingKey = generateStealthMetaAddress('near' as ChainId).spendingPrivateKey
+      const wrongSpendingKey = generateStealthMetaAddress('ethereum' as ChainId).spendingPrivateKey
 
       const recovery = deriveStealthPrivateKey(
         stealthAddress,
@@ -408,7 +411,8 @@ describe('Stealth Addresses', () => {
     it('should handle scalar addition wrapping around curve order', () => {
       // Generate many stealth addresses and verify all produce valid keys
       // This probabilistically tests that scalar arithmetic near order boundaries works
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      // Use EVM chain (secp256k1) for these tests since we're testing secp256k1 arithmetic
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
 
       for (let i = 0; i < 50; i++) {
         const { stealthAddress } = generateStealthAddress(recipient.metaAddress)
@@ -438,7 +442,8 @@ describe('Stealth Addresses', () => {
     it('should produce valid stealth addresses with high-value scalars', () => {
       // Test that the system handles large scalar values correctly
       // by verifying the full round-trip works
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      // Use EVM chain (secp256k1) for these tests since we're testing secp256k1 arithmetic
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
 
       // Generate 100 addresses and verify all are unique and valid
       const results: Array<{ address: string; privateKey: string }> = []
@@ -480,7 +485,8 @@ describe('Stealth Addresses', () => {
 
       // We can't easily force a zero scalar in practice, but we verify
       // the code path exists by checking the error message format
-      const recipient = generateStealthMetaAddress('near' as ChainId)
+      // Use EVM chain (secp256k1) for these tests since we're testing secp256k1 arithmetic
+      const recipient = generateStealthMetaAddress('ethereum' as ChainId)
 
       // Generate addresses - none should throw (zero is ~2^-252 probability)
       // If any did throw, it would contain "CRITICAL: Zero"

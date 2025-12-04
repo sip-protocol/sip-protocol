@@ -175,7 +175,8 @@ describe('NEAR Intents Integration', () => {
         outputAsset: NATIVE_TOKENS.ethereum,
       }
 
-      const senderAddress = 'user.near'
+      // Recipient must be EVM address since output chain is Ethereum
+      const senderAddress = '0x1234567890123456789012345678901234567890'
       const prepared = await adapter.prepareSwap(request, undefined, senderAddress)
 
       expect(prepared.stealthAddress).toBeUndefined()
