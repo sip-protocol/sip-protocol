@@ -345,7 +345,7 @@ describe('ComplianceReporter', () => {
       await expect(
         reporter.generateAuditReport({
           viewingKey,
-          transactions: ''not-an-array' as any' as unknown as string,
+          transactions: 'not-an-array' as unknown as string,
           format: 'json',
         })
       ).rejects.toThrow('transactions must be an array')
@@ -356,7 +356,7 @@ describe('ComplianceReporter', () => {
         reporter.generateAuditReport({
           viewingKey,
           transactions: encryptedTransactions,
-          format: ''xml' as any' as unknown as string,
+          format: 'xml' as unknown as string,
         })
       ).rejects.toThrow('only JSON and PDF formats are supported')
     })

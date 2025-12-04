@@ -79,7 +79,7 @@ describe('Cosmos Stealth Addresses', () => {
 
     it('should throw error for invalid chain', () => {
       expect(() => {
-        service.generateStealthMetaAddress(''invalid-chain' as any' as unknown as string)
+        service.generateStealthMetaAddress('invalid-chain' as unknown as string)
       }).toThrow(/invalid Cosmos chain/)
     })
   })
@@ -140,7 +140,7 @@ describe('Cosmos Stealth Addresses', () => {
       const validKey = new Uint8Array(33)
 
       expect(() => {
-        service.generateStealthAddress(validKey, validKey, ''invalid-chain' as any' as unknown as string)
+        service.generateStealthAddress(validKey, validKey, 'invalid-chain' as unknown as string)
       }).toThrow(/invalid Cosmos chain/)
     })
   })

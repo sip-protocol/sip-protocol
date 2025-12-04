@@ -131,7 +131,7 @@ describe('MockSolver', () => {
 
     it('should return false for unsupported chain', async () => {
       const intent = createMockVisibleIntent({
-        outputAsset: { ...NATIVE_TOKENS.ethereum, chain: ''bitcoin' as any' as unknown as string },
+        outputAsset: { ...NATIVE_TOKENS.ethereum, chain: 'bitcoin' as unknown as string },
       })
       const result = await solver.canHandle(intent)
       expect(result).toBe(false)
@@ -174,7 +174,7 @@ describe('MockSolver', () => {
 
     it('should return null for unsupported intent', async () => {
       const intent = createMockVisibleIntent({
-        outputAsset: { ...NATIVE_TOKENS.ethereum, chain: ''bitcoin' as any' as unknown as string },
+        outputAsset: { ...NATIVE_TOKENS.ethereum, chain: 'bitcoin' as unknown as string },
       })
       const quote = await solver.generateQuote(intent)
       expect(quote).toBeNull()

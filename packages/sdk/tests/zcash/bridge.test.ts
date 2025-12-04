@@ -218,7 +218,7 @@ describe('ZcashBridge', () => {
         await expect(
           bridge.bridgeToShielded({
             ...validParams,
-            sourceChain: ''' as any' as unknown as string,
+            sourceChain: '' as unknown as string,
           }),
         ).rejects.toThrow(ValidationError)
       })
@@ -227,7 +227,7 @@ describe('ZcashBridge', () => {
         await expect(
           bridge.bridgeToShielded({
             ...validParams,
-            sourceToken: ''' as any' as unknown as string,
+            sourceToken: '' as unknown as string,
           }),
         ).rejects.toThrow(ValidationError)
       })

@@ -185,7 +185,7 @@ describe('Cosmos IBC Stealth Transfers', () => {
 
       expect(() => {
         ibcService.createStealthIBCTransfer({
-          sourceChain: ''invalid-chain' as any' as unknown as string,
+          sourceChain: 'invalid-chain' as unknown as string,
           destChain: 'osmosis',
           recipientMetaAddress: recipient.metaAddress,
           amount: 1000000n,
@@ -564,7 +564,7 @@ describe('Cosmos IBC Stealth Transfers', () => {
 
     it('should throw error for unsupported chain pair', () => {
       expect(() => {
-        ibcService.getIBCChannel('sei', ''dydx' as any' as unknown as string)
+        ibcService.getIBCChannel('sei', 'dydx' as unknown as string)
       }).toThrow(/no IBC channel configured/)
     })
   })

@@ -750,8 +750,8 @@ describe('BIP-352 Silent Payments', () => {
     })
 
     it('hexToPrivateKey should reject invalid hex', () => {
-      expect(() => hexToPrivateKey(''invalid' as any' as unknown as string)).toThrow()
-      expect(() => hexToPrivateKey(''0x123' as any' as unknown as string)).toThrow()
+      expect(() => hexToPrivateKey('invalid' as unknown as string)).toThrow()
+      expect(() => hexToPrivateKey('0x123' as unknown as string)).toThrow()
     })
 
     it('hexToPublicKey should convert valid hex string', () => {
@@ -764,7 +764,7 @@ describe('BIP-352 Silent Payments', () => {
     })
 
     it('hexToPublicKey should reject invalid hex', () => {
-      expect(() => hexToPublicKey(''invalid' as any' as unknown as string)).toThrow()
+      expect(() => hexToPublicKey('invalid' as unknown as string)).toThrow()
     })
   })
 })

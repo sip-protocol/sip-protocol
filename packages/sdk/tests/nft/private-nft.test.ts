@@ -906,7 +906,7 @@ describe('PrivateNFT', () => {
       const nft = new PrivateNFT()
 
       expect(() => {
-        nft.scanForNFTs(new Uint8Array(32), new Uint8Array(32), ''not-an-array' as any' as unknown as string)
+        nft.scanForNFTs(new Uint8Array(32), new Uint8Array(32), 'not-an-array' as unknown as string)
       }).toThrow('transfers must be an array')
     })
   })

@@ -117,7 +117,7 @@ describe('Pedersen Commitments', () => {
     it('should handle invalid commitment format', () => {
       const { blinding } = commit(100n)
 
-      expect(verifyOpening(''0xinvalid' as any' as unknown as string, 100n, blinding)).toBe(false)
+      expect(verifyOpening('0xinvalid' as unknown as string, 100n, blinding)).toBe(false)
     })
   })
 

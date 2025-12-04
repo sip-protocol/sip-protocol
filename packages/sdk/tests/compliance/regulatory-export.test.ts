@@ -347,7 +347,7 @@ describe('ComplianceReporter - Regulatory Exports', () => {
       await expect(
         reporter.exportForRegulator({
           viewingKey,
-          transactions: ''not-an-array' as any' as unknown as string,
+          transactions: 'not-an-array' as unknown as string,
           jurisdiction: 'US',
           format: 'FATF',
         })
@@ -370,7 +370,7 @@ describe('ComplianceReporter - Regulatory Exports', () => {
         reporter.exportForRegulator({
           viewingKey,
           transactions: encryptedTransactions,
-          jurisdiction: ''INVALID' as any' as unknown as string,
+          jurisdiction: 'INVALID' as unknown as string,
           format: 'FATF',
         })
       ).rejects.toThrow('invalid jurisdiction')
@@ -393,7 +393,7 @@ describe('ComplianceReporter - Regulatory Exports', () => {
           viewingKey,
           transactions: encryptedTransactions,
           jurisdiction: 'US',
-          format: ''INVALID' as any' as unknown as string,
+          format: 'INVALID' as unknown as string,
         })
       ).rejects.toThrow('invalid format')
     })

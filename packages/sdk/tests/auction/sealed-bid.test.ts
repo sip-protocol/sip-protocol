@@ -198,7 +198,7 @@ describe('SealedBidAuction', () => {
         auction.createBid({
           auctionId: 'auction-1',
           amount: 100n,
-          salt: ''not-a-uint8array' as any' as unknown as string,
+          salt: 'not-a-uint8array' as unknown as string,
         })
       }).toThrow(ValidationError)
     })

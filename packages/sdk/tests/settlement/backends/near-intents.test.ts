@@ -95,7 +95,7 @@ describe('NEARIntentsBackend', () => {
 
     it('should validate supported chains', async () => {
       const params: QuoteParams = {
-        fromChain: ''unsupported-chain' as any' as unknown as string,
+        fromChain: 'unsupported-chain' as unknown as string,
         toChain: 'solana',
         fromToken: 'USDC',
         toToken: 'SOL',
