@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build
+        run: pnpm build
+
       - name: Type check
         run: pnpm typecheck
 
@@ -41,9 +44,6 @@ jobs:
           flags: sdk
           fail_ci_if_error: false
           verbose: true
-
-      - name: Build
-        run: pnpm build
 
   validate-circuits:
     runs-on: ubuntu-latest
