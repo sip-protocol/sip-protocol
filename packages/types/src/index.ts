@@ -179,7 +179,28 @@ export type {
   GenerateReportParams,
   DisclosureRequest,
   AuditLogEntry,
+  ComplianceMetrics,
 } from './compliance'
+
+// NFT Types
+export type {
+  PrivateNFTOwnership,
+  OwnershipProof,
+  CreatePrivateOwnershipParams,
+  ProveOwnershipParams,
+  OwnershipVerification,
+  TransferPrivatelyParams,
+  TransferResult,
+  NFTTransfer,
+  OwnedNFT,
+} from './nft'
+
+// Auction Types
+export type {
+  WinnerResult,
+  WinnerProof,
+  WinnerVerification,
+} from './auction'
 
 // Wallet Adapters
 export { WalletErrorCode } from './wallet'

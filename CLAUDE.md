@@ -14,7 +14,7 @@
 
 | Repo | Purpose | Tech Stack | Version |
 |------|---------|------------|---------|
-| `sip-protocol/sip-protocol` | **Core** - SDK + Types monorepo | TypeScript, Vitest | v0.2.3 |
+| `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.6.0 |
 | `sip-protocol/sip-website` | Demo app + Marketing site | Next.js 14, Tailwind | v0.1.0 |
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro, MDX | v0.0.1 |
 | `sip-protocol/circuits` | Noir ZK circuits | Noir, Barretenberg | - |
@@ -80,7 +80,7 @@ Quick reference for navigating between SIP Protocol repositories.
 **Key Commands:**
 ```bash
 pnpm install                    # Install dependencies
-pnpm test -- --run              # Run all tests (1,293 tests)
+pnpm test -- --run              # Run all tests (2,757 tests)
 pnpm typecheck                  # Type check
 pnpm build                      # Build all packages
 ```
@@ -193,7 +193,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **SIP (Shielded Intents Protocol)** is the privacy standard for Web3 — like HTTPS for the internet. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Status:** M8 In Progress | 1,293 SDK tests + 126 demo tests | Live at sip-protocol.org
+**Status:** M15 Complete | 2,757 tests (SDK: 2,474, React: 57, CLI: 33, API: 67, Website: 126) | Live at sip-protocol.org
 
 **Endgame:** Privacy middleware between applications and blockchains. Chain-agnostic. Settlement-agnostic. The universal privacy layer.
 
@@ -218,7 +218,7 @@ SIP combines **Settlement Aggregation (C)** for standardization with **Proof Com
 │  │ • Privacy Levels       • Unified API            • Compliance Ready    │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
-│  │ PROOF COMPOSITION (Technical Moat) [Future M13-M14]                   │ │
+│  │ PROOF COMPOSITION (Technical Moat) [Future M16-M17]                   │ │
 │  │ • Zcash → Privacy execution     • Mina → Succinct verification        │ │
 │  │ • Noir  → Validity proofs       • Compose proofs from multiple systems│ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
@@ -273,7 +273,7 @@ SIP combines **Settlement Aggregation (C)** for standardization with **Proof Com
 # Install dependencies
 pnpm install
 
-# Run all tests (1,293 tests, ~20s)
+# Run all tests (2,757 tests)
 pnpm test -- --run
 
 # Run E2E tests only (128 tests)
@@ -291,9 +291,19 @@ pnpm build
 
 ---
 
-## Test Suite (1,293 SDK + 126 Demo = 1,419 tests)
+## Test Suite (2,757 total tests)
 
-### SDK Tests (sip-protocol)
+### Package Test Counts
+
+| Package | Tests | Location |
+|---------|-------|----------|
+| @sip-protocol/sdk | 2,474 | `packages/sdk/tests/` |
+| @sip-protocol/react | 57 | `packages/react/tests/` |
+| @sip-protocol/cli | 33 | `packages/cli/tests/` |
+| @sip-protocol/api | 67 | `packages/api/tests/` |
+| sip-website | 126 | `tests/` (in sip-website repo) |
+
+### SDK Test Breakdown
 
 | Suite | Count | Location |
 |-------|-------|----------|
@@ -303,17 +313,16 @@ pnpm build
 | Validation tests | ~60 | `packages/sdk/tests/validation.test.ts` |
 | Integration tests | ~100 | `packages/sdk/tests/integration/` |
 | E2E tests | 128 | `packages/sdk/tests/e2e/` |
-| Benchmarks | ~20 | `packages/sdk/tests/benchmarks/` |
+| Multi-curve/chain tests | ~200 | `packages/sdk/tests/multi-*.test.ts` |
 
-### Demo Tests (sip-website)
+### React Package Tests
 
 | Suite | Count | Location |
 |-------|-------|----------|
-| Toast store | 14 | `tests/stores/toast-store.test.ts` |
-| Wallet store | 21 | `tests/stores/wallet-store.test.ts` |
-| useQuote hook | 12 | `tests/hooks/use-quote.test.tsx` |
-| useSwap hook | 24 | `tests/hooks/use-swap.test.tsx` |
-| TransactionStatus | 21 | `tests/components/transaction-status.test.tsx` |
+| useSIP hook | 12 | `packages/react/tests/hooks/use-sip.test.tsx` |
+| useStealthAddress hook | 15 | `packages/react/tests/hooks/use-stealth-address.test.tsx` |
+| usePrivateSwap hook | 18 | `packages/react/tests/hooks/use-private-swap.test.tsx` |
+| useViewingKey hook | 12 | `packages/react/tests/hooks/use-viewing-key.test.tsx` |
 
 ---
 
@@ -365,8 +374,9 @@ interface Commitment {
 
 **Expansion Path:**
 1. Phase 1 (M1-M8): Foundation — Core tech, NEAR Intents ✅
-2. Phase 2 (M9-M12): Standard — Multi-backend, multi-foundation grants
-3. Phase 3 (M13-M15): Ecosystem — Proof composition, technical moat, SIP-EIP
+2. Phase 2 (M9-M12): Standard — Multi-backend, multi-chain ✅
+3. Phase 3 (M13-M15): Ecosystem — Compliance, DX, Applications ✅
+4. Phase 4 (M16-M18): Future — Proof composition, SIP-EIP 🔲
 
 **Multi-Foundation Approach:** Chain-agnostic = loved by all = funded by all
 - NEAR Foundation (Intents privacy)
@@ -397,17 +407,20 @@ See `.strategy/ROADMAP-INTERNAL.md` for detailed strategy (private).
 ```
 sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 ├── packages/
-│   ├── sdk/                  # @sip-protocol/sdk - Core SDK
+│   ├── sdk/                  # @sip-protocol/sdk - Core SDK (2,474 tests)
 │   │   ├── src/
-│   │   │   ├── adapters/     # NEAR, wallet adapters
-│   │   │   ├── proofs/       # ZK proof providers
-│   │   │   ├── stealth.ts    # Stealth addresses
+│   │   │   ├── adapters/     # NEAR, wallet, settlement adapters
+│   │   │   ├── proofs/       # ZK proof providers (Mock, Noir, Browser)
+│   │   │   ├── stealth.ts    # Stealth addresses (secp256k1, ed25519)
 │   │   │   ├── crypto.ts     # Commitments, hashing
 │   │   │   ├── privacy.ts    # Viewing keys, encryption
 │   │   │   ├── intent.ts     # Intent builder
 │   │   │   └── sip.ts        # Main client
 │   │   └── tests/            # Test suites
-│   └── types/                # @sip-protocol/types
+│   ├── types/                # @sip-protocol/types
+│   ├── react/                # @sip-protocol/react - React hooks (57 tests)
+│   ├── cli/                  # @sip-protocol/cli - CLI tool (33 tests)
+│   └── api/                  # @sip-protocol/api - REST API (67 tests)
 ├── docs/                     # Documentation
 └── .strategy/                # Private strategy (gitignored)
 ```
@@ -437,23 +450,30 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | M4: Network Integration | NEAR, Zcash, wallets | ✅ |
 | M5: Documentation & Launch | Docs, whitepaper | ✅ |
 | M6: Launch & Publish | npm publish, docs site | ✅ |
-| M7: Real Demo Integration | Live demo, 1,419 tests | ✅ |
-| M8: Production Hardening | Noir circuits ✅, multi-curve, security | 🔄 |
+| M7: Real Demo Integration | Live demo | ✅ |
+| M8: Production Hardening | Noir circuits, multi-curve | ✅ |
 
-### Phase 2: Standard (2026)
+### Phase 2: Standard (2025) ✅
 | Milestone | Focus | Status |
 |-----------|-------|--------|
-| M9: Horizontal Expansion | Payments, treasury, enterprise | 🔲 |
-| M10: Multi-Foundation Grants | NEAR, Zcash, Mina, ETH grants | 🔲 |
-| M11: Settlement Abstraction | Multi-backend support, Mina research | 🔲 |
-| M12: Partnership & Distribution | Wallets, DEXs, institutions | 🔲 |
+| M9: Stable Core | 100% tests, CI validation | ✅ |
+| M10: ZK Production | Noir/WASM, browser proving | ✅ |
+| M11: Multi-Settlement | 3 backends, SmartRouter | ✅ |
+| M12: Multi-Chain | 15+ chains, Bitcoin/Cosmos/Move | ✅ |
 
-### Phase 3: Ecosystem (2027)
+### Phase 3: Ecosystem (2025) ✅
 | Milestone | Focus | Status |
 |-----------|-------|--------|
-| M13: Proof Composition Research | Halo2 + Kimchi feasibility | 🔲 |
-| M14: Technical Moat | Proof composition v1, multi-lang SDK | 🔲 |
-| M15: Standard Proposal | SIP-EIP, industry working group | 🔲 |
+| M13: Compliance Layer | Viewing keys, audit trails | ✅ |
+| M14: Developer Experience | React, CLI, API packages | ✅ |
+| M15: Application Layer | Hardware wallets, WalletConnect | ✅ |
+
+### Phase 4: Future (2026+) 🔲
+| Milestone | Focus | Status |
+|-----------|-------|--------|
+| M16: Proof Composition Research | Halo2 + Kimchi feasibility | 🔲 |
+| M17: Technical Moat | Proof composition v1, multi-lang SDK | 🔲 |
+| M18: Standard Proposal | SIP-EIP, industry working group | 🔲 |
 
 ---
 
@@ -524,5 +544,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2025-12-03
-**Status:** M8 In Progress | C+B Hybrid Strategy Defined
+**Last Updated:** 2025-12-04
+**Status:** M15 Complete | 2,757 Tests | 6 Packages | C+B Hybrid Strategy

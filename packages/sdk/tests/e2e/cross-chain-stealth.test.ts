@@ -363,7 +363,7 @@ describe('E2E: Cross-Chain Stealth Addresses', () => {
 
     it('should reject unknown chain identifier', () => {
       const key = '0x' + 'ab'.repeat(33) as HexString
-      expect(() => decodeStealthMetaAddress(`sip:bitcoin:${key}:${key}`)).toThrow('chain')
+      expect(() => decodeStealthMetaAddress(`sip:polkadot:${key}:${key}`)).toThrow('chain')
     })
 
     it('should reject key size mismatch for chain', () => {

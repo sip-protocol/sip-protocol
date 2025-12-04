@@ -241,10 +241,8 @@ export function getMobileDeviceInfo(): MobileDeviceInfo {
     isTablet: isTablet(),
     supportsTouch: supportsTouch(),
     deviceMemoryGB:
-      // @ts-expect-error - deviceMemory is non-standard
       typeof navigator !== 'undefined' && navigator.deviceMemory
-        ? // @ts-expect-error - deviceMemory is non-standard
-          navigator.deviceMemory
+        ? navigator.deviceMemory
         : null,
     hardwareConcurrency:
       typeof navigator !== 'undefined' && navigator.hardwareConcurrency
@@ -487,10 +485,8 @@ export async function estimateAvailableMemory(): Promise<number | null> {
   if (!isBrowser()) return null
 
   // Use Performance API if available (Chrome)
-  // @ts-expect-error - Performance.measureUserAgentSpecificMemory is Chrome-specific
   if (typeof performance !== 'undefined' && performance.measureUserAgentSpecificMemory) {
     try {
-      // @ts-expect-error - Chrome-specific API
       const result = await performance.measureUserAgentSpecificMemory()
       return result.bytes
     } catch {
@@ -499,10 +495,8 @@ export async function estimateAvailableMemory(): Promise<number | null> {
   }
 
   // Use navigator.deviceMemory if available (Chrome, Opera)
-  // @ts-expect-error - deviceMemory is non-standard
   if (typeof navigator !== 'undefined' && navigator.deviceMemory) {
     // Returns approximate device memory in GB
-    // @ts-expect-error - deviceMemory is non-standard
     return navigator.deviceMemory * 1024 * 1024 * 1024
   }
 

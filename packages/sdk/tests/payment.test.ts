@@ -392,9 +392,10 @@ describe('PaymentBuilder', () => {
     })
 
     it('should throw if chain missing for symbol', () => {
+      // Test error when chain parameter is missing - using undefined to force the error
       expect(() =>
         new PaymentBuilder()
-          .token('USDC' as any)
+          .token('USDC' as StablecoinSymbol, undefined as unknown as ChainId)
       ).toThrow('chain is required when using stablecoin symbol')
     })
 

@@ -254,6 +254,8 @@ export const HardwareErrorCode = {
   UNSUPPORTED: 'HARDWARE_UNSUPPORTED',
   /** Invalid derivation path */
   INVALID_PATH: 'HARDWARE_INVALID_PATH',
+  /** Invalid parameters provided */
+  INVALID_PARAMS: 'HARDWARE_INVALID_PARAMS',
 } as const
 
 export type HardwareErrorCodeType = typeof HardwareErrorCode[keyof typeof HardwareErrorCode]

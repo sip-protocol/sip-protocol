@@ -52,20 +52,20 @@ describe('ZcashShieldedService', () => {
     vi.clearAllMocks()
 
     // Default mock implementations
-    ;(mockClient.getBlockCount as any).mockResolvedValue(2000000)
-    ;(mockClient.getAddressForAccount as any).mockResolvedValue({
+    vi.mocked(mockClient.getBlockCount).mockResolvedValue(2000000)
+    vi.mocked(mockClient.getAddressForAccount).mockResolvedValue({
       account: 0,
       diversifier_index: 0,
       receiver_types: ['sapling', 'orchard'],
       address: 'u1testunifiedaddress',
     })
-    ;(mockClient.validateAddress as any).mockResolvedValue({
+    vi.mocked(mockClient.validateAddress).mockResolvedValue({
       isvalid: true,
       address: 'u1testunifiedaddress',
       address_type: 'unified',
       ismine: true,
     })
-    ;(mockClient.getAccountBalance as any).mockResolvedValue({
+    vi.mocked(mockClient.getAccountBalance).mockResolvedValue({
       pools: {
         transparent: { valueZat: 0 },
         sapling: { valueZat: 100000000 }, // 1 ZEC
@@ -73,7 +73,7 @@ describe('ZcashShieldedService', () => {
       },
       minimum_confirmations: 1,
     })
-    ;(mockClient.listUnspent as any).mockResolvedValue([
+    vi.mocked(mockClient.listUnspent).mockResolvedValue([
       {
         txid: 'abc123',
         pool: 'sapling',
@@ -86,15 +86,15 @@ describe('ZcashShieldedService', () => {
         change: false,
       },
     ])
-    ;(mockClient.sendShielded as any).mockResolvedValue('opid-12345')
-    ;(mockClient.waitForOperation as any).mockResolvedValue({
+    vi.mocked(mockClient.sendShielded).mockResolvedValue('opid-12345')
+    vi.mocked(mockClient.waitForOperation).mockResolvedValue({
       id: 'opid-12345',
       status: 'success',
       result: { txid: 'txhash123' },
     })
-    ;(mockClient.exportViewingKey as any).mockResolvedValue('zxviews1testkey')
-    ;(mockClient.importViewingKey as any).mockResolvedValue(undefined)
-    ;(mockClient.getOperationStatus as any).mockResolvedValue([])
+    vi.mocked(mockClient.exportViewingKey).mockResolvedValue('zxviews1testkey')
+    vi.mocked(mockClient.importViewingKey).mockResolvedValue(undefined)
+    vi.mocked(mockClient.getOperationStatus).mockResolvedValue([])
 
     service = new ZcashShieldedService({
       rpcConfig: {
@@ -155,7 +155,7 @@ describe('ZcashShieldedService', () => {
       // Import the mock error class
       const { ZcashRPCError } = await import('../../src/zcash/rpc-client')
 
-      ;(mockClient.getAddressForAccount as any)
+      vi.mocked(mockClient.getAddressForAccount)
         .mockRejectedValueOnce(new ZcashRPCError('Account not found', -8))
         .mockResolvedValueOnce({
           account: 0,
@@ -163,7 +163,7 @@ describe('ZcashShieldedService', () => {
           receiver_types: ['sapling'],
           diversifier_index: 0,
         })
-      ;(mockClient.createAccount as any).mockResolvedValue({ account: 0 })
+      vi.mocked(mockClient.createAccount).mockResolvedValue({ account: 0 })
 
       await service.initialize()
 
@@ -194,7 +194,7 @@ describe('ZcashShieldedService', () => {
   describe('generateNewAddress', () => {
     it('should generate diversified address', async () => {
       await service.initialize()
-      ;(mockClient.getAddressForAccount as any).mockResolvedValueOnce({
+      vi.mocked(mockClient.getAddressForAccount).mockResolvedValueOnce({
         account: 0,
         address: 'u1newdiversified',
         receiver_types: ['sapling', 'orchard'],
@@ -215,7 +215,7 @@ describe('ZcashShieldedService', () => {
 
   describe('isShieldedAddress', () => {
     it('should return true for shielded address', async () => {
-      ;(mockClient.validateAddress as any).mockResolvedValue({
+      vi.mocked(mockClient.validateAddress).mockResolvedValue({
         isvalid: true,
         address_type: 'sapling',
       })
@@ -225,7 +225,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should return true for unified address', async () => {
-      ;(mockClient.validateAddress as any).mockResolvedValue({
+      vi.mocked(mockClient.validateAddress).mockResolvedValue({
         isvalid: true,
         address_type: 'unified',
       })
@@ -235,7 +235,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should return false for transparent address', async () => {
-      ;(mockClient.validateAddress as any).mockResolvedValue({
+      vi.mocked(mockClient.validateAddress).mockResolvedValue({
         isvalid: true,
         address_type: 'p2pkh',
       })
@@ -245,7 +245,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should return false for invalid address', async () => {
-      ;(mockClient.validateAddress as any).mockResolvedValue({
+      vi.mocked(mockClient.validateAddress).mockResolvedValue({
         isvalid: false,
       })
 
@@ -327,7 +327,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should throw for invalid recipient', async () => {
-      ;(mockClient.validateAddress as any).mockResolvedValue({ isvalid: false })
+      vi.mocked(mockClient.validateAddress).mockResolvedValue({ isvalid: false })
 
       await expect(
         service.sendShielded({
@@ -407,7 +407,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should filter only spendable', async () => {
-      ;(mockClient.listUnspent as any).mockResolvedValue([
+      vi.mocked(mockClient.listUnspent).mockResolvedValue([
         { txid: 'tx1', pool: 'sapling', spendable: true, amount: 1, confirmations: 10, address: 'zs1', memo: '00', change: false },
         { txid: 'tx2', pool: 'sapling', spendable: false, amount: 2, confirmations: 10, address: 'zs1', memo: '00', change: false },
       ])
@@ -419,7 +419,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should decode memo string', async () => {
-      ;(mockClient.listUnspent as any).mockResolvedValue([
+      vi.mocked(mockClient.listUnspent).mockResolvedValue([
         {
           txid: 'tx1',
           pool: 'sapling',
@@ -438,7 +438,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should use memoStr if available', async () => {
-      ;(mockClient.listUnspent as any).mockResolvedValue([
+      vi.mocked(mockClient.listUnspent).mockResolvedValue([
         {
           txid: 'tx1',
           pool: 'sapling',
@@ -464,7 +464,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should get only unconfirmed notes', async () => {
-      ;(mockClient.listUnspent as any).mockResolvedValue([
+      vi.mocked(mockClient.listUnspent).mockResolvedValue([
         { txid: 'tx1', pool: 'sapling', confirmations: 0, spendable: true, amount: 1, address: 'zs1', memo: '00', change: false },
         { txid: 'tx2', pool: 'sapling', confirmations: 5, spendable: true, amount: 2, address: 'zs1', memo: '00', change: false },
       ])
@@ -492,7 +492,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should timeout if note not found', async () => {
-      ;(mockClient.listUnspent as any).mockResolvedValue([])
+      vi.mocked(mockClient.listUnspent).mockResolvedValue([])
 
       await expect(
         service.waitForNote(() => true, 100, 10),
@@ -563,7 +563,7 @@ describe('ZcashShieldedService', () => {
 
   describe('getOperationStatus', () => {
     it('should get operation status', async () => {
-      ;(mockClient.getOperationStatus as any).mockResolvedValue([
+      vi.mocked(mockClient.getOperationStatus).mockResolvedValue([
         { id: 'opid-123', status: 'executing' },
       ])
 
@@ -574,7 +574,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should return null for unknown operation', async () => {
-      ;(mockClient.getOperationStatus as any).mockResolvedValue([])
+      vi.mocked(mockClient.getOperationStatus).mockResolvedValue([])
 
       const result = await service.getOperationStatus('opid-unknown')
 
@@ -584,7 +584,7 @@ describe('ZcashShieldedService', () => {
 
   describe('listPendingOperations', () => {
     it('should list pending operations', async () => {
-      ;(mockClient.getOperationStatus as any).mockResolvedValue([
+      vi.mocked(mockClient.getOperationStatus).mockResolvedValue([
         { id: 'opid-1', status: 'executing' },
         { id: 'opid-2', status: 'queued' },
         { id: 'opid-3', status: 'success' },
@@ -740,7 +740,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should use fee from operation result when available', async () => {
-      ;(mockClient.waitForOperation as any).mockResolvedValue({
+      vi.mocked(mockClient.waitForOperation).mockResolvedValue({
         id: 'opid-12345',
         status: 'success',
         result: { txid: 'txhash123', fee: 0.0002 },
@@ -755,7 +755,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should use params.fee when operation result has no fee', async () => {
-      ;(mockClient.waitForOperation as any).mockResolvedValue({
+      vi.mocked(mockClient.waitForOperation).mockResolvedValue({
         id: 'opid-12345',
         status: 'success',
         result: { txid: 'txhash123' }, // no fee in result
@@ -771,7 +771,7 @@ describe('ZcashShieldedService', () => {
     })
 
     it('should estimate fee when neither operation result nor params have fee', async () => {
-      ;(mockClient.waitForOperation as any).mockResolvedValue({
+      vi.mocked(mockClient.waitForOperation).mockResolvedValue({
         id: 'opid-12345',
         status: 'success',
         result: { txid: 'txhash123' }, // no fee in result

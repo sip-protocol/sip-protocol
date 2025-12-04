@@ -71,9 +71,25 @@ export interface NoirProviderConfig {
 
   /**
    * Oracle public key for verifying attestations in fulfillment proofs
-   * Required for production use. If not provided, proofs will use placeholder keys.
+   * Required for production use. If not provided and strictMode is true,
+   * fulfillment proof generation will throw an error.
    */
   oraclePublicKey?: PublicKeyCoordinates
+
+  /**
+   * Enable strict mode for production use
+   *
+   * When true:
+   * - Fulfillment proofs require configured oraclePublicKey
+   * - Missing configuration throws errors instead of warnings
+   *
+   * When false (default):
+   * - Placeholder keys are used when oraclePublicKey not configured
+   * - Warnings are logged for missing configuration
+   *
+   * @default false
+   */
+  strictMode?: boolean
 }
 
 /**
@@ -114,6 +130,7 @@ export class NoirProofProvider implements ProofProvider {
     this.config = {
       backend: 'barretenberg',
       verbose: false,
+      strictMode: false,
       ...config,
     }
   }
@@ -588,14 +605,24 @@ export class NoirProofProvider implements ProofProvider {
         attestation.blockNumber
       )
 
-      // Use configured oracle public key, or placeholder if not configured
-      // In production, the oracle public key should always be configured
+      // Validate oracle public key configuration
+      if (!this.config.oraclePublicKey) {
+        if (this.config.strictMode) {
+          throw new ProofGenerationError(
+            'fulfillment',
+            'Oracle public key is required in strict mode. Configure oraclePublicKey in NoirProviderConfig for production use.'
+          )
+        }
+        // Always warn when using placeholder keys, not just in verbose mode
+        console.warn(
+          '[NoirProofProvider] WARNING: No oracle public key configured. Using placeholder keys. ' +
+          'Proofs will NOT be valid for production. Set strictMode: true to enforce configuration.'
+        )
+      }
+
+      // Use configured oracle public key, or placeholder if not in strict mode
       const oraclePubKeyX = this.config.oraclePublicKey?.x ?? new Array(32).fill(0)
       const oraclePubKeyY = this.config.oraclePublicKey?.y ?? new Array(32).fill(0)
-
-      if (!this.config.oraclePublicKey && this.config.verbose) {
-        console.warn('[NoirProofProvider] Warning: No oracle public key configured. Using placeholder keys.')
-      }
 
       // Prepare witness inputs for the circuit
       const witnessInputs = {

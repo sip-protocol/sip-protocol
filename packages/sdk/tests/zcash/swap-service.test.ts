@@ -29,9 +29,29 @@ describe('ZcashSwapService', () => {
       expect(svc).toBeInstanceOf(ZcashSwapService)
     })
 
-    it('should create service in production mode', () => {
-      const svc = new ZcashSwapService({ mode: 'production' })
+    it('should create service in production mode with bridge provider', () => {
+      const mockBridgeProvider: BridgeProvider = {
+        name: 'MockBridge',
+        getQuote: vi.fn(),
+        executeSwap: vi.fn(),
+        getSupportedChains: vi.fn(),
+      }
+
+      const svc = new ZcashSwapService({
+        mode: 'production',
+        bridgeProvider: mockBridgeProvider,
+      })
       expect(svc).toBeInstanceOf(ZcashSwapService)
+    })
+
+    it('should throw in production mode without bridge provider', () => {
+      expect(() => {
+        new ZcashSwapService({ mode: 'production' })
+      }).toThrow(IntentError)
+
+      expect(() => {
+        new ZcashSwapService({ mode: 'production' })
+      }).toThrow('Bridge provider required for production mode')
     })
 
     it('should accept custom slippage', () => {
@@ -119,8 +139,8 @@ describe('ZcashSwapService', () => {
     })
 
     it('should return false for unsupported routes', () => {
-      expect(service.isRouteSupported('ethereum', 'SOL' as any)).toBe(false)
-      expect(service.isRouteSupported('solana', 'ETH' as any)).toBe(false)
+      expect(service.isRouteSupported('ethereum', 'SOL' as unknown as string)).toBe(false)
+      expect(service.isRouteSupported('solana', 'ETH' as unknown as string)).toBe(false)
     })
   })
 
@@ -218,14 +238,14 @@ describe('ZcashSwapService', () => {
     it('should throw for missing source chain', async () => {
       await expect(service.getQuote({
         ...validQuoteParams,
-        sourceChain: '' as any,
+        sourceChain: '' as unknown as string,
       })).rejects.toThrow(ValidationError)
     })
 
     it('should throw for missing source token', async () => {
       await expect(service.getQuote({
         ...validQuoteParams,
-        sourceToken: '' as any,
+        sourceToken: '' as unknown as string,
       })).rejects.toThrow(ValidationError)
     })
 
@@ -260,8 +280,8 @@ describe('ZcashSwapService', () => {
     it('should throw for unsupported route', async () => {
       await expect(service.getQuote({
         ...validQuoteParams,
-        sourceChain: 'bitcoin' as any,
-        sourceToken: 'BTC' as any,
+        sourceChain: 'bitcoin' as unknown as string,
+        sourceToken: 'BTC' as unknown as string,
       })).rejects.toThrow(ValidationError)
     })
 

@@ -24,7 +24,7 @@ export interface Commitment {
  */
 export interface ZKProof {
   /** Proof type identifier */
-  type: 'funding' | 'validity' | 'fulfillment'
+  type: 'funding' | 'validity' | 'fulfillment' | 'ownership'
   /** The proof data (hex encoded) */
   proof: HexString
   /** Public inputs to the proof */

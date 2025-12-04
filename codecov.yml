@@ -1,0 +1,46 @@
+# Codecov Configuration
+# https://docs.codecov.com/docs/codecovyml-reference
+
+coverage:
+  status:
+    project:
+      default:
+        target: 70%
+        threshold: 5%
+        informational: true  # Don't fail PRs initially
+    patch:
+      default:
+        target: 80%
+        informational: true  # Don't fail PRs initially
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: true
+
+ignore:
+  - "**/*.test.ts"
+  - "**/*.bench.ts"
+  - "**/tests/**"
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/*.d.ts"
+  - "**/coverage/**"
+
+flags:
+  sdk:
+    paths:
+      - packages/sdk/src/
+    carryforward: true
+  react:
+    paths:
+      - packages/react/src/
+    carryforward: true
+  cli:
+    paths:
+      - packages/cli/src/
+    carryforward: true
+  api:
+    paths:
+      - packages/api/src/
+    carryforward: true

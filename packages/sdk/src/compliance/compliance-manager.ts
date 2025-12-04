@@ -56,6 +56,7 @@ import {
   type GenerateReportParams,
   type DisclosureRequest,
   type AuditLogEntry,
+  type ComplianceMetrics,
   type ViewingKey,
   type HexString,
   type ChainId,
@@ -608,6 +609,92 @@ export class ComplianceManager {
    */
   getAllReports(): ComplianceReport[] {
     return Array.from(this.reports.values())
+  }
+
+  // ─── Dashboard Data API ──────────────────────────────────────────────────────
+
+  /**
+   * Get list of auditors for dashboard UI
+   *
+   * Returns a simplified view of auditors with essential info.
+   * Alias for getAllAuditors() but returns AuditorRegistration directly.
+   *
+   * @returns Array of auditor registrations
+   */
+  getAuditorList(): AuditorRegistration[] {
+    return this.getAllAuditors()
+  }
+
+  /**
+   * Get pending disclosure requests for dashboard
+   *
+   * Returns disclosure requests waiting for approval/denial.
+   * This is for disclosure REQUESTS, not disclosed transactions.
+   *
+   * @returns Array of pending disclosure requests
+   */
+  getPendingDisclosures(): DisclosureRequest[] {
+    return this.getPendingRequests()
+  }
+
+  /**
+   * Get disclosure history for a specific auditor
+   *
+   * Returns all disclosed transactions that were shared with this auditor,
+   * sorted by disclosure date (most recent first).
+   *
+   * @param auditorId - Auditor ID to get history for
+   * @returns Array of disclosed transactions for this auditor
+   */
+  getDisclosureHistory(auditorId: string): DisclosedTransaction[] {
+    return this.getDisclosedTransactions(auditorId)
+      .sort((a, b) => b.disclosedAt - a.disclosedAt)
+  }
+
+  /**
+   * Get compliance metrics for dashboard
+   *
+   * Calculates key compliance metrics including:
+   * - Total auditors (active + inactive)
+   * - Total disclosures made
+   * - Pending disclosure requests
+   * - Approval rate (approved / total resolved requests)
+   * - Average processing time for disclosure requests
+   *
+   * @returns Compliance metrics object
+   */
+  getComplianceMetrics(): ComplianceMetrics {
+    const allAuditors = this.getAllAuditors()
+    const allDisclosures = this.getDisclosedTransactions()
+    const pendingRequests = this.getPendingRequests()
+    const allRequests = Array.from(this.disclosureRequests.values())
+
+    // Calculate approval rate
+    const resolvedRequests = allRequests.filter(r => r.status !== 'pending')
+    const approvedRequests = resolvedRequests.filter(r => r.status === 'approved')
+    const approvalRate = resolvedRequests.length > 0
+      ? approvedRequests.length / resolvedRequests.length
+      : 0
+
+    // Calculate average processing time (in seconds)
+    let averageProcessingTime: number | undefined
+    if (resolvedRequests.length > 0) {
+      const totalProcessingTime = resolvedRequests.reduce((sum, req) => {
+        if (req.resolvedAt) {
+          return sum + (req.resolvedAt - req.requestedAt)
+        }
+        return sum
+      }, 0)
+      averageProcessingTime = totalProcessingTime / resolvedRequests.length
+    }
+
+    return {
+      totalAuditors: allAuditors.length,
+      totalDisclosures: allDisclosures.length,
+      pendingDisclosures: pendingRequests.length,
+      approvalRate,
+      averageProcessingTime,
+    }
   }
 
   // ─── Audit Log ───────────────────────────────────────────────────────────────

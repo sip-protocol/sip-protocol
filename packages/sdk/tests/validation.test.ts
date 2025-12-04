@@ -30,15 +30,32 @@ import { ValidationError } from '../src/errors'
 
 describe('isValidChainId', () => {
   it('should accept valid chain IDs', () => {
-    const validChains = ['solana', 'ethereum', 'near', 'zcash', 'polygon', 'arbitrum', 'optimism', 'base']
+    const validChains = [
+      'solana',
+      'ethereum',
+      'near',
+      'zcash',
+      'polygon',
+      'arbitrum',
+      'optimism',
+      'base',
+      'bitcoin',
+      'aptos',
+      'cosmos',
+      'osmosis',
+      'injective',
+      'celestia',
+      'sei',
+      'dydx',
+    ]
     for (const chain of validChains) {
       expect(isValidChainId(chain)).toBe(true)
     }
   })
 
   it('should reject invalid chain IDs', () => {
-    expect(isValidChainId('bitcoin')).toBe(false)
-    expect(isValidChainId('cosmos')).toBe(false)
+    expect(isValidChainId('invalidchain')).toBe(false)
+    expect(isValidChainId('polkadot')).toBe(false)
     expect(isValidChainId('')).toBe(false)
     expect(isValidChainId('ETHEREUM')).toBe(false) // case sensitive
   })
@@ -238,7 +255,7 @@ describe('validateAsset', () => {
   })
 
   it('should reject invalid chain', () => {
-    expect(() => validateAsset({ ...validAsset, chain: 'bitcoin' }, 'asset'))
+    expect(() => validateAsset({ ...validAsset, chain: 'polkadot' }, 'asset'))
       .toThrow(/invalid chain/)
   })
 

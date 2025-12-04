@@ -254,4 +254,12 @@ export const CHAIN_NUMERIC_IDS: Record<ChainId, number> = {
   solana: 501, // Non-standard, SIP-specific
   near: 502, // Non-standard, SIP-specific
   zcash: 503, // Non-standard, SIP-specific
+  aptos: 504, // Non-standard, SIP-specific
+  sui: 505, // Non-standard, SIP-specific
+  cosmos: 506, // Non-standard, SIP-specific (Cosmos Hub)
+  osmosis: 507, // Non-standard, SIP-specific
+  injective: 508, // Non-standard, SIP-specific
+  celestia: 509, // Non-standard, SIP-specific
+  sei: 510, // Non-standard, SIP-specific
+  dydx: 511, // Non-standard, SIP-specific
 }

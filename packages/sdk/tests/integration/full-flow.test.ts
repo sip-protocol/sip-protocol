@@ -239,6 +239,7 @@ describe('SIP Protocol Full Flow', () => {
         .input('near' as ChainId, 'NEAR', 10000n)
         .output('zcash' as ChainId, 'ZEC', 9500n)
         .privacy(PrivacyLevel.SHIELDED)
+        .withPlaceholders() // Allow placeholder signatures in test environment
         .build()
 
       expect(intent.privacyLevel).toBe(PrivacyLevel.SHIELDED)

@@ -315,11 +315,13 @@ describe('E2E: Privacy Verification', () => {
           .input('solana' as ChainId, 'SOL', 1_000_000_000n)
           .output('zcash' as ChainId, 'ZEC', 50_000_000n)
           .privacy(PrivacyLevel.SHIELDED)
+          .withPlaceholders()
           .build(),
         fixture.sip.intent()
           .input('solana' as ChainId, 'SOL', 2_000_000_000n)
           .output('zcash' as ChainId, 'ZEC', 100_000_000n)
           .privacy(PrivacyLevel.SHIELDED)
+          .withPlaceholders()
           .build(),
       ])
 
@@ -377,6 +379,7 @@ describe('E2E: Privacy Verification', () => {
         .input('solana' as ChainId, 'SOL', 10_000_000_000n) // 10 SOL
         .output('zcash' as ChainId, 'ZEC', 50_000_000n) // 0.5 ZEC
         .privacy(PrivacyLevel.SHIELDED)
+        .withPlaceholders()
         .build()
 
       // Should have funding proof attached
@@ -390,6 +393,7 @@ describe('E2E: Privacy Verification', () => {
         .input('solana' as ChainId, 'SOL', 10_000_000_000n)
         .output('zcash' as ChainId, 'ZEC', 50_000_000n)
         .privacy(PrivacyLevel.SHIELDED)
+        .withPlaceholders()
         .build()
 
       // Should have validity proof attached
@@ -405,6 +409,7 @@ describe('E2E: Privacy Verification', () => {
         .input('solana' as ChainId, 'SOL', 10_000_000_000n)
         .output('zcash' as ChainId, 'ZEC', 50_000_000n)
         .privacy(PrivacyLevel.SHIELDED)
+        .withPlaceholders()
         .build()
 
       // In test environment, proofs should be mock proofs

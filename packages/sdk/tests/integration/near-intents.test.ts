@@ -224,7 +224,7 @@ describe('NEAR Intents Integration', () => {
 
   describe('Error Handling', () => {
     it('should reject unsupported asset pairs', () => {
-      expect(() => adapter.mapAsset('dogecoin' as any, 'DOGE'))
+      expect(() => adapter.mapAsset('dogecoin' as unknown as ChainId, 'DOGE'))
         .toThrow('Unknown asset mapping')
     })
 

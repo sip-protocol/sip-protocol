@@ -68,7 +68,7 @@ describe('createMockSolanaProvider', () => {
     const provider = createMockSolanaProvider()
     await provider.connect()
 
-    const tx = { serialize: () => new Uint8Array([1, 2, 3]) } as any
+    const tx = { serialize: () => new Uint8Array([1, 2, 3]) } as any as unknown as object
     const signed = await provider.signTransaction(tx)
 
     expect(signed).toBe(tx)
@@ -91,7 +91,7 @@ describe('createMockSolanaProvider', () => {
     const provider = createMockSolanaProvider()
     await provider.connect()
 
-    const tx = { serialize: () => new Uint8Array([1, 2, 3]) } as any
+    const tx = { serialize: () => new Uint8Array([1, 2, 3]) } as any as unknown as object
     const { signature } = await provider.signAndSendTransaction(tx)
 
     expect(signature).toContain('mock_signature_')
@@ -116,7 +116,7 @@ describe('createMockSolanaProvider', () => {
     const provider = createMockSolanaProvider({ shouldFailTransaction: true })
     await provider.connect()
 
-    const tx = { serialize: () => new Uint8Array([1]) } as any
+    const tx = { serialize: () => new Uint8Array([1]) } as any as unknown as object
     await expect(provider.signAndSendTransaction(tx)).rejects.toThrow(/failed/)
   })
 

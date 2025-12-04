@@ -128,6 +128,7 @@ describe('E2E: Error Scenarios', () => {
         .output('zcash' as ChainId, 'ZEC', 50_000_000n)
         .privacy(PrivacyLevel.SHIELDED)
         .ttl(1) // 1 second
+        .withPlaceholders() // For test environment
         .build()
 
       expect(isExpired(intent)).toBe(false)

@@ -48,10 +48,10 @@ export interface ShieldedIntent {
   recipientStealth: StealthAddress
 
   // ─── Proofs ──────────────────────────────────────────────────────
-  /** Proof of sufficient funds */
-  fundingProof: ZKProof
-  /** Proof of intent validity */
-  validityProof: ZKProof
+  /** Proof of sufficient funds (optional for transparent mode) */
+  fundingProof?: ZKProof
+  /** Proof of intent validity (optional for transparent mode) */
+  validityProof?: ZKProof
 
   // ─── Optional (for compliant mode) ───────────────────────────────
   /** Hash of viewing key (if compliant mode) */

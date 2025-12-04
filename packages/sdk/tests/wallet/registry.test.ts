@@ -245,6 +245,6 @@ describe('isPrivateWalletAdapter', () => {
       }),
     }
 
-    expect(isPrivateWalletAdapter(privateAdapter as any)).toBe(true)
+    expect(isPrivateWalletAdapter(privateAdapter as unknown as PrivateWalletAdapter)).toBe(true)
   })
 })

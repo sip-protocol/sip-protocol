@@ -28,6 +28,7 @@
  * - @ledgerhq/hw-app-solana (for Solana)
  */
 
+import { RLP } from '@ethereumjs/rlp'
 import type {
   ChainId,
   HexString,
@@ -303,9 +304,8 @@ export class LedgerWalletAdapter extends BaseWalletAdapter {
    */
   private async loadTransport(): Promise<TransportWebUSBType> {
     try {
-      // @ts-expect-error - Dynamic import
       const module = await import('@ledgerhq/hw-transport-webusb')
-      return module.default
+      return module.default as unknown as TransportWebUSBType
     } catch {
       throw new HardwareWalletError(
         'Failed to load Ledger transport. Install @ledgerhq/hw-transport-webusb',
@@ -499,20 +499,89 @@ export class LedgerWalletAdapter extends BaseWalletAdapter {
 
   /**
    * Build raw Ethereum transaction for Ledger signing
+   *
+   * @throws {HardwareWalletError} Always throws - RLP encoding not yet implemented
+   *
+   * @remarks
+   * Proper Ethereum transaction signing requires RLP (Recursive Length Prefix)
+   * encoding. This is a non-trivial implementation that requires either:
+   *
+   * 1. Adding @ethereumjs/rlp dependency
+   * 2. Adding @ethersproject/transactions dependency
+   * 3. Manual RLP implementation
+   *
+   * For now, this method throws to prevent silent failures. To enable
+   * Ledger transaction signing, implement proper RLP encoding.
+   *
+   * @see https://ethereum.org/en/developers/docs/data-structures-and-encoding/rlp/
    */
   private buildRawEthereumTx(tx: HardwareEthereumTx): string {
-    // Simplified - actual implementation would use RLP encoding
-    // This is a placeholder for the structure
-    const fields = [
-      tx.nonce,
-      tx.gasPrice ?? tx.maxFeePerGas ?? '0x0',
-      tx.gasLimit,
-      tx.to,
-      tx.value,
-      tx.data ?? '0x',
-    ]
+    // Helper to convert hex string to bytes, handling empty values
+    const hexToBytes = (hex: HexString | undefined): Uint8Array => {
+      if (!hex || hex === '0x' || hex === '0x0' || hex === '0x00') {
+        return new Uint8Array(0)
+      }
+      // Remove 0x prefix and pad to even length
+      let cleanHex = hex.slice(2)
+      if (cleanHex.length % 2 !== 0) {
+        cleanHex = '0' + cleanHex
+      }
+      const bytes = new Uint8Array(cleanHex.length / 2)
+      for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(cleanHex.slice(i * 2, i * 2 + 2), 16)
+      }
+      return bytes
+    }
 
-    return fields.join('').replace(/0x/g, '')
+    // Determine if EIP-1559 transaction (type 2)
+    const isEIP1559 = tx.maxFeePerGas !== undefined && tx.maxPriorityFeePerGas !== undefined
+
+    if (isEIP1559) {
+      // EIP-1559 transaction (type 2):
+      // 0x02 || RLP([chainId, nonce, maxPriorityFeePerGas, maxFeePerGas,
+      //              gasLimit, to, value, data, accessList])
+      const txData = [
+        hexToBytes(`0x${tx.chainId.toString(16)}`),  // chainId
+        hexToBytes(tx.nonce),                         // nonce
+        hexToBytes(tx.maxPriorityFeePerGas),          // maxPriorityFeePerGas
+        hexToBytes(tx.maxFeePerGas),                  // maxFeePerGas
+        hexToBytes(tx.gasLimit),                      // gasLimit
+        hexToBytes(tx.to as HexString),               // to
+        hexToBytes(tx.value),                         // value
+        hexToBytes(tx.data),                          // data
+        [],                                           // accessList (empty)
+      ]
+      const encoded = RLP.encode(txData)
+      // Prepend type byte (0x02)
+      const result = new Uint8Array(1 + encoded.length)
+      result[0] = 0x02
+      result.set(encoded, 1)
+      return '0x' + Buffer.from(result).toString('hex')
+    } else {
+      // Legacy transaction (type 0):
+      // RLP([nonce, gasPrice, gasLimit, to, value, data, v, r, s])
+      // For signing, we use chain ID for v and empty r, s (EIP-155)
+      if (!tx.gasPrice) {
+        throw new HardwareWalletError(
+          'Legacy transaction requires gasPrice',
+          HardwareErrorCode.INVALID_PARAMS,
+          'ledger'
+        )
+      }
+      const txData = [
+        hexToBytes(tx.nonce),                         // nonce
+        hexToBytes(tx.gasPrice),                      // gasPrice
+        hexToBytes(tx.gasLimit),                      // gasLimit
+        hexToBytes(tx.to as HexString),               // to
+        hexToBytes(tx.value),                         // value
+        hexToBytes(tx.data),                          // data
+        hexToBytes(`0x${tx.chainId.toString(16)}`),   // v (chainId for EIP-155)
+        new Uint8Array(0),                            // r (empty for unsigned)
+        new Uint8Array(0),                            // s (empty for unsigned)
+      ]
+      const encoded = RLP.encode(txData)
+      return '0x' + Buffer.from(encoded).toString('hex')
+    }
   }
 
   /**

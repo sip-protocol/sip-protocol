@@ -29,6 +29,15 @@ const VALID_CHAIN_IDS: readonly ChainId[] = [
   'arbitrum',
   'optimism',
   'base',
+  'bitcoin',
+  'aptos',
+  'sui',
+  'cosmos',
+  'osmosis',
+  'injective',
+  'celestia',
+  'sei',
+  'dydx',
 ] as const
 
 /**
@@ -415,9 +424,24 @@ export function isValidNearAddressFormat(address: string): boolean {
 }
 
 /**
+ * Check if an address is a valid Cosmos bech32 address
+ */
+export function isValidCosmosAddressFormat(address: string): boolean {
+  if (typeof address !== 'string') return false
+
+  // Bech32 addresses follow pattern: prefix1[alphanumeric]
+  // Typical length: 39-90 characters
+  if (address.length < 39 || address.length > 90) return false
+
+  // Check for valid bech32 format: prefix + '1' + data
+  const bech32Pattern = /^[a-z]+1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{38,}$/
+  return bech32Pattern.test(address)
+}
+
+/**
  * Get the expected address format for a chain
  */
-export function getChainAddressType(chain: ChainId): 'evm' | 'solana' | 'near' | 'zcash' | 'unknown' {
+export function getChainAddressType(chain: ChainId): 'evm' | 'solana' | 'near' | 'zcash' | 'cosmos' | 'unknown' {
   switch (chain) {
     case 'ethereum':
     case 'polygon':
@@ -431,6 +455,13 @@ export function getChainAddressType(chain: ChainId): 'evm' | 'solana' | 'near' |
       return 'near'
     case 'zcash':
       return 'zcash'
+    case 'cosmos':
+    case 'osmosis':
+    case 'injective':
+    case 'celestia':
+    case 'sei':
+    case 'dydx':
+      return 'cosmos'
     default:
       return 'unknown'
   }
@@ -482,6 +513,16 @@ export function validateAddressForChain(address: string, chain: ChainId, field: 
           `Invalid address format for ${chain}. Expected Zcash address.`,
           field,
           { chain }
+        )
+      }
+      break
+    case 'cosmos':
+      // Cosmos chains use bech32 encoding - validate basic format
+      if (!isValidCosmosAddressFormat(address)) {
+        throw new ValidationError(
+          `Invalid address format for ${chain}. Expected Cosmos bech32 address, got: ${address.slice(0, 20)}...`,
+          field,
+          { chain, expectedFormat: 'bech32' }
         )
       }
       break

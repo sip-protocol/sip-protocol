@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/sdk",
-  "version": "0.2.10",
+  "version": "0.6.0",
   "description": "Core SDK for Shielded Intents Protocol - Privacy layer for cross-chain transactions",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",
@@ -45,16 +45,19 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "bench": "vitest bench --config vitest.bench.config.ts",
-    "bench:json": "vitest bench --config vitest.bench.config.ts --outputJson benchmarks/results.json"
+    "bench:json": "vitest bench --config vitest.bench.config.ts --outputJson benchmarks/results.json",
+    "demo:auction": "tsx examples/auction-demo.ts"
   },
   "dependencies": {
     "@aztec/bb.js": "^0.63.1",
+    "@ethereumjs/rlp": "^10.1.0",
     "@noble/ciphers": "^2.0.1",
     "@noble/curves": "^1.3.0",
     "@noble/hashes": "^1.3.3",
     "@noir-lang/noir_js": "^1.0.0-beta.16",
     "@noir-lang/types": "1.0.0-beta.16",
-    "@sip-protocol/types": "^0.1.1"
+    "@scure/base": "^2.0.0",
+    "@sip-protocol/types": "^0.2.0"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "1.6.1",

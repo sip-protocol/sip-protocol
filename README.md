@@ -18,6 +18,7 @@
 *One toggle to shield them all • Stealth addresses • Zero-knowledge proofs • Selective disclosure • Multi-chain support*
 
 [![CI](https://github.com/sip-protocol/sip-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/sip-protocol/sip-protocol/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/sip-protocol/sip-protocol/graph/badge.svg)](https://codecov.io/gh/sip-protocol/sip-protocol)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js&logoColor=white)](https://nextjs.org/)

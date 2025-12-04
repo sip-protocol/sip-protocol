@@ -263,6 +263,7 @@ describe('E2E: Cross-Chain Swap Flow', () => {
         .output('zcash' as ChainId, 'ZEC', 50_000_000n)
         .privacy(PrivacyLevel.SHIELDED)
         .recipient(encodedMetaAddress)
+        .withPlaceholders()
         .build()
 
       expect(intent.recipientStealth).toBeDefined()
@@ -423,6 +424,7 @@ describe('E2E: Cross-Chain Swap Flow', () => {
         .output('zcash' as ChainId, 'ZEC', 50_000_000n)
         .privacy(PrivacyLevel.SHIELDED)
         .ttl(1) // 1 second
+        .withPlaceholders()
         .build()
 
       // Should not be expired immediately

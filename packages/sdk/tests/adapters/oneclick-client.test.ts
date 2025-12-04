@@ -131,8 +131,8 @@ describe('OneClickClient', () => {
     })
 
     it('should throw ValidationError for missing required fields', async () => {
-      await expect(client.quote({} as any)).rejects.toThrow(ValidationError)
-      await expect(client.quote({ swapType: OneClickSwapType.EXACT_INPUT } as any))
+      await expect(client.quote({} as OneClickQuoteRequest)).rejects.toThrow(ValidationError)
+      await expect(client.quote({ swapType: OneClickSwapType.EXACT_INPUT } as OneClickQuoteRequest))
         .rejects.toThrow('originAsset is required')
     })
 
@@ -249,12 +249,12 @@ describe('OneClickClient', () => {
     })
 
     it('should throw ValidationError for missing txHash', async () => {
-      await expect(client.submitDeposit({ depositAddress: '0x...' } as any))
+      await expect(client.submitDeposit({ depositAddress: '0x...' } as OneClickDepositSubmit))
         .rejects.toThrow('txHash is required')
     })
 
     it('should throw ValidationError for missing depositAddress', async () => {
-      await expect(client.submitDeposit({ txHash: '0x...' } as any))
+      await expect(client.submitDeposit({ txHash: '0x...' } as OneClickDepositSubmit))
         .rejects.toThrow('depositAddress is required')
     })
   })

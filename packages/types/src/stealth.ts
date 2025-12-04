@@ -59,6 +59,14 @@ export type ChainId =
   | 'optimism'
   | 'base'
   | 'bitcoin'
+  | 'aptos'
+  | 'sui'
+  | 'cosmos'
+  | 'osmosis'
+  | 'injective'
+  | 'celestia'
+  | 'sei'
+  | 'dydx'
 
 /**
  * Registry entry for a stealth meta-address

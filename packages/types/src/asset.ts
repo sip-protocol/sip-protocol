@@ -32,6 +32,14 @@ export const NATIVE_TOKENS: Record<ChainId, Asset> = {
   optimism: { chain: 'optimism', symbol: 'ETH', address: null, decimals: 18 },
   base: { chain: 'base', symbol: 'ETH', address: null, decimals: 18 },
   bitcoin: { chain: 'bitcoin', symbol: 'BTC', address: null, decimals: 8 },
+  aptos: { chain: 'aptos', symbol: 'APT', address: null, decimals: 8 },
+  sui: { chain: 'sui', symbol: 'SUI', address: null, decimals: 9 },
+  cosmos: { chain: 'cosmos', symbol: 'ATOM', address: null, decimals: 6 },
+  osmosis: { chain: 'osmosis', symbol: 'OSMO', address: null, decimals: 6 },
+  injective: { chain: 'injective', symbol: 'INJ', address: null, decimals: 18 },
+  celestia: { chain: 'celestia', symbol: 'TIA', address: null, decimals: 6 },
+  sei: { chain: 'sei', symbol: 'SEI', address: null, decimals: 6 },
+  dydx: { chain: 'dydx', symbol: 'DYDX', address: null, decimals: 18 },
 }
 
 /**

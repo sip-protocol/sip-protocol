@@ -39,6 +39,8 @@ import {
   getCurveForChain,
   type StealthCurve,
 } from '../stealth'
+import { ed25519PublicKeyToAptosAddress } from '../move/aptos'
+import { ed25519PublicKeyToSuiAddress } from '../move/sui'
 import { ValidationError } from '../errors'
 import { isAddressValidForChain, getChainAddressType } from '../validation'
 
@@ -200,6 +202,14 @@ const CHAIN_BLOCKCHAIN_MAP: Record<ChainId, string> = {
   optimism: 'evm',
   base: 'evm',
   bitcoin: 'bitcoin',
+  aptos: 'aptos',
+  sui: 'sui',
+  cosmos: 'cosmos',
+  osmosis: 'cosmos',
+  injective: 'cosmos',
+  celestia: 'cosmos',
+  sei: 'cosmos',
+  dydx: 'cosmos',
 }
 
 /**
@@ -352,12 +362,16 @@ export class NEARIntentsAdapter {
           recipientAddress = ed25519PublicKeyToSolanaAddress(stealthAddress.address)
         } else if (outputChain === 'near') {
           recipientAddress = ed25519PublicKeyToNearAddress(stealthAddress.address)
+        } else if (outputChain === 'aptos') {
+          recipientAddress = ed25519PublicKeyToAptosAddress(stealthAddress.address)
+        } else if (outputChain === 'sui') {
+          recipientAddress = ed25519PublicKeyToSuiAddress(stealthAddress.address)
         } else {
-          // Future ed25519 chains
+          // This should not happen if ED25519_CHAINS is kept in sync
           throw new ValidationError(
-            `ed25519 address derivation not implemented for ${outputChain}`,
+            `ed25519 address derivation not implemented for ${outputChain}. Please add support in near-intents.ts.`,
             'outputAsset',
-            { outputChain }
+            { outputChain, hint: 'Add address derivation function for this chain' }
           )
         }
         nativeRecipientAddress = recipientAddress
@@ -411,6 +425,10 @@ export class NEARIntentsAdapter {
               refundAddress = ed25519PublicKeyToSolanaAddress(refundStealth.stealthAddress.address)
             } else if (inputChain === 'near') {
               refundAddress = ed25519PublicKeyToNearAddress(refundStealth.stealthAddress.address)
+            } else if (inputChain === 'aptos') {
+              refundAddress = ed25519PublicKeyToAptosAddress(refundStealth.stealthAddress.address)
+            } else if (inputChain === 'sui') {
+              refundAddress = ed25519PublicKeyToSuiAddress(refundStealth.stealthAddress.address)
             }
           } else {
             // Cross-curve: output is secp256k1 but input is ed25519

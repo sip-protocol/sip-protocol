@@ -295,6 +295,64 @@ const result = await service.shieldedSend({
 | Bitcoin | Yes | Yes | - |
 | Zcash | Yes | Yes | - |
 
+## Configuration
+
+### Development Defaults
+
+The SDK uses localhost endpoints by default for local development:
+
+| Service | Default Endpoint | Environment Variable |
+|---------|-----------------|---------------------|
+| Zcash RPC | `127.0.0.1:8232` | `ZCASH_RPC_HOST`, `ZCASH_RPC_PORT` |
+| Ethereum RPC | `localhost:8545` | `ETH_RPC_URL` |
+| Solana RPC | `localhost:8899` | `SOL_RPC_URL` |
+| Sui RPC | `localhost:9000` | `SUI_RPC_URL` |
+
+These defaults allow you to run local nodes (Ganache, Hardhat, Solana Test Validator) without additional configuration.
+
+### Production Configuration
+
+**Always configure endpoints explicitly in production:**
+
+```typescript
+import { SIP } from '@sip-protocol/sdk'
+
+const sip = new SIP({
+  network: 'mainnet',
+  mode: 'production',
+  rpcEndpoints: {
+    ethereum: process.env.ETH_RPC_URL,    // e.g., Alchemy, Infura
+    solana: process.env.SOL_RPC_URL,      // e.g., Helius, QuickNode
+    near: process.env.NEAR_RPC_URL,       // e.g., NEAR RPC
+  },
+})
+```
+
+### Zcash Configuration
+
+```typescript
+import { ZcashRPCClient } from '@sip-protocol/sdk'
+
+// Development (uses defaults)
+const devClient = new ZcashRPCClient({
+  username: 'user',
+  password: 'pass',
+})
+
+// Production
+const prodClient = new ZcashRPCClient({
+  host: process.env.ZCASH_RPC_HOST,
+  port: parseInt(process.env.ZCASH_RPC_PORT || '8232'),
+  username: process.env.ZCASH_RPC_USER,
+  password: process.env.ZCASH_RPC_PASS,
+  tls: true,  // Enable for production
+})
+```
+
+### Environment Variables
+
+See [`.env.example`](https://github.com/sip-protocol/sip-protocol/blob/main/.env.example) for a complete list of configurable environment variables.
+
 ## Error Handling
 
 ```typescript

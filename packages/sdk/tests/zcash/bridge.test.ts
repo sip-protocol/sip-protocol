@@ -28,9 +28,29 @@ describe('ZcashBridge', () => {
       expect(b).toBeInstanceOf(ZcashBridge)
     })
 
-    it('should create bridge in production mode', () => {
-      const b = new ZcashBridge({ mode: 'production' })
+    it('should create bridge in production mode with bridge provider', () => {
+      const mockBridgeProvider: BridgeProvider = {
+        name: 'MockBridge',
+        getQuote: vi.fn(),
+        executeSwap: vi.fn(),
+        getSupportedChains: vi.fn(),
+      }
+
+      const b = new ZcashBridge({
+        mode: 'production',
+        bridgeProvider: mockBridgeProvider,
+      })
       expect(b).toBeInstanceOf(ZcashBridge)
+    })
+
+    it('should throw in production mode without bridge provider', () => {
+      expect(() => {
+        new ZcashBridge({ mode: 'production' })
+      }).toThrow(IntentError)
+
+      expect(() => {
+        new ZcashBridge({ mode: 'production' })
+      }).toThrow('Bridge provider required for production mode')
     })
 
     it('should accept custom slippage', () => {
@@ -198,7 +218,7 @@ describe('ZcashBridge', () => {
         await expect(
           bridge.bridgeToShielded({
             ...validParams,
-            sourceChain: '' as any,
+            sourceChain: '' as unknown as string,
           }),
         ).rejects.toThrow(ValidationError)
       })
@@ -207,7 +227,7 @@ describe('ZcashBridge', () => {
         await expect(
           bridge.bridgeToShielded({
             ...validParams,
-            sourceToken: '' as any,
+            sourceToken: '' as unknown as string,
           }),
         ).rejects.toThrow(ValidationError)
       })
@@ -450,19 +470,6 @@ describe('ZcashBridge', () => {
   // ─── Production Mode ─────────────────────────────────────────────────────────
 
   describe('production mode', () => {
-    it('should throw if bridge provider not configured', async () => {
-      const prodBridge = new ZcashBridge({ mode: 'production' })
-
-      await expect(
-        prodBridge.bridgeToShielded({
-          sourceChain: 'ethereum',
-          sourceToken: 'ETH',
-          amount: 1000000000000000000n,
-          recipientAddress: 'zs1testaddress1234567890abcdef',
-        }),
-      ).rejects.toThrow(IntentError)
-    })
-
     it('should use bridge provider when configured', async () => {
       const mockBridgeProvider: BridgeProvider = {
         name: 'MockBridge',

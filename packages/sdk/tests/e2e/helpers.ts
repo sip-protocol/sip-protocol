@@ -221,6 +221,7 @@ export const DEFAULT_SWAP_PARAMS: CrossChainSwapParams = {
 /**
  * Create a shielded intent for testing
  * Note: For COMPLIANT mode, a viewing key is automatically generated
+ * Note: Uses allowPlaceholders for test environment - NOT for production use
  */
 export async function createTestIntent(
   sip: SIP,
@@ -247,6 +248,9 @@ export async function createTestIntent(
       privacy: p.privacyLevel,
       viewingKey: viewingKey.key,
       ttl: 3600,
+    }, {
+      // Allow placeholder signatures in test environment
+      allowPlaceholders: true,
     })
   }
 
@@ -256,6 +260,7 @@ export async function createTestIntent(
     .output(p.outputChain, NATIVE_TOKENS[p.outputChain]?.symbol ?? 'ZEC', p.minOutputAmount)
     .privacy(p.privacyLevel)
     .ttl(3600)
+    .withPlaceholders() // Allow placeholder signatures in test environment
     .build()
 
   return intent
@@ -495,6 +500,7 @@ export function createFailingSolver(scenario: ErrorScenario): MockSolver {
 
 /**
  * Create intent that will trigger specific error
+ * Note: Uses allowPlaceholders for test environment - NOT for production use
  */
 export async function createErrorIntent(
   sip: SIP,
@@ -507,6 +513,7 @@ export async function createErrorIntent(
         .input('solana' as ChainId, 'SOL', 1_000_000_000_000n) // Huge amount
         .output('zcash' as ChainId, 'ZEC', 1n)
         .privacy(PrivacyLevel.SHIELDED)
+        .withPlaceholders()
         .build()
 
     case 'expired_intent':
@@ -516,6 +523,7 @@ export async function createErrorIntent(
         .output('zcash' as ChainId, 'ZEC', 50_000_000n)
         .privacy(PrivacyLevel.SHIELDED)
         .ttl(0) // Expires immediately
+        .withPlaceholders()
         .build()
 
     case 'invalid_quote':
@@ -524,6 +532,7 @@ export async function createErrorIntent(
         .input('solana' as ChainId, 'SOL', 1n) // Too small
         .output('zcash' as ChainId, 'ZEC', 1_000_000_000_000n) // Impossible output
         .privacy(PrivacyLevel.SHIELDED)
+        .withPlaceholders()
         .build()
 
     default:

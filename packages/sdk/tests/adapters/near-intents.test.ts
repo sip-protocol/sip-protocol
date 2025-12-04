@@ -155,7 +155,7 @@ describe('NEARIntentsAdapter', () => {
     })
 
     it('should throw for unknown asset', () => {
-      expect(() => adapter.mapAsset('dogecoin' as any, 'DOGE'))
+      expect(() => adapter.mapAsset('dogecoin' as unknown as ChainId, 'DOGE'))
         .toThrow(ValidationError)
     })
   })
@@ -174,7 +174,7 @@ describe('NEARIntentsAdapter', () => {
     })
 
     it('should throw for unknown chain', () => {
-      expect(() => adapter.mapChainType('unknown_chain' as any))
+      expect(() => adapter.mapChainType('unknown_chain' as unknown as ChainId))
         .toThrow(ValidationError)
     })
 
@@ -252,10 +252,10 @@ describe('NEARIntentsAdapter', () => {
     })
 
     it('should validate request fields', async () => {
-      await expect(adapter.prepareSwap({} as any))
+      await expect(adapter.prepareSwap({} as SwapRequest))
         .rejects.toThrow('requestId is required')
 
-      await expect(adapter.prepareSwap({ requestId: 'req' } as any))
+      await expect(adapter.prepareSwap({ requestId: 'req' } as SwapRequest))
         .rejects.toThrow('inputAsset is required')
     })
   })

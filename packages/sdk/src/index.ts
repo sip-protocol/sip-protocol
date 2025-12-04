@@ -93,6 +93,43 @@ export {
 
 export type { StealthCurve } from './stealth'
 
+// Move blockchain stealth addresses (Aptos, Sui)
+export {
+  // Aptos
+  AptosStealthService,
+  generateAptosStealthAddress,
+  deriveAptosStealthPrivateKey,
+  checkAptosStealthAddress,
+  ed25519PublicKeyToAptosAddress,
+  aptosAddressToAuthKey,
+  isValidAptosAddress,
+  // Sui
+  SuiStealthService,
+  generateSuiStealthAddress,
+  deriveSuiStealthPrivateKey,
+  checkSuiStealthAddress,
+  ed25519PublicKeyToSuiAddress,
+  normalizeSuiAddress,
+  isValidSuiAddress,
+} from './move'
+
+export type { AptosStealthResult, SuiStealthResult } from './move'
+
+// Cosmos blockchain stealth addresses
+export {
+  CosmosStealthService,
+  generateCosmosStealthMetaAddress,
+  generateCosmosStealthAddress,
+  stealthKeyToCosmosAddress,
+  isValidCosmosAddress,
+  CHAIN_PREFIXES as COSMOS_CHAIN_PREFIXES,
+} from './cosmos'
+
+export type {
+  CosmosChainId,
+  CosmosStealthResult,
+} from './cosmos'
+
 // Privacy utilities
 export {
   getPrivacyConfig,
@@ -269,6 +306,12 @@ export type {
   CreatePaymentParams,
   PaymentReceipt,
   TrackedPayment,
+  // NFT types
+  PrivateNFTOwnership,
+  OwnershipProof,
+  CreatePrivateOwnershipParams,
+  ProveOwnershipParams,
+  OwnershipVerification,
 } from '@sip-protocol/types'
 
 // Payment status enum
@@ -365,6 +408,38 @@ export type {
   DefuseAssetId,
 } from '@sip-protocol/types'
 
+// Settlement Backend Abstraction
+export {
+  SwapStatus,
+  SettlementRegistry,
+  SettlementRegistryError,
+  type SettlementBackendName,
+  type QuoteParams as SettlementQuoteParams,
+  type Quote as SettlementQuote,
+  type SwapRoute as SettlementSwapRoute,
+  type SwapRouteStep as SettlementSwapRouteStep,
+  type SwapParams as SettlementSwapParams,
+  type SwapResult as SettlementSwapResult,
+  type SwapStatusResponse,
+  type BackendCapabilities,
+  type SettlementBackend,
+  type SettlementBackendFactory,
+  type SettlementBackendRegistry,
+  type Route,
+  // Smart Router
+  SmartRouter,
+  createSmartRouter,
+  type RouteWithQuote,
+  type QuoteComparison,
+  type FindBestRouteParams,
+  // Settlement backends
+  NEARIntentsBackend,
+  createNEARIntentsBackend,
+  ZcashNativeBackend,
+  createZcashNativeBackend,
+  type ZcashNativeBackendConfig,
+} from './settlement'
+
 // Zcash
 export {
   ZcashRPCClient,
@@ -421,6 +496,29 @@ export type {
   ZcashNetworkInfo,
 } from '@sip-protocol/types'
 
+// Bitcoin Taproot (BIP-340/341)
+export {
+  // BIP-340 Schnorr signatures
+  schnorrSign,
+  schnorrVerify,
+  schnorrSignHex,
+  schnorrVerifyHex,
+  // BIP-341 Taproot
+  getXOnlyPublicKey,
+  computeTweakedKey,
+  createTaprootOutput,
+  createKeySpendOnlyOutput,
+  taprootAddress,
+  decodeTaprootAddress,
+  isValidTaprootAddress,
+} from './bitcoin'
+
+export type {
+  TaprootOutput,
+  TapScript,
+  BitcoinNetwork,
+} from './bitcoin'
+
 // Private Payments
 export {
   PaymentBuilder,
@@ -453,7 +551,68 @@ export type { CreatePaymentOptions, StablecoinInfo } from './payment'
 export { Treasury } from './treasury'
 
 // Enterprise Compliance
-export { ComplianceManager } from './compliance'
+export {
+  ComplianceManager,
+  ComplianceReporter,
+  generatePdfReport,
+  ConditionalDisclosure,
+  AuditorKeyDerivation,
+  AuditorType,
+  ThresholdViewingKey,
+  type GenerateAuditReportParams,
+  type AuditReport,
+  type DecryptedTransaction,
+  type PdfExportOptions,
+  type ExportForRegulatorParams,
+  type RegulatoryExport,
+  type RegulatoryFormat,
+  type Jurisdiction,
+  type FATFExport,
+  type FATFTransaction,
+  type FINCENExport,
+  type FINCENTransaction,
+  type CSVExport,
+  type DerivedViewingKey,
+  type DeriveViewingKeyParams,
+  type DeriveMultipleParams,
+  type ThresholdShares,
+  type TimeLockResult,
+  type UnlockResult,
+  type TimeLockParams,
+} from './compliance'
+
+// Sealed-Bid Auctions
+export {
+  SealedBidAuction,
+  createSealedBidAuction,
+} from './auction'
+
+export type {
+  SealedBid,
+  BidReceipt,
+  CreateBidParams,
+  VerifyBidParams,
+} from './auction'
+
+// Governance (Private Voting)
+export {
+  PrivateVoting,
+  createPrivateVoting,
+} from './governance'
+
+export type {
+  EncryptedVote,
+  RevealedVote,
+  CastVoteParams,
+} from './governance'
+
+// NFT Module
+export {
+  PrivateNFT,
+  createPrivateOwnership,
+  proveOwnership,
+  verifyOwnership,
+} from './nft'
 
 // Wallet Adapters
 export {

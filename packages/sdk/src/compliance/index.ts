@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import { ComplianceManager } from '@sip-protocol/sdk'
+ * import { ComplianceManager, ComplianceReporter } from '@sip-protocol/sdk'
  *
  * // Create compliance manager
  * const compliance = await ComplianceManager.create({
@@ -27,17 +27,59 @@
  *   },
  * }, adminAddress)
  *
- * // Generate compliance report
- * const report = await compliance.generateReport({
- *   type: 'transaction_summary',
- *   title: 'Q4 Report',
+ * // Generate audit report using ComplianceReporter
+ * const reporter = new ComplianceReporter()
+ * const report = await reporter.generateAuditReport({
+ *   viewingKey: myViewingKey,
+ *   transactions: encryptedTransactions,
+ *   startDate: new Date('2025-01-01'),
+ *   endDate: new Date('2025-12-31'),
  *   format: 'json',
- *   startDate: quarterStart,
- *   endDate: quarterEnd,
- * }, requesterAddress)
+ * })
  * ```
  *
  * @module compliance
  */
 
 export { ComplianceManager } from './compliance-manager'
+export { ComplianceReporter } from './reports'
+export { generatePdfReport } from './pdf'
+export type {
+  GenerateAuditReportParams,
+  AuditReport,
+  DecryptedTransaction,
+  PdfExportOptions,
+  ExportForRegulatorParams,
+  RegulatoryExport,
+  RegulatoryFormat,
+  Jurisdiction,
+  FATFExport,
+  FATFTransaction,
+  FINCENExport,
+  FINCENTransaction,
+  CSVExport,
+} from './types'
+export type { ComplianceMetrics } from '@sip-protocol/types'
+export {
+  ConditionalDisclosure,
+  type TimeLockResult,
+  type UnlockResult,
+  type TimeLockParams,
+} from './conditional'
+export {
+  createAmountThreshold,
+  proveExceedsThreshold,
+  verifyThresholdProof,
+  shouldDisclose,
+  type ThresholdDisclosure,
+  type RangeProof,
+  type CreateAmountThresholdParams,
+} from './conditional-threshold'
+export { ThresholdViewingKey, type ThresholdShares } from './threshold'
+export {
+  AuditorKeyDerivation,
+  AuditorType,
+  type DerivedViewingKey,
+  type DeriveViewingKeyParams,
+  type DeriveMultipleParams,
+} from './derivation'
