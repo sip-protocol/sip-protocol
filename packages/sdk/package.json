@@ -57,7 +57,7 @@
     "@noir-lang/noir_js": "1.0.0-beta.15",
     "@noir-lang/types": "1.0.0-beta.15",
     "@scure/base": "^2.0.0",
-    "@sip-protocol/types": "^0.2.0"
+    "@sip-protocol/types": "workspace:*"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "1.6.1",

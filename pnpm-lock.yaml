@@ -78,10 +78,10 @@ importers:
         specifier: ^10.28.0
         version: 10.28.0
       '@sip-protocol/sdk':
-        specifier: ^0.6.0
+        specifier: workspace:*
         version: link:../sdk
       '@sip-protocol/types':
-        specifier: ^0.2.0
+        specifier: workspace:*
         version: link:../types
       compression:
         specifier: ^1.8.1
@@ -157,10 +157,10 @@ importers:
   packages/cli:
     dependencies:
       '@sip-protocol/sdk':
-        specifier: ^0.6.0
+        specifier: workspace:*
         version: link:../sdk
       '@sip-protocol/types':
-        specifier: ^0.2.0
+        specifier: workspace:*
         version: link:../types
       chalk:
         specifier: ^4.1.2
@@ -191,10 +191,10 @@ importers:
   packages/react:
     dependencies:
       '@sip-protocol/sdk':
-        specifier: ^0.6.0
+        specifier: workspace:*
         version: link:../sdk
       '@sip-protocol/types':
-        specifier: ^0.2.0
+        specifier: workspace:*
         version: link:../types
       react:
         specifier: ^18.0.0
@@ -255,7 +255,7 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       '@sip-protocol/types':
-        specifier: ^0.2.0
+        specifier: workspace:*
         version: link:../types
     devDependencies:
       '@vitest/coverage-v8':
