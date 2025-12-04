@@ -479,7 +479,7 @@ export function createMockCosmosProvider(
     bech32Address: address,
   }
 
-  return {
+  const mockKeplr: Keplr = {
     async enable() {
       if (config.shouldFailConnect) {
         throw new Error('Request rejected by user')
@@ -557,25 +557,23 @@ export function createMockCosmosProvider(
     },
 
     async getOfflineSignerAuto(_chainId: string): Promise<OfflineSigner> {
-      const keplrInstance = this
       return {
-        async getAccounts(): Promise<readonly CosmosAccountData[]> {
+        getAccounts: async (): Promise<readonly CosmosAccountData[]> => {
           return [{ address, algo, pubkey: mockPubKey }]
         },
-        async signDirect(signerAddress: string, signDoc: DirectSignDoc): Promise<DirectSignResponse> {
-          return keplrInstance.signDirect(chainId, signerAddress, signDoc)
+        signDirect: async (signerAddress: string, signDoc: DirectSignDoc): Promise<DirectSignResponse> => {
+          return mockKeplr.signDirect(chainId, signerAddress, signDoc)
         },
       }
     },
 
     async getOfflineSignerOnlyAmino(_chainId: string): Promise<OfflineAminoSigner> {
-      const keplrInstance = this
       return {
-        async getAccounts(): Promise<readonly CosmosAccountData[]> {
+        getAccounts: async (): Promise<readonly CosmosAccountData[]> => {
           return [{ address, algo, pubkey: mockPubKey }]
         },
-        async signAmino(signerAddress: string, signDoc: StdSignDoc): Promise<AminoSignResponse> {
-          return keplrInstance.signAmino(chainId, signerAddress, signDoc)
+        signAmino: async (signerAddress: string, signDoc: StdSignDoc): Promise<AminoSignResponse> => {
+          return mockKeplr.signAmino(chainId, signerAddress, signDoc)
         },
       }
     },
@@ -587,7 +585,9 @@ export function createMockCosmosProvider(
     async experimentalSuggestChain() {
       // No-op for mock
     },
-  } as Keplr
+  }
+
+  return mockKeplr
 }
 
 /**
