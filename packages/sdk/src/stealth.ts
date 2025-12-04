@@ -113,7 +113,12 @@ export function generateStealthMetaAddress(
     )
   }
 
-  // Generate random private keys
+  // Dispatch to curve-specific implementation
+  if (isEd25519Chain(chain)) {
+    return generateEd25519StealthMetaAddress(chain, label)
+  }
+
+  // secp256k1 implementation for EVM chains
   const spendingPrivateKey = randomBytes(32)
   const viewingPrivateKey = randomBytes(32)
 
@@ -269,7 +274,12 @@ export function generateStealthAddress(
   // Validate input
   validateStealthMetaAddress(recipientMetaAddress)
 
-  // Generate ephemeral keypair
+  // Dispatch to curve-specific implementation based on chain
+  if (isEd25519Chain(recipientMetaAddress.chain)) {
+    return generateEd25519StealthAddress(recipientMetaAddress)
+  }
+
+  // secp256k1 implementation for EVM chains
   const ephemeralPrivateKey = randomBytes(32)
 
   try {

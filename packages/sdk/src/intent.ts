@@ -554,6 +554,16 @@ export async function createShieldedIntent(
       return hexToBytes(cleanHex)
     }
 
+    // SECURITY: Prevent placeholder mode in production environments
+    // Placeholder signatures are NOT cryptographically valid and must never be used in production
+    if (allowPlaceholders && typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') {
+      throw new ValidationError(
+        'allowPlaceholders cannot be used in production environment. ' +
+        'Provide valid senderSecret and signatures for production use.',
+        'options.allowPlaceholders'
+      )
+    }
+
     // Use provided signatures or generate them from senderSecret
     // IMPORTANT: senderSecret must be random even for placeholders, as secp256k1
     // rejects all-zero private keys. randomBytes generates cryptographically secure random values.

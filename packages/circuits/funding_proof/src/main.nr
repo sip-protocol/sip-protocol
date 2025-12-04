@@ -4,6 +4,12 @@
 /// my exact balance, wallet address, or source of funds."
 ///
 /// @see docs/specs/FUNDING-PROOF.md
+///
+/// Field Value Limits:
+/// - Uses BN254 scalar field (Barretenberg backend)
+/// - Maximum value: ~2^254 (approximately 2.89 * 10^76)
+/// - Safe for all blockchain amounts including NEAR's 24 decimals (max ~10^24)
+/// - Comparison uses Field.lt() which works correctly up to field modulus
 
 use std::hash::pedersen_hash;
 use std::hash::pedersen_commitment;
