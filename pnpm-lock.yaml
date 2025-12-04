@@ -233,6 +233,9 @@ importers:
       '@aztec/bb.js':
         specifier: ^0.63.1
         version: 0.63.1
+      '@ethereumjs/rlp':
+        specifier: ^10.1.0
+        version: 10.1.0
       '@noble/ciphers':
         specifier: ^2.0.1
         version: 2.0.1
@@ -907,6 +910,12 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
+
+  /@ethereumjs/rlp@10.1.0:
+    resolution: {integrity: sha512-r67BJbwilammAqYI4B5okA66cNdTlFzeWxPNJOolKV52ZS/flo0tUBf4x4gxWXBgh48OgsdFV1Qp5pRoSe8IhQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dev: false
 
   /@gerrit0/mini-shiki@3.15.0:
     resolution: {integrity: sha512-L5IHdZIDa4bG4yJaOzfasOH/o22MCesY0mx+n6VATbaiCtMeR59pdRqYk4bEiQkIHfxsHPNgdi7VJlZb2FhdMQ==}

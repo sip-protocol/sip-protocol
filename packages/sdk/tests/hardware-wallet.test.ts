@@ -442,6 +442,7 @@ describe('Hardware Wallet Adapters', () => {
       expect(HardwareErrorCode.TIMEOUT).toBe('HARDWARE_TIMEOUT')
       expect(HardwareErrorCode.UNSUPPORTED).toBe('HARDWARE_UNSUPPORTED')
       expect(HardwareErrorCode.INVALID_PATH).toBe('HARDWARE_INVALID_PATH')
+      expect(HardwareErrorCode.INVALID_PARAMS).toBe('HARDWARE_INVALID_PARAMS')
     })
   })
 
