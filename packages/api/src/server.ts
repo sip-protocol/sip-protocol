@@ -7,12 +7,15 @@
  * - Graceful shutdown handling
  * - Security middleware (helmet, CORS, rate limiting)
  * - Request authentication
+ * - Error monitoring (Sentry)
+ * - Metrics collection (Prometheus)
  */
 
 import express, { Express } from 'express'
 import helmet from 'helmet'
 import compression from 'compression'
 import router from './routes'
+import metricsRouter from './routes/metrics'
 import { env, logConfigWarnings } from './config'
 import { logger, requestLogger } from './logger'
 import { setupGracefulShutdown, shutdownMiddleware, isServerShuttingDown } from './shutdown'
@@ -25,8 +28,23 @@ import {
   isAuthEnabled,
   getCorsConfig,
 } from './middleware'
+import {
+  initSentry,
+  setupSentryErrorHandler,
+  flushSentry,
+  isSentryEnabled,
+  metricsMiddleware,
+} from './monitoring'
+
+// Initialize Sentry early (before Express)
+initSentry()
 
 const app: Express = express()
+
+// Metrics middleware (early to capture all requests)
+if (env.METRICS_ENABLED === 'true') {
+  app.use(metricsMiddleware)
+}
 
 // Shutdown middleware (early to reject during shutdown)
 app.use(shutdownMiddleware)
@@ -53,6 +71,11 @@ app.use(requestLogger)
 
 // API routes
 app.use('/api/v1', router)
+
+// Metrics endpoint (no auth required for Prometheus scraping)
+if (env.METRICS_ENABLED === 'true') {
+  app.use('/metrics', metricsRouter)
+}
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -85,6 +108,9 @@ app.get('/', (req, res) => {
 // 404 handler
 app.use(notFoundHandler)
 
+// Sentry error handler (uses Sentry v10 auto-instrumentation)
+setupSentryErrorHandler(app)
+
 // Error handler (must be last)
 app.use(errorHandler)
 
@@ -101,6 +127,8 @@ if (require.main === module) {
       auth: isAuthEnabled() ? 'enabled' : 'disabled',
       corsOrigins: corsConfig.origins.length,
       logLevel: env.LOG_LEVEL,
+      sentry: isSentryEnabled() ? 'enabled' : 'disabled',
+      metrics: env.METRICS_ENABLED === 'true' ? 'enabled' : 'disabled',
     }, 'SIP Protocol API started')
 
     // Pretty banner in development
@@ -118,6 +146,10 @@ if (require.main === module) {
 ║  • CORS: ${(corsConfig.origins.length + ' origins').padEnd(42)}║
 ║  • Rate Limit: enabled                             ║
 ╠════════════════════════════════════════════════════╣
+║  Monitoring:                                       ║
+║  • Sentry: ${(isSentryEnabled() ? 'ENABLED' : 'disabled').padEnd(40)}║
+║  • Metrics: ${(env.METRICS_ENABLED === 'true' ? '/metrics' : 'disabled').padEnd(39)}║
+╠════════════════════════════════════════════════════╣
 ║  Logging: ${env.LOG_LEVEL.padEnd(41)}║
 ╠════════════════════════════════════════════════════╣
 ║  Documentation: http://localhost:${String(env.PORT).padEnd(17)}║
@@ -128,7 +160,11 @@ if (require.main === module) {
 
   // Setup graceful shutdown
   setupGracefulShutdown(server, async () => {
-    // Add any cleanup logic here (close DB connections, flush logs, etc.)
+    // Flush Sentry events before shutdown
+    if (isSentryEnabled()) {
+      logger.info('Flushing Sentry events...')
+      await flushSentry(2000)
+    }
     logger.info('Flushing logs...')
     // pino handles its own flushing on process exit
   })

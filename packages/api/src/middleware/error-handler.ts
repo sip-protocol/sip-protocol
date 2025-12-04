@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { SIPError, ValidationError, isSIPError } from '@sip-protocol/sdk'
 import { logger } from '../logger'
 import { env } from '../config'
+import { captureException } from '../monitoring'
 
 /**
  * Global error handler middleware
@@ -37,6 +38,12 @@ export function errorHandler(
       },
     })
   }
+
+  // Capture to Sentry (for 5xx errors)
+  captureException(err, {
+    path: req.path,
+    method: req.method,
+  })
 
   // Handle generic errors
   res.status(500).json({

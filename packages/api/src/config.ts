@@ -56,6 +56,17 @@ export const env = cleanEnv(process.env, {
     default: 30000,
     desc: 'Graceful shutdown timeout in milliseconds',
   }),
+
+  // Monitoring
+  SENTRY_DSN: str({
+    default: '',
+    desc: 'Sentry DSN for error tracking (optional)',
+  }),
+  METRICS_ENABLED: str({
+    choices: ['true', 'false'] as const,
+    default: 'true',
+    desc: 'Enable Prometheus metrics endpoint',
+  }),
 })
 
 /**
