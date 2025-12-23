@@ -195,6 +195,8 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **Status:** M15 Complete | 2,757 tests (SDK: 2,474, React: 57, CLI: 33, API: 67, Website: 126) | Live at sip-protocol.org
 
+**🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) NEAR Track ($4,000) | Dec 2025
+
 **Endgame:** Privacy middleware between applications and blockchains. Chain-agnostic. Settlement-agnostic. The universal privacy layer.
 
 ---
@@ -544,5 +546,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2025-12-04
-**Status:** M15 Complete | 2,757 Tests | 6 Packages | C+B Hybrid Strategy
+**Last Updated:** 2025-12-23
+**Status:** M15 Complete | 2,757 Tests | 6 Packages | C+B Hybrid Strategy | 🏆 Zypherpunk NEAR Track Winner

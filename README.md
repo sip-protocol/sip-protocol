@@ -28,6 +28,8 @@
 [![pnpm](https://img.shields.io/badge/pnpm-Monorepo-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
+**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) NEAR Track ($4,000)**
+
 </div>
 
 ---
@@ -555,7 +557,7 @@ SIP builds on the shoulders of giants:
 
 <div align="center">
 
-**Built for the [NEAR AI Intents Hackathon](https://near.org/)**
+**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) NEAR Track**
 
 *Privacy is not a feature. It's a right.*
 
