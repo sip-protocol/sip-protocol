@@ -28,6 +28,42 @@
 │   • SIP-EIP: Formal standard proposal accepted                              │
 │   • "Privacy by SIP" recognized like "Secured by SSL"                       │
 │                                                                             │
+│   NEW 2026 Targets:                                                         │
+│   • Same-chain privacy on Solana + Ethereum                                 │
+│   • Direct competitor to pool-based mixers (PrivacyCash, etc)               │
+│   • Superior tech: stealth + hidden amounts vs pool mixing                  │
+│   • SIP Labs, Inc. registered for institutional fundraising                 │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Privacy Architecture: Why SIP Wins
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    TWO APPROACHES TO BLOCKCHAIN PRIVACY                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   POOL MIXING (PrivacyCash, Tornado Cash)                                   │
+│   ─────────────────────────────────────────                                 │
+│   • How: Pool funds with strangers                                          │
+│   • Privacy from: Hiding in the crowd                                       │
+│   • Weakness: Amount correlation attacks                                    │
+│   • Weakness: Fixed denominations needed                                    │
+│   • Weakness: Anonymity set = pool size                                     │
+│   • Regulatory: HIGH RISK (mixer = money laundering concern)                │
+│                                                                             │
+│   CRYPTOGRAPHIC PRIVACY (SIP Protocol, Zcash-style)     ◄═══ OUR APPROACH  │
+│   ───────────────────────────────────────────────────                       │
+│   • How: Stealth addresses + hidden amounts                                 │
+│   • Privacy from: Cryptographic encryption                                  │
+│   • Strength: ANY amount, instant, no pool needed                           │
+│   • Strength: Viewing keys for compliance                                   │
+│   • Strength: Your funds stay yours (no commingling)                        │
+│   • Regulatory: LOWER RISK (not a mixer, compliance-ready)                  │
+│                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -50,7 +86,12 @@
 │  │ • Privacy Levels       • Unified API            • Compliance Ready    │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
-│  │ PROOF COMPOSITION (Technical Moat)                                    │ │
+│  │ SAME-CHAIN + CROSS-CHAIN (Market Expansion)              [NEW Q1 2026]│ │
+│  │ • Solana same-chain    • Ethereum same-chain   • Cross-chain swaps    │ │
+│  │ • Compete with mixers  • Superior compliance   • 10x bigger market    │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ PROOF COMPOSITION (Technical Moat)                       [Future 2026]│ │
 │  │ • Zcash → Privacy execution     • Mina → Succinct verification        │ │
 │  │ • Noir  → Validity proofs       • Compose proofs from multiple systems│ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
@@ -59,7 +100,7 @@
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  SETTLEMENT LAYER (Pluggable)                                               │
-│  • NEAR Intents  • Mina Protocol  • Direct Chain  • Future backends...     │
+│  • NEAR Intents  • Direct Chain [NEW]  • Mina Protocol  • Future backends  │
 └────────────────────────────────┬────────────────────────────────────────────┘
                                  │
                                  ▼
@@ -127,28 +168,31 @@ SIP combines two complementary strategies:
 ## The Path to Endgame
 
 ```
-PHASE 1: FOUNDATION     PHASE 2: STANDARD      PHASE 3: ECOSYSTEM     PHASE 4: FUTURE
-(2024-2025) ✅          (2025) ✅              (2025) ✅              (2026+)
-     │                       │                      │                      │
-     ▼                       ▼                      ▼                      ▼
-┌─────────┐            ┌─────────┐            ┌─────────┐           ┌─────────┐
-│ M1-M8   │            │ M9-M12  │            │ M13-M15 │           │ M16-M18 │
-│ Core    │ ─────────► │ Multi-  │ ─────────► │ DX &    │ ────────► │ Privacy │
-│ Tech    │            │ Backend │            │ Apps    │           │Standard │
-└─────────┘            └─────────┘            └─────────┘           └─────────┘
-     │                      │                      │                      │
-• SDK ✅                • Stable Core ✅       • Compliance ✅       • Proof
-• NEAR adapter ✅       • ZK Production ✅     • React/CLI/API ✅     composition
-• Demo ✅               • Multi-Settlement ✅  • Hardware wallets ✅ • SIP-EIP
-• Noir circuits ✅      • Multi-Chain ✅       • WalletConnect ✅    • $5B vol
-• 2,757 tests ✅        • 15+ chains ✅        • 157 new tests ✅    • Industry std
+PHASE 1: FOUNDATION     PHASE 2: STANDARD      PHASE 3: ECOSYSTEM     PHASE 4: EXPANSION    PHASE 5: MOAT
+(2024-2025) ✅          (2025) ✅              (2025) ✅              (Q1-Q2 2026) 🎯       (Q3-Q4 2026)
+     │                       │                      │                      │                    │
+     ▼                       ▼                      ▼                      ▼                    ▼
+┌─────────┐            ┌─────────┐            ┌─────────┐            ┌─────────┐          ┌─────────┐
+│ M1-M8   │            │ M9-M12  │            │ M13-M15 │            │ M16-M18 │          │ M19-M21 │
+│ Core    │ ─────────► │ Multi-  │ ─────────► │ DX &    │ ─────────► │ Same-   │ ───────► │Privacy  │
+│ Tech    │            │ Backend │            │ Apps    │            │ Chain   │          │Standard │
+└─────────┘            └─────────┘            └─────────┘            └─────────┘          └─────────┘
+     │                      │                      │                      │                    │
+• SDK ✅                • Stable Core ✅       • Compliance ✅       • Narrative       • Proof
+• NEAR adapter ✅       • ZK Production ✅     • React/CLI/API ✅      Capture           composition
+• Demo ✅               • Multi-Settlement ✅  • Hardware wallets ✅ • Solana same-    • SIP-EIP
+• Noir circuits ✅      • Multi-Chain ✅       • WalletConnect ✅      chain            • $5B vol
+• 2,757 tests ✅        • 15+ chains ✅        • 157 new tests ✅    • ETH same-chain  • Industry std
 ```
 
 ---
 
 ## Milestones
 
-### PHASE 1: FOUNDATION (M1-M8) — Build Core Technology
+### PHASE 1: FOUNDATION (M1-M8) ✅ Complete
+
+<details>
+<summary>Click to expand Phase 1 details</summary>
 
 #### M1: Architecture & Specification ✅ Complete
 
@@ -166,8 +210,6 @@ Foundational decisions and formal protocol specifications.
 | [#8](../../issues/8) | Viewing key specification | ✅ Done |
 | [#9](../../issues/9) | Privacy levels formal spec | ✅ Done |
 
----
-
 #### M2: Cryptographic Core ✅ Complete
 
 Real cryptographic implementations, no mocks.
@@ -184,8 +226,6 @@ Real cryptographic implementations, no mocks.
 | [#17](../../issues/17) | Cryptographic test suite | ✅ Done |
 | [#18](../../issues/18) | Security audit preparation | ✅ Done |
 
----
-
 #### M3: SDK Production ✅ Complete
 
 Production-quality SDK refactoring.
@@ -201,8 +241,6 @@ Production-quality SDK refactoring.
 | [#25](../../issues/25) | Add SDK unit tests (90%+ coverage) | ✅ Done |
 | [#26](../../issues/26) | Add SDK integration tests | ✅ Done |
 | [#27](../../issues/27) | Performance benchmarking and optimization | ✅ Done |
-
----
 
 #### M4: Network Integration ✅ Complete
 
@@ -224,8 +262,6 @@ Connect to real blockchain networks.
 
 **Achievement**: 745 tests passing, comprehensive E2E coverage.
 
----
-
 #### M5: Documentation & Launch ✅ Complete
 
 Polish and publish.
@@ -242,8 +278,6 @@ Polish and publish.
 | [#46](../../issues/46) | Protocol whitepaper | ✅ Done |
 | [#47](../../issues/47) | Architecture diagrams | ✅ Done |
 
----
-
 #### M6: Launch & Publish ✅ Complete
 
 Publish SDK to npm and integrate into website.
@@ -258,8 +292,6 @@ Publish SDK to npm and integrate into website.
 | [#53](../../issues/53) | Build docs-sip with Astro + Starlight | ✅ Done |
 
 **Achievement**: @sip-protocol/sdk and @sip-protocol/types published to npm. docs.sip-protocol.org live.
-
----
 
 #### M7: Real Demo Integration ✅ Complete
 
@@ -278,9 +310,7 @@ Connect demo UI to real SDK with actual blockchain transactions.
 
 **Achievement**: Full demo with wallet connection, quote fetching, transaction execution. 122 tests in sip-website.
 
----
-
-#### M8: Production Hardening 🔄 In Progress
+#### M8: Production Hardening ✅ Complete
 
 Real ZK circuits, security hardening, multi-curve support.
 
@@ -292,86 +322,90 @@ Real ZK circuits, security hardening, multi-curve support.
 | [#65](../../issues/65) | Noir Fulfillment Proof circuit | ✅ Done |
 | [#66](../../issues/66) | Memory zeroization for secrets | ✅ Done |
 | [#67](../../issues/67) | External security audit | 🔲 Pending |
-| [#91](../../issues/91) | [EPIC] Multi-Curve Stealth Addresses | 🔄 In Progress |
+| [#91](../../issues/91) | [EPIC] Multi-Curve Stealth Addresses | ✅ Done |
 | [#92](../../issues/92) | ed25519 stealth address implementation | ✅ Done |
 | [#93](../../issues/93) | Solana address derivation from ed25519 | ✅ Done |
 | [#94](../../issues/94) | NEAR address derivation from ed25519 | ✅ Done |
-| [#95](../../issues/95) | Multi-curve meta-address format | 🔲 Planned |
+| [#95](../../issues/95) | Multi-curve meta-address format | ✅ Done |
 | [#96](../../issues/96) | Update NEAR Intents adapter for multi-curve | ✅ Done |
 | [#97](../../issues/97) | Cross-chain stealth integration tests | ✅ Done |
 
-**Achievement**: Noir circuits compiled. Secure memory handling. Multi-curve stealth in progress.
+**Achievement**: Noir circuits compiled. Secure memory handling. Multi-curve stealth complete.
+
+</details>
 
 ---
 
-### PHASE 2: STANDARD (M9-M12) — Multi-Backend & Adoption ✅ Complete
+### PHASE 2: STANDARD (M9-M12) ✅ Complete
+
+<details>
+<summary>Click to expand Phase 2 details</summary>
 
 #### M9: Stable Core ✅ Complete
 
 100% test coverage, Zcash swaps, CI validation.
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] Stable Core | ✅ Done |
-| - | 100% passing test suite | ✅ Done |
-| - | Zcash swap integration | ✅ Done |
-| - | CI/CD validation pipeline | ✅ Done |
+| Description | Status |
+|-------------|--------|
+| [EPIC] Stable Core | ✅ Done |
+| 100% passing test suite | ✅ Done |
+| Zcash swap integration | ✅ Done |
+| CI/CD validation pipeline | ✅ Done |
 
 **Achievement**: Rock-solid foundation with comprehensive testing.
-
----
 
 #### M10: ZK Production ✅ Complete
 
 Noir wired to SDK, WASM browser proving, Web Worker support.
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] ZK Production | ✅ Done |
-| - | Noir circuits wired to SDK | ✅ Done |
-| - | WASM browser proving | ✅ Done |
-| - | Web Worker proof generation | ✅ Done |
-| - | BrowserNoirProvider implementation | ✅ Done |
+| Description | Status |
+|-------------|--------|
+| [EPIC] ZK Production | ✅ Done |
+| Noir circuits wired to SDK | ✅ Done |
+| WASM browser proving | ✅ Done |
+| Web Worker proof generation | ✅ Done |
+| BrowserNoirProvider implementation | ✅ Done |
 
 **Achievement**: Zero-knowledge proofs working in browser environments.
-
----
 
 #### M11: Multi-Settlement ✅ Complete
 
 SettlementBackend interface, SmartRouter, 3 backends.
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] Multi-Settlement | ✅ Done |
-| - | SettlementBackend interface | ✅ Done |
-| - | SmartRouter implementation | ✅ Done |
-| - | NEAR Intents backend | ✅ Done |
-| - | Zcash backend | ✅ Done |
-| - | Direct chain backend | ✅ Done |
+| Description | Status |
+|-------------|--------|
+| [EPIC] Multi-Settlement | ✅ Done |
+| SettlementBackend interface | ✅ Done |
+| SmartRouter implementation | ✅ Done |
+| NEAR Intents backend | ✅ Done |
+| Zcash backend | ✅ Done |
+| Direct chain backend | ✅ Done |
 
 **Achievement**: Pluggable settlement layer with 3 backends.
-
----
 
 #### M12: Multi-Chain ✅ Complete
 
 Bitcoin Silent Payments, Cosmos IBC, Aptos/Sui support.
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] Multi-Chain | ✅ Done |
-| - | Bitcoin Silent Payments | ✅ Done |
-| - | Cosmos IBC stealth addresses | ✅ Done |
-| - | Aptos address derivation | ✅ Done |
-| - | Sui address derivation | ✅ Done |
-| - | Ed25519 chain support | ✅ Done |
+| Description | Status |
+|-------------|--------|
+| [EPIC] Multi-Chain | ✅ Done |
+| Bitcoin Silent Payments | ✅ Done |
+| Cosmos IBC stealth addresses | ✅ Done |
+| Aptos address derivation | ✅ Done |
+| Sui address derivation | ✅ Done |
+| Ed25519 chain support | ✅ Done |
 
 **Achievement**: Support for 15+ chains across multiple curves.
 
+</details>
+
 ---
 
-### PHASE 3: ECOSYSTEM (M13-M15) — Developer Experience & Applications ✅ Complete
+### PHASE 3: ECOSYSTEM (M13-M15) ✅ Complete
+
+<details>
+<summary>Click to expand Phase 3 details</summary>
 
 #### M13: Compliance Layer ✅ Complete
 
@@ -386,8 +420,6 @@ Enterprise-ready compliance features.
 | [#161](../../issues/161) | Regulatory reporting helpers | ✅ Done |
 
 **Achievement**: Full compliance toolkit for institutional adoption.
-
----
 
 #### M14: Developer Experience ✅ Complete
 
@@ -405,8 +437,6 @@ Production-ready developer tools and packages.
 
 **Achievement**: 4 new packages, 157 tests (React: 57, CLI: 33, API: 67).
 
----
-
 #### M15: Application Layer ✅ Complete
 
 Multi-wallet support and hardware wallet integration.
@@ -422,11 +452,103 @@ Multi-wallet support and hardware wallet integration.
 
 **Achievement**: Enterprise-grade wallet infrastructure.
 
+</details>
+
 ---
 
-### PHASE 4: FUTURE (M16-M18) — Proof Composition & Standards 🔲 Planned
+### PHASE 4: SAME-CHAIN EXPANSION (Q1-Q2 2026) 🎯 NEW
 
-#### M16: Proof Composition Research 🔲 Future
+**Goal:** Capture the same-chain privacy market — 10-20x bigger than cross-chain only.
+
+**Strategic Context:** PrivacyCash (pool-based mixer) is getting traction on Solana. SIP's cryptographic approach is architecturally superior. This is the window to establish market leadership.
+
+---
+
+#### M16: Narrative Capture & Positioning 🔲 Q1 2026
+
+Establish SIP as "the right way to do privacy" before competitors solidify.
+
+| Issue | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| - | [EPIC] Narrative Capture | - | 🔲 Planned |
+| - | "Pool vs Stealth" comparison content | Critical | 🔲 Planned |
+| - | Amount correlation attack demo | Critical | 🔲 Planned |
+| - | PrivacyCash competitive analysis | High | 🔲 Planned |
+| - | Thought leadership blog posts | High | 🔲 Planned |
+| - | Developer community engagement | High | 🔲 Planned |
+| - | Twitter/social content strategy | Medium | 🔲 Planned |
+
+**Success Metrics:**
+- 3+ thought leadership pieces published
+- Quoted in 2+ privacy-related articles
+- Developer mindshare: "SIP = compliant privacy"
+
+**Alignment:** Superteam Microgrant ($10K) deliverables
+
+---
+
+#### M17: Solana Same-Chain Privacy 🔲 Q1-Q2 2026
+
+Direct competitor to PrivacyCash with superior architecture.
+
+| Issue | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| - | [EPIC] Solana Same-Chain Privacy | - | 🔲 Planned |
+| - | Same-chain transfer module | Critical | 🔲 Planned |
+| - | Stealth address derivation (no pool) | Critical | 🔲 Planned |
+| - | Hidden amounts (Pedersen commitments) | Critical | 🔲 Planned |
+| - | Viewing key compliance integration | High | 🔲 Planned |
+| - | SDK API: `sip.transfer(solana, solana, ...)` | High | 🔲 Planned |
+| - | Jupiter/DEX integration | High | 🔲 Planned |
+| - | Same-chain test suite (100+ tests) | High | 🔲 Planned |
+| - | Developer documentation | Medium | 🔲 Planned |
+
+**Why SIP beats PrivacyCash:**
+
+| Feature | PrivacyCash | SIP Same-Chain |
+|---------|-------------|----------------|
+| Privacy method | Pool mixing | Stealth + commitments |
+| Amount privacy | ❌ Visible | ✅ Hidden |
+| Any amount | ❌ Fixed denominations optimal | ✅ Any amount |
+| Speed | ⏳ Wait for anonymity set | ⚡ Instant |
+| Compliance | ❌ None | ✅ Viewing keys |
+| Regulatory risk | 🔴 High (mixer) | 🟢 Low |
+
+**Success Metrics:**
+- Same-chain module shipped
+- 100+ test cases
+- Developer preview released
+
+**Alignment:** Solana Foundation Grant ($100K) primary deliverable
+
+---
+
+#### M18: Ethereum Same-Chain Privacy 🔲 Q2 2026
+
+Expand same-chain privacy to EVM ecosystem.
+
+| Issue | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| - | [EPIC] Ethereum Same-Chain Privacy | - | 🔲 Planned |
+| - | Ethereum same-chain transfer | Critical | 🔲 Planned |
+| - | L2 support (Polygon, Arbitrum, Base, Optimism) | High | 🔲 Planned |
+| - | Gas optimization | Medium | 🔲 Planned |
+| - | Integration examples | Medium | 🔲 Planned |
+
+**Success Metrics:**
+- ETH same-chain module shipped
+- 3+ L2 chains supported
+- Integration guide published
+
+---
+
+### PHASE 5: TECHNICAL MOAT (Q3-Q4 2026) 🔲 Future
+
+**Goal:** Build defensible technical advantages that competitors cannot easily replicate.
+
+---
+
+#### M19: Proof Composition Research 🔲 Q3 2026
 
 Research feasibility of composing proofs from multiple systems.
 
@@ -442,9 +564,9 @@ Research feasibility of composing proofs from multiple systems.
 
 ---
 
-#### M17: Technical Moat 🔲 Future
+#### M20: Technical Moat Building 🔲 Q3-Q4 2026
 
-Build defensible technical advantages.
+Build unique capabilities that create defensible advantage.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
@@ -459,7 +581,7 @@ Build defensible technical advantages.
 
 ---
 
-#### M18: Standard Proposal 🔲 Future
+#### M21: Standard Proposal 🔲 Q4 2026
 
 Formalize SIP as an industry standard.
 
@@ -475,6 +597,57 @@ Formalize SIP as an industry standard.
 
 ---
 
+## Competitive Positioning
+
+### The Privacy Landscape (Updated Dec 2025)
+
+| Solution | Same-Chain | Cross-Chain | Privacy Type | Compliance | Risk Level |
+|----------|------------|-------------|--------------|------------|------------|
+| **PrivacyCash** | ✅ Solana | ❌ | Pool mixing | ❌ | 🔴 HIGH |
+| Tornado Cash | ✅ ETH | ❌ | Pool mixing | ❌ | 🔴 HIGH |
+| Aztec | ✅ ETH L2 | ❌ | ZK native | ⚠️ Limited | 🟡 MEDIUM |
+| Railgun | ✅ ETH | ❌ | ZK shielded | ❌ | 🔴 HIGH |
+| Arcium | ⚠️ Testnet | ❌ | MPC compute | ⚠️ Limited | 🟡 MEDIUM |
+| Zcash | ✅ ZEC | ❌ | Native shielded | ✅ Viewing keys | 🟢 LOW |
+| **SIP Protocol** | ✅ Multi | ✅ Multi | Stealth + commitments | ✅ Viewing keys | 🟢 LOW |
+
+### SIP's Unique Position
+
+```
+                    COMPLIANT
+                        │
+                        │
+     ZCASH              │           SIP PROTOCOL ★
+     (native privacy    │           (stealth + viewing keys
+      but single chain) │            cross-chain + same-chain)
+                        │
+                        │
+SINGLE-CHAIN ───────────┼─────────── MULTI-CHAIN
+                        │
+                        │
+     PRIVACY CASH       │           ???
+     (pool mixer        │           (no one here yet)
+      Solana only)      │
+                        │
+                        │
+                   NON-COMPLIANT
+```
+
+**SIP occupies the most valuable quadrant: Multi-chain + Compliant.**
+
+### Our Moats
+
+| Moat Type | Description | Timeline |
+|-----------|-------------|----------|
+| **Standardization** | One API, many backends | M9-M12 ✅ |
+| **Network Effects** | Solver liquidity, user volume | M12+ |
+| **Same-Chain Expansion** | Bigger market, better product | M16-M18 🎯 |
+| **Compliance** | Viewing keys for institutions | Built-in ✅ |
+| **Proof Composition** | Unique technical capabilities | M19-M20 |
+| **Multi-Foundation** | Supported by multiple ecosystems | M10+ |
+
+---
+
 ## Multi-Foundation Strategy
 
 SIP is **chain-agnostic** — we enhance every chain, compete with none.
@@ -484,20 +657,20 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 │                     SIP MULTI-FOUNDATION APPROACH                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   ZCASH         MINA          NEAR          ETHEREUM       SOLANA          │
-│   Foundation    Foundation    Foundation    Foundation     Foundation      │
-│      │             │             │              │              │           │
-│      │  "Privacy   │  "Succinct  │  "Intents    │  "EVM        │  "SOL     │
-│      │   expert"   │   proofs"   │   privacy"   │   privacy"   │   users"  │
-│      │             │             │              │              │           │
-│      └─────────────┴──────┬──────┴──────────────┴──────────────┘           │
-│                           │                                                 │
-│                           ▼                                                 │
-│                    ┌─────────────┐                                          │
-│                    │ SIP PROTOCOL│                                          │
-│                    │  "Privacy   │                                          │
-│                    │   for ALL"  │                                          │
-│                    └─────────────┘                                          │
+│   SUPERTEAM       SOLANA        ZCASH         NEAR          ETHEREUM       │
+│   Microgrant      Foundation    Foundation    Foundation    Foundation     │
+│      │               │             │             │              │          │
+│      │  "Community"  │  "SOL       │  "Privacy   │  "Intents    │  "EVM   │
+│      │               │   privacy"  │   expert"   │   privacy"   │  privacy"│
+│      │               │             │             │              │          │
+│      └───────────────┴──────┬──────┴─────────────┴──────────────┘          │
+│                             │                                               │
+│                             ▼                                               │
+│                      ┌─────────────┐                                        │
+│                      │ SIP PROTOCOL│                                        │
+│                      │  "Privacy   │                                        │
+│                      │   for ALL"  │                                        │
+│                      └─────────────┘                                        │
 │                                                                             │
 │   Value to each foundation:                                                 │
 │   • We showcase THEIR technology                                            │
@@ -507,43 +680,17 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Grant Roadmap
+### Grant & Funding Roadmap
 
-| Foundation | Timeline | Amount | Pitch Angle |
-|------------|----------|--------|-------------|
-| NEAR Foundation | Q1 2026 | $50-100K | "Privacy layer for Intents ecosystem" |
-| Zcash Foundation | Q1 2026 | $25-50K | "Viewing keys showcase, cross-chain Zcash" |
-| Mina Foundation | Q2 2026 | $50-100K | "Succinct verification for privacy proofs" |
-| Ethereum ESP | Q2 2026 | $100K+ | "Cross-chain privacy standard for EVM" |
-| Solana Foundation | Q3 2026 | $50-100K | "Privacy for Solana users" |
-
----
-
-## Competitive Positioning
-
-### The Market Gap
-
-**No one offers private cross-chain transactions as a standard.**
-
-| Solution | Cross-Chain | Private | Standard | Status |
-|----------|-------------|---------|----------|--------|
-| Wormhole/Portal | ✅ | ❌ | ❌ | Transparent only |
-| deBridge | ✅ | ❌ | ❌ | Transparent only |
-| Arcium | ❌ | ✅ | ❌ | Solana-only |
-| Aztec | ❌ | ✅ | ❌ | Ethereum L2 only |
-| Railgun | ❌ | ✅ | ❌ | Ethereum only |
-| Penumbra | ❌ | ✅ | ❌ | Cosmos only |
-| **SIP Protocol** | ✅ | ✅ | ✅ | **Privacy Standard** |
-
-### Our Moats
-
-| Moat Type | Description | Timeline |
-|-----------|-------------|----------|
-| **Standardization** | One API, many backends | M9-M12 |
-| **Network Effects** | Solver liquidity, user volume | M12+ |
-| **Proof Composition** | Unique technical capabilities | M13-M14 |
-| **Compliance** | Viewing keys for institutions | Built-in |
-| **Multi-Foundation** | Supported by multiple ecosystems | M10+ |
+| Milestone | Timeline | Amount | Purpose | Status |
+|-----------|----------|--------|---------|--------|
+| **Superteam Microgrant** | Jan 2026 | $10K | Community + Narrative | 🎯 First |
+| **SIP Labs, Inc. Registration** | Feb 2026 | - | Legal entity for fundraising | 🔲 Planned |
+| **Solana Foundation** | Feb-Mar 2026 | $100K | Solana Same-Chain Privacy | 🔲 Second |
+| NEAR Foundation | Q2 2026 | $50-100K | Cross-chain enhancement | 🔲 Planned |
+| Zcash Foundation | Q2 2026 | $25-50K | Viewing keys showcase | 🔲 Planned |
+| Ethereum ESP | Q3 2026 | $100K+ | ETH Same-Chain Privacy | 🔲 Planned |
+| **Seed Round** | Q3-Q4 2026 | $1-2M | Scale operations | 🔲 Future |
 
 ---
 
@@ -555,63 +702,13 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 4. **Standardization First**: One API, many backends
 5. **Compliance-Ready**: Viewing keys for regulatory compatibility
 6. **Technical Moat**: Proof composition creates defensible advantage
+7. **Same-Chain + Cross-Chain**: Complete privacy solution
 
 ---
 
 ## Status Summary
 
-### Phase 1: Foundation (M1-M8) ✅ Complete
-
-| Component | Status |
-|-----------|--------|
-| TypeScript SDK | ✅ Complete |
-| Stealth Addresses (secp256k1) | ✅ Complete |
-| Stealth Addresses (ed25519) | ✅ Complete |
-| Pedersen Commitments | ✅ Complete |
-| ZK Proof Specs | ✅ Complete |
-| Noir ZK Circuits | ✅ Complete |
-| NEAR Intents Adapter | ✅ Complete |
-| Zcash RPC Client | ✅ Complete |
-| Wallet Adapters | ✅ Complete |
-| npm Publish | ✅ Complete |
-| Documentation Site | ✅ Complete |
-| Demo UI (126 tests) | ✅ Complete |
-| SDK Tests (2,474 tests) | ✅ Complete |
-| Multi-curve Stealth | ✅ Complete |
-| External Security Audit | 🔲 Pending |
-
-### Phase 2: Standard (M9-M12) ✅ Complete
-
-| Component | Status |
-|-----------|--------|
-| Stable Core (100% tests) | ✅ Complete |
-| ZK Production (Noir/WASM) | ✅ Complete |
-| Multi-Settlement (3 backends) | ✅ Complete |
-| Multi-Chain (15+ chains) | ✅ Complete |
-| Bitcoin Silent Payments | ✅ Complete |
-| Cosmos/Aptos/Sui Support | ✅ Complete |
-
-### Phase 3: Ecosystem (M13-M15) ✅ Complete
-
-| Component | Status |
-|-----------|--------|
-| Compliance Layer | ✅ Complete |
-| @sip-protocol/react (57 tests) | ✅ Complete |
-| @sip-protocol/cli (33 tests) | ✅ Complete |
-| @sip-protocol/api (67 tests) | ✅ Complete |
-| Hardware Wallet Support | ✅ Complete |
-| WalletConnect v2 | ✅ Complete |
-
-### Phase 4: Future (M16-M18) 🔲 Planned
-
-| Component | Status |
-|-----------|--------|
-| Proof Composition Research | 🔲 Future |
-| Technical Moat Building | 🔲 Future |
-| Standard Proposal (SIP-EIP) | 🔲 Future |
-| Governance Token | 🔲 Future |
-
-### Test Suite Summary
+### Test Suite
 
 | Package | Tests | Status |
 |---------|-------|--------|
@@ -622,6 +719,13 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 | sip-website | 126 | ✅ |
 | **Total** | **2,757** | ✅ |
 
+### Achievements
+
+- 🏆 **Zypherpunk Hackathon NEAR Track Winner** ($4,000) — Dec 2025
+- 📦 **npm packages published** — @sip-protocol/sdk v0.6.0
+- 🌐 **Live sites** — sip-protocol.org, docs.sip-protocol.org
+- ✅ **Phase 1-3 complete** — M1-M15 done (2,757 tests)
+
 ---
 
 ## Contributing
@@ -629,11 +733,11 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Current focus areas:**
+- M16: Narrative capture and competitive positioning
+- M17: Solana same-chain privacy module
 - External security audit (M8 completion)
-- Multi-foundation grant applications
-- Proof composition research (M16)
-- Community adoption and feedback
+- Foundation grant applications
 
 ---
 
-*Last updated: December 4, 2025*
+*Last updated: December 27, 2025*
