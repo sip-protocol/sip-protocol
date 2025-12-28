@@ -255,7 +255,7 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       '@sip-protocol/types':
-        specifier: workspace:*
+        specifier: ^0.2.1
         version: link:../types
       '@solana/spl-token':
         specifier: ^0.4.0
