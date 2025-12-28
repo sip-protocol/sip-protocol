@@ -32,7 +32,7 @@
 │   • Same-chain privacy on Solana + Ethereum                                 │
 │   • Direct competitor to pool-based mixers (PrivacyCash, etc)               │
 │   • Superior tech: stealth + hidden amounts vs pool mixing                  │
-│   • SIP Labs, Inc. registered for institutional fundraising                 │
+│   • Discord community (500+ developers) + Twitter presence (50K impressions)│
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -468,20 +468,26 @@ Multi-wallet support and hardware wallet integration.
 
 Establish SIP as "the right way to do privacy" before competitors solidify.
 
-| Issue | Description | Priority | Status |
-|-------|-------------|----------|--------|
-| - | [EPIC] Narrative Capture | - | 🔲 Planned |
-| - | "Pool vs Stealth" comparison content | Critical | 🔲 Planned |
-| - | Amount correlation attack demo | Critical | 🔲 Planned |
-| - | PrivacyCash competitive analysis | High | 🔲 Planned |
-| - | Thought leadership blog posts | High | 🔲 Planned |
-| - | Developer community engagement | High | 🔲 Planned |
-| - | Twitter/social content strategy | Medium | 🔲 Planned |
+| Issue | Description | Budget | Status |
+|-------|-------------|--------|--------|
+| [#229](../../issues/229) | [EPIC] Narrative Capture | $10K total | 🎯 Starting |
+| - | Content Campaign (8 articles + 15 threads) | $4,500 (45%) | 🔲 Planned |
+| - | Community Building (Discord + Twitter) | $3,500 (35%) | 🔲 Planned |
+| - | Ecosystem Presentations (3 events) | $2,000 (20%) | 🔲 Planned |
 
-**Success Metrics:**
-- 3+ thought leadership pieces published
-- Quoted in 2+ privacy-related articles
-- Developer mindshare: "SIP = compliant privacy"
+**Deliverables:**
+- **Content:** 8 technical articles (Medium, Mirror, dev.to) + 15 Twitter threads
+- **Community:** Discord launch → 500+ members, developer support channels
+- **Events:** 3 Superteam ecosystem presentations + 5 dApp partnership LOIs
+
+**Success Metrics (KPIs):**
+
+| Metric | Month 1 Target | Month 2 Target |
+|--------|---------------|----------------|
+| Twitter Impressions | 25K | 50K total |
+| Discord Members | 200 | 500 |
+| Article Reads | 1K | 3K total |
+| dApp LOIs | 2 | 5 |
 
 **Alignment:** Superteam Microgrant ($10K) deliverables
 
@@ -685,7 +691,6 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 | Milestone | Timeline | Amount | Purpose | Status |
 |-----------|----------|--------|---------|--------|
 | **Superteam Microgrant** | Jan 2026 | $10K | Community + Narrative | 🎯 First |
-| **SIP Labs, Inc. Registration** | Feb 2026 | - | Legal entity for fundraising | 🔲 Planned |
 | **Solana Foundation** | Feb-Mar 2026 | $100K | Solana Same-Chain Privacy | 🔲 Second |
 | NEAR Foundation | Q2 2026 | $50-100K | Cross-chain enhancement | 🔲 Planned |
 | Zcash Foundation | Q2 2026 | $25-50K | Viewing keys showcase | 🔲 Planned |
@@ -740,4 +745,4 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: December 27, 2025*
+*Last updated: December 28, 2025*
