@@ -969,6 +969,133 @@ export class SIP {
       fulfilledAt: Math.floor(Date.now() / 1000),
     }
   }
+
+  // ─── Same-Chain Privacy ───────────────────────────────────────────────────
+
+  /**
+   * Execute a same-chain private transfer
+   *
+   * Bypasses cross-chain settlement for direct on-chain privacy transfers.
+   * Currently supports Solana only.
+   *
+   * @param chain - Chain to execute on (must be 'solana')
+   * @param params - Transfer parameters
+   * @returns Transfer result with stealth address
+   *
+   * @example
+   * ```typescript
+   * const result = await sip.executeSameChain('solana', {
+   *   recipientMetaAddress: {
+   *     chain: 'solana',
+   *     spendingKey: '0x...',
+   *     viewingKey: '0x...',
+   *   },
+   *   amount: 5_000_000n,  // 5 USDC
+   *   token: 'USDC',
+   *   connection,
+   *   sender: wallet.publicKey,
+   *   signTransaction: wallet.signTransaction,
+   * })
+   *
+   * console.log('Sent to stealth:', result.stealthAddress)
+   * ```
+   */
+  async executeSameChain(
+    chain: ChainId,
+    params: SameChainExecuteParams
+  ): Promise<SameChainExecuteResult> {
+    // Validate chain support
+    if (chain !== 'solana') {
+      throw new ValidationError(
+        `Same-chain privacy only supported for 'solana', got '${chain}'`,
+        'chain'
+      )
+    }
+
+    // Import Solana execution dynamically to avoid bundling issues
+    const { sendPrivateSPLTransfer } = await import('./chains/solana')
+    const { PublicKey: SolanaPublicKey } = await import('@solana/web3.js')
+    const { getAssociatedTokenAddress } = await import('@solana/spl-token')
+    const { SOLANA_TOKEN_MINTS } = await import('./chains/solana/constants')
+
+    // Resolve token mint
+    let mint: InstanceType<typeof SolanaPublicKey>
+    if (params.token in SOLANA_TOKEN_MINTS) {
+      mint = new SolanaPublicKey(SOLANA_TOKEN_MINTS[params.token as keyof typeof SOLANA_TOKEN_MINTS])
+    } else {
+      // Assume it's a mint address
+      mint = new SolanaPublicKey(params.token)
+    }
+
+    // Get sender's token account
+    const senderTokenAccount = await getAssociatedTokenAddress(
+      mint,
+      params.sender
+    )
+
+    // Execute private transfer
+    const result = await sendPrivateSPLTransfer({
+      connection: params.connection,
+      sender: params.sender,
+      senderTokenAccount,
+      recipientMetaAddress: params.recipientMetaAddress,
+      mint,
+      amount: params.amount,
+      signTransaction: params.signTransaction,
+    })
+
+    return {
+      txHash: result.txSignature,
+      stealthAddress: result.stealthAddress,
+      ephemeralPublicKey: result.ephemeralPublicKey,
+      viewTag: result.viewTag,
+      explorerUrl: result.explorerUrl,
+      chain: 'solana',
+    }
+  }
+
+  /**
+   * Check if same-chain privacy is supported for a chain
+   */
+  isSameChainSupported(chain: ChainId): boolean {
+    return chain === 'solana'
+  }
+}
+
+/**
+ * Parameters for same-chain private transfer execution
+ */
+export interface SameChainExecuteParams {
+  /** Recipient's stealth meta-address */
+  recipientMetaAddress: StealthMetaAddress
+  /** Amount to transfer (in token's smallest unit) */
+  amount: bigint
+  /** Token symbol (e.g., 'USDC') or mint address */
+  token: string
+  /** Solana RPC connection */
+  connection: import('@solana/web3.js').Connection
+  /** Sender's public key */
+  sender: import('@solana/web3.js').PublicKey
+  /** Transaction signer */
+  signTransaction: <T extends import('@solana/web3.js').Transaction | import('@solana/web3.js').VersionedTransaction>(tx: T) => Promise<T>
+}
+
+/**
+ * Result of same-chain private transfer
+ */
+export interface SameChainExecuteResult {
+  /** Transaction hash */
+  txHash: string
+  /** Stealth address that received the funds */
+  stealthAddress: string
+  /** Ephemeral public key for recipient scanning */
+  ephemeralPublicKey: string
+  /** View tag for efficient scanning */
+  viewTag: string
+  /** Explorer URL */
+  explorerUrl: string
+  /** Chain the transfer was executed on */
+  chain: ChainId
 }
 
 /**
