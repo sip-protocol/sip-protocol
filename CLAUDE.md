@@ -63,7 +63,7 @@ These standards apply to ALL repositories under sip-protocol organization.
 - Use bash echo for communication (output directly)
 - Proceed with ambiguous or unclear instructions
 - Skip validation in public APIs
-- Commit anything in `.strategy/` folder
+- Commit anything in `~/.claude/sip-protocol/` folder
 
 ### Licenses
 
@@ -401,7 +401,7 @@ interface Commitment {
 - Zcash Foundation (privacy expertise)
 - Mina Foundation (succinct verification)
 
-See `.strategy/ROADMAP-INTERNAL.md` for detailed strategy (private).
+See `~/.claude/sip-protocol/STRATEGY.md` for detailed strategy (private).
 
 ---
 
@@ -437,8 +437,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 │   ├── react/                # @sip-protocol/react - React hooks (57 tests)
 │   ├── cli/                  # @sip-protocol/cli - CLI tool (33 tests)
 │   └── api/                  # @sip-protocol/api - REST API (67 tests)
-├── docs/                     # Documentation
-└── .strategy/                # Private strategy (gitignored)
+└── docs/                     # Documentation
 ```
 
 ---
