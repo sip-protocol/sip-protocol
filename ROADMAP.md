@@ -805,47 +805,74 @@ Formalize SIP as an industry standard.
 
 ---
 
-#### M22: Institutional Custody 🔲 2027 (NEW)
+#### M22: Institutional + Agent Custody 🔲 2027 (NEW)
 
-Enterprise adoption through custody integration.
+Enterprise adoption through custody integration + AI agent compliance (a16z "Know Your Agent").
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      M22: INSTITUTIONAL CUSTODY                              │
+│                   M22: INSTITUTIONAL + AGENT CUSTODY                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   Viewing Key APIs for Institutional Custodians                              │
-│   ───────────────────────────────────────────────                            │
+│   Viewing Key APIs for Institutional Custodians + AI Agents                  │
+│   ───────────────────────────────────────────────────────────                │
 │   • Fireblocks, Anchorage, BitGo, Coinbase Prime                            │
 │   • Custodian generates viewing key pair                                    │
-│   • User grants viewing key access to custodian                             │
-│   • Custodian can: view tx history, generate reports, prove balances       │
-│   • Custodian CANNOT: spend funds or see other users' transactions         │
+│   • User grants viewing key access to custodian OR AI agent                 │
+│   • Custodian/Agent can: view tx history, generate reports, prove balances  │
+│   • Custodian/Agent CANNOT: spend funds or see other users' transactions    │
+│                                                                             │
+│   NEW: Agent Privacy (a16z "Know Your Agent")                                │
+│   ─────────────────────────────────────────────                              │
+│   • AI treasury managers get scoped viewing keys                            │
+│   • Time-bound + permission-scoped delegation                               │
+│   • Cryptographic credentials for agent compliance                          │
+│   • First-mover on agent compliance = market leadership                     │
 │                                                                             │
 │   Why This Matters:                                                          │
 │   • DAOs need compliant treasury privacy                                    │
 │   • Institutions require audit trails for regulators                        │
 │   • Enterprise = recurring revenue + credibility                            │
 │   • Required for Series A fundraising story                                 │
+│   • 2026+: AI agents will manage significant treasury operations            │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| - | [EPIC] Institutional Custody | 🔲 Future |
+| - | [EPIC] Institutional + Agent Custody | 🔲 Future |
 | - | Fireblocks viewing key API integration | 🔲 Future |
 | - | Anchorage compliance dashboard | 🔲 Future |
 | - | BitGo multi-sig + viewing keys | 🔲 Future |
 | - | Coinbase Prime exploration | 🔲 Future |
 | - | Compliance REST API | 🔲 Future |
 | - | Time-bound viewing key delegation | 🔲 Future |
+| - | **Agent viewing key delegation API** | 🔲 Future |
+| - | **Agent credential standard ("Know Your Agent")** | 🔲 Future |
 
-**Target**: Viewing key integration with top 3 institutional custodians.
+**Target**: Viewing key integration with top 3 institutional custodians + agent compliance framework.
 
 ---
 
 ## Competitive Positioning
+
+### External Validation: a16z Big Ideas 2026
+
+> **"Privacy creates network effects: privacy differentiates chains and creates chain lock-in."**
+> — Andreessen Horowitz, [Big Ideas 2026](https://a16z.com/newsletter/big-ideas-2026-part-3/)
+
+a16z's December 2025 thesis validates SIP's core positioning:
+
+| a16z Prediction | SIP Alignment |
+|-----------------|---------------|
+| "Privacy creates network effects" | SIP = multi-chain privacy standard |
+| "Know your agent: agents need cryptographic credentials" | Viewing keys for AI treasury managers |
+| "AI-native banking infrastructure" | M22: Institutional + Agent Custody |
+
+**Implication**: The market is moving toward privacy as infrastructure. SIP is positioned exactly for this.
+
+---
 
 ### The Privacy Landscape (Updated Dec 2025)
 
@@ -990,4 +1017,4 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: December 29, 2025*
+*Last updated: December 30, 2025*
