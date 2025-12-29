@@ -748,8 +748,12 @@ Three parallel tracks: **Mina integration** (relationship leverage), **Zcash cro
 | - | Cross-chain bridge selection (LayerZero) | B | 🔲 Future |
 | - | SDK API: `sip.crossChainPrivate(...)` | B | 🔲 Future |
 | - | Halo2 + Kimchi compatibility analysis | C | 🔲 Future |
+| - | **Halo2 IPA Verifier Research** (Tachyon-informed) | C | 🔲 Future |
+| - | **PCD Wallet State Architecture** (Tachyon-informed) | C | 🔲 Future |
 | - | Proof composition architecture design | C | 🔲 Future |
 | - | Prototype: Zcash privacy + Mina verification | C | 🔲 Future |
+
+> **Note:** Track C items informed by [Project Tachyon](https://seanbowe.com/blog/tachyon-scaling-zcash-oblivious-synchronization/) — Zcash's scaling roadmap by Sean Bowe. Tachyon's Proof-Carrying Data (PCD) model and oblivious synchronization approach align with SIP's architecture and validate our stealth address design.
 
 **Intent Network Strategy:**
 
@@ -772,6 +776,7 @@ Build unique capabilities that create defensible advantage.
 |-------|-------------|--------|
 | - | [EPIC] Technical Moat Building | 🔲 Future |
 | - | Proof composition v1 (if feasible) | 🔲 Future |
+| - | **Oblivious Sync Service** (Tachyon-inspired privacy during sync) | 🔲 Future |
 | - | **BNB Chain support** (4.32M daily wallets, Asia market) | 🔲 Future |
 | - | Multi-language SDK (Python, Rust) | 🔲 Future |
 | - | Chain-specific optimizations | 🔲 Future |
