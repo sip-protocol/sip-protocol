@@ -610,6 +610,7 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 | - | Anchor program audit preparation | High | 🔲 Planned |
 | - | Same-chain test suite (100+ tests) | High | 🔲 Planned |
 | - | Developer documentation | Medium | 🔲 Planned |
+| - | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | 🔲 Planned |
 
 **Relayer Strategy:** Use Jito for gas abstraction — no dedicated infrastructure needed. User signs shielded tx → Jito relayer submits → Pays gas → Gets fee from commitment. Relayer is gas-only (not asset movement) = lower regulatory risk.
 
@@ -777,11 +778,24 @@ Build unique capabilities that create defensible advantage.
 | - | [EPIC] Technical Moat Building | 🔲 Future |
 | - | Proof composition v1 (if feasible) | 🔲 Future |
 | - | **Oblivious Sync Service** (Tachyon-inspired privacy during sync) | 🔲 Future |
+| - | **Quantum-Resistant Storage** (Winternitz WOTS vaults) | 🔲 Future |
 | - | **BNB Chain support** (4.32M daily wallets, Asia market) | 🔲 Future |
 | - | Multi-language SDK (Python, Rust) | 🔲 Future |
 | - | Chain-specific optimizations | 🔲 Future |
 | - | NEAR fee contract (protocol revenue) | 🔲 Future |
 | - | Governance token design | 🔲 Future |
+
+**Quantum-Resistant Storage (Winternitz Vaults):**
+
+SIP + Winternitz Vault integration provides post-quantum security for Solana storage.
+
+| Layer | Technology | Protection |
+|-------|------------|------------|
+| Privacy | SIP (Stealth + Pedersen) | Hidden sender/amount/recipient |
+| Quantum | Winternitz WOTS | 128-bit post-quantum security |
+| Compliance | Viewing Keys | Audit trail for regulators |
+
+See [QUANTUM-RESISTANT-STORAGE.md](docs/specs/QUANTUM-RESISTANT-STORAGE.md) for technical specification.
 
 **BNB Chain Strategy:** Highest daily active wallets (4.32M). EVM-compatible = reuse M18 Solidity contract. Integrate with PancakeSwap. Gelato relayer works on BSC.
 
@@ -859,18 +873,31 @@ Enterprise adoption through custody integration + AI agent compliance (a16z "Kno
 
 ### External Validation: a16z Big Ideas 2026
 
-> **"Privacy creates network effects: privacy differentiates chains and creates chain lock-in."**
-> — Andreessen Horowitz, [Big Ideas 2026](https://a16z.com/newsletter/big-ideas-2026-part-3/)
+> **"Bridging tokens is easy, bridging secrets is hard."**
+> — Andreessen Horowitz, [Big Ideas: Things We're Excited About in 2026](https://a16zcrypto.com/posts/article/big-ideas-things-excited-about-crypto-2026/)
 
-a16z's December 2025 thesis validates SIP's core positioning:
+a16z's December 2025 "17 Big Ideas for Crypto in 2026" directly validates SIP's core thesis:
 
-| a16z Prediction | SIP Alignment |
-|-----------------|---------------|
-| "Privacy creates network effects" | SIP = multi-chain privacy standard |
-| "Know your agent: agents need cryptographic credentials" | Viewing keys for AI treasury managers |
-| "AI-native banking infrastructure" | M22: Institutional + Agent Custody |
+| # | a16z Big Idea | SIP Alignment | Roadmap |
+|---|---------------|---------------|---------|
+| **9** | **Privacy as Chain Moat** — "Privacy creates network effects and lock-in" | SIP = multi-chain privacy standard (the moat) | Core thesis |
+| **11** | **Secrets-as-a-Service** — Programmable data access + client-side encryption + decentralized key management | Viewing keys = selective disclosure for compliance | M13 ✅ |
+| **6** | **Know Your Agent (KYA)** — Non-human identities need cryptographic credentials linking agents to principals | Agent viewing key delegation + credential standard | M22 🔲 |
+| **15** | **SNARKs for Verifiable Cloud** — Proving overhead dropped from 1M× to ~10K× | Noir circuits + browser proving already working | M10 ✅ |
+| **4** | **Internet Becomes the Bank** — AI agents need programmable payments | Private agent treasury management | M22 🔲 |
+| **12** | **Spec is Law** — Formal verification + runtime invariants | ZK proofs = cryptographic guarantees | M8-M10 ✅ |
 
-**Implication**: The market is moving toward privacy as infrastructure. SIP is positioned exactly for this.
+**Key Insight #9 (Privacy as Chain Moat):**
+> "Privacy is the one feature most blockchains lack but that could differentiate them fundamentally... Privacy creates network effects and lock-in, potentially enabling a handful of privacy chains to own most of crypto's activity."
+
+This is exactly SIP's thesis — we ARE the privacy layer that creates this moat for ANY chain.
+
+**Key Insight #11 (Secrets-as-a-Service):**
+> "New technologies offering programmable data access rules, client-side encryption, and decentralized key management—enforced on-chain—can make privacy core infrastructure rather than an afterthought."
+
+SIP's viewing keys = programmable disclosure. This is our competitive advantage vs mixers.
+
+**Implication**: a16z is signaling to the market that privacy infrastructure is the next major investment thesis. SIP is positioned exactly for this — not as a "privacy feature" but as **the privacy standard**.
 
 ---
 
@@ -885,6 +912,9 @@ a16z's December 2025 thesis validates SIP's core positioning:
 | Arcium | ⚠️ Testnet | ❌ | MPC compute | ✅ Hidden | ⚠️ Limited | 🟡 MEDIUM |
 | Zcash | ✅ ZEC | ❌ | Native shielded | ✅ Hidden | ✅ Viewing keys | 🟢 LOW |
 | **SIP Protocol** | ✅ Multi | ✅ Multi | Stealth + Pedersen | ✅ Hidden | ✅ Viewing keys | 🟢 LOW |
+| **SIP + Winternitz** | ✅ Solana | - | Stealth + WOTS | ✅ Hidden | ✅ Viewing keys | 🟢 LOW + QR* |
+
+*QR = Quantum Resistant (128-bit post-quantum security via Winternitz One-Time Signatures)
 
 > **Key insight:** PrivacyCash's main weakness isn't fixed pools (they support arbitrary amounts) — it's that amounts are VISIBLE on-chain, enabling correlation attacks. SIP hides amounts via Pedersen commitments.
 
@@ -1017,4 +1047,4 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: December 30, 2025*
+*Last updated: December 31, 2025*
