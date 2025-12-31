@@ -19,6 +19,7 @@
 | `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.6.0 |
 | `sip-protocol/sip-website` | Demo app + Marketing site | Next.js 14, Tailwind | v0.1.0 |
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro, MDX | v0.0.1 |
+| `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro, MDX, Tailwind | v0.0.1 |
 | `sip-protocol/circuits` | Noir ZK circuits | Noir, Barretenberg | - |
 | `sip-protocol/.github` | Org configs, profile | YAML | - |
 
@@ -162,7 +163,29 @@ nargo verify                    # Verify proof
 
 ---
 
-### 5. .github
+### 5. blog-sip
+
+**Purpose:** Official blog for technical deep-dives and ecosystem updates
+**Tech Stack:** Astro 4, MDX, Tailwind CSS
+**Key Commands:**
+```bash
+pnpm dev                        # Dev server (localhost:4321)
+pnpm build                      # Build for production
+pnpm preview                    # Preview build
+```
+**Key Files:**
+- `src/content/blog/` - MDX blog posts
+- `src/components/` - Astro components (TLDRBox, Callout, CodeBlock)
+- `src/layouts/` - Page layouts (BaseLayout, PostLayout)
+
+**Features:** SEO optimization, LLMO (LLM discoverability), RSS feed, JSON-LD structured data
+**Deployment:** blog.sip-protocol.org (Docker + GHCR)
+**Issues:** [47 issues across 5 milestones](https://github.com/sip-protocol/blog-sip/issues)
+**CLAUDE.md:** [blog-sip/CLAUDE.md](https://github.com/sip-protocol/blog-sip/blob/main/CLAUDE.md)
+
+---
+
+### 6. .github
 
 **Purpose:** Organization-wide GitHub configuration
 **Key Files:**
@@ -251,6 +274,7 @@ SIP combines **Settlement Aggregation (C)** for standardization with **Proof Com
 - `packages/sdk/src/sip.ts` - Main SIP client class
 - `packages/sdk/src/proofs/` - ProofProvider interface, Mock/Noir providers
 - `packages/sdk/src/adapters/` - NEAR Intents, wallet adapters
+- `docs/specs/QUANTUM-RESISTANT-STORAGE.md` - Winternitz vault integration spec (M17/M20)
 
 ---
 
@@ -566,5 +590,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2025-12-27
+**Last Updated:** 2025-12-31
 **Status:** M15 Complete | Phase 4 Starting (M16-M18) | 2,757 Tests | 6 Packages | 🏆 Zypherpunk NEAR Track Winner
