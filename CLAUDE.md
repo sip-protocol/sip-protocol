@@ -8,7 +8,9 @@
 
 ## ECOSYSTEM OVERVIEW
 
-**SIP (Shielded Intents Protocol)** is a privacy layer for cross-chain transactions via NEAR Intents + Zcash. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
+**SIP (Shielded Intents Protocol)** is the privacy standard for Web3. Privacy middleware for same-chain and cross-chain transactions using stealth addresses, Pedersen commitments, and viewing keys for compliance.
+
+**Current Focus:** Solana Same-Chain Privacy (M17) — beating PrivacyCash with cryptographic privacy + viewing keys.
 
 ### Related Repositories
 
@@ -17,10 +19,11 @@
 | `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.6.0 |
 | `sip-protocol/sip-website` | Demo app + Marketing site | Next.js 14, Tailwind | v0.1.0 |
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro, MDX | v0.0.1 |
+| `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro, MDX, Tailwind | v0.0.1 |
 | `sip-protocol/circuits` | Noir ZK circuits | Noir, Barretenberg | - |
 | `sip-protocol/.github` | Org configs, profile | YAML | - |
 
-**Organization Mission:** Become the privacy standard for cross-chain intents
+**Organization Mission:** Become THE privacy standard for Web3 — same-chain and cross-chain
 
 ---
 
@@ -61,7 +64,7 @@ These standards apply to ALL repositories under sip-protocol organization.
 - Use bash echo for communication (output directly)
 - Proceed with ambiguous or unclear instructions
 - Skip validation in public APIs
-- Commit anything in `.strategy/` folder
+- Commit anything in `~/.claude/sip-protocol/` folder
 
 ### Licenses
 
@@ -160,7 +163,29 @@ nargo verify                    # Verify proof
 
 ---
 
-### 5. .github
+### 5. blog-sip
+
+**Purpose:** Official blog for technical deep-dives and ecosystem updates
+**Tech Stack:** Astro 4, MDX, Tailwind CSS
+**Key Commands:**
+```bash
+pnpm dev                        # Dev server (localhost:4321)
+pnpm build                      # Build for production
+pnpm preview                    # Preview build
+```
+**Key Files:**
+- `src/content/blog/` - MDX blog posts
+- `src/components/` - Astro components (TLDRBox, Callout, CodeBlock)
+- `src/layouts/` - Page layouts (BaseLayout, PostLayout)
+
+**Features:** SEO optimization, LLMO (LLM discoverability), RSS feed, JSON-LD structured data
+**Deployment:** blog.sip-protocol.org (Docker + GHCR)
+**Issues:** [47 issues across 5 milestones](https://github.com/sip-protocol/blog-sip/issues)
+**CLAUDE.md:** [blog-sip/CLAUDE.md](https://github.com/sip-protocol/blog-sip/blob/main/CLAUDE.md)
+
+---
+
+### 6. .github
 
 **Purpose:** Organization-wide GitHub configuration
 **Key Files:**
@@ -195,7 +220,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **Status:** M15 Complete | 2,757 tests (SDK: 2,474, React: 57, CLI: 33, API: 67, Website: 126) | Live at sip-protocol.org
 
-**🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) NEAR Track ($4,000) | Dec 2025
+**🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($4,500: NEAR $4,000 + Tachyon $500) | Dec 2025 | #14 of 88 | [Devfolio](https://devfolio.co/projects/sip-protocol-2026)
 
 **Endgame:** Privacy middleware between applications and blockchains. Chain-agnostic. Settlement-agnostic. The universal privacy layer.
 
@@ -220,7 +245,7 @@ SIP combines **Settlement Aggregation (C)** for standardization with **Proof Com
 │  │ • Privacy Levels       • Unified API            • Compliance Ready    │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
-│  │ PROOF COMPOSITION (Technical Moat) [Future M16-M17]                   │ │
+│  │ PROOF COMPOSITION (Technical Moat) [Phase 5: M19-M21]                 │ │
 │  │ • Zcash → Privacy execution     • Mina → Succinct verification        │ │
 │  │ • Noir  → Validity proofs       • Compose proofs from multiple systems│ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
@@ -229,7 +254,7 @@ SIP combines **Settlement Aggregation (C)** for standardization with **Proof Com
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  SETTLEMENT LAYER (Pluggable)                                               │
-│  • NEAR Intents  • Mina Protocol [Future]  • Direct Chain [Future]         │
+│  • NEAR Intents [Now]  • Solana Same-Chain [M17]  • Ethereum [M18]         │
 └────────────────────────────────┬────────────────────────────────────────────┘
                                  │
                                  ▼
@@ -249,6 +274,7 @@ SIP combines **Settlement Aggregation (C)** for standardization with **Proof Com
 - `packages/sdk/src/sip.ts` - Main SIP client class
 - `packages/sdk/src/proofs/` - ProofProvider interface, Mock/Noir providers
 - `packages/sdk/src/adapters/` - NEAR Intents, wallet adapters
+- `docs/specs/QUANTUM-RESISTANT-STORAGE.md` - Winternitz vault integration spec (M17/M20)
 
 ---
 
@@ -378,16 +404,28 @@ interface Commitment {
 1. Phase 1 (M1-M8): Foundation — Core tech, NEAR Intents ✅
 2. Phase 2 (M9-M12): Standard — Multi-backend, multi-chain ✅
 3. Phase 3 (M13-M15): Ecosystem — Compliance, DX, Applications ✅
-4. Phase 4 (M16-M18): Future — Proof composition, SIP-EIP 🔲
+4. Phase 4 (M16-M18): Same-Chain Expansion — Solana + Ethereum same-chain 🎯
+5. Phase 5 (M19-M21): Technical Moat — Proof composition, SIP-EIP 🔲
+
+**Competitive Advantage vs PrivacyCash (Tornado Cash clone):**
+- Cryptographic privacy (Pedersen) vs Pool mixing (fixed amounts)
+- Any amount hidden vs Fixed pool sizes only
+- Viewing keys (compliance) vs No compliance option
+- No amount correlation attacks vs Vulnerable to statistical analysis
+
+**Grant Strategy:**
+- Superteam Microgrant ($10K) → Jan 2026 (narrative capture, M16)
+- SIP Labs, Inc. → Feb 2026 (legal entity for fundraising)
+- Solana Foundation ($100K) → Feb-Mar 2026 (same-chain privacy, M17)
 
 **Multi-Foundation Approach:** Chain-agnostic = loved by all = funded by all
+- Solana Foundation (same-chain privacy for SOL users)
 - NEAR Foundation (Intents privacy)
+- Ethereum Foundation (EVM privacy)
 - Zcash Foundation (privacy expertise)
 - Mina Foundation (succinct verification)
-- Ethereum Foundation (EVM privacy)
-- Solana Foundation (SOL users)
 
-See `.strategy/ROADMAP-INTERNAL.md` for detailed strategy (private).
+See `~/.claude/sip-protocol/STRATEGY.md` for detailed strategy (private).
 
 ---
 
@@ -423,8 +461,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 │   ├── react/                # @sip-protocol/react - React hooks (57 tests)
 │   ├── cli/                  # @sip-protocol/cli - CLI tool (33 tests)
 │   └── api/                  # @sip-protocol/api - REST API (67 tests)
-├── docs/                     # Documentation
-└── .strategy/                # Private strategy (gitignored)
+└── docs/                     # Documentation
 ```
 
 ---
@@ -470,12 +507,19 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | M14: Developer Experience | React, CLI, API packages | ✅ |
 | M15: Application Layer | Hardware wallets, WalletConnect | ✅ |
 
-### Phase 4: Future (2026+) 🔲
+### Phase 4: Same-Chain Expansion (Q1-Q2 2026) 🎯 NEXT
 | Milestone | Focus | Status |
 |-----------|-------|--------|
-| M16: Proof Composition Research | Halo2 + Kimchi feasibility | 🔲 |
-| M17: Technical Moat | Proof composition v1, multi-lang SDK | 🔲 |
-| M18: Standard Proposal | SIP-EIP, industry working group | 🔲 |
+| M16: Narrative Capture | Content, community, position vs PrivacyCash | 🎯 |
+| M17: Solana Same-Chain | Native Solana privacy SDK + Jupiter DEX | 🔲 |
+| M18: Ethereum Same-Chain | EVM privacy + L2 support | 🔲 |
+
+### Phase 5: Technical Moat (Q3-Q4 2026) 🔲
+| Milestone | Focus | Status |
+|-----------|-------|--------|
+| M19: Proof Composition Research | Halo2 + Kimchi feasibility | 🔲 |
+| M20: Technical Moat | Proof composition v1, multi-lang SDK | 🔲 |
+| M21: Standard Proposal | SIP-EIP, industry working group | 🔲 |
 
 ---
 
@@ -546,5 +590,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2025-12-23
-**Status:** M15 Complete | 2,757 Tests | 6 Packages | C+B Hybrid Strategy | 🏆 Zypherpunk NEAR Track Winner
+**Last Updated:** 2025-12-31
+**Status:** M15 Complete | Phase 4 Starting (M16-M18) | 2,757 Tests | 6 Packages | 🏆 Zypherpunk Winner ($4,500, #14/88)

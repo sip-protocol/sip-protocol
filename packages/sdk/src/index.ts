@@ -46,7 +46,13 @@ export type { SerializedError } from './errors'
 
 // Main client
 export { SIP, createSIP, createProductionSIP } from './sip'
-export type { SIPConfig, WalletAdapter, ProductionQuote } from './sip'
+export type {
+  SIPConfig,
+  WalletAdapter,
+  ProductionQuote,
+  SameChainExecuteParams,
+  SameChainExecuteResult,
+} from './sip'
 
 // Intent creation
 export {
@@ -740,3 +746,54 @@ export type {
   HardwareErrorCodeType,
   MockHardwareConfig,
 } from './wallet'
+
+// Solana Same-Chain Privacy
+export {
+  // Transfer
+  sendPrivateSPLTransfer,
+  estimatePrivateTransferFee,
+  hasTokenAccount,
+  // Scan and Claim
+  scanForPayments,
+  claimStealthPayment,
+  getStealthBalance,
+  // Constants
+  SOLANA_TOKEN_MINTS,
+  SOLANA_TOKEN_DECIMALS,
+  SOLANA_RPC_ENDPOINTS,
+  SOLANA_EXPLORER_URLS,
+  MEMO_PROGRAM_ID,
+  SIP_MEMO_PREFIX,
+  getExplorerUrl as getSolanaExplorerUrl,
+  getTokenMint,
+  getTokenDecimals,
+  // Types helpers
+  parseAnnouncement,
+  createAnnouncementMemo,
+} from './chains/solana'
+
+export type {
+  SolanaPrivateTransferParams,
+  SolanaPrivateTransferResult,
+  SolanaScanParams,
+  SolanaScanResult,
+  SolanaClaimParams,
+  SolanaClaimResult,
+  SolanaAnnouncement,
+  SolanaCluster as SolanaSameChainCluster,
+} from './chains/solana'
+
+// Same-Chain Executors
+export {
+  SolanaSameChainExecutor,
+  createSameChainExecutor,
+  isSameChainSupported,
+  getSupportedSameChainChains,
+} from './executors'
+
+export type {
+  SameChainExecutor,
+  SameChainTransferParams,
+  SameChainTransferResult,
+  SolanaSameChainConfig,
+} from './executors'

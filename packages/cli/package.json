@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Command-line tool for Shielded Intents Protocol (SIP) operations",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",
@@ -33,13 +33,15 @@
   "dependencies": {
     "@sip-protocol/sdk": "workspace:*",
     "@sip-protocol/types": "workspace:*",
-    "commander": "^12.0.0",
     "chalk": "^4.1.2",
+    "commander": "^12.0.0",
+    "conf": "^10.2.0",
     "ora": "^5.4.1",
-    "conf": "^10.2.0"
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@types/prompts": "^2.4.9",
     "tsup": "^8.0.0",
     "typescript": "^5.3.0",
     "vitest": "^1.1.0"

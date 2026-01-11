@@ -67,3 +67,7 @@ export function formatHash(hash: string, length = 8): string {
   if (hash.length <= length * 2) return hash
   return `${hash.slice(0, length)}...${hash.slice(-length)}`
 }
+
+export function divider(): void {
+  console.log(chalk.gray('  ─────────────────────────────────────────────────'))
+}

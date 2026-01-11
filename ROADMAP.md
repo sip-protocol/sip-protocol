@@ -28,8 +28,119 @@
 │   • SIP-EIP: Formal standard proposal accepted                              │
 │   • "Privacy by SIP" recognized like "Secured by SSL"                       │
 │                                                                             │
+│   NEW 2026 Targets:                                                         │
+│   • Same-chain privacy on Solana + Ethereum                                 │
+│   • Direct competitor to pool-based mixers (PrivacyCash, etc)               │
+│   • Superior tech: stealth + hidden amounts vs pool mixing                  │
+│   • Discourse forum (500+ members, self-hosted) + Twitter presence (50K imp)│
+│                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Privacy Architecture: Why SIP Wins
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    TWO APPROACHES TO BLOCKCHAIN PRIVACY                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   POOL MIXING (PrivacyCash, Tornado Cash)                                   │
+│   ─────────────────────────────────────────                                 │
+│   • How: Pool funds with strangers                                          │
+│   • Privacy from: Hiding in the crowd                                       │
+│   • Weakness: Amount correlation attacks                                    │
+│   • Weakness: Fixed denominations needed                                    │
+│   • Weakness: Anonymity set = pool size                                     │
+│   • Regulatory: HIGH RISK (mixer = money laundering concern)                │
+│                                                                             │
+│   CRYPTOGRAPHIC PRIVACY (SIP Protocol, Zcash-style)     ◄═══ OUR APPROACH  │
+│   ───────────────────────────────────────────────────                       │
+│   • How: Stealth addresses + hidden amounts                                 │
+│   • Privacy from: Cryptographic encryption                                  │
+│   • Strength: ANY amount, instant, no pool needed                           │
+│   • Strength: Viewing keys for compliance                                   │
+│   • Strength: Your funds stay yours (no commingling)                        │
+│   • Regulatory: LOWER RISK (not a mixer, compliance-ready)                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Privacy Paths & Trade-offs
+
+Understanding what privacy SIP provides in each settlement path:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         PRIVACY LEVEL BY PATH                               │
+├──────────────────────┬──────────────────────────────────────────────────────┤
+│                      │  Sender │ Amount │ Recipient │ Compliance │  Speed  │
+├──────────────────────┼─────────┼────────┼───────────┼────────────┼─────────┤
+│ NEAR Intents         │   ❌    │   ❌   │    ✅     │     ✅     │   ⚡    │
+│ (Cross-chain fast)   │ Visible │Visible │  Stealth  │ Viewing    │  Fast   │
+│                      │         │        │           │ Keys Work  │         │
+├──────────────────────┼─────────┼────────┼───────────┼────────────┼─────────┤
+│ Same-Chain Programs  │   ✅    │   ✅   │    ✅     │     ✅     │   ⚡    │
+│ (Solana/ETH native)  │ Hidden  │ Hidden │  Stealth  │ Viewing    │  Fast   │
+│                      │Pedersen │Pedersen│           │ Keys Work  │         │
+├──────────────────────┼─────────┼────────┼───────────┼────────────┼─────────┤
+│ Zcash Shielded Pool  │   ✅    │   ✅   │    ✅     │     ✅     │   🐢    │
+│ (Cross-chain full)   │ Hidden  │ Hidden │  Hidden   │ Viewing    │  Slow   │
+│                      │Encrypted│Encrypted│Encrypted │ Keys Work  │(2 hops) │
+└──────────────────────┴─────────┴────────┴───────────┴────────────┴─────────┘
+
+Legend:
+• ✅ Hidden/Protected    • ❌ Visible to settlement layer
+• ⚡ Fast (seconds)      • 🐢 Slow (minutes, requires 2 cross-chain hops)
+```
+
+### Settlement Decision Tree
+
+```
+                        ┌─────────────────────────┐
+                        │  What kind of privacy   │
+                        │     do you need?        │
+                        └───────────┬─────────────┘
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              │                     │                     │
+              ▼                     ▼                     ▼
+    ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+    │   Same-chain    │   │   Cross-chain   │   │   Cross-chain   │
+    │   Full Privacy  │   │   Fast + Partial│   │   Full Privacy  │
+    └────────┬────────┘   └────────┬────────┘   └────────┬────────┘
+             │                     │                     │
+             ▼                     ▼                     ▼
+    ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
+    │ SIP Native      │   │ NEAR Intents    │   │ Zcash Shielded  │
+    │ Programs        │   │                 │   │ Pool Route      │
+    │                 │   │                 │   │                 │
+    │ • Solana Anchor │   │ • Stealth only  │   │ • SOL→ZEC→NEAR  │
+    │ • ETH Solidity  │   │ • Sender visible│   │ • Full privacy  │
+    │ • Pedersen+ZK   │   │ • Amount visible│   │ • Slow (2 hops) │
+    │ • Full privacy  │   │ • Fast + cheap  │   │ • ZEC required  │
+    └─────────────────┘   └─────────────────┘   └─────────────────┘
+         [M17-M18]             [Current]             [M19]
+```
+
+### Why Partial Privacy (NEAR Intents)?
+
+Current SOL-NEAR swaps via NEAR Intents provide **partial privacy**:
+
+- **What works:** Stealth addresses for recipient (unlinkable destination)
+- **What's exposed:** Sender address and amount visible to 1Click API
+- **Why:** NEAR Intents is a settlement layer, not a privacy layer. The swap is public on-chain.
+
+**This is still valuable because:**
+1. Recipient cannot be linked to sender (stealth address)
+2. Transaction destination is hidden from on-chain observers
+3. Viewing keys work for compliance/audit
+4. Fast, cheap cross-chain swaps
+
+**For full cross-chain privacy**, route through Zcash shielded pool (M19).
 
 ---
 
@@ -50,7 +161,12 @@
 │  │ • Privacy Levels       • Unified API            • Compliance Ready    │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
-│  │ PROOF COMPOSITION (Technical Moat)                                    │ │
+│  │ SAME-CHAIN + CROSS-CHAIN (Market Expansion)              [NEW Q1 2026]│ │
+│  │ • Solana same-chain    • Ethereum same-chain   • Cross-chain swaps    │ │
+│  │ • Compete with mixers  • Superior compliance   • 10x bigger market    │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ PROOF COMPOSITION (Technical Moat)                       [Future 2026]│ │
 │  │ • Zcash → Privacy execution     • Mina → Succinct verification        │ │
 │  │ • Noir  → Validity proofs       • Compose proofs from multiple systems│ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
@@ -59,7 +175,7 @@
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  SETTLEMENT LAYER (Pluggable)                                               │
-│  • NEAR Intents  • Mina Protocol  • Direct Chain  • Future backends...     │
+│  • NEAR Intents  • Direct Chain [NEW]  • Mina Protocol  • Future backends  │
 └────────────────────────────────┬────────────────────────────────────────────┘
                                  │
                                  ▼
@@ -127,28 +243,31 @@ SIP combines two complementary strategies:
 ## The Path to Endgame
 
 ```
-PHASE 1: FOUNDATION     PHASE 2: STANDARD      PHASE 3: ECOSYSTEM     PHASE 4: FUTURE
-(2024-2025) ✅          (2025) ✅              (2025) ✅              (2026+)
-     │                       │                      │                      │
-     ▼                       ▼                      ▼                      ▼
-┌─────────┐            ┌─────────┐            ┌─────────┐           ┌─────────┐
-│ M1-M8   │            │ M9-M12  │            │ M13-M15 │           │ M16-M18 │
-│ Core    │ ─────────► │ Multi-  │ ─────────► │ DX &    │ ────────► │ Privacy │
-│ Tech    │            │ Backend │            │ Apps    │           │Standard │
-└─────────┘            └─────────┘            └─────────┘           └─────────┘
-     │                      │                      │                      │
-• SDK ✅                • Stable Core ✅       • Compliance ✅       • Proof
-• NEAR adapter ✅       • ZK Production ✅     • React/CLI/API ✅     composition
-• Demo ✅               • Multi-Settlement ✅  • Hardware wallets ✅ • SIP-EIP
-• Noir circuits ✅      • Multi-Chain ✅       • WalletConnect ✅    • $5B vol
-• 2,757 tests ✅        • 15+ chains ✅        • 157 new tests ✅    • Industry std
+PHASE 1: FOUNDATION     PHASE 2: STANDARD      PHASE 3: ECOSYSTEM     PHASE 4: EXPANSION    PHASE 5: MOAT
+(2024-2025) ✅          (2025) ✅              (2025) ✅              (Q1-Q2 2026) 🎯       (Q3-Q4 2026)
+     │                       │                      │                      │                    │
+     ▼                       ▼                      ▼                      ▼                    ▼
+┌─────────┐            ┌─────────┐            ┌─────────┐            ┌─────────┐          ┌─────────┐
+│ M1-M8   │            │ M9-M12  │            │ M13-M15 │            │ M16-M18 │          │ M19-M21 │
+│ Core    │ ─────────► │ Multi-  │ ─────────► │ DX &    │ ─────────► │ Same-   │ ───────► │ Cross-  │
+│ Tech    │            │ Backend │            │ Apps    │            │ Chain   │          │ Chain++ │
+└─────────┘            └─────────┘            └─────────┘            └─────────┘          └─────────┘
+     │                      │                      │                      │                    │
+• SDK ✅                • Stable Core ✅       • Compliance ✅       • Narrative       • Zcash route
+• NEAR adapter ✅       • ZK Production ✅     • React/CLI/API ✅      Capture         • Proof compo
+• Demo ✅               • Multi-Settlement ✅  • Hardware wallets ✅ • Solana Anchor   • SIP-EIP
+• Noir circuits ✅      • Multi-Chain ✅       • WalletConnect ✅    • ETH Solidity    • $5B vol
+• 2,757 tests ✅        • 15+ chains ✅        • 157 new tests ✅    • Full privacy    • Industry std
 ```
 
 ---
 
 ## Milestones
 
-### PHASE 1: FOUNDATION (M1-M8) — Build Core Technology
+### PHASE 1: FOUNDATION (M1-M8) ✅ Complete
+
+<details>
+<summary>Click to expand Phase 1 details</summary>
 
 #### M1: Architecture & Specification ✅ Complete
 
@@ -166,8 +285,6 @@ Foundational decisions and formal protocol specifications.
 | [#8](../../issues/8) | Viewing key specification | ✅ Done |
 | [#9](../../issues/9) | Privacy levels formal spec | ✅ Done |
 
----
-
 #### M2: Cryptographic Core ✅ Complete
 
 Real cryptographic implementations, no mocks.
@@ -184,8 +301,6 @@ Real cryptographic implementations, no mocks.
 | [#17](../../issues/17) | Cryptographic test suite | ✅ Done |
 | [#18](../../issues/18) | Security audit preparation | ✅ Done |
 
----
-
 #### M3: SDK Production ✅ Complete
 
 Production-quality SDK refactoring.
@@ -201,8 +316,6 @@ Production-quality SDK refactoring.
 | [#25](../../issues/25) | Add SDK unit tests (90%+ coverage) | ✅ Done |
 | [#26](../../issues/26) | Add SDK integration tests | ✅ Done |
 | [#27](../../issues/27) | Performance benchmarking and optimization | ✅ Done |
-
----
 
 #### M4: Network Integration ✅ Complete
 
@@ -224,8 +337,6 @@ Connect to real blockchain networks.
 
 **Achievement**: 745 tests passing, comprehensive E2E coverage.
 
----
-
 #### M5: Documentation & Launch ✅ Complete
 
 Polish and publish.
@@ -242,8 +353,6 @@ Polish and publish.
 | [#46](../../issues/46) | Protocol whitepaper | ✅ Done |
 | [#47](../../issues/47) | Architecture diagrams | ✅ Done |
 
----
-
 #### M6: Launch & Publish ✅ Complete
 
 Publish SDK to npm and integrate into website.
@@ -258,8 +367,6 @@ Publish SDK to npm and integrate into website.
 | [#53](../../issues/53) | Build docs-sip with Astro + Starlight | ✅ Done |
 
 **Achievement**: @sip-protocol/sdk and @sip-protocol/types published to npm. docs.sip-protocol.org live.
-
----
 
 #### M7: Real Demo Integration ✅ Complete
 
@@ -278,9 +385,7 @@ Connect demo UI to real SDK with actual blockchain transactions.
 
 **Achievement**: Full demo with wallet connection, quote fetching, transaction execution. 122 tests in sip-website.
 
----
-
-#### M8: Production Hardening 🔄 In Progress
+#### M8: Production Hardening ✅ Complete
 
 Real ZK circuits, security hardening, multi-curve support.
 
@@ -292,86 +397,90 @@ Real ZK circuits, security hardening, multi-curve support.
 | [#65](../../issues/65) | Noir Fulfillment Proof circuit | ✅ Done |
 | [#66](../../issues/66) | Memory zeroization for secrets | ✅ Done |
 | [#67](../../issues/67) | External security audit | 🔲 Pending |
-| [#91](../../issues/91) | [EPIC] Multi-Curve Stealth Addresses | 🔄 In Progress |
+| [#91](../../issues/91) | [EPIC] Multi-Curve Stealth Addresses | ✅ Done |
 | [#92](../../issues/92) | ed25519 stealth address implementation | ✅ Done |
 | [#93](../../issues/93) | Solana address derivation from ed25519 | ✅ Done |
 | [#94](../../issues/94) | NEAR address derivation from ed25519 | ✅ Done |
-| [#95](../../issues/95) | Multi-curve meta-address format | 🔲 Planned |
+| [#95](../../issues/95) | Multi-curve meta-address format | ✅ Done |
 | [#96](../../issues/96) | Update NEAR Intents adapter for multi-curve | ✅ Done |
 | [#97](../../issues/97) | Cross-chain stealth integration tests | ✅ Done |
 
-**Achievement**: Noir circuits compiled. Secure memory handling. Multi-curve stealth in progress.
+**Achievement**: Noir circuits compiled. Secure memory handling. Multi-curve stealth complete.
+
+</details>
 
 ---
 
-### PHASE 2: STANDARD (M9-M12) — Multi-Backend & Adoption ✅ Complete
+### PHASE 2: STANDARD (M9-M12) ✅ Complete
+
+<details>
+<summary>Click to expand Phase 2 details</summary>
 
 #### M9: Stable Core ✅ Complete
 
 100% test coverage, Zcash swaps, CI validation.
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] Stable Core | ✅ Done |
-| - | 100% passing test suite | ✅ Done |
-| - | Zcash swap integration | ✅ Done |
-| - | CI/CD validation pipeline | ✅ Done |
+| Description | Status |
+|-------------|--------|
+| [EPIC] Stable Core | ✅ Done |
+| 100% passing test suite | ✅ Done |
+| Zcash swap integration | ✅ Done |
+| CI/CD validation pipeline | ✅ Done |
 
 **Achievement**: Rock-solid foundation with comprehensive testing.
-
----
 
 #### M10: ZK Production ✅ Complete
 
 Noir wired to SDK, WASM browser proving, Web Worker support.
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] ZK Production | ✅ Done |
-| - | Noir circuits wired to SDK | ✅ Done |
-| - | WASM browser proving | ✅ Done |
-| - | Web Worker proof generation | ✅ Done |
-| - | BrowserNoirProvider implementation | ✅ Done |
+| Description | Status |
+|-------------|--------|
+| [EPIC] ZK Production | ✅ Done |
+| Noir circuits wired to SDK | ✅ Done |
+| WASM browser proving | ✅ Done |
+| Web Worker proof generation | ✅ Done |
+| BrowserNoirProvider implementation | ✅ Done |
 
 **Achievement**: Zero-knowledge proofs working in browser environments.
-
----
 
 #### M11: Multi-Settlement ✅ Complete
 
 SettlementBackend interface, SmartRouter, 3 backends.
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] Multi-Settlement | ✅ Done |
-| - | SettlementBackend interface | ✅ Done |
-| - | SmartRouter implementation | ✅ Done |
-| - | NEAR Intents backend | ✅ Done |
-| - | Zcash backend | ✅ Done |
-| - | Direct chain backend | ✅ Done |
+| Description | Status |
+|-------------|--------|
+| [EPIC] Multi-Settlement | ✅ Done |
+| SettlementBackend interface | ✅ Done |
+| SmartRouter implementation | ✅ Done |
+| NEAR Intents backend | ✅ Done |
+| Zcash backend | ✅ Done |
+| Direct chain backend | ✅ Done |
 
 **Achievement**: Pluggable settlement layer with 3 backends.
-
----
 
 #### M12: Multi-Chain ✅ Complete
 
 Bitcoin Silent Payments, Cosmos IBC, Aptos/Sui support.
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] Multi-Chain | ✅ Done |
-| - | Bitcoin Silent Payments | ✅ Done |
-| - | Cosmos IBC stealth addresses | ✅ Done |
-| - | Aptos address derivation | ✅ Done |
-| - | Sui address derivation | ✅ Done |
-| - | Ed25519 chain support | ✅ Done |
+| Description | Status |
+|-------------|--------|
+| [EPIC] Multi-Chain | ✅ Done |
+| Bitcoin Silent Payments | ✅ Done |
+| Cosmos IBC stealth addresses | ✅ Done |
+| Aptos address derivation | ✅ Done |
+| Sui address derivation | ✅ Done |
+| Ed25519 chain support | ✅ Done |
 
 **Achievement**: Support for 15+ chains across multiple curves.
 
+</details>
+
 ---
 
-### PHASE 3: ECOSYSTEM (M13-M15) — Developer Experience & Applications ✅ Complete
+### PHASE 3: ECOSYSTEM (M13-M15) ✅ Complete
+
+<details>
+<summary>Click to expand Phase 3 details</summary>
 
 #### M13: Compliance Layer ✅ Complete
 
@@ -386,8 +495,6 @@ Enterprise-ready compliance features.
 | [#161](../../issues/161) | Regulatory reporting helpers | ✅ Done |
 
 **Achievement**: Full compliance toolkit for institutional adoption.
-
----
 
 #### M14: Developer Experience ✅ Complete
 
@@ -405,8 +512,6 @@ Production-ready developer tools and packages.
 
 **Achievement**: 4 new packages, 157 tests (React: 57, CLI: 33, API: 67).
 
----
-
 #### M15: Application Layer ✅ Complete
 
 Multi-wallet support and hardware wallet integration.
@@ -422,44 +527,336 @@ Multi-wallet support and hardware wallet integration.
 
 **Achievement**: Enterprise-grade wallet infrastructure.
 
----
-
-### PHASE 4: FUTURE (M16-M18) — Proof Composition & Standards 🔲 Planned
-
-#### M16: Proof Composition Research 🔲 Future
-
-Research feasibility of composing proofs from multiple systems.
-
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] Proof Composition Research | 🔲 Future |
-| - | Halo2 + Kimchi compatibility analysis | 🔲 Future |
-| - | Proof composition architecture design | 🔲 Future |
-| - | Prototype: Zcash privacy + Mina verification | 🔲 Future |
-| - | Performance benchmarks for composed proofs | 🔲 Future |
-
-**Target**: Validate proof composition feasibility, create prototype.
+</details>
 
 ---
 
-#### M17: Technical Moat 🔲 Future
+### PHASE 4: SAME-CHAIN EXPANSION (Q1-Q2 2026) 🎯 NEW
 
-Build defensible technical advantages.
+**Goal:** Capture the same-chain privacy market — 10-20x bigger than cross-chain only.
+
+**Strategic Context:** PrivacyCash (pool-based mixer) is getting traction on Solana. SIP's cryptographic approach is architecturally superior. This is the window to establish market leadership.
+
+---
+
+### Solana Privacy Hack Sprint (Jan 12 - Feb 1, 2026) 🎯
+
+**Hackathon:** [solana.com/privacyhack](https://solana.com/privacyhack) — $100K+ prize pool
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     SOLANA PRIVACY HACK STRATEGY                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   RECOMMENDED SUBMISSIONS (Judge-Validated):                                │
+│   • Privacy Tooling ($15K) — SDK is production-ready, strongest fit        │
+│   • Open Track ($18K) — Strategic vision differentiates from competitors   │
+│   • Range Compliant Privacy ($1.5K+) — Viewing keys are unique strength    │
+│                                                                             │
+│   CONDITIONAL (If Implemented During Hack):                                 │
+│   • Private Payments ($15K) — Requires M17 devnet deployment               │
+│   • Helius ($5K) — Requires DAS/Enhanced Transactions integration          │
+│   • Aztec/Noir ($10K) — Requires Sunspot pipeline deployment               │
+│                                                                             │
+│   MAXIMUM REALISTIC: $33.5K (Tooling + Open + Range)                        │
+│   STRETCH GOAL: $53.5K (Add Payments + Helius)                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Hackathon Sprint Deliverables:**
+
+| Week | Deliverables | Tracks Unlocked |
+|------|--------------|-----------------|
+| Week 1 (Jan 12-18) | Deploy minimal Anchor to devnet, Helius DAS integration | Helius $5K |
+| Week 2 (Jan 19-25) | Demo app (private SOL transfer), demo video | Private Payments $15K |
+| Week 3 (Jan 26-Feb 1) | Polish, documentation, track-specific narratives | All tracks |
+
+**Competitor Context (From Analysis):**
+- **PrivacyCash:** Pool mixing, 10K+ SOL — we beat them with cryptographic privacy
+- **Light Protocol:** Pivoted to compression — we fill the privacy gap they left
+- **Elusiv:** Shutdown Feb 2024 — we learn from their mistakes (viewing keys essential)
+- **Arcium:** MPC focus — complementary, not competitive
+
+**Critical Integrations for Hackathon:**
+1. **Helius DAS API** — Efficient stealth address scanning (10x faster than naive approach)
+2. **Sunspot Pipeline** — Noir → ACIR → Groth16 → Solana verifier deployment
+3. **Devnet Deployment** — Prove on-chain Pedersen verification works
+
+See private strategy docs: `~/.claude/sip-protocol/SOLANA-PRIVACY-HACK.md`
+
+---
+
+#### M16: Narrative Capture & Positioning 🔲 Q1 2026
+
+Establish SIP as "the right way to do privacy" before competitors solidify.
+
+| Issue | Description | Budget | Status |
+|-------|-------------|--------|--------|
+| [#229](../../issues/229) | [EPIC] Narrative Capture | $10K total | 🎯 Starting |
+| - | Content Campaign (8 articles + 15 threads) | $4,500 (45%) | 🔲 Planned |
+| - | Community Building (Discord + Twitter) | $3,500 (35%) | 🔲 Planned |
+| - | Ecosystem Presentations (3 events) | $2,000 (20%) | 🔲 Planned |
+
+**Deliverables:**
+- **Content:** 8 technical articles (Medium, Mirror, dev.to) + 15 Twitter threads
+- **Community:** Discord launch → 500+ members, developer support channels
+- **Events:** 3 Superteam ecosystem presentations + 5 dApp partnership LOIs
+
+**Success Metrics (KPIs):**
+
+| Metric | Month 1 Target | Month 2 Target |
+|--------|---------------|----------------|
+| Twitter Impressions | 25K | 50K total |
+| Discord Members | 200 | 500 |
+| Article Reads | 1K | 3K total |
+| dApp LOIs | 2 | 5 |
+
+**Alignment:** Superteam Microgrant ($10K) deliverables
+
+---
+
+#### M17: Solana Same-Chain Privacy (Anchor Program) 🔲 Q1-Q2 2026
+
+**SIP Solana Program** — On-chain privacy using Anchor smart contracts.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        M17: SOLANA PRIVACY PROGRAM                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Technology Stack:                                                         │
+│   • Anchor Framework (Rust) → On-chain program                              │
+│   • Pedersen Commitments → Hidden amounts                                   │
+│   • Ed25519 Stealth Addresses → Unlinkable recipients                       │
+│   • ZK Proof Verification → On-chain validity proofs                        │
+│   • Viewing Keys → Compliance/audit disclosure                              │
+│                                                                             │
+│   How It Works:                                                             │
+│   1. User creates shielded transfer (SDK generates commitment + proof)      │
+│   2. Anchor program verifies ZK proof on-chain                              │
+│   3. Funds transfer with hidden amount (only commitment visible)            │
+│   4. Recipient scans for stealth addresses, claims with viewing key         │
+│                                                                             │
+│   This is "Zcash-style privacy on Solana" — no shielded pool needed.        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Issue | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| - | [EPIC] SIP Solana Program (Anchor) | - | 🔲 Planned |
+| - | Anchor program: shielded_transfer instruction | Critical | 🔲 Planned |
+| - | Anchor program: claim_transfer instruction | Critical | 🔲 Planned |
+| - | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
+| - | On-chain ZK proof verifier (Noir→Solana) | Critical | 🔲 Planned |
+| - | Ed25519 stealth address scanning | Critical | 🔲 Planned |
+| - | Viewing key disclosure mechanism | High | 🔲 Planned |
+| - | SDK API: `sip.shieldedTransfer(solana, ...)` | High | 🔲 Planned |
+| - | Jupiter DEX integration (private swaps) | High | 🔲 Planned |
+| - | **Jito relayer integration** (gas abstraction) | High | 🔲 Planned |
+| - | Anchor program audit preparation | High | 🔲 Planned |
+| - | Same-chain test suite (100+ tests) | High | 🔲 Planned |
+| - | Developer documentation | Medium | 🔲 Planned |
+| - | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | 🔲 Planned |
+| - | **Helius DAS API integration** (efficient stealth scanning) | High | 🔲 Planned |
+| - | **Helius Enhanced Transactions** (better UX) | Medium | 🔲 Planned |
+| - | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
+| - | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
+| - | **Devnet deployment** (verifier.so + demo app) | Critical | 🔲 Planned |
+
+**Relayer Strategy:** Use Jito for gas abstraction — no dedicated infrastructure needed. User signs shielded tx → Jito relayer submits → Pays gas → Gets fee from commitment. Relayer is gas-only (not asset movement) = lower regulatory risk.
+
+**Why SIP beats PrivacyCash:**
+
+| Feature | PrivacyCash (Mixer) | SIP Anchor (Cryptographic) |
+|---------|---------------------|----------------------------|
+| Privacy method | Pool mixing | Pedersen + Stealth |
+| Amount privacy | ❌ Visible on-chain | ✅ Hidden (Pedersen commitment) |
+| Any amount | ✅ Arbitrary amounts | ✅ Arbitrary amounts |
+| Amount correlation | ❌ Vulnerable (amounts visible) | ✅ Protected (amounts hidden) |
+| Speed | ⚡ Instant | ⚡ Instant |
+| Compliance | ❌ None | ✅ Viewing keys |
+| Regulatory risk | 🔴 HIGH (mixer) | 🟢 LOW (cryptographic) |
+| Gas abstraction | ❌ No relayer | ✅ Jito relayer integration |
+| On-chain code | Circom ZK circuits | Noir + Anchor |
+
+> **Note:** PrivacyCash supports arbitrary amounts, but amounts are VISIBLE on-chain. This enables correlation attacks — if Alice deposits 1.337 SOL (unique amount), tracking that withdrawal is trivial. SIP hides amounts cryptographically via Pedersen commitments.
+
+**Success Metrics:**
+- Anchor program deployed to devnet
+- 100+ test cases passing
+- Developer preview released
+- 3 dApp integration POCs
+
+**Alignment:** Solana Foundation Grant ($100K) primary deliverable
+
+---
+
+#### M18: Ethereum Same-Chain Privacy (Solidity Contract) 🔲 Q2 2026
+
+**SIP Ethereum Contract** — On-chain privacy using Solidity smart contracts.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        M18: ETHEREUM PRIVACY CONTRACT                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Technology Stack:                                                         │
+│   • Solidity → On-chain smart contract                                      │
+│   • Pedersen Commitments → Hidden amounts (EVM precompiles)                 │
+│   • Secp256k1 Stealth Addresses → EIP-5564 compatible                       │
+│   • ZK Proof Verification → On-chain Noir verifier                          │
+│   • Viewing Keys → Compliance/audit disclosure                              │
+│                                                                             │
+│   How It Works:                                                             │
+│   1. User creates shielded transfer (SDK generates commitment + proof)      │
+│   2. Solidity contract verifies ZK proof on-chain                           │
+│   3. Funds transfer with hidden amount (only commitment visible)            │
+│   4. Recipient scans for stealth addresses, claims with viewing key         │
+│                                                                             │
+│   Same architecture as M17 but for EVM chains (ETH + L2s).                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Issue | Description | Priority | Status |
+|-------|-------------|----------|--------|
+| - | [EPIC] SIP Ethereum Contract (Solidity) | - | 🔲 Planned |
+| - | Solidity contract: shieldedTransfer function | Critical | 🔲 Planned |
+| - | Solidity contract: claimTransfer function | Critical | 🔲 Planned |
+| - | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
+| - | On-chain ZK proof verifier (Noir→EVM) | Critical | 🔲 Planned |
+| - | EIP-5564 stealth address implementation | Critical | 🔲 Planned |
+| - | Viewing key disclosure mechanism | High | 🔲 Planned |
+| - | SDK API: `sip.shieldedTransfer(ethereum, ...)` | High | 🔲 Planned |
+| - | **Gelato/ERC-4337 relayer** (gas abstraction) | High | 🔲 Planned |
+| - | **L2 Tier 1: Base, Arbitrum, Optimism** | Critical | 🔲 Planned |
+| - | L2 Tier 2: Polygon, zkSync (if survives) | Medium | 🔲 Planned |
+| - | Gas optimization (batching, storage packing) | Medium | 🔲 Planned |
+| - | Integration examples (Uniswap, 1inch) | Medium | 🔲 Planned |
+
+**L2 Strategy (Based on Dec 2025 Market Data):**
+- **Base** (60%+ tx share), **Arbitrum** (44% TVL), **Optimism** (6% TVL) = 90%+ of L2 market
+- Same Solidity contract deploys to all EVM L2s (just different RPC endpoints)
+- Per 21Shares analysis: most other L2s may not survive 2026 consolidation
+
+**Relayer Strategy:** Use Gelato Network or ERC-4337 Paymasters for EVM chains — no dedicated infrastructure needed. Account abstraction enables native gas sponsorship.
+
+**Success Metrics:**
+- Solidity contract deployed to Sepolia testnet
+- 3 Tier 1 L2 chains supported (Base, Arbitrum, Optimism)
+- Integration guide published
+- Gas benchmarks under 200K per shielded transfer
+
+---
+
+### PHASE 5: TECHNICAL MOAT (Q3 2026 - 2027) 🔲 Future
+
+**Goal:** Build defensible technical advantages that competitors cannot easily replicate.
+
+---
+
+#### M19: Mina Integration & Proof Research 🔲 Q3 2026
+
+**Why Mina?** Mina sponsored Zypherpunk hackathon (where SIP won). Privacy-native ZK. Kimchi proof system aligns with our proof composition plans.
+
+Three parallel tracks: **Mina integration** (relationship leverage), **Zcash cross-chain route** (immediate value), and **proof composition research** (long-term moat).
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      M19: MINA + CROSS-CHAIN FULL PRIVACY                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Track A: Mina Protocol Integration (Relationship Leverage)                │
+│   ──────────────────────────────────────────────────────────                │
+│   • Mina Kimchi proofs for succinct verification                            │
+│   • Explore SIP as native Mina zkApp                                        │
+│   • Mina Foundation grant opportunity ($50-100K)                            │
+│                                                                             │
+│   Track B: Zcash Cross-Chain Route (Immediate Value)                        │
+│   ─────────────────────────────────────────────────                         │
+│   For users who need FULL cross-chain privacy (not just stealth addresses) │
+│                                                                             │
+│   Flow: SOL → ZEC (shielded) → NEAR                                         │
+│   Trade-off: Slower (2 hops) but FULL privacy (sender, amount, recipient)   │
+│                                                                             │
+│   Track C: Proof Composition Research (Long-term Moat)                      │
+│   ────────────────────────────────────────────────────                      │
+│   • Zcash Halo2 → Privacy execution                                         │
+│   • Mina Kimchi → Succinct verification                                     │
+│   • Noir → Validity proofs                                                  │
+│                                                                             │
+│   Target: Single proof that combines privacy + light client verification   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Issue | Description | Track | Status |
+|-------|-------------|-------|--------|
+| - | [EPIC] Mina + Cross-Chain Full Privacy | - | 🔲 Future |
+| - | **Mina Kimchi integration** | A | 🔲 Future |
+| - | **Mina zkApp exploration** | A | 🔲 Future |
+| - | Zcash shielded pool integration | B | 🔲 Future |
+| - | SOL → ZEC → NEAR routing | B | 🔲 Future |
+| - | Cross-chain bridge selection (LayerZero) | B | 🔲 Future |
+| - | SDK API: `sip.crossChainPrivate(...)` | B | 🔲 Future |
+| - | Halo2 + Kimchi compatibility analysis | C | 🔲 Future |
+| - | **Halo2 IPA Verifier Research** (Tachyon-informed) | C | 🔲 Future |
+| - | **PCD Wallet State Architecture** (Tachyon-informed) | C | 🔲 Future |
+| - | Proof composition architecture design | C | 🔲 Future |
+| - | Prototype: Zcash privacy + Mina verification | C | 🔲 Future |
+
+> **Note:** Track C items informed by [Project Tachyon](https://seanbowe.com/blog/tachyon-scaling-zcash-oblivious-synchronization/) — Zcash's scaling roadmap by Sean Bowe. Tachyon's Proof-Carrying Data (PCD) model and oblivious synchronization approach align with SIP's architecture and validate our stealth address design.
+
+**Intent Network Strategy:**
+
+| System | Role | Priority |
+|--------|------|----------|
+| **NEAR Intents** | Fast cross-chain settlement | Tier 1 (current) |
+| **Mina Protocol** | ZK privacy + proof composition | Tier 1 (M19) |
+| **Zcash Pool** | Full privacy cross-chain route | Tier 1 (M19) |
+| Anoma | Watch for FHE/MPC delivery | Tier 2 (future) |
+
+**Target**: Mina Kimchi integration + Zcash route working for full cross-chain privacy.
+
+---
+
+#### M20: Technical Moat Building 🔲 Q4 2026
+
+Build unique capabilities that create defensible advantage.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
 | - | [EPIC] Technical Moat Building | 🔲 Future |
 | - | Proof composition v1 (if feasible) | 🔲 Future |
+| - | **Oblivious Sync Service** (Tachyon-inspired privacy during sync) | 🔲 Future |
+| - | **Quantum-Resistant Storage** (Winternitz WOTS vaults) | 🔲 Future |
+| - | **BNB Chain support** (4.32M daily wallets, Asia market) | 🔲 Future |
 | - | Multi-language SDK (Python, Rust) | 🔲 Future |
 | - | Chain-specific optimizations | 🔲 Future |
 | - | NEAR fee contract (protocol revenue) | 🔲 Future |
 | - | Governance token design | 🔲 Future |
 
+**Quantum-Resistant Storage (Winternitz Vaults):**
+
+SIP + Winternitz Vault integration provides post-quantum security for Solana storage.
+
+| Layer | Technology | Protection |
+|-------|------------|------------|
+| Privacy | SIP (Stealth + Pedersen) | Hidden sender/amount/recipient |
+| Quantum | Winternitz WOTS | 128-bit post-quantum security |
+| Compliance | Viewing Keys | Audit trail for regulators |
+
+See [QUANTUM-RESISTANT-STORAGE.md](docs/specs/QUANTUM-RESISTANT-STORAGE.md) for technical specification.
+
+**BNB Chain Strategy:** Highest daily active wallets (4.32M). EVM-compatible = reuse M18 Solidity contract. Integrate with PancakeSwap. Gelato relayer works on BSC.
+
 **Target**: Unique capabilities that competitors cannot easily replicate.
 
 ---
 
-#### M18: Standard Proposal 🔲 Future
+#### M21: Standard Proposal 🔲 Q4 2026
 
 Formalize SIP as an industry standard.
 
@@ -475,6 +872,142 @@ Formalize SIP as an industry standard.
 
 ---
 
+#### M22: Institutional + Agent Custody 🔲 2027 (NEW)
+
+Enterprise adoption through custody integration + AI agent compliance (a16z "Know Your Agent").
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                   M22: INSTITUTIONAL + AGENT CUSTODY                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Viewing Key APIs for Institutional Custodians + AI Agents                  │
+│   ───────────────────────────────────────────────────────────                │
+│   • Fireblocks, Anchorage, BitGo, Coinbase Prime                            │
+│   • Custodian generates viewing key pair                                    │
+│   • User grants viewing key access to custodian OR AI agent                 │
+│   • Custodian/Agent can: view tx history, generate reports, prove balances  │
+│   • Custodian/Agent CANNOT: spend funds or see other users' transactions    │
+│                                                                             │
+│   NEW: Agent Privacy (a16z "Know Your Agent")                                │
+│   ─────────────────────────────────────────────                              │
+│   • AI treasury managers get scoped viewing keys                            │
+│   • Time-bound + permission-scoped delegation                               │
+│   • Cryptographic credentials for agent compliance                          │
+│   • First-mover on agent compliance = market leadership                     │
+│                                                                             │
+│   Why This Matters:                                                          │
+│   • DAOs need compliant treasury privacy                                    │
+│   • Institutions require audit trails for regulators                        │
+│   • Enterprise = recurring revenue + credibility                            │
+│   • Required for Series A fundraising story                                 │
+│   • 2026+: AI agents will manage significant treasury operations            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Issue | Description | Status |
+|-------|-------------|--------|
+| - | [EPIC] Institutional + Agent Custody | 🔲 Future |
+| - | Fireblocks viewing key API integration | 🔲 Future |
+| - | Anchorage compliance dashboard | 🔲 Future |
+| - | BitGo multi-sig + viewing keys | 🔲 Future |
+| - | Coinbase Prime exploration | 🔲 Future |
+| - | Compliance REST API | 🔲 Future |
+| - | Time-bound viewing key delegation | 🔲 Future |
+| - | **Agent viewing key delegation API** | 🔲 Future |
+| - | **Agent credential standard ("Know Your Agent")** | 🔲 Future |
+
+**Target**: Viewing key integration with top 3 institutional custodians + agent compliance framework.
+
+---
+
+## Competitive Positioning
+
+### External Validation: a16z Big Ideas 2026
+
+> **"Bridging tokens is easy, bridging secrets is hard."**
+> — Andreessen Horowitz, [Big Ideas: Things We're Excited About in 2026](https://a16zcrypto.com/posts/article/big-ideas-things-excited-about-crypto-2026/)
+
+a16z's December 2025 "17 Big Ideas for Crypto in 2026" directly validates SIP's core thesis:
+
+| # | a16z Big Idea | SIP Alignment | Roadmap |
+|---|---------------|---------------|---------|
+| **9** | **Privacy as Chain Moat** — "Privacy creates network effects and lock-in" | SIP = multi-chain privacy standard (the moat) | Core thesis |
+| **11** | **Secrets-as-a-Service** — Programmable data access + client-side encryption + decentralized key management | Viewing keys = selective disclosure for compliance | M13 ✅ |
+| **6** | **Know Your Agent (KYA)** — Non-human identities need cryptographic credentials linking agents to principals | Agent viewing key delegation + credential standard | M22 🔲 |
+| **15** | **SNARKs for Verifiable Cloud** — Proving overhead dropped from 1M× to ~10K× | Noir circuits + browser proving already working | M10 ✅ |
+| **4** | **Internet Becomes the Bank** — AI agents need programmable payments | Private agent treasury management | M22 🔲 |
+| **12** | **Spec is Law** — Formal verification + runtime invariants | ZK proofs = cryptographic guarantees | M8-M10 ✅ |
+
+**Key Insight #9 (Privacy as Chain Moat):**
+> "Privacy is the one feature most blockchains lack but that could differentiate them fundamentally... Privacy creates network effects and lock-in, potentially enabling a handful of privacy chains to own most of crypto's activity."
+
+This is exactly SIP's thesis — we ARE the privacy layer that creates this moat for ANY chain.
+
+**Key Insight #11 (Secrets-as-a-Service):**
+> "New technologies offering programmable data access rules, client-side encryption, and decentralized key management—enforced on-chain—can make privacy core infrastructure rather than an afterthought."
+
+SIP's viewing keys = programmable disclosure. This is our competitive advantage vs mixers.
+
+**Implication**: a16z is signaling to the market that privacy infrastructure is the next major investment thesis. SIP is positioned exactly for this — not as a "privacy feature" but as **the privacy standard**.
+
+---
+
+### The Privacy Landscape (Updated Dec 2025)
+
+| Solution | Same-Chain | Cross-Chain | Privacy Type | Amount Hidden | Compliance | Risk Level |
+|----------|------------|-------------|--------------|---------------|------------|------------|
+| **PrivacyCash** | ✅ Solana | ❌ | Pool mixing | ❌ Visible | ❌ | 🔴 HIGH |
+| Tornado Cash | ✅ ETH | ❌ | Pool mixing | ❌ Visible | ❌ | ✅ Delisted |
+| Aztec | ✅ ETH L2 | ❌ | ZK native | ✅ Hidden | ⚠️ Limited | 🟡 MEDIUM |
+| Railgun | ✅ ETH | ❌ | ZK shielded | ✅ Hidden | ❌ | 🔴 HIGH |
+| Arcium | ⚠️ Testnet | ❌ | MPC compute | ✅ Hidden | ⚠️ Limited | 🟡 MEDIUM |
+| Zcash | ✅ ZEC | ❌ | Native shielded | ✅ Hidden | ✅ Viewing keys | 🟢 LOW |
+| **SIP Protocol** | ✅ Multi | ✅ Multi | Stealth + Pedersen | ✅ Hidden | ✅ Viewing keys | 🟢 LOW |
+| **SIP + Winternitz** | ✅ Solana | - | Stealth + WOTS | ✅ Hidden | ✅ Viewing keys | 🟢 LOW + QR* |
+
+*QR = Quantum Resistant (128-bit post-quantum security via Winternitz One-Time Signatures)
+
+> **Key insight:** PrivacyCash's main weakness isn't fixed pools (they support arbitrary amounts) — it's that amounts are VISIBLE on-chain, enabling correlation attacks. SIP hides amounts via Pedersen commitments.
+
+### SIP's Unique Position
+
+```
+                    COMPLIANT
+                        │
+                        │
+     ZCASH              │           SIP PROTOCOL ★
+     (native privacy    │           (stealth + viewing keys
+      but single chain) │            cross-chain + same-chain)
+                        │
+                        │
+SINGLE-CHAIN ───────────┼─────────── MULTI-CHAIN
+                        │
+                        │
+     PRIVACY CASH       │           ???
+     (pool mixer        │           (no one here yet)
+      Solana only)      │
+                        │
+                        │
+                   NON-COMPLIANT
+```
+
+**SIP occupies the most valuable quadrant: Multi-chain + Compliant.**
+
+### Our Moats
+
+| Moat Type | Description | Timeline |
+|-----------|-------------|----------|
+| **Standardization** | One API, many backends | M9-M12 ✅ |
+| **Network Effects** | Solver liquidity, user volume | M12+ |
+| **Same-Chain Expansion** | Bigger market, better product | M16-M18 🎯 |
+| **Compliance** | Viewing keys for institutions | Built-in ✅ |
+| **Proof Composition** | Unique technical capabilities | M19-M20 |
+| **Multi-Foundation** | Supported by multiple ecosystems | M10+ |
+
+---
+
 ## Multi-Foundation Strategy
 
 SIP is **chain-agnostic** — we enhance every chain, compete with none.
@@ -484,20 +1017,20 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 │                     SIP MULTI-FOUNDATION APPROACH                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   ZCASH         MINA          NEAR          ETHEREUM       SOLANA          │
-│   Foundation    Foundation    Foundation    Foundation     Foundation      │
-│      │             │             │              │              │           │
-│      │  "Privacy   │  "Succinct  │  "Intents    │  "EVM        │  "SOL     │
-│      │   expert"   │   proofs"   │   privacy"   │   privacy"   │   users"  │
-│      │             │             │              │              │           │
-│      └─────────────┴──────┬──────┴──────────────┴──────────────┘           │
-│                           │                                                 │
-│                           ▼                                                 │
-│                    ┌─────────────┐                                          │
-│                    │ SIP PROTOCOL│                                          │
-│                    │  "Privacy   │                                          │
-│                    │   for ALL"  │                                          │
-│                    └─────────────┘                                          │
+│   SUPERTEAM       SOLANA        ZCASH         NEAR          ETHEREUM       │
+│   Microgrant      Foundation    Foundation    Foundation    Foundation     │
+│      │               │             │             │              │          │
+│      │  "Community"  │  "SOL       │  "Privacy   │  "Intents    │  "EVM   │
+│      │               │   privacy"  │   expert"   │   privacy"   │  privacy"│
+│      │               │             │             │              │          │
+│      └───────────────┴──────┬──────┴─────────────┴──────────────┘          │
+│                             │                                               │
+│                             ▼                                               │
+│                      ┌─────────────┐                                        │
+│                      │ SIP PROTOCOL│                                        │
+│                      │  "Privacy   │                                        │
+│                      │   for ALL"  │                                        │
+│                      └─────────────┘                                        │
 │                                                                             │
 │   Value to each foundation:                                                 │
 │   • We showcase THEIR technology                                            │
@@ -507,43 +1040,17 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Grant Roadmap
+### Grant & Funding Roadmap
 
-| Foundation | Timeline | Amount | Pitch Angle |
-|------------|----------|--------|-------------|
-| NEAR Foundation | Q1 2026 | $50-100K | "Privacy layer for Intents ecosystem" |
-| Zcash Foundation | Q1 2026 | $25-50K | "Viewing keys showcase, cross-chain Zcash" |
-| Mina Foundation | Q2 2026 | $50-100K | "Succinct verification for privacy proofs" |
-| Ethereum ESP | Q2 2026 | $100K+ | "Cross-chain privacy standard for EVM" |
-| Solana Foundation | Q3 2026 | $50-100K | "Privacy for Solana users" |
-
----
-
-## Competitive Positioning
-
-### The Market Gap
-
-**No one offers private cross-chain transactions as a standard.**
-
-| Solution | Cross-Chain | Private | Standard | Status |
-|----------|-------------|---------|----------|--------|
-| Wormhole/Portal | ✅ | ❌ | ❌ | Transparent only |
-| deBridge | ✅ | ❌ | ❌ | Transparent only |
-| Arcium | ❌ | ✅ | ❌ | Solana-only |
-| Aztec | ❌ | ✅ | ❌ | Ethereum L2 only |
-| Railgun | ❌ | ✅ | ❌ | Ethereum only |
-| Penumbra | ❌ | ✅ | ❌ | Cosmos only |
-| **SIP Protocol** | ✅ | ✅ | ✅ | **Privacy Standard** |
-
-### Our Moats
-
-| Moat Type | Description | Timeline |
-|-----------|-------------|----------|
-| **Standardization** | One API, many backends | M9-M12 |
-| **Network Effects** | Solver liquidity, user volume | M12+ |
-| **Proof Composition** | Unique technical capabilities | M13-M14 |
-| **Compliance** | Viewing keys for institutions | Built-in |
-| **Multi-Foundation** | Supported by multiple ecosystems | M10+ |
+| Milestone | Timeline | Amount | Purpose | Status |
+|-----------|----------|--------|---------|--------|
+| **Superteam Microgrant** | Jan 2026 | $10K | Community + Narrative | 🎯 First |
+| **Solana Foundation** | Feb-Mar 2026 | $100K | Solana Same-Chain Privacy | 🔲 Second |
+| **Mina Foundation** | Q2 2026 | $50-100K | Proof composition (Zypherpunk relationship) | 🔲 Planned |
+| NEAR Foundation | Q2 2026 | $50-100K | Cross-chain enhancement | 🔲 Planned |
+| Zcash Foundation | Q2 2026 | $25-50K | Viewing keys showcase | 🔲 Planned |
+| Ethereum ESP | Q3 2026 | $100K+ | ETH Same-Chain Privacy | 🔲 Planned |
+| **Seed Round** | Q3-Q4 2026 | $1-2M | Scale operations | 🔲 Future |
 
 ---
 
@@ -555,63 +1062,13 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 4. **Standardization First**: One API, many backends
 5. **Compliance-Ready**: Viewing keys for regulatory compatibility
 6. **Technical Moat**: Proof composition creates defensible advantage
+7. **Same-Chain + Cross-Chain**: Complete privacy solution
 
 ---
 
 ## Status Summary
 
-### Phase 1: Foundation (M1-M8) ✅ Complete
-
-| Component | Status |
-|-----------|--------|
-| TypeScript SDK | ✅ Complete |
-| Stealth Addresses (secp256k1) | ✅ Complete |
-| Stealth Addresses (ed25519) | ✅ Complete |
-| Pedersen Commitments | ✅ Complete |
-| ZK Proof Specs | ✅ Complete |
-| Noir ZK Circuits | ✅ Complete |
-| NEAR Intents Adapter | ✅ Complete |
-| Zcash RPC Client | ✅ Complete |
-| Wallet Adapters | ✅ Complete |
-| npm Publish | ✅ Complete |
-| Documentation Site | ✅ Complete |
-| Demo UI (126 tests) | ✅ Complete |
-| SDK Tests (2,474 tests) | ✅ Complete |
-| Multi-curve Stealth | ✅ Complete |
-| External Security Audit | 🔲 Pending |
-
-### Phase 2: Standard (M9-M12) ✅ Complete
-
-| Component | Status |
-|-----------|--------|
-| Stable Core (100% tests) | ✅ Complete |
-| ZK Production (Noir/WASM) | ✅ Complete |
-| Multi-Settlement (3 backends) | ✅ Complete |
-| Multi-Chain (15+ chains) | ✅ Complete |
-| Bitcoin Silent Payments | ✅ Complete |
-| Cosmos/Aptos/Sui Support | ✅ Complete |
-
-### Phase 3: Ecosystem (M13-M15) ✅ Complete
-
-| Component | Status |
-|-----------|--------|
-| Compliance Layer | ✅ Complete |
-| @sip-protocol/react (57 tests) | ✅ Complete |
-| @sip-protocol/cli (33 tests) | ✅ Complete |
-| @sip-protocol/api (67 tests) | ✅ Complete |
-| Hardware Wallet Support | ✅ Complete |
-| WalletConnect v2 | ✅ Complete |
-
-### Phase 4: Future (M16-M18) 🔲 Planned
-
-| Component | Status |
-|-----------|--------|
-| Proof Composition Research | 🔲 Future |
-| Technical Moat Building | 🔲 Future |
-| Standard Proposal (SIP-EIP) | 🔲 Future |
-| Governance Token | 🔲 Future |
-
-### Test Suite Summary
+### Test Suite
 
 | Package | Tests | Status |
 |---------|-------|--------|
@@ -622,6 +1079,13 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 | sip-website | 126 | ✅ |
 | **Total** | **2,757** | ✅ |
 
+### Achievements
+
+- 🏆 **Zypherpunk Hackathon NEAR Track Winner** ($4,000) — Dec 2025
+- 📦 **npm packages published** — @sip-protocol/sdk v0.6.0
+- 🌐 **Live sites** — sip-protocol.org, docs.sip-protocol.org
+- ✅ **Phase 1-3 complete** — M1-M15 done (2,757 tests)
+
 ---
 
 ## Contributing
@@ -629,11 +1093,12 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Current focus areas:**
+- M16: Narrative capture and competitive positioning
+- M17: Solana same-chain privacy module
 - External security audit (M8 completion)
-- Multi-foundation grant applications
-- Proof composition research (M16)
-- Community adoption and feedback
+- Foundation grant applications
 
 ---
 
-*Last updated: December 4, 2025*
+*Last updated: January 11, 2026*
+*Hackathon sprint added: Solana Privacy Hack (Jan 12 - Feb 1, 2026)*
