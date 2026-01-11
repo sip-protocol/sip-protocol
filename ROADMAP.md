@@ -635,10 +635,10 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 
 | Issue | Description | Budget | Status |
 |-------|-------------|--------|--------|
-| [#229](../../issues/229) | [EPIC] Narrative Capture | $10K total | 🎯 Starting |
-| - | Content Campaign (8 articles + 15 threads) | $4,500 (45%) | 🔲 Planned |
-| - | Community Building (Discord + Twitter) | $3,500 (35%) | 🔲 Planned |
-| - | Ecosystem Presentations (3 events) | $2,000 (20%) | 🔲 Planned |
+| [#451](../../issues/451) | [EPIC] Narrative Capture | $10K total | 🎯 Starting |
+| [#384-391](../../issues?q=is%3Aissue+M16+article) | Content Campaign (8 articles + 15 threads) | $4,500 (45%) | 🔲 Planned |
+| [#392-395](../../issues?q=is%3Aissue+M16+community) | Community Building (Discord + Twitter) | $3,500 (35%) | 🔲 Planned |
+| [#396](../../issues/396) | Ecosystem Presentations (3 events) | $2,000 (20%) | 🔲 Planned |
 
 **Deliverables:**
 - **Content:** 8 technical articles (Medium, Mirror, dev.to) + 15 Twitter threads
@@ -687,31 +687,31 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 
 | Issue | Description | Priority | Status |
 |-------|-------------|----------|--------|
-| - | [EPIC] SIP Solana Program (Anchor) | - | 🔲 Planned |
-| - | Anchor program: shielded_transfer instruction | Critical | 🔲 Planned |
-| - | Anchor program: claim_transfer instruction | Critical | 🔲 Planned |
-| - | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
-| - | On-chain ZK proof verifier (Noir→Solana) | Critical | 🔲 Planned |
-| - | Ed25519 stealth address scanning | Critical | 🔲 Planned |
-| - | Viewing key disclosure mechanism | High | 🔲 Planned |
-| - | SDK API: `sip.shieldedTransfer(solana, ...)` | High | 🔲 Planned |
-| - | Jupiter DEX integration (private swaps) | High | 🔲 Planned |
-| - | **Jito relayer integration** (gas abstraction) | High | 🔲 Planned |
-| - | Anchor program audit preparation | High | 🔲 Planned |
-| - | Same-chain test suite (100+ tests) | High | 🔲 Planned |
-| - | Developer documentation | Medium | 🔲 Planned |
-| - | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | 🔲 Planned |
-| - | **Helius DAS API integration** (efficient stealth scanning) | High | 🔲 Planned |
-| - | **Helius Enhanced Transactions** (better UX) | Medium | 🔲 Planned |
-| - | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
-| - | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
-| - | **Devnet deployment** (verifier.so + demo app) | Critical | 🔲 Planned |
-| - | **PrivacyCash Adapter** (pool mixing backend) | High | 🔲 Planned |
-| - | **Arcium Adapter** (MPC compute privacy) | Medium | 🔲 Planned |
-| - | **Inco Adapter** (FHE compute privacy) | Medium | 🔲 Planned |
-| - | **PrivacyBackend interface** (unified backend abstraction) | High | 🔲 Planned |
-| - | **SmartRouter v2** (backend selection logic) | Medium | 🔲 Planned |
-| - | **app.sip-protocol.org** (dedicated app subdomain) | High | 🔲 Planned |
+| [#401](../../issues/401) | [EPIC] SIP Solana Program (Anchor) | - | 🔲 Planned |
+| [#399](../../issues/399) | Anchor program: shielded_transfer instruction | Critical | 🔲 Planned |
+| [#400](../../issues/400) | Anchor program: claim_transfer instruction | Critical | 🔲 Planned |
+| [#402](../../issues/402) | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
+| [#403](../../issues/403) | On-chain ZK proof verifier (Noir→Solana) | Critical | 🔲 Planned |
+| [#262](../../issues/262) | Ed25519 stealth address scanning | Critical | 🔲 Planned |
+| [#479](../../issues/479) | Viewing key disclosure mechanism | High | 🔲 Planned |
+| [#374](../../issues/374) | SDK API: `sip.shieldedTransfer(solana, ...)` | High | 🔲 Planned |
+| [#454](../../issues/454) | Jupiter DEX integration (private swaps) | High | 🔲 Planned |
+| [#421](../../issues/421) | **Jito relayer integration** (gas abstraction) | High | 🔲 Planned |
+| [#404](../../issues/404) | Anchor program audit preparation | High | 🔲 Planned |
+| [#379](../../issues/379) | Same-chain test suite (100+ tests) | High | 🔲 Planned |
+| [#377](../../issues/377) | Developer documentation | Medium | 🔲 Planned |
+| [#441](../../issues/441) | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | 🔲 Planned |
+| [#446](../../issues/446) | **Helius DAS API integration** (efficient stealth scanning) | High | 🔲 Planned |
+| [#456](../../issues/456) | **Helius Enhanced Transactions** (better UX) | Medium | 🔲 Planned |
+| [#447](../../issues/447) | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
+| [#457](../../issues/457) | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
+| [#445](../../issues/445) | **Devnet deployment** (verifier.so + demo app) | Critical | 🔲 Planned |
+| [#480](../../issues/480) | **PrivacyCash Adapter** (pool mixing backend) | High | 🔲 Planned |
+| [#481](../../issues/481) | **Arcium Adapter** (MPC compute privacy) | Medium | 🔲 Planned |
+| [#482](../../issues/482) | **Inco Adapter** (FHE compute privacy) | Medium | 🔲 Planned |
+| [#483](../../issues/483) | **PrivacyBackend interface** (unified backend abstraction) | High | 🔲 Planned |
+| [#487](../../issues/487) | **SmartRouter v2** (backend selection logic) | Medium | 🔲 Planned |
+| [#472](../../issues/472) | **app.sip-protocol.org** (dedicated app subdomain) | High | 🔲 Planned |
 
 **Relayer Strategy:** Use Jito for gas abstraction — no dedicated infrastructure needed. User signs shielded tx → Jito relayer submits → Pays gas → Gets fee from commitment. Relayer is gas-only (not asset movement) = lower regulatory risk.
 
@@ -807,19 +807,19 @@ await sip.privateSwap({ txBackend: 'sip-native', computeBackend: 'arcium', ... }
 
 | Issue | Description | Priority | Status |
 |-------|-------------|----------|--------|
-| - | [EPIC] SIP Ethereum Contract (Solidity) | - | 🔲 Planned |
-| - | Solidity contract: shieldedTransfer function | Critical | 🔲 Planned |
-| - | Solidity contract: claimTransfer function | Critical | 🔲 Planned |
-| - | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
-| - | On-chain ZK proof verifier (Noir→EVM) | Critical | 🔲 Planned |
-| - | EIP-5564 stealth address implementation | Critical | 🔲 Planned |
-| - | Viewing key disclosure mechanism | High | 🔲 Planned |
-| - | SDK API: `sip.shieldedTransfer(ethereum, ...)` | High | 🔲 Planned |
-| - | **Gelato/ERC-4337 relayer** (gas abstraction) | High | 🔲 Planned |
-| - | **L2 Tier 1: Base, Arbitrum, Optimism** | Critical | 🔲 Planned |
+| [#405](../../issues/405) | [EPIC] SIP Ethereum Contract (Solidity) | - | 🔲 Planned |
+| [#406](../../issues/406) | Solidity contract: shieldedTransfer function | Critical | 🔲 Planned |
+| [#407](../../issues/407) | Solidity contract: claimTransfer function | Critical | 🔲 Planned |
+| [#408](../../issues/408) | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
+| [#409](../../issues/409) | On-chain ZK proof verifier (Noir→EVM) | Critical | 🔲 Planned |
+| [#410](../../issues/410) | EIP-5564 stealth address implementation | Critical | 🔲 Planned |
+| [#382](../../issues/382) | Viewing key disclosure mechanism | High | 🔲 Planned |
+| [#382](../../issues/382) | SDK API: `sip.shieldedTransfer(ethereum, ...)` | High | 🔲 Planned |
+| [#422](../../issues/422) | **Gelato/ERC-4337 relayer** (gas abstraction) | High | 🔲 Planned |
+| [#458](../../issues/458) | **L2 Tier 1: Base, Arbitrum, Optimism** | Critical | 🔲 Planned |
 | - | L2 Tier 2: Polygon, zkSync (if survives) | Medium | 🔲 Planned |
 | - | Gas optimization (batching, storage packing) | Medium | 🔲 Planned |
-| - | Integration examples (Uniswap, 1inch) | Medium | 🔲 Planned |
+| [#459](../../issues/459) | Integration examples (Uniswap, 1inch) | Medium | 🔲 Planned |
 
 **L2 Strategy (Based on Dec 2025 Market Data):**
 - **Base** (60%+ tx share), **Arbitrum** (44% TVL), **Optimism** (6% TVL) = 90%+ of L2 market
