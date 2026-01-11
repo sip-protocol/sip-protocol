@@ -79,8 +79,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build SDK
-        run: pnpm --filter @sip-protocol/sdk build
+      - name: Build types and SDK
+        run: pnpm --filter @sip-protocol/types --filter @sip-protocol/sdk build
 
       - name: Run benchmarks
         working-directory: packages/sdk
