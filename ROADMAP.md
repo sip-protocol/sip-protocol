@@ -543,34 +543,55 @@ Multi-wallet support and hardware wallet integration.
 
 **Hackathon:** [solana.com/privacyhack](https://solana.com/privacyhack) — $100K+ prize pool
 
+**Epic Issue:** [#443 - HACK-EPIC: Solana Privacy Hack](../../issues/443)
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                     SOLANA PRIVACY HACK STRATEGY                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   RECOMMENDED SUBMISSIONS (Judge-Validated):                                │
-│   • Privacy Tooling ($15K) — SDK is production-ready, strongest fit        │
-│   • Open Track ($18K) — Strategic vision differentiates from competitors   │
-│   • Range Compliant Privacy ($1.5K+) — Viewing keys are unique strength    │
+│   CURRENT STATE (Realistic Judge Assessment): 52/100                        │
+│   ─────────────────────────────────────────────────                         │
+│   Auto-deductions: No demo video (-25), No devnet deployment (-20)          │
+│   Strengths: SDK production-ready (2,757 tests), viewing keys, compliance   │
+│   Weaknesses: Missing demo, missing devnet, no Helius/Range integrations    │
+│                                                                             │
+│   TRACK RECOMMENDATIONS:                                                     │
+│   • Privacy Tooling ($15K) — 68/100 — SDK + React hooks are strong          │
+│   • Open Track ($18K) — 60/100 — Needs narrative polish                     │
+│   • Range Compliant Privacy ($1.5K+) — 65/100 — Viewing keys align well     │
 │                                                                             │
 │   CONDITIONAL (If Implemented During Hack):                                 │
-│   • Private Payments ($15K) — Requires M17 devnet deployment               │
-│   • Helius ($5K) — Requires DAS/Enhanced Transactions integration          │
-│   • Aztec/Noir ($10K) — Requires Sunspot pipeline deployment               │
+│   • Private Payments ($15K) — Currently 45/100, needs devnet deployment     │
+│   • Helius ($5K) — Requires DAS/Webhooks integration                        │
 │                                                                             │
-│   MAXIMUM REALISTIC: $33.5K (Tooling + Open + Range)                        │
-│   STRETCH GOAL: $53.5K (Add Payments + Helius)                              │
+│   REALISTIC TARGET: $15K (Privacy Tooling)                                  │
+│   STRETCH GOAL: $38.5K (Tooling + Open + Range + Helius)                    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Hackathon Sprint Deliverables:**
+**Hackathon Sprint Issues:**
 
-| Week | Deliverables | Tracks Unlocked |
-|------|--------------|-----------------|
-| Week 1 (Jan 12-18) | Deploy minimal Anchor to devnet, Helius DAS integration | Helius $5K |
-| Week 2 (Jan 19-25) | Demo app (private SOL transfer), demo video | Private Payments $15K |
-| Week 3 (Jan 26-Feb 1) | Polish, documentation, track-specific narratives | All tracks |
+| Issue | Description | Priority | Target Track |
+|-------|-------------|----------|--------------|
+| [#444](../../issues/444) | Demo video (3 min) | 🔴 Critical | All tracks |
+| [#445](../../issues/445) | Devnet deployment | 🔴 Critical | Private Payments |
+| [#446](../../issues/446) | Helius DAS integration | 🟡 High | Helius $5K |
+| [#447](../../issues/447) | Helius webhook scanning | 🟡 High | Helius $5K |
+| [#448](../../issues/448) | Range SAS example | 🟡 High | Range $1.5K+ |
+| [#449](../../issues/449) | React hooks demo | 🟢 Medium | Tooling $15K |
+| [#450](../../issues/450) | Submission materials | 🔴 Critical | All tracks |
+
+**Hackathon Sprint Timeline:**
+
+| Week | Deliverables | Issues | Score Impact |
+|------|--------------|--------|--------------|
+| Week 1 (Jan 12-18) | Devnet deployment, Helius DAS | #445, #446 | +20 (devnet) |
+| Week 2 (Jan 19-25) | Demo video, React demo, Range example | #444, #449, #448 | +25 (video) |
+| Week 3 (Jan 26-Feb 1) | Polish, submission materials | #450, #447 | Final polish |
+
+**Target Score After Sprint:** 85-90/100 (competitive for prizes)
 
 **Competitor Context (From Analysis):**
 - **PrivacyCash:** Pool mixing, 10K+ SOL — we beat them with cryptographic privacy
@@ -580,8 +601,8 @@ Multi-wallet support and hardware wallet integration.
 
 **Critical Integrations for Hackathon:**
 1. **Helius DAS API** — Efficient stealth address scanning (10x faster than naive approach)
-2. **Sunspot Pipeline** — Noir → ACIR → Groth16 → Solana verifier deployment
-3. **Devnet Deployment** — Prove on-chain Pedersen verification works
+2. **Helius Webhooks** — Real-time payment notifications for stealth addresses
+3. **Devnet Deployment** — Prove SDK works with real Solana transactions
 
 See private strategy docs: `~/.claude/sip-protocol/SOLANA-PRIVACY-HACK.md`
 
