@@ -10,10 +10,13 @@ import {
   ed25519PublicKeyToSolanaAddress,
   ed25519PublicKeyToNearAddress,
   publicKeyToEthAddress,
+  deriveStealthPrivateKey,
+  deriveEd25519StealthPrivateKey,
+  solanaAddressToEd25519PublicKey,
 } from '@sip-protocol/sdk'
-import type { ChainId, StealthMetaAddress } from '@sip-protocol/types'
+import type { StealthAddress, HexString, ChainId, StealthMetaAddress } from '@sip-protocol/types'
 import { getConfig } from '../utils/config'
-import { success, warning, keyValue, heading } from '../utils/output'
+import { warning, keyValue, heading } from '../utils/output'
 
 export function createStealthCommand(): Command {
   const cmd = new Command('stealth')
@@ -111,24 +114,88 @@ export function createStealthCommand(): Command {
   // Derive subcommand (for recipients to derive spending key)
   cmd
     .command('derive')
-    .description('Derive spending key from stealth address')
-    .requiredOption('-e, --ephemeral <key>', 'Ephemeral public key from sender')
-    .requiredOption('-s, --spending-key <key>', 'Your spending private key')
-    .requiredOption('-v, --viewing-key <key>', 'Your viewing private key')
+    .description('Derive spending key from stealth address (to claim funds)')
+    .requiredOption('-a, --stealth-address <address>', 'Stealth address where funds were sent')
+    .requiredOption('-e, --ephemeral <key>', 'Ephemeral public key from sender announcement')
+    .requiredOption('-s, --spending-key <key>', 'Your spending private key (hex)')
+    .requiredOption('-v, --viewing-key <key>', 'Your viewing private key (hex)')
     .option('-c, --chain <chain>', 'Chain (solana, ethereum, near)', 'solana')
     .action(async (options) => {
       heading('Derive Stealth Spending Key')
 
-      warning('This feature is for advanced users.')
-      info('Use your viewing key to scan for payments, then derive the spending key.')
+      warning('This is for advanced users. Keep your derived private key secure!')
       console.log()
 
-      // This would require implementing deriveEd25519StealthAddress or similar
-      console.log(chalk.yellow('  Not yet implemented in CLI.'))
-      console.log(chalk.gray('  Use the SDK directly:'))
-      console.log()
-      console.log(chalk.white('    import { deriveEd25519StealthAddress } from "@sip-protocol/sdk"'))
-      console.log()
+      const spinner = ora('Deriving stealth private key...').start()
+
+      try {
+        const chain = options.chain as ChainId
+        const useEd25519 = isEd25519Chain(chain)
+
+        // Normalize keys to hex format
+        const spendingKey = normalizeHexKey(options.spendingKey)
+        const viewingKey = normalizeHexKey(options.viewingKey)
+        const ephemeralKey = normalizeHexKey(options.ephemeral)
+
+        // Convert stealth address to hex public key for SDK
+        let stealthPubKeyHex: HexString
+        if (useEd25519 && chain === 'solana') {
+          stealthPubKeyHex = solanaAddressToEd25519PublicKey(options.stealthAddress)
+        } else if (options.stealthAddress.startsWith('0x')) {
+          stealthPubKeyHex = options.stealthAddress as HexString
+        } else {
+          throw new Error('Stealth address must be base58 (Solana) or hex (0x...)')
+        }
+
+        // Construct stealth address object
+        const stealthAddressObj: StealthAddress = {
+          address: stealthPubKeyHex,
+          ephemeralPublicKey: ephemeralKey as HexString,
+          viewTag: 0, // Not needed for derivation
+        }
+
+        // Derive the private key
+        const recovery = useEd25519
+          ? deriveEd25519StealthPrivateKey(
+              stealthAddressObj,
+              spendingKey as HexString,
+              viewingKey as HexString
+            )
+          : deriveStealthPrivateKey(
+              stealthAddressObj,
+              spendingKey as HexString,
+              viewingKey as HexString
+            )
+
+        spinner.succeed('Stealth private key derived')
+        console.log()
+
+        keyValue('Chain', chain)
+        keyValue('Curve', useEd25519 ? 'ed25519' : 'secp256k1')
+        console.log()
+
+        console.log(chalk.bold.green('  Derived Private Key (use to claim funds):'))
+        console.log(chalk.cyan(`  ${recovery.privateKey}`))
+        console.log()
+
+        console.log(chalk.bold('  Stealth Address:'))
+        console.log(chalk.gray(`  ${recovery.stealthAddress}`))
+        console.log()
+
+        warning('Never share your private key! Use it to sign transactions claiming your funds.')
+        console.log()
+
+        info('Next steps:')
+        console.log(chalk.gray('  1. Import this key into a wallet or use SDK to claim'))
+        console.log(chalk.gray('  2. Transfer funds from stealth address to your main wallet'))
+        console.log(chalk.gray('  3. Securely delete this private key after claiming'))
+        console.log()
+
+      } catch (err) {
+        spinner.fail('Failed to derive stealth key')
+        console.error(err instanceof Error ? err.message : err)
+        process.exit(1)
+      }
     })
 
   return cmd
@@ -136,4 +203,14 @@ export function createStealthCommand(): Command {
 
 function info(message: string): void {
   console.log(chalk.blue('ℹ'), message)
+}
+
+/**
+ * Normalize a hex key - ensure it has 0x prefix
+ */
+function normalizeHexKey(key: string): string {
+  if (key.startsWith('0x')) {
+    return key
+  }
+  return `0x${key}`
 }

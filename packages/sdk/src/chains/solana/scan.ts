@@ -36,6 +36,7 @@ import {
   type SolanaCluster,
 } from './constants'
 import { hexToBytes, bytesToHex } from '@noble/hashes/utils'
+import { ed25519 } from '@noble/curves/ed25519'
 
 /**
  * Scan for incoming stealth payments
@@ -229,11 +230,31 @@ export async function claimStealthPayment(
   // The SDK returns a scalar, so we need to handle this carefully
   const stealthPrivKeyBytes = hexToBytes(recovery.privateKey.slice(2))
 
-  // Solana keypairs expect 64 bytes (32 byte seed + 32 byte public key)
-  // We construct this from the derived scalar
+  // Validate that the derived private key (scalar) produces the expected public key
+  // Note: SIP derives a scalar, not a seed. We use scalar multiplication to verify.
   const stealthPubkey = new PublicKey(stealthAddress)
+  const expectedPubKeyBytes = stealthPubkey.toBytes()
+
+  // Convert scalar bytes to bigint (little-endian for ed25519)
+  const scalarBigInt = bytesToBigIntLE(stealthPrivKeyBytes)
+  const ED25519_ORDER = 2n ** 252n + 27742317777372353535851937790883648493n
+  let validScalar = scalarBigInt % ED25519_ORDER
+  if (validScalar === 0n) validScalar = 1n
+
+  // Derive public key via scalar multiplication
+  const derivedPubKeyBytes = ed25519.ExtendedPoint.BASE.multiply(validScalar).toRawBytes()
+
+  if (!derivedPubKeyBytes.every((b, i) => b === expectedPubKeyBytes[i])) {
+    throw new Error(
+      'Stealth key derivation failed: derived private key does not produce expected public key. ' +
+      'This may indicate incorrect spending/viewing keys or corrupted announcement data.'
+    )
+  }
+
+  // Solana keypairs expect 64 bytes (32 byte seed + 32 byte public key)
+  // We construct this from the derived scalar (now validated)
   const stealthKeypair = Keypair.fromSecretKey(
-    new Uint8Array([...stealthPrivKeyBytes, ...stealthPubkey.toBytes()])
+    new Uint8Array([...stealthPrivKeyBytes, ...expectedPubKeyBytes])
   )
 
   // Get token accounts
@@ -379,4 +400,15 @@ function detectCluster(endpoint: string): SolanaCluster {
     return 'localnet'
   }
   return 'mainnet-beta'
+}
+
+/**
+ * Convert bytes to bigint (little-endian, for ed25519 scalars)
+ */
+function bytesToBigIntLE(bytes: Uint8Array): bigint {
+  let result = 0n
+  for (let i = bytes.length - 1; i >= 0; i--) {
+    result = (result << 8n) | BigInt(bytes[i])
+  }
+  return result
 }

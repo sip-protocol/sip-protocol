@@ -192,7 +192,7 @@ export function createSetupCommand(): Command {
 
         } catch (err) {
           keySpinner.fail('Failed to generate keys')
-          console.error(err)
+          console.error(err instanceof Error ? err.message : err)
         }
       }
 
