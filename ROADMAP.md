@@ -32,7 +32,7 @@
 │   • Same-chain privacy on Solana + Ethereum                                 │
 │   • Direct competitor to pool-based mixers (PrivacyCash, etc)               │
 │   • Superior tech: stealth + hidden amounts vs pool mixing                  │
-│   • Discord community (500+ developers) + Twitter presence (50K impressions)│
+│   • Discourse forum (500+ members, self-hosted) + Twitter presence (50K imp)│
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
