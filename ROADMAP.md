@@ -545,64 +545,85 @@ Multi-wallet support and hardware wallet integration.
 
 **Epic Issue:** [#443 - HACK-EPIC: Solana Privacy Hack](../../issues/443)
 
+> **⚠️ IMPORTANT:** The hackathon is a BONUS, not our primary goal. We are building SIP to become THE privacy standard for Web3. The hackathon deadline should NOT rush our architecture decisions. If we miss the submission deadline but build something excellent, that's still a win. Quality over prizes. The real prize is market leadership.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                     SOLANA PRIVACY HACK STRATEGY                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   CURRENT STATE (Realistic Judge Assessment): 52/100                        │
-│   ─────────────────────────────────────────────────                         │
-│   Auto-deductions: No demo video (-25), No devnet deployment (-20)          │
-│   Strengths: SDK production-ready (2,757 tests), viewing keys, compliance   │
-│   Weaknesses: Missing demo, missing devnet, no Helius/Range integrations    │
+│   TRACKS (3):                                                               │
+│   • Private Payments ($15K) — Devnet deploy + app.sip-protocol.org/payments │
+│   • Privacy Tooling ($15K) — SDK + React hooks (STRONGEST)                  │
+│   • Open Track ($18K) — Privacy Aggregator narrative                        │
 │                                                                             │
-│   TRACK RECOMMENDATIONS:                                                     │
-│   • Privacy Tooling ($15K) — 68/100 — SDK + React hooks are strong          │
-│   • Open Track ($18K) — 60/100 — Needs narrative polish                     │
-│   • Range Compliant Privacy ($1.5K+) — 65/100 — Viewing keys align well     │
+│   SPONSOR BOUNTIES (8):                                                     │
+│   • Arcium ($10K) — MPC + C-SPL token standard                              │
+│   • Aztec/Noir ($10K) — Already using Noir! Just showcase                   │
+│   • Inco ($6K) — FHE compute privacy adapter                                │
+│   • PrivacyCash ($6K) — Pool mixing backend integration                     │
+│   • Helius ($5K) — DAS API + Webhooks for stealth scanning                  │
+│   • Range ($1.5K+) — Viewing keys = selective disclosure (SWEET SPOT)       │
+│   • Encrypt.trade ($1K) — Surveillance tool + privacy explainer             │
+│   • QuickNode (TBD) — Details pending                                       │
 │                                                                             │
-│   CONDITIONAL (If Implemented During Hack):                                 │
-│   • Private Payments ($15K) — Currently 45/100, needs devnet deployment     │
-│   • Helius ($5K) — Requires DAS/Webhooks integration                        │
-│                                                                             │
-│   REALISTIC TARGET: $15K (Privacy Tooling)                                  │
-│   STRETCH GOAL: $38.5K (Tooling + Open + Range + Helius)                    │
+│   TOTAL POTENTIAL: $88K+ (all tracks + all bounties)                        │
+│   REALISTIC TARGET: $36.5K (Tooling + Noir + Range + Helius + Encrypt)      │
+│   STRETCH GOAL: $88K+ (everything)                                          │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Hackathon Sprint Issues:**
 
-| Issue | Description | Priority | Target Track |
-|-------|-------------|----------|--------------|
+| Issue | Description | Priority | Target Track/Bounty |
+|-------|-------------|----------|---------------------|
 | [#444](../../issues/444) | Demo video (3 min) | 🔴 Critical | All tracks |
-| [#445](../../issues/445) | Devnet deployment | 🔴 Critical | Private Payments |
+| [#445](../../issues/445) | Devnet deployment | 🔴 Critical | Private Payments $15K |
 | [#446](../../issues/446) | Helius DAS integration | 🟡 High | Helius $5K |
 | [#447](../../issues/447) | Helius webhook scanning | 🟡 High | Helius $5K |
 | [#448](../../issues/448) | Range SAS example | 🟡 High | Range $1.5K+ |
 | [#449](../../issues/449) | React hooks demo | 🟢 Medium | Tooling $15K |
 | [#450](../../issues/450) | Submission materials | 🔴 Critical | All tracks |
+| [#480](../../issues/480) | PrivacyCash Adapter | 🟡 High | PrivacyCash $6K |
+| [#481](../../issues/481) | Arcium Adapter | 🟡 High | Arcium $10K |
+| [#482](../../issues/482) | Inco Adapter | 🟡 High | Inco $6K |
+| [#484](../../issues/484) | C-SPL Token Standard | 🟡 High | Arcium $10K |
+| [#485](../../issues/485) | Wallet Surveillance Tool | 🟡 High | Encrypt.trade $500 |
+| [#486](../../issues/486) | Aztec/Noir Bounty Strategy | 🟡 High | Aztec/Noir $10K |
+| [blog#80](https://github.com/sip-protocol/blog-sip/issues/80) | Privacy Explainer Content | 🟢 Medium | Encrypt.trade $500 |
 
 **Hackathon Sprint Timeline:**
 
-| Week | Deliverables | Issues | Score Impact |
-|------|--------------|--------|--------------|
-| Week 1 (Jan 12-18) | Devnet deployment, Helius DAS | #445, #446 | +20 (devnet) |
-| Week 2 (Jan 19-25) | Demo video, React demo, Range example | #444, #449, #448 | +25 (video) |
-| Week 3 (Jan 26-Feb 1) | Polish, submission materials | #450, #447 | Final polish |
+| Week | Deliverables | Issues | Target Bounties |
+|------|--------------|--------|-----------------|
+| Week 1 (Jan 12-18) | Devnet deploy, Helius DAS, Noir showcase | #445, #446, #486 | Tooling, Helius, Aztec |
+| Week 2 (Jan 19-25) | Demo video, React demo, Range example, Surveillance tool | #444, #449, #448, #485 | All tracks, Range, Encrypt |
+| Week 3 (Jan 26-Feb 1) | Adapters (PrivacyCash/Arcium/Inco), Polish, Submissions | #480, #481, #482, #484, #450 | Sponsor bounties |
 
-**Target Score After Sprint:** 85-90/100 (competitive for prizes)
+**Bounty Coverage Matrix:**
 
-**Competitor Context (From Analysis):**
-- **PrivacyCash:** Pool mixing, 10K+ SOL — we beat them with cryptographic privacy
-- **Light Protocol:** Pivoted to compression — we fill the privacy gap they left
-- **Elusiv:** Shutdown Feb 2024 — we learn from their mistakes (viewing keys essential)
-- **Arcium:** MPC focus — complementary, not competitive
+| Bounty | Prize | Key Requirement | Our Solution | Issue |
+|--------|-------|-----------------|--------------|-------|
+| **Tooling Track** | $15K | Dev tools for privacy | SDK + React hooks + CLI | #449 |
+| **Aztec/Noir** | $10K | ZK apps with Noir | Already using Noir! | #486 |
+| **Arcium** | $10K | MPC + C-SPL tokens | Arcium Adapter + C-SPL | #481, #484 |
+| **Inco** | $6K | FHE compute privacy | Inco Adapter | #482 |
+| **PrivacyCash** | $6K | SDK integration | PrivacyCash Adapter | #480 |
+| **Helius** | $5K | DAS + Webhooks | Stealth scanning | #446, #447 |
+| **Range** | $1.5K+ | Selective disclosure | Viewing keys (core!) | #448 |
+| **Encrypt.trade** | $1K | Surveillance tool + explainer | Privacy score + blog | #485, blog#80 |
 
-**Critical Integrations for Hackathon:**
-1. **Helius DAS API** — Efficient stealth address scanning (10x faster than naive approach)
-2. **Helius Webhooks** — Real-time payment notifications for stealth addresses
-3. **Devnet Deployment** — Prove SDK works with real Solana transactions
+**Competitor Context:**
+- **PrivacyCash:** Pool mixing — we INTEGRATE them as backend option
+- **Arcium:** MPC compute — we INTEGRATE them for compute privacy
+- **Inco:** FHE state — we INTEGRATE them for encrypted state
+- **Light Protocol:** Pivoted to compression — we fill the privacy gap
+
+**Critical Path (Blockers):**
+1. **Demo video (#444)** — Required for ALL submissions
+2. **Devnet deployment (#445)** — Required for Private Payments track
+3. **Noir showcase (#486)** — Low-hanging $10K (already built!)
 
 See private strategy docs: `~/.claude/sip-protocol/SOLANA-PRIVACY-HACK.md`
 
