@@ -801,7 +801,7 @@ export class NoirProofProvider implements ProofProvider {
       // Verify the proof
       const isValid = await backend.verifyProof({
         proof: proofBytes,
-        publicInputs: proof.publicInputs.map(input =>
+        publicInputs: proof.publicInputs.map((input: string) =>
           input.startsWith('0x') ? input.slice(2) : input
         ),
       })
