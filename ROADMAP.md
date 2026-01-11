@@ -685,24 +685,67 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 | - | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
 | - | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
 | - | **Devnet deployment** (verifier.so + demo app) | Critical | 🔲 Planned |
+| - | **PrivacyCash Adapter** (pool mixing backend) | High | 🔲 Planned |
+| - | **Arcium Adapter** (MPC compute privacy) | Medium | 🔲 Planned |
+| - | **Inco Adapter** (FHE compute privacy) | Medium | 🔲 Planned |
+| - | **PrivacyBackend interface** (unified backend abstraction) | High | 🔲 Planned |
+| - | **SmartRouter v2** (backend selection logic) | Medium | 🔲 Planned |
+| - | **app.sip-protocol.org** (dedicated app subdomain) | High | 🔲 Planned |
 
 **Relayer Strategy:** Use Jito for gas abstraction — no dedicated infrastructure needed. User signs shielded tx → Jito relayer submits → Pays gas → Gets fee from commitment. Relayer is gas-only (not asset movement) = lower regulatory risk.
 
-**Why SIP beats PrivacyCash:**
+**Privacy Backend Aggregation Strategy:**
 
-| Feature | PrivacyCash (Mixer) | SIP Anchor (Cryptographic) |
-|---------|---------------------|----------------------------|
-| Privacy method | Pool mixing | Pedersen + Stealth |
-| Amount privacy | ❌ Visible on-chain | ✅ Hidden (Pedersen commitment) |
-| Any amount | ✅ Arbitrary amounts | ✅ Arbitrary amounts |
-| Amount correlation | ❌ Vulnerable (amounts visible) | ✅ Protected (amounts hidden) |
-| Speed | ⚡ Instant | ⚡ Instant |
-| Compliance | ❌ None | ✅ Viewing keys |
-| Regulatory risk | 🔴 HIGH (mixer) | 🟢 LOW (cryptographic) |
-| Gas abstraction | ❌ No relayer | ✅ Jito relayer integration |
-| On-chain code | Circom ZK circuits | Noir + Anchor |
+SIP is a **Privacy Aggregator** — one SDK that integrates ALL privacy approaches. Users choose what fits their needs.
 
-> **Note:** PrivacyCash supports arbitrary amounts, but amounts are VISIBLE on-chain. This enables correlation attacks — if Alice deposits 1.337 SOL (unique amount), tracking that withdrawal is trivial. SIP hides amounts cryptographically via Pedersen commitments.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SIP PRIVACY BACKEND ARCHITECTURE                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   TRANSACTION PRIVACY (Who sends what to whom):                             │
+│   ──────────────────────────────────────────────                            │
+│   • SIP Native — Stealth addresses + Pedersen commitments                   │
+│   • PrivacyCash — Pool mixing (integrated as backend)                       │
+│                                                                             │
+│   COMPUTE PRIVACY (What happens inside contracts):                          │
+│   ────────────────────────────────────────────────                          │
+│   • Arcium — MPC (Multi-Party Computation)                                  │
+│   • Inco — FHE (Fully Homomorphic Encryption)                               │
+│                                                                             │
+│   COMPLETE PRIVACY = Transaction Privacy + Compute Privacy                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Privacy Backend Comparison:**
+
+| Backend | Type | Amount Hidden | Sender Hidden | Compute Hidden | Compliance | Best For |
+|---------|------|---------------|---------------|----------------|------------|----------|
+| **SIP Native** | ZK + Stealth | ✅ Pedersen | ✅ Stealth | ❌ | ✅ Viewing keys | Compliant payments |
+| **PrivacyCash** | Pool Mixing | ❌ Visible | ✅ Pool | ❌ | ❌ | Anonymity set |
+| **Arcium** | MPC | ✅ In compute | ❌ | ✅ MPC | ⚠️ Limited | Private DeFi logic |
+| **Inco** | FHE | ✅ Encrypted | ❌ | ✅ FHE | ⚠️ Limited | Encrypted state |
+
+**User Choice API:**
+
+```typescript
+const sip = new SIPClient({ chain: 'solana' })
+
+// SIP Native — cryptographic privacy with compliance
+await sip.shieldedTransfer({ backend: 'sip-native', ... })
+
+// PrivacyCash — pool mixing for anonymity set
+await sip.shieldedTransfer({ backend: 'privacycash', ... })
+
+// Auto — SmartRouter chooses based on amount, compliance needs
+await sip.shieldedTransfer({ backend: 'auto', ... })
+
+// SIP + Arcium — transaction privacy + compute privacy
+await sip.privateSwap({ txBackend: 'sip-native', computeBackend: 'arcium', ... })
+```
+
+> **Philosophy:** SIP doesn't compete with PrivacyCash, Arcium, or Inco — we INTEGRATE them. One standard, all approaches.
 
 **Success Metrics:**
 - Anchor program deployed to devnet

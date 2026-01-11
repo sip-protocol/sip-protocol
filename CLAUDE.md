@@ -17,7 +17,8 @@
 | Repo | Purpose | Tech Stack | Version |
 |------|---------|------------|---------|
 | `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.6.0 |
-| `sip-protocol/sip-website` | Demo app + Marketing site | Next.js 14, Tailwind | v0.1.0 |
+| `sip-protocol/sip-app` | **App** - Privacy applications (payments, wallet, DEX) | Next.js 14, Tailwind | v0.0.1 |
+| `sip-protocol/sip-website` | Marketing site (demo deprecated → sip-app) | Next.js 14, Tailwind | v0.1.0 |
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro, MDX | v0.0.1 |
 | `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro, MDX, Tailwind | v0.0.1 |
 | `sip-protocol/circuits` | Noir ZK circuits | Noir, Barretenberg | - |
@@ -98,9 +99,31 @@ pnpm build                      # Build all packages
 
 ---
 
-### 2. sip-website
+### 2. sip-app (NEW)
 
-**Purpose:** Demo application + Marketing website
+**Purpose:** World-class privacy applications (payments, wallet, DEX, enterprise)
+**Tech Stack:** Next.js 14, React 18, Tailwind CSS, Zustand, Vitest
+**Key Commands:**
+```bash
+pnpm dev                        # Dev server (localhost:3000)
+pnpm test -- --run              # Run tests
+pnpm build                      # Build for production
+pnpm typecheck                  # Type check
+```
+**App Routes:**
+- `/payments` - Private payments (hackathon focus)
+- `/wallet` - Wallet interface
+- `/dex` - Private DEX (replaces sip-website /demo)
+- `/enterprise` - Enterprise compliance dashboard
+
+**Deployment:** app.sip-protocol.org (Docker + GHCR, port 5004)
+**CLAUDE.md:** [sip-app/CLAUDE.md](https://github.com/sip-protocol/sip-app/blob/main/CLAUDE.md)
+
+---
+
+### 3. sip-website
+
+**Purpose:** Marketing website (demo pages deprecated → sip-app)
 **Tech Stack:** Next.js 14, React 18, Tailwind CSS, Zustand, Vitest
 **Key Commands:**
 ```bash
@@ -116,13 +139,20 @@ pnpm typecheck                  # Type check
 - `src/stores/` - Zustand stores (wallet, toast)
 - `tests/` - Test suites
 
-**Features:** Wallet connection, quote fetching, swap execution, privacy toggle, SDK showcase, grants pitch pages
+**Features:** SDK showcase, grants pitch pages, about, roadmap
 **Deployment:** sip-protocol.org (Docker + GHCR)
 **CLAUDE.md:** [sip-website/CLAUDE.md](https://github.com/sip-protocol/sip-website/blob/main/CLAUDE.md)
 
+**DEPRECATED PAGES (migrating to sip-app):**
+- `/demo` → `app.sip-protocol.org/dex`
+- `/claim` → `app.sip-protocol.org/payments/receive`
+- `/phantom-poc` → `app.sip-protocol.org/wallet`
+- `/jupiter-poc` → `app.sip-protocol.org/dex/jupiter`
+- `/compliance-dashboard` → `app.sip-protocol.org/enterprise/compliance`
+
 ---
 
-### 3. docs-sip
+### 4. docs-sip
 
 **Purpose:** Official documentation website
 **Tech Stack:** Astro 5, Starlight, MDX
@@ -142,7 +172,7 @@ npm run preview                 # Preview build
 
 ---
 
-### 4. circuits
+### 5. circuits
 
 **Purpose:** Noir ZK circuits for privacy proofs
 **Tech Stack:** Noir, Barretenberg, Nargo CLI
@@ -163,7 +193,7 @@ nargo verify                    # Verify proof
 
 ---
 
-### 5. blog-sip
+### 6. blog-sip
 
 **Purpose:** Official blog for technical deep-dives and ecosystem updates
 **Tech Stack:** Astro 4, MDX, Tailwind CSS
@@ -185,7 +215,7 @@ pnpm preview                    # Preview build
 
 ---
 
-### 6. .github
+### 7. .github
 
 **Purpose:** Organization-wide GitHub configuration
 **Key Files:**
