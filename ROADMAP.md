@@ -539,6 +539,54 @@ Multi-wallet support and hardware wallet integration.
 
 ---
 
+### Solana Privacy Hack Sprint (Jan 12 - Feb 1, 2026) 🎯
+
+**Hackathon:** [solana.com/privacyhack](https://solana.com/privacyhack) — $100K+ prize pool
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     SOLANA PRIVACY HACK STRATEGY                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   RECOMMENDED SUBMISSIONS (Judge-Validated):                                │
+│   • Privacy Tooling ($15K) — SDK is production-ready, strongest fit        │
+│   • Open Track ($18K) — Strategic vision differentiates from competitors   │
+│   • Range Compliant Privacy ($1.5K+) — Viewing keys are unique strength    │
+│                                                                             │
+│   CONDITIONAL (If Implemented During Hack):                                 │
+│   • Private Payments ($15K) — Requires M17 devnet deployment               │
+│   • Helius ($5K) — Requires DAS/Enhanced Transactions integration          │
+│   • Aztec/Noir ($10K) — Requires Sunspot pipeline deployment               │
+│                                                                             │
+│   MAXIMUM REALISTIC: $33.5K (Tooling + Open + Range)                        │
+│   STRETCH GOAL: $53.5K (Add Payments + Helius)                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Hackathon Sprint Deliverables:**
+
+| Week | Deliverables | Tracks Unlocked |
+|------|--------------|-----------------|
+| Week 1 (Jan 12-18) | Deploy minimal Anchor to devnet, Helius DAS integration | Helius $5K |
+| Week 2 (Jan 19-25) | Demo app (private SOL transfer), demo video | Private Payments $15K |
+| Week 3 (Jan 26-Feb 1) | Polish, documentation, track-specific narratives | All tracks |
+
+**Competitor Context (From Analysis):**
+- **PrivacyCash:** Pool mixing, 10K+ SOL — we beat them with cryptographic privacy
+- **Light Protocol:** Pivoted to compression — we fill the privacy gap they left
+- **Elusiv:** Shutdown Feb 2024 — we learn from their mistakes (viewing keys essential)
+- **Arcium:** MPC focus — complementary, not competitive
+
+**Critical Integrations for Hackathon:**
+1. **Helius DAS API** — Efficient stealth address scanning (10x faster than naive approach)
+2. **Sunspot Pipeline** — Noir → ACIR → Groth16 → Solana verifier deployment
+3. **Devnet Deployment** — Prove on-chain Pedersen verification works
+
+See private strategy docs: `~/.claude/sip-protocol/SOLANA-PRIVACY-HACK.md`
+
+---
+
 #### M16: Narrative Capture & Positioning 🔲 Q1 2026
 
 Establish SIP as "the right way to do privacy" before competitors solidify.
@@ -611,6 +659,11 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 | - | Same-chain test suite (100+ tests) | High | 🔲 Planned |
 | - | Developer documentation | Medium | 🔲 Planned |
 | - | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | 🔲 Planned |
+| - | **Helius DAS API integration** (efficient stealth scanning) | High | 🔲 Planned |
+| - | **Helius Enhanced Transactions** (better UX) | Medium | 🔲 Planned |
+| - | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
+| - | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
+| - | **Devnet deployment** (verifier.so + demo app) | Critical | 🔲 Planned |
 
 **Relayer Strategy:** Use Jito for gas abstraction — no dedicated infrastructure needed. User signs shielded tx → Jito relayer submits → Pays gas → Gets fee from commitment. Relayer is gas-only (not asset movement) = lower regulatory risk.
 
@@ -1047,4 +1100,5 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: December 31, 2025*
+*Last updated: January 11, 2026*
+*Hackathon sprint added: Solana Privacy Hack (Jan 12 - Feb 1, 2026)*
