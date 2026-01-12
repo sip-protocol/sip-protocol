@@ -32,7 +32,7 @@ jobs:
         run: pnpm docs:generate
 
       - name: Upload TypeDoc artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: typedoc-output
           path: docs/reference/
