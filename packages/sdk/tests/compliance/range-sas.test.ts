@@ -225,6 +225,52 @@ describe('Range SAS Integration', () => {
       expect(result.reason).toContain('too new')
     })
 
+    it('should enforce maximum attestation age', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+        maxAttestationAge: 3600, // Attestation must be less than 1 hour old
+      })
+
+      const oldAttestation = createMockAttestation({
+        timestamp: Math.floor(Date.now() / 1000) - 7200, // 2 hours ago
+      })
+
+      const result = await disclosure.deriveViewingKeyForAuditor(oldAttestation)
+
+      expect(result.granted).toBe(false)
+      expect(result.reason).toContain('too old')
+    })
+
+    it('should allow attestation within max age limit', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+        maxAttestationAge: 3600, // Attestation must be less than 1 hour old
+      })
+
+      const recentAttestation = createMockAttestation({
+        timestamp: Math.floor(Date.now() / 1000) - 1800, // 30 minutes ago
+      })
+
+      const result = await disclosure.deriveViewingKeyForAuditor(recentAttestation)
+
+      expect(result.granted).toBe(true)
+    })
+
+    it('should not enforce max age when set to 0', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+        maxAttestationAge: 0, // No limit
+      })
+
+      const oldAttestation = createMockAttestation({
+        timestamp: Math.floor(Date.now() / 1000) - 365 * 24 * 60 * 60, // 1 year ago
+      })
+
+      const result = await disclosure.deriveViewingKeyForAuditor(oldAttestation)
+
+      expect(result.granted).toBe(true)
+    })
+
     it('should revoke viewing key', async () => {
       const disclosure = new AttestationGatedDisclosure({
         masterViewingKey,
@@ -499,6 +545,58 @@ describe('Range SAS Integration', () => {
       expect(disclosure.hasViewingKey(attestation2)).toBe(true)
       expect(disclosure.hasViewingKey(attestation3)).toBe(true)
       expect(disclosure.getCacheSize()).toBe(2)
+    })
+
+    it('should not cache-poison with same uid:subject but different schema', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      // Two attestations with same uid:subject but different schemas
+      const attestation1 = createMockAttestation({
+        uid: 'uid_same',
+        subject: 'subject_same',
+        schema: 'schema-a',
+      })
+      const attestation2 = createMockAttestation({
+        uid: 'uid_same',
+        subject: 'subject_same',
+        schema: 'schema-b',
+      })
+
+      await disclosure.deriveViewingKeyForAuditor(attestation1)
+      await disclosure.deriveViewingKeyForAuditor(attestation2)
+
+      // Both should be cached (different cache keys due to schema)
+      expect(disclosure.getCacheSize()).toBe(2)
+      expect(disclosure.hasViewingKey(attestation1)).toBe(true)
+      expect(disclosure.hasViewingKey(attestation2)).toBe(true)
+    })
+
+    it('should not cache-poison with same uid:subject but different issuer', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      // Two attestations with same uid:subject but different issuers
+      const attestation1 = createMockAttestation({
+        uid: 'uid_same',
+        subject: 'subject_same',
+        issuer: 'issuer-a',
+      })
+      const attestation2 = createMockAttestation({
+        uid: 'uid_same',
+        subject: 'subject_same',
+        issuer: 'issuer-b',
+      })
+
+      await disclosure.deriveViewingKeyForAuditor(attestation1)
+      await disclosure.deriveViewingKeyForAuditor(attestation2)
+
+      // Both should be cached (different cache keys due to issuer)
+      expect(disclosure.getCacheSize()).toBe(2)
+      expect(disclosure.hasViewingKey(attestation1)).toBe(true)
+      expect(disclosure.hasViewingKey(attestation2)).toBe(true)
     })
   })
 

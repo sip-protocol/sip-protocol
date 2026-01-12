@@ -121,6 +121,8 @@ export interface AttestationGatedConfig {
   rangeApiEndpoint?: string
   /** Minimum attestation age in seconds (prevents replay attacks) */
   minAttestationAge?: number
+  /** Maximum attestation age in seconds (enforces time-bounded access, 0 = no limit) */
+  maxAttestationAge?: number
   /** Maximum number of cached derived keys (default: 1000) */
   maxCacheSize?: number
   /** Custom verification function */
@@ -213,6 +215,7 @@ export class AttestationGatedDisclosure {
       verifyOnChain: config.verifyOnChain ?? false,
       rangeApiEndpoint: config.rangeApiEndpoint ?? 'https://api.range.org/v1',
       minAttestationAge: config.minAttestationAge ?? 0,
+      maxAttestationAge: config.maxAttestationAge ?? 0, // 0 = no limit
       maxCacheSize: config.maxCacheSize ?? DEFAULT_MAX_CACHE_SIZE,
       customVerifier: config.customVerifier ?? (async () => true),
     }
@@ -261,8 +264,7 @@ export class AttestationGatedDisclosure {
         granted: true,
         viewingKey: cached,
         scope,
-        // expiresAt: 0 means "never expires", only undefined if not set
-        expiresAt: attestation.expiresAt !== undefined ? attestation.expiresAt : undefined,
+        expiresAt: attestation.expiresAt, // 0 = never expires, undefined = not set
       }
     }
 
@@ -276,8 +278,7 @@ export class AttestationGatedDisclosure {
       granted: true,
       viewingKey,
       scope,
-      // expiresAt: 0 means "never expires", only undefined if not set
-      expiresAt: attestation.expiresAt !== undefined ? attestation.expiresAt : undefined,
+      expiresAt: attestation.expiresAt, // 0 = never expires, undefined = not set
     }
   }
 
@@ -336,6 +337,11 @@ export class AttestationGatedDisclosure {
     const age = now - attestation.timestamp
     if (age < this.config.minAttestationAge) {
       errors.push(`Attestation too new (age: ${age}s, required: ${this.config.minAttestationAge}s)`)
+    }
+
+    // Check maximum age (time-bounded access)
+    if (this.config.maxAttestationAge > 0 && age > this.config.maxAttestationAge) {
+      errors.push(`Attestation too old (age: ${Math.floor(age)}s, max: ${this.config.maxAttestationAge}s)`)
     }
 
     // Check schema allowlist
@@ -460,8 +466,10 @@ export class AttestationGatedDisclosure {
     const masterKeyBytes = hexToBytes(masterKeyHex)
 
     // Create derivation data from attestation
+    // Include signature to cryptographically bind keys to attestation
+    // This prevents forgery attacks where attacker uses same uid/subject
     const derivationData = utf8ToBytes(
-      `SIP-RANGE-SAS:${attestation.uid}:${attestation.subject}:${attestation.schema}`
+      `SIP-RANGE-SAS:${attestation.uid}:${attestation.subject}:${attestation.schema}:${attestation.signature}`
     )
 
     // HMAC-SHA512 derivation
@@ -487,9 +495,12 @@ export class AttestationGatedDisclosure {
 
   /**
    * Get cache key for an attestation
+   *
+   * Includes schema and issuer to prevent cache poisoning attacks where
+   * an attacker could evict legitimate cache entries with same uid:subject.
    */
   private getCacheKey(attestation: RangeSASAttestation): string {
-    return `${attestation.uid}:${attestation.subject}`
+    return `${attestation.uid}:${attestation.subject}:${attestation.schema}:${attestation.issuer}`
   }
 }
 
@@ -527,13 +538,18 @@ export function createMockAttestation(
 /**
  * Verify attestation signature (placeholder for real implementation)
  *
+ * ⚠️ WARNING: This is a stub that always returns true!
+ * Do NOT use in production without implementing real verification.
+ *
  * In production, this would:
  * 1. Fetch the issuer's public key from Range SAS registry
  * 2. Verify the signature against the attestation data
  * 3. Check on-chain state if verifyOnChain is enabled
  *
  * @param attestation - The attestation to verify
- * @returns Whether the signature is valid
+ * @returns Whether the signature is valid (currently always true - STUB)
+ *
+ * @see https://github.com/sip-protocol/sip-protocol/issues/448 for implementation tracking
  */
 export async function verifyAttestationSignature(
   _attestation: RangeSASAttestation
@@ -543,22 +559,33 @@ export async function verifyAttestationSignature(
   // 1. Fetching issuer public key from Range registry
   // 2. Reconstructing the signed message
   // 3. Verifying Ed25519 signature
+  console.warn(
+    '[Range SAS] verifyAttestationSignature is a STUB - always returns true. ' +
+    'Implement real Ed25519 signature verification before production use.'
+  )
   return true
 }
 
 /**
  * Fetch attestation from Range API
  *
+ * ⚠️ WARNING: This is a stub that always returns null!
+ * Do NOT rely on this in production without implementing real API calls.
+ *
  * @param uid - Attestation UID
  * @param apiEndpoint - Range API endpoint
- * @returns The attestation if found
+ * @returns The attestation if found (currently always null - STUB)
+ *
+ * @see https://github.com/sip-protocol/sip-protocol/issues/448 for implementation tracking
  */
 export async function fetchAttestation(
   uid: string,
   apiEndpoint: string = 'https://api.range.org/v1'
 ): Promise<RangeSASAttestation | null> {
   // TODO: Implement real API call to Range
-  // For now, return null (attestation not found)
-  console.log(`Would fetch attestation ${uid} from ${apiEndpoint}`)
+  console.warn(
+    `[Range SAS] fetchAttestation is a STUB - returning null for ${uid}. ` +
+    `Would fetch from ${apiEndpoint}. Implement Range API integration before production use.`
+  )
   return null
 }
