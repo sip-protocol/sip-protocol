@@ -8,3 +8,22 @@ export {
   type SwapResult,
 } from './use-private-swap'
 export { useViewingKey } from './use-viewing-key'
+
+// Solana same-chain privacy hooks
+export {
+  useStealthTransfer,
+  type TransferStatus,
+  type UseStealthTransferParams,
+  type TransferParams,
+  type UseStealthTransferReturn,
+} from './use-stealth-transfer'
+
+export {
+  useScanPayments,
+  type ScanStatus,
+  type UseScanPaymentsParams,
+  type PaymentWithStatus,
+  type UseScanPaymentsReturn,
+  type ClaimParams,
+  type ClaimAllParams,
+} from './use-scan-payments'
