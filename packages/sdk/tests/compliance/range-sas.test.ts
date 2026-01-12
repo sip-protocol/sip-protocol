@@ -333,4 +333,201 @@ describe('Range SAS Integration', () => {
       expect(AttestationSchema.CUSTOM).toBe('custom')
     })
   })
+
+  describe('Input Validation', () => {
+    it('should reject attestation with empty uid', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      const attestation = createMockAttestation({ uid: '' })
+      const result = await disclosure.deriveViewingKeyForAuditor(attestation)
+
+      expect(result.granted).toBe(false)
+      expect(result.reason).toContain('uid is required')
+    })
+
+    it('should reject attestation with empty subject', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      const attestation = createMockAttestation({ subject: '' })
+      const result = await disclosure.deriveViewingKeyForAuditor(attestation)
+
+      expect(result.granted).toBe(false)
+      expect(result.reason).toContain('subject is required')
+    })
+
+    it('should reject attestation with empty schema', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      const attestation = createMockAttestation({ schema: '' })
+      const result = await disclosure.deriveViewingKeyForAuditor(attestation)
+
+      expect(result.granted).toBe(false)
+      expect(result.reason).toContain('schema is required')
+    })
+
+    it('should reject attestation with empty issuer', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      const attestation = createMockAttestation({ issuer: '' })
+      const result = await disclosure.deriveViewingKeyForAuditor(attestation)
+
+      expect(result.granted).toBe(false)
+      expect(result.reason).toContain('issuer is required')
+    })
+
+    it('should reject null attestation', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      const result = await disclosure.verifyAttestation(null as any)
+
+      expect(result.valid).toBe(false)
+      expect(result.errors).toContain('Attestation must be an object')
+    })
+  })
+
+  describe('Cache Management', () => {
+    it('should evict oldest keys when cache is full', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+        maxCacheSize: 3,
+      })
+
+      // Add 4 attestations - first one should be evicted
+      const attestations = [
+        createMockAttestation({ uid: 'uid_1', subject: 'subject_1' }),
+        createMockAttestation({ uid: 'uid_2', subject: 'subject_2' }),
+        createMockAttestation({ uid: 'uid_3', subject: 'subject_3' }),
+        createMockAttestation({ uid: 'uid_4', subject: 'subject_4' }),
+      ]
+
+      for (const attestation of attestations) {
+        await disclosure.deriveViewingKeyForAuditor(attestation)
+      }
+
+      // First attestation should be evicted
+      expect(disclosure.hasViewingKey(attestations[0])).toBe(false)
+      // Others should still be cached
+      expect(disclosure.hasViewingKey(attestations[1])).toBe(true)
+      expect(disclosure.hasViewingKey(attestations[2])).toBe(true)
+      expect(disclosure.hasViewingKey(attestations[3])).toBe(true)
+      expect(disclosure.getCacheSize()).toBe(3)
+    })
+
+    it('should update LRU order on cache hit', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+        maxCacheSize: 2,
+      })
+
+      const attestation1 = createMockAttestation({ uid: 'uid_1', subject: 'subject_1' })
+      const attestation2 = createMockAttestation({ uid: 'uid_2', subject: 'subject_2' })
+      const attestation3 = createMockAttestation({ uid: 'uid_3', subject: 'subject_3' })
+
+      // Add first two
+      await disclosure.deriveViewingKeyForAuditor(attestation1)
+      await disclosure.deriveViewingKeyForAuditor(attestation2)
+
+      // Access first one (updates LRU order)
+      await disclosure.deriveViewingKeyForAuditor(attestation1)
+
+      // Add third one - should evict second (oldest now)
+      await disclosure.deriveViewingKeyForAuditor(attestation3)
+
+      expect(disclosure.hasViewingKey(attestation1)).toBe(true)
+      expect(disclosure.hasViewingKey(attestation2)).toBe(false)
+      expect(disclosure.hasViewingKey(attestation3)).toBe(true)
+    })
+
+    it('should report correct cache size', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      expect(disclosure.getCacheSize()).toBe(0)
+
+      await disclosure.deriveViewingKeyForAuditor(createMockAttestation({ uid: 'uid_1' }))
+      expect(disclosure.getCacheSize()).toBe(1)
+
+      await disclosure.deriveViewingKeyForAuditor(createMockAttestation({ uid: 'uid_2' }))
+      expect(disclosure.getCacheSize()).toBe(2)
+    })
+
+    it('should clear all cached keys', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      const attestation = createMockAttestation()
+      await disclosure.deriveViewingKeyForAuditor(attestation)
+      expect(disclosure.getCacheSize()).toBe(1)
+
+      disclosure.clearCache()
+      expect(disclosure.getCacheSize()).toBe(0)
+      expect(disclosure.hasViewingKey(attestation)).toBe(false)
+    })
+
+    it('should remove from cache order when revoking', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+        maxCacheSize: 2,
+      })
+
+      const attestation1 = createMockAttestation({ uid: 'uid_1', subject: 'subject_1' })
+      const attestation2 = createMockAttestation({ uid: 'uid_2', subject: 'subject_2' })
+      const attestation3 = createMockAttestation({ uid: 'uid_3', subject: 'subject_3' })
+
+      // Add first two
+      await disclosure.deriveViewingKeyForAuditor(attestation1)
+      await disclosure.deriveViewingKeyForAuditor(attestation2)
+
+      // Revoke first one
+      disclosure.revokeViewingKey(attestation1)
+
+      // Add third - should NOT evict second since first was revoked
+      await disclosure.deriveViewingKeyForAuditor(attestation3)
+
+      expect(disclosure.hasViewingKey(attestation2)).toBe(true)
+      expect(disclosure.hasViewingKey(attestation3)).toBe(true)
+      expect(disclosure.getCacheSize()).toBe(2)
+    })
+  })
+
+  describe('expiresAt handling', () => {
+    it('should preserve expiresAt: 0 (never expires)', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      const attestation = createMockAttestation({ expiresAt: 0 })
+      const result = await disclosure.deriveViewingKeyForAuditor(attestation)
+
+      expect(result.granted).toBe(true)
+      expect(result.expiresAt).toBe(0) // Should be 0, not undefined
+    })
+
+    it('should have undefined expiresAt when not set', async () => {
+      const disclosure = new AttestationGatedDisclosure({
+        masterViewingKey,
+      })
+
+      // Create attestation and remove expiresAt
+      const attestation = createMockAttestation()
+      delete (attestation as any).expiresAt
+
+      const result = await disclosure.deriveViewingKeyForAuditor(attestation)
+
+      expect(result.granted).toBe(true)
+      expect(result.expiresAt).toBeUndefined()
+    })
+  })
 })

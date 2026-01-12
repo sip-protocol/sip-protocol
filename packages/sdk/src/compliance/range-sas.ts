@@ -121,6 +121,8 @@ export interface AttestationGatedConfig {
   rangeApiEndpoint?: string
   /** Minimum attestation age in seconds (prevents replay attacks) */
   minAttestationAge?: number
+  /** Maximum number of cached derived keys (default: 1000) */
+  maxCacheSize?: number
   /** Custom verification function */
   customVerifier?: (attestation: RangeSASAttestation) => Promise<boolean>
 }
@@ -179,9 +181,15 @@ export interface AttestationVerificationResult {
  * Manages the secure disclosure of viewing keys to verified auditors.
  * Only auditors with valid Range SAS attestations can receive keys.
  */
+/**
+ * Default maximum cache size for derived keys
+ */
+const DEFAULT_MAX_CACHE_SIZE = 1000
+
 export class AttestationGatedDisclosure {
   private readonly config: Required<AttestationGatedConfig>
   private readonly derivedKeys: Map<string, ViewingKey> = new Map()
+  private readonly cacheOrder: string[] = [] // LRU tracking
 
   /**
    * Create a new attestation-gated disclosure manager
@@ -205,6 +213,7 @@ export class AttestationGatedDisclosure {
       verifyOnChain: config.verifyOnChain ?? false,
       rangeApiEndpoint: config.rangeApiEndpoint ?? 'https://api.range.org/v1',
       minAttestationAge: config.minAttestationAge ?? 0,
+      maxCacheSize: config.maxCacheSize ?? DEFAULT_MAX_CACHE_SIZE,
       customVerifier: config.customVerifier ?? (async () => true),
     }
   }
@@ -246,25 +255,29 @@ export class AttestationGatedDisclosure {
     const cacheKey = this.getCacheKey(attestation)
     const cached = this.derivedKeys.get(cacheKey)
     if (cached) {
+      // Update LRU order
+      this.updateCacheOrder(cacheKey)
       return {
         granted: true,
         viewingKey: cached,
         scope,
-        expiresAt: attestation.expiresAt || undefined,
+        // expiresAt: 0 means "never expires", only undefined if not set
+        expiresAt: attestation.expiresAt !== undefined ? attestation.expiresAt : undefined,
       }
     }
 
     // Step 3: Derive a unique viewing key for this auditor
     const viewingKey = this.deriveKeyFromAttestation(attestation)
 
-    // Step 4: Cache the derived key
-    this.derivedKeys.set(cacheKey, viewingKey)
+    // Step 4: Cache the derived key with LRU eviction
+    this.cacheKey(cacheKey, viewingKey)
 
     return {
       granted: true,
       viewingKey,
       scope,
-      expiresAt: attestation.expiresAt || undefined,
+      // expiresAt: 0 means "never expires", only undefined if not set
+      expiresAt: attestation.expiresAt !== undefined ? attestation.expiresAt : undefined,
     }
   }
 
@@ -278,6 +291,35 @@ export class AttestationGatedDisclosure {
     attestation: RangeSASAttestation
   ): Promise<AttestationVerificationResult> {
     const errors: string[] = []
+
+    // Validate required fields exist and are non-empty
+    if (!attestation || typeof attestation !== 'object') {
+      return {
+        valid: false,
+        errors: ['Attestation must be an object'],
+      }
+    }
+
+    if (!attestation.uid || typeof attestation.uid !== 'string' || attestation.uid.trim() === '') {
+      errors.push('Attestation uid is required and must be a non-empty string')
+    }
+
+    if (!attestation.subject || typeof attestation.subject !== 'string' || attestation.subject.trim() === '') {
+      errors.push('Attestation subject is required and must be a non-empty string')
+    }
+
+    if (!attestation.schema || typeof attestation.schema !== 'string' || attestation.schema.trim() === '') {
+      errors.push('Attestation schema is required and must be a non-empty string')
+    }
+
+    if (!attestation.issuer || typeof attestation.issuer !== 'string' || attestation.issuer.trim() === '') {
+      errors.push('Attestation issuer is required and must be a non-empty string')
+    }
+
+    // If basic validation fails, return early
+    if (errors.length > 0) {
+      return { valid: false, errors }
+    }
 
     // Check if attestation is revoked
     if (attestation.revoked) {
@@ -339,8 +381,16 @@ export class AttestationGatedDisclosure {
    * @returns Whether revocation was successful
    */
   revokeViewingKey(attestation: RangeSASAttestation): boolean {
-    const cacheKey = this.getCacheKey(attestation)
-    return this.derivedKeys.delete(cacheKey)
+    const key = this.getCacheKey(attestation)
+    const deleted = this.derivedKeys.delete(key)
+    if (deleted) {
+      // Remove from LRU order
+      const index = this.cacheOrder.indexOf(key)
+      if (index !== -1) {
+        this.cacheOrder.splice(index, 1)
+      }
+    }
+    return deleted
   }
 
   /**
@@ -350,11 +400,55 @@ export class AttestationGatedDisclosure {
    * @returns Whether a key exists
    */
   hasViewingKey(attestation: RangeSASAttestation): boolean {
-    const cacheKey = this.getCacheKey(attestation)
-    return this.derivedKeys.has(cacheKey)
+    const key = this.getCacheKey(attestation)
+    return this.derivedKeys.has(key)
+  }
+
+  /**
+   * Get the current cache size
+   *
+   * @returns Number of cached viewing keys
+   */
+  getCacheSize(): number {
+    return this.derivedKeys.size
+  }
+
+  /**
+   * Clear all cached viewing keys
+   */
+  clearCache(): void {
+    this.derivedKeys.clear()
+    this.cacheOrder.length = 0
   }
 
   // ─── Private Methods ────────────────────────────────────────────────────────
+
+  /**
+   * Add a key to cache with LRU eviction
+   */
+  private cacheKey(key: string, viewingKey: ViewingKey): void {
+    // Evict oldest entries if cache is full
+    while (this.derivedKeys.size >= this.config.maxCacheSize && this.cacheOrder.length > 0) {
+      const oldest = this.cacheOrder.shift()
+      if (oldest) {
+        this.derivedKeys.delete(oldest)
+      }
+    }
+
+    this.derivedKeys.set(key, viewingKey)
+    this.cacheOrder.push(key)
+  }
+
+  /**
+   * Update LRU order for a cache key (move to end)
+   */
+  private updateCacheOrder(key: string): void {
+    const index = this.cacheOrder.indexOf(key)
+    if (index !== -1) {
+      this.cacheOrder.splice(index, 1)
+      this.cacheOrder.push(key)
+    }
+  }
 
   /**
    * Derive a viewing key from an attestation
