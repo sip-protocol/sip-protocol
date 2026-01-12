@@ -214,6 +214,21 @@ export interface SmartRouterConfig {
   maxCost?: bigint
   /** Maximum acceptable latency in ms */
   maxLatency?: number
+  /**
+   * Enable automatic fallback to alternative backends on failure
+   * @default true
+   */
+  enableFallback?: boolean
+  /**
+   * Include unhealthy backends (circuit open) in selection
+   * @default false
+   */
+  includeUnhealthy?: boolean
+  /**
+   * Maximum number of fallback attempts
+   * @default 3
+   */
+  maxFallbackAttempts?: number
 }
 
 /**
@@ -260,4 +275,164 @@ export interface RegisteredBackend {
   enabled: boolean
   /** Registration timestamp */
   registeredAt: number
+}
+
+// ─── Health & Circuit Breaker Types ─────────────────────────────────────────
+
+/**
+ * Circuit breaker state
+ *
+ * - `closed`: Backend is healthy, requests flow normally
+ * - `open`: Backend is failing, requests are blocked
+ * - `half-open`: Testing if backend recovered, limited requests allowed
+ */
+export type CircuitState = 'closed' | 'open' | 'half-open'
+
+/**
+ * Health state tracking for circuit breaker pattern
+ *
+ * Tracks backend health to automatically disable failing backends
+ * and re-enable them after recovery.
+ */
+export interface BackendHealthState {
+  /** Current circuit state */
+  circuitState: CircuitState
+  /** Whether backend is considered healthy (circuit closed or half-open) */
+  isHealthy: boolean
+  /** Last health check timestamp */
+  lastChecked: number
+  /** Number of consecutive failures */
+  consecutiveFailures: number
+  /** Number of consecutive successes (for half-open recovery) */
+  consecutiveSuccesses: number
+  /** Last failure reason */
+  lastFailureReason?: string
+  /** Last failure timestamp */
+  lastFailureTime?: number
+  /** Timestamp when circuit opened */
+  circuitOpenedAt?: number
+}
+
+/**
+ * Metrics for backend observability
+ *
+ * Tracks request counts and latency for monitoring and debugging.
+ */
+export interface BackendMetrics {
+  /** Total requests made to this backend */
+  totalRequests: number
+  /** Successful requests */
+  successfulRequests: number
+  /** Failed requests */
+  failedRequests: number
+  /** Total latency in milliseconds (for average calculation) */
+  totalLatencyMs: number
+  /** Average latency in milliseconds */
+  averageLatencyMs: number
+  /** Last request timestamp */
+  lastRequestTime: number
+  /** Last successful request timestamp */
+  lastSuccessTime?: number
+  /** Minimum latency observed */
+  minLatencyMs?: number
+  /** Maximum latency observed */
+  maxLatencyMs?: number
+}
+
+/**
+ * Circuit breaker configuration
+ *
+ * Controls when backends are disabled and re-enabled.
+ */
+export interface CircuitBreakerConfig {
+  /**
+   * Number of consecutive failures before opening circuit
+   * @default 3
+   */
+  failureThreshold: number
+  /**
+   * Time in ms before attempting to close circuit (half-open state)
+   * @default 30000 (30 seconds)
+   */
+  resetTimeoutMs: number
+  /**
+   * Number of successful requests in half-open state before closing circuit
+   * @default 2
+   */
+  successThreshold: number
+  /**
+   * Whether to track metrics
+   * @default true
+   */
+  enableMetrics: boolean
+}
+
+/**
+ * Default circuit breaker configuration
+ */
+export const DEFAULT_CIRCUIT_BREAKER_CONFIG: CircuitBreakerConfig = {
+  failureThreshold: 3,
+  resetTimeoutMs: 30000,
+  successThreshold: 2,
+  enableMetrics: true,
+}
+
+// ─── Error Types ────────────────────────────────────────────────────────────
+
+/**
+ * Error thrown when all backends fail during execution
+ *
+ * Contains details about which backends were attempted and why they failed.
+ */
+export class AllBackendsFailedError extends Error {
+  readonly name = 'AllBackendsFailedError'
+
+  constructor(
+    /** Backends that were attempted */
+    public readonly attemptedBackends: string[],
+    /** Map of backend name to error message */
+    public readonly errors: Map<string, string>,
+    /** Original transfer parameters */
+    public readonly params?: TransferParams
+  ) {
+    const backendList = attemptedBackends.join(', ')
+    super(
+      `All ${attemptedBackends.length} backend(s) failed: [${backendList}]. ` +
+      `Check errors map for details.`
+    )
+  }
+
+  /**
+   * Get formatted error summary
+   */
+  getSummary(): string {
+    const lines = [`All backends failed (${this.attemptedBackends.length} attempted):`]
+    for (const [backend, error] of this.errors) {
+      lines.push(`  • ${backend}: ${error}`)
+    }
+    return lines.join('\n')
+  }
+}
+
+/**
+ * Error thrown when circuit breaker is open
+ */
+export class CircuitOpenError extends Error {
+  readonly name = 'CircuitOpenError'
+
+  constructor(
+    /** Backend name with open circuit */
+    public readonly backendName: string,
+    /** Time when circuit opened */
+    public readonly openedAt: number,
+    /** Time until reset attempt */
+    public readonly resetTimeoutMs: number
+  ) {
+    const remainingMs = Math.max(0, (openedAt + resetTimeoutMs) - Date.now())
+    const remainingSec = Math.ceil(remainingMs / 1000)
+    super(
+      `Circuit breaker open for '${backendName}'. ` +
+      `Will attempt reset in ${remainingSec}s.`
+    )
+  }
 }

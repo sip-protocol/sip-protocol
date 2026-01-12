@@ -56,10 +56,29 @@ export type {
   BackendSelectionResult,
   BackendRegistrationOptions,
   RegisteredBackend,
+  // Health & circuit breaker types
+  CircuitState,
+  BackendHealthState,
+  BackendMetrics,
+  CircuitBreakerConfig,
 } from './interface'
 
+// Error types
+export {
+  AllBackendsFailedError,
+  CircuitOpenError,
+  DEFAULT_CIRCUIT_BREAKER_CONFIG,
+} from './interface'
+
+// Health tracking
+export { BackendHealthTracker } from './health'
+
 // Registry
-export { PrivacyBackendRegistry, defaultRegistry } from './registry'
+export {
+  PrivacyBackendRegistry,
+  defaultRegistry,
+  type PrivacyBackendRegistryConfig,
+} from './registry'
 
 // Backends
 export { SIPNativeBackend, type SIPNativeBackendConfig } from './sip-native'
