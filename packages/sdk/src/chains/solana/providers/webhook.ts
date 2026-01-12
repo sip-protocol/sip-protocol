@@ -47,7 +47,10 @@ import type { StealthAddress } from '@sip-protocol/types'
 import { parseAnnouncement } from '../types'
 import type { SolanaScanResult } from '../types'
 import { SIP_MEMO_PREFIX, SOLANA_TOKEN_MINTS } from '../constants'
-import { ValidationError } from '../../../errors'
+import { ValidationError, SecurityError } from '../../../errors'
+import { hmac } from '@noble/hashes/hmac'
+import { sha256 } from '@noble/hashes/sha256'
+import { bytesToHex } from '@noble/hashes/utils'
 
 /**
  * Helius raw webhook payload for a transaction
@@ -222,6 +225,40 @@ export interface WebhookHandlerConfig {
    * @param transaction - The transaction that caused the error (if available)
    */
   onError?: (error: Error, transaction?: HeliusWebhookTransaction) => void
+  /**
+   * Webhook authentication secret (recommended for production)
+   *
+   * When set, the handler will verify the X-Helius-Signature header
+   * using HMAC-SHA256 to ensure webhook payloads are authentic.
+   *
+   * Get your webhook secret from Helius Dashboard:
+   * https://dev.helius.xyz/webhooks
+   */
+  webhookSecret?: string
+  /**
+   * Authorization token for additional security
+   *
+   * When set, the handler will verify the Authorization header
+   * matches this token. Use for simple auth in trusted environments.
+   */
+  authToken?: string
+}
+
+/**
+ * Webhook request with headers for signature verification
+ */
+export interface WebhookRequest {
+  /** Raw request body as string (for signature verification) */
+  rawBody: string
+  /** Parsed payload */
+  payload: HeliusWebhookPayload
+  /** Request headers */
+  headers: {
+    /** Helius webhook signature (X-Helius-Signature header) */
+    signature?: string
+    /** Authorization header */
+    authorization?: string
+  }
 }
 
 /**
@@ -237,33 +274,173 @@ export interface WebhookProcessResult {
 }
 
 /**
+ * Verify Helius webhook signature using HMAC-SHA256
+ *
+ * H-4, H-8 FIX: Implement webhook signature verification
+ *
+ * @param rawBody - Raw request body as string
+ * @param signature - Signature from X-Helius-Signature header
+ * @param secret - Webhook secret from Helius dashboard
+ * @returns True if signature is valid
+ *
+ * @example
+ * ```typescript
+ * const isValid = verifyWebhookSignature(
+ *   req.rawBody,
+ *   req.headers['x-helius-signature'],
+ *   process.env.HELIUS_WEBHOOK_SECRET!
+ * )
+ * if (!isValid) {
+ *   res.status(401).send('Invalid signature')
+ *   return
+ * }
+ * ```
+ */
+export function verifyWebhookSignature(
+  rawBody: string,
+  signature: string | undefined,
+  secret: string
+): boolean {
+  if (!signature || !secret) {
+    return false
+  }
+
+  try {
+    // Compute expected signature using HMAC-SHA256
+    const encoder = new TextEncoder()
+    const expectedSignature = bytesToHex(
+      hmac(sha256, encoder.encode(secret), encoder.encode(rawBody))
+    )
+
+    // Constant-time comparison to prevent timing attacks
+    if (signature.length !== expectedSignature.length) {
+      return false
+    }
+
+    let result = 0
+    for (let i = 0; i < signature.length; i++) {
+      result |= signature.charCodeAt(i) ^ expectedSignature.charCodeAt(i)
+    }
+    return result === 0
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Verify authorization token
+ *
+ * H-7 FIX: Implement authorization verification
+ *
+ * @param authHeader - Authorization header value
+ * @param expectedToken - Expected token
+ * @returns True if token matches
+ */
+export function verifyAuthToken(
+  authHeader: string | undefined,
+  expectedToken: string
+): boolean {
+  if (!authHeader || !expectedToken) {
+    return false
+  }
+
+  // Support both "Bearer <token>" and raw token formats
+  const token = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : authHeader
+
+  // Constant-time comparison
+  if (token.length !== expectedToken.length) {
+    return false
+  }
+
+  let result = 0
+  for (let i = 0; i < token.length; i++) {
+    result |= token.charCodeAt(i) ^ expectedToken.charCodeAt(i)
+  }
+  return result === 0
+}
+
+/**
+ * Handler function type returned by createWebhookHandler
+ */
+export interface WebhookHandler {
+  /**
+   * Process a webhook payload (simple mode - no signature verification)
+   */
+  (payload: HeliusWebhookPayload): Promise<WebhookProcessResult[]>
+
+  /**
+   * Process a webhook request with full authentication
+   *
+   * H-4, H-7, H-8 FIX: Supports signature and auth token verification
+   */
+  processRequest(request: WebhookRequest): Promise<WebhookProcessResult[]>
+}
+
+/**
  * Create a webhook handler for processing Helius webhook payloads
  *
  * @param config - Handler configuration
- * @returns Async function to process webhook payloads
+ * @returns Handler function to process webhook payloads
  *
- * @example
+ * @example Simple usage (not recommended for production)
  * ```typescript
  * const handler = createWebhookHandler({
  *   viewingPrivateKey: recipientKeys.viewingPrivateKey,
  *   spendingPublicKey: recipientKeys.spendingPublicKey,
  *   onPaymentFound: async (payment) => {
  *     await db.savePayment(payment)
- *     await notifyUser(payment)
  *   },
  * })
  *
- * // In your Express route:
  * app.post('/webhook', async (req, res) => {
  *   const results = await handler(req.body)
  *   res.json({ processed: results.length })
  * })
  * ```
+ *
+ * @example Production usage with signature verification
+ * ```typescript
+ * const handler = createWebhookHandler({
+ *   viewingPrivateKey: recipientKeys.viewingPrivateKey,
+ *   spendingPublicKey: recipientKeys.spendingPublicKey,
+ *   webhookSecret: process.env.HELIUS_WEBHOOK_SECRET!,
+ *   onPaymentFound: async (payment) => {
+ *     await db.savePayment(payment)
+ *   },
+ * })
+ *
+ * app.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+ *   try {
+ *     const results = await handler.processRequest({
+ *       rawBody: req.body.toString(),
+ *       payload: JSON.parse(req.body.toString()),
+ *       headers: {
+ *         signature: req.headers['x-helius-signature'] as string,
+ *         authorization: req.headers['authorization'] as string,
+ *       },
+ *     })
+ *     res.json({ processed: results.length })
+ *   } catch (error) {
+ *     if (error instanceof SecurityError) {
+ *       res.status(401).json({ error: error.message })
+ *     } else {
+ *       res.status(500).json({ error: 'Internal error' })
+ *     }
+ *   }
+ * })
+ * ```
  */
-export function createWebhookHandler(
-  config: WebhookHandlerConfig
-): (payload: HeliusWebhookPayload) => Promise<WebhookProcessResult[]> {
-  const { viewingPrivateKey, spendingPublicKey, onPaymentFound, onError } = config
+export function createWebhookHandler(config: WebhookHandlerConfig): WebhookHandler {
+  const {
+    viewingPrivateKey,
+    spendingPublicKey,
+    onPaymentFound,
+    onError,
+    webhookSecret,
+    authToken,
+  } = config
 
   // Validate required keys
   if (!viewingPrivateKey || !viewingPrivateKey.startsWith('0x')) {
@@ -276,9 +453,42 @@ export function createWebhookHandler(
     throw new ValidationError('onPaymentFound callback is required', 'onPaymentFound')
   }
 
-  return async (payload: HeliusWebhookPayload): Promise<WebhookProcessResult[]> => {
+  // Validate key lengths (ed25519 keys are 32 bytes = 64 hex chars + '0x' prefix)
+  if (viewingPrivateKey.length !== 66) {
+    throw new ValidationError('viewingPrivateKey must be 32 bytes (64 hex characters)', 'viewingPrivateKey')
+  }
+  if (spendingPublicKey.length !== 66) {
+    throw new ValidationError('spendingPublicKey must be 32 bytes (64 hex characters)', 'spendingPublicKey')
+  }
+
+  /**
+   * Process transactions after authentication
+   */
+  async function processTransactions(
+    payload: HeliusWebhookPayload
+  ): Promise<WebhookProcessResult[]> {
+    // H-4 FIX: Validate payload structure before processing
+    if (!payload || (typeof payload !== 'object')) {
+      throw new ValidationError('Invalid webhook payload', 'payload')
+    }
+
     // Normalize to array
     const transactions = Array.isArray(payload) ? payload : [payload]
+
+    // Validate we have at least one transaction
+    if (transactions.length === 0) {
+      return []
+    }
+
+    // Limit batch size to prevent DoS
+    const MAX_BATCH_SIZE = 100
+    if (transactions.length > MAX_BATCH_SIZE) {
+      throw new ValidationError(
+        `Batch size exceeds maximum of ${MAX_BATCH_SIZE}`,
+        'payload'
+      )
+    }
+
     const results: WebhookProcessResult[] = []
 
     for (const tx of transactions) {
@@ -312,6 +522,43 @@ export function createWebhookHandler(
 
     return results
   }
+
+  /**
+   * Simple handler (backwards compatible)
+   */
+  const handler = async (payload: HeliusWebhookPayload): Promise<WebhookProcessResult[]> => {
+    return processTransactions(payload)
+  }
+
+  /**
+   * Process request with full authentication
+   * H-4, H-7, H-8 FIX: Signature and auth verification
+   */
+  handler.processRequest = async (request: WebhookRequest): Promise<WebhookProcessResult[]> => {
+    // Verify webhook signature if configured
+    if (webhookSecret) {
+      if (!verifyWebhookSignature(request.rawBody, request.headers.signature, webhookSecret)) {
+        throw new SecurityError(
+          'Invalid webhook signature - request rejected',
+          'INVALID_SIGNATURE'
+        )
+      }
+    }
+
+    // Verify auth token if configured
+    if (authToken) {
+      if (!verifyAuthToken(request.headers.authorization, authToken)) {
+        throw new SecurityError(
+          'Invalid authorization token - request rejected',
+          'INVALID_AUTH'
+        )
+      }
+    }
+
+    return processTransactions(request.payload)
+  }
+
+  return handler as WebhookHandler
 }
 
 /**
@@ -348,13 +595,34 @@ async function processRawTransaction(
     if (!announcement) continue
 
     // Check if this payment is for us
-    const ephemeralPubKeyHex = solanaAddressToEd25519PublicKey(
-      announcement.ephemeralPublicKey
-    )
+    // H-5 FIX: Validate ephemeral public key before curve operations
+    if (!announcement.ephemeralPublicKey || announcement.ephemeralPublicKey.length < 32) {
+      continue // Invalid ephemeral key format, skip
+    }
 
-    // Parse view tag with bounds checking (view tags are 1 byte: 0-255)
-    const viewTagNumber = parseInt(announcement.viewTag, 16)
-    if (!Number.isFinite(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > 255) {
+    let ephemeralPubKeyHex: HexString
+    try {
+      ephemeralPubKeyHex = solanaAddressToEd25519PublicKey(
+        announcement.ephemeralPublicKey
+      )
+    } catch {
+      // Invalid base58 encoding or malformed key
+      continue
+    }
+
+    // H-3 FIX: Enhanced view tag validation with strict hex parsing
+    // View tags are 1 byte (0-255), represented as 2-char hex string
+    const viewTagStr = announcement.viewTag
+    if (!viewTagStr || typeof viewTagStr !== 'string') {
+      continue
+    }
+    // Validate hex format (only 0-9, a-f, A-F)
+    if (!/^[0-9a-fA-F]{1,2}$/.test(viewTagStr)) {
+      continue // Invalid hex format
+    }
+    const viewTagNumber = parseInt(viewTagStr, 16)
+    // Double-check bounds after parse (defense in depth)
+    if (!Number.isInteger(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > 255) {
       continue // Invalid view tag, skip this announcement
     }
     const stealthAddressToCheck: StealthAddress = {

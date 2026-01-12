@@ -32,11 +32,13 @@ export {
   ProofError,
   IntentError,
   NetworkError,
+  SecurityError,
   // Legacy errors (now extend proper parent classes)
   ProofNotImplementedError,
   EncryptionNotImplementedError,
   // Utility functions
   isSIPError,
+  isSecurityError,
   hasErrorCode,
   wrapError,
   getErrorMessage,
@@ -788,6 +790,8 @@ export {
   // Helius Webhook (Real-time Scanning)
   createWebhookHandler,
   processWebhookTransaction,
+  verifyWebhookSignature,
+  verifyAuthToken,
 } from './chains/solana'
 
 export type {
@@ -812,6 +816,8 @@ export type {
   HeliusWebhookPayload,
   WebhookHandlerConfig,
   WebhookProcessResult,
+  WebhookRequest,
+  WebhookHandler,
 } from './chains/solana'
 
 // Same-Chain Executors

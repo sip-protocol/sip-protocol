@@ -9,9 +9,8 @@ import {
   PublicKey,
   Transaction,
   TransactionInstruction,
-  SystemProgram,
-  LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
+import { ValidationError } from '../../errors'
 import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
@@ -75,6 +74,11 @@ import { bytesToHex } from '@noble/hashes/utils'
 export async function sendPrivateSPLTransfer(
   params: SolanaPrivateTransferParams
 ): Promise<SolanaPrivateTransferResult> {
+  // H-6 FIX: Comprehensive input validation
+  if (!params) {
+    throw new ValidationError('params is required', 'params')
+  }
+
   const {
     connection,
     sender,
@@ -85,10 +89,75 @@ export async function sendPrivateSPLTransfer(
     signTransaction,
   } = params
 
-  // Validate recipient meta-address is for Solana
+  // Validate connection
+  if (!connection) {
+    throw new ValidationError('connection is required', 'connection')
+  }
+
+  // Validate sender
+  if (!sender) {
+    throw new ValidationError('sender is required', 'sender')
+  }
+
+  // Validate senderTokenAccount
+  if (!senderTokenAccount) {
+    throw new ValidationError('senderTokenAccount is required', 'senderTokenAccount')
+  }
+
+  // Validate mint
+  if (!mint) {
+    throw new ValidationError('mint is required', 'mint')
+  }
+
+  // Validate signTransaction callback
+  if (typeof signTransaction !== 'function') {
+    throw new ValidationError('signTransaction must be a function', 'signTransaction')
+  }
+
+  // Validate amount
+  if (amount === undefined || amount === null) {
+    throw new ValidationError('amount is required', 'amount')
+  }
+  if (typeof amount !== 'bigint') {
+    throw new ValidationError('amount must be a bigint', 'amount')
+  }
+  if (amount <= 0n) {
+    throw new ValidationError('amount must be greater than 0', 'amount')
+  }
+  // Prevent unreasonably large amounts (> 2^64, which is the max for SPL tokens)
+  const MAX_SPL_AMOUNT = 2n ** 64n - 1n
+  if (amount > MAX_SPL_AMOUNT) {
+    throw new ValidationError(`amount exceeds maximum SPL token amount`, 'amount')
+  }
+
+  // Validate recipient meta-address
+  if (!recipientMetaAddress) {
+    throw new ValidationError('recipientMetaAddress is required', 'recipientMetaAddress')
+  }
   if (recipientMetaAddress.chain !== 'solana') {
-    throw new Error(
-      `Invalid chain: expected 'solana', got '${recipientMetaAddress.chain}'`
+    throw new ValidationError(
+      `Invalid chain: expected 'solana', got '${recipientMetaAddress.chain}'`,
+      'recipientMetaAddress.chain'
+    )
+  }
+  // Validate meta-address keys are present
+  if (!recipientMetaAddress.spendingKey) {
+    throw new ValidationError('recipientMetaAddress.spendingKey is required', 'recipientMetaAddress.spendingKey')
+  }
+  if (!recipientMetaAddress.viewingKey) {
+    throw new ValidationError('recipientMetaAddress.viewingKey is required', 'recipientMetaAddress.viewingKey')
+  }
+  // Validate key format (should be hex strings starting with 0x)
+  if (!recipientMetaAddress.spendingKey.startsWith('0x') || recipientMetaAddress.spendingKey.length !== 66) {
+    throw new ValidationError(
+      'recipientMetaAddress.spendingKey must be a 32-byte hex string (0x + 64 chars)',
+      'recipientMetaAddress.spendingKey'
+    )
+  }
+  if (!recipientMetaAddress.viewingKey.startsWith('0x') || recipientMetaAddress.viewingKey.length !== 66) {
+    throw new ValidationError(
+      'recipientMetaAddress.viewingKey must be a 32-byte hex string (0x + 64 chars)',
+      'recipientMetaAddress.viewingKey'
     )
   }
 
