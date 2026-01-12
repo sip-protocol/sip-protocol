@@ -154,6 +154,8 @@ export interface SolanaAnnouncement {
 /**
  * Parse announcement from memo string
  * Format: SIP:1:<ephemeral_pubkey_base58>:<view_tag_hex>
+ *
+ * M4 FIX: Validates view tag is exactly 1-2 hex characters (1 byte)
  */
 export function parseAnnouncement(memo: string): SolanaAnnouncement | null {
   if (!memo.startsWith('SIP:1:')) {
@@ -165,10 +167,35 @@ export function parseAnnouncement(memo: string): SolanaAnnouncement | null {
     return null
   }
 
+  const ephemeralPublicKey = parts[0]
+  const viewTag = parts[1]
+  const stealthAddress = parts[2]
+
+  // M4 FIX: Validate ephemeral public key (base58, 32-44 chars for Solana)
+  if (!ephemeralPublicKey || ephemeralPublicKey.length < 32 || ephemeralPublicKey.length > 44) {
+    return null
+  }
+
+  // M4 FIX: Validate view tag is 1-2 hex characters (represents 1 byte: 0-255)
+  if (!viewTag || viewTag.length > 2 || !/^[0-9a-fA-F]+$/.test(viewTag)) {
+    return null
+  }
+
+  // M4 FIX: Validate view tag numeric range (0-255)
+  const viewTagNum = parseInt(viewTag, 16)
+  if (viewTagNum < 0 || viewTagNum > 255) {
+    return null
+  }
+
+  // M4 FIX: Validate stealth address if provided
+  if (stealthAddress && (stealthAddress.length < 32 || stealthAddress.length > 44)) {
+    return null
+  }
+
   return {
-    ephemeralPublicKey: parts[0],
-    viewTag: parts[1],
-    stealthAddress: parts[2],
+    ephemeralPublicKey,
+    viewTag,
+    stealthAddress,
   }
 }
 
