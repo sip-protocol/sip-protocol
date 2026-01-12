@@ -127,6 +127,12 @@ export async function scanForPayments(
           // Construct stealth address object for checking
           // viewTag is a number (0-255), parse from hex string
           const viewTagNumber = parseInt(announcement.viewTag, 16)
+
+          // H3 FIX: Validate view tag is within valid bounds (0-255)
+          if (!Number.isFinite(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > 255) {
+            continue // Skip invalid view tags
+          }
+
           const stealthAddressToCheck: StealthAddress = {
             address: announcement.stealthAddress
               ? solanaAddressToEd25519PublicKey(announcement.stealthAddress)
@@ -181,7 +187,9 @@ export async function scanForPayments(
         }
       } catch (err) {
         // Skip failed transaction parsing
-        console.warn(`Failed to parse tx ${sigInfo.signature}:`, err)
+        // H4 FIX: Sanitize signature before logging to prevent log injection
+        const safeSignature = sigInfo.signature.replace(/[\x00-\x1F\x7F]/g, '')
+        console.warn(`Failed to parse tx ${safeSignature}:`, err)
       }
     }
   } catch (err) {
@@ -251,32 +259,41 @@ export async function claimStealthPayment(
   // The SDK returns a scalar, so we need to handle this carefully
   const stealthPrivKeyBytes = hexToBytes(recovery.privateKey.slice(2))
 
-  // Validate that the derived private key (scalar) produces the expected public key
-  // Note: SIP derives a scalar, not a seed. We use scalar multiplication to verify.
-  const stealthPubkey = new PublicKey(stealthAddress)
-  const expectedPubKeyBytes = stealthPubkey.toBytes()
+  // H5 FIX: Use try-finally to ensure sensitive key bytes are zeroed after use
+  let stealthKeypair: Keypair
+  try {
+    // Validate that the derived private key (scalar) produces the expected public key
+    // Note: SIP derives a scalar, not a seed. We use scalar multiplication to verify.
+    const stealthPubkey = new PublicKey(stealthAddress)
+    const expectedPubKeyBytes = stealthPubkey.toBytes()
 
-  // Convert scalar bytes to bigint (little-endian for ed25519)
-  const scalarBigInt = bytesToBigIntLE(stealthPrivKeyBytes)
-  const ED25519_ORDER = 2n ** 252n + 27742317777372353535851937790883648493n
-  let validScalar = scalarBigInt % ED25519_ORDER
-  if (validScalar === 0n) validScalar = 1n
+    // Convert scalar bytes to bigint (little-endian for ed25519)
+    const scalarBigInt = bytesToBigIntLE(stealthPrivKeyBytes)
+    const ED25519_ORDER = 2n ** 252n + 27742317777372353535851937790883648493n
+    let validScalar = scalarBigInt % ED25519_ORDER
+    if (validScalar === 0n) validScalar = 1n
 
-  // Derive public key via scalar multiplication
-  const derivedPubKeyBytes = ed25519.ExtendedPoint.BASE.multiply(validScalar).toRawBytes()
+    // Derive public key via scalar multiplication
+    const derivedPubKeyBytes = ed25519.ExtendedPoint.BASE.multiply(validScalar).toRawBytes()
 
-  if (!derivedPubKeyBytes.every((b, i) => b === expectedPubKeyBytes[i])) {
-    throw new Error(
-      'Stealth key derivation failed: derived private key does not produce expected public key. ' +
-      'This may indicate incorrect spending/viewing keys or corrupted announcement data.'
+    if (!derivedPubKeyBytes.every((b, i) => b === expectedPubKeyBytes[i])) {
+      throw new Error(
+        'Stealth key derivation failed: derived private key does not produce expected public key. ' +
+        'This may indicate incorrect spending/viewing keys or corrupted announcement data.'
+      )
+    }
+
+    // Solana keypairs expect 64 bytes (32 byte seed + 32 byte public key)
+    // We construct this from the derived scalar (now validated)
+    stealthKeypair = Keypair.fromSecretKey(
+      new Uint8Array([...stealthPrivKeyBytes, ...expectedPubKeyBytes])
     )
+  } finally {
+    // H5 FIX: Zero out sensitive private key bytes to prevent memory leakage
+    stealthPrivKeyBytes.fill(0)
   }
 
-  // Solana keypairs expect 64 bytes (32 byte seed + 32 byte public key)
-  // We construct this from the derived scalar (now validated)
-  const stealthKeypair = Keypair.fromSecretKey(
-    new Uint8Array([...stealthPrivKeyBytes, ...expectedPubKeyBytes])
-  )
+  const stealthPubkey = new PublicKey(stealthAddress)
 
   // Get token accounts
   const stealthATA = await getAssociatedTokenAddress(

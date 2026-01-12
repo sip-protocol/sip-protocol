@@ -85,11 +85,47 @@ export async function sendPrivateSPLTransfer(
     signTransaction,
   } = params
 
+  // H6 FIX: Comprehensive input validation
+  // Validate amount is positive
+  if (typeof amount !== 'bigint' || amount <= 0n) {
+    throw new Error('Transfer amount must be a positive bigint')
+  }
+
+  // Validate sender is a valid PublicKey instance
+  if (!(sender instanceof PublicKey)) {
+    throw new Error('sender must be a valid PublicKey')
+  }
+
+  // Validate senderTokenAccount is a valid PublicKey instance
+  if (!(senderTokenAccount instanceof PublicKey)) {
+    throw new Error('senderTokenAccount must be a valid PublicKey')
+  }
+
+  // Validate mint is a valid PublicKey instance
+  if (!(mint instanceof PublicKey)) {
+    throw new Error('mint must be a valid PublicKey')
+  }
+
+  // Validate signTransaction is a function
+  if (typeof signTransaction !== 'function') {
+    throw new Error('signTransaction must be a function')
+  }
+
+  // Validate recipient meta-address exists
+  if (!recipientMetaAddress) {
+    throw new Error('recipientMetaAddress is required')
+  }
+
   // Validate recipient meta-address is for Solana
   if (recipientMetaAddress.chain !== 'solana') {
     throw new Error(
       `Invalid chain: expected 'solana', got '${recipientMetaAddress.chain}'`
     )
+  }
+
+  // Validate recipient meta-address has required keys
+  if (!recipientMetaAddress.spendingKey || !recipientMetaAddress.viewingKey) {
+    throw new Error('recipientMetaAddress must have spendingKey and viewingKey')
   }
 
   // 1. Generate stealth address from recipient's meta-address

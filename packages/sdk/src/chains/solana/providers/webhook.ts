@@ -289,7 +289,8 @@ export function createWebhookHandler(
             tx,
             viewingPrivateKey,
             spendingPublicKey,
-            onPaymentFound
+            onPaymentFound,
+            onError // H8 FIX: Pass onError to propagate callback errors
           )
           results.push(result)
         } else {
@@ -321,7 +322,8 @@ async function processRawTransaction(
   tx: HeliusWebhookTransaction,
   viewingPrivateKey: HexString,
   spendingPublicKey: HexString,
-  onPaymentFound: (payment: SolanaScanResult) => void | Promise<void>
+  onPaymentFound: (payment: SolanaScanResult) => void | Promise<void>,
+  onError?: (error: Error, transaction?: HeliusWebhookTransaction) => void
 ): Promise<WebhookProcessResult> {
   const signature = tx.transaction?.signatures?.[0] ?? 'unknown'
 
@@ -394,10 +396,13 @@ async function processRawTransaction(
       }
 
       // Call the callback (wrap in try-catch to prevent callback errors from breaking processing)
+      // H8 FIX: Propagate callback errors to onError instead of silently swallowing
       try {
         await onPaymentFound(payment)
-      } catch {
-        // Callback error should not prevent returning the found payment
+      } catch (callbackError) {
+        // Callback error should not prevent returning the found payment,
+        // but we should propagate it to onError so user is notified
+        onError?.(callbackError as Error, tx)
       }
 
       return { found: true, payment, signature }

@@ -93,6 +93,9 @@ export interface HeliusProviderConfig extends ProviderConfig {
  * Uses Helius DAS API for efficient token queries.
  * Recommended for production deployments.
  */
+/** Minimum delay between paginated API requests (ms) to prevent rate limiting */
+const RATE_LIMIT_DELAY_MS = 50
+
 export class HeliusProvider implements SolanaRPCProvider {
   readonly name = 'helius'
   private apiKey: string
@@ -109,6 +112,8 @@ export class HeliusProvider implements SolanaRPCProvider {
     this.cluster = config.cluster ?? 'mainnet-beta'
 
     // RPC endpoint for DAS API
+    // Note: Helius requires API key in URL (no header auth option)
+    // Use sanitizeUrl() when logging to prevent key exposure
     this.rpcUrl = this.cluster === 'devnet'
       ? `https://devnet.helius-rpc.com/?api-key=${this.apiKey}`
       : `https://mainnet.helius-rpc.com/?api-key=${this.apiKey}`
@@ -117,6 +122,20 @@ export class HeliusProvider implements SolanaRPCProvider {
     this.restUrl = this.cluster === 'devnet'
       ? `https://api-devnet.helius.xyz/v0`
       : `https://api.helius.xyz/v0`
+  }
+
+  /**
+   * Sanitize URL by masking the API key to prevent exposure in logs/errors
+   */
+  private sanitizeUrl(url: string): string {
+    return url.replace(/api-key=[^&]+/, 'api-key=***')
+  }
+
+  /**
+   * Rate limiting helper to prevent excessive API requests
+   */
+  private async throttle(): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_DELAY_MS))
   }
 
   /**
@@ -152,7 +171,7 @@ export class HeliusProvider implements SolanaRPCProvider {
       })
 
       if (!response.ok) {
-        throw new Error(`Helius API error: ${response.status} ${response.statusText}`)
+        throw new Error(`Helius API error: ${response.status} ${response.statusText} (${this.sanitizeUrl(this.rpcUrl)})`)
       }
 
       const data = (await response.json()) as HeliusDASResponse
@@ -194,8 +213,14 @@ export class HeliusProvider implements SolanaRPCProvider {
       hasMore = data.result?.items?.length === limit
       page++
 
+      // Rate limit between paginated requests to prevent API throttling
+      if (hasMore) {
+        await this.throttle()
+      }
+
       // Safety limit to prevent infinite loops
       if (page > 100) {
+        // Don't log URL to prevent API key exposure
         console.warn('[HeliusProvider] Reached page limit (100), stopping pagination')
         break
       }
@@ -210,9 +235,9 @@ export class HeliusProvider implements SolanaRPCProvider {
    * More efficient than getAssetsByOwner when you only need one token's balance.
    */
   async getTokenBalance(owner: string, mint: string): Promise<bigint> {
-    try {
-      const url = `${this.restUrl}/addresses/${owner}/balances?api-key=${this.apiKey}`
+    const url = `${this.restUrl}/addresses/${owner}/balances?api-key=${this.apiKey}`
 
+    try {
       const response = await fetch(url)
 
       if (!response.ok) {
@@ -227,7 +252,11 @@ export class HeliusProvider implements SolanaRPCProvider {
       const token = data.tokens?.find((t) => t.mint === mint)
       return token ? BigInt(token.amount) : 0n
     } catch (error) {
-      console.warn('[HeliusProvider] getTokenBalance error, falling back to DAS:', error)
+      // Sanitize error to prevent API key leakage
+      const sanitizedError = error instanceof Error
+        ? error.message.replace(/api-key=[^&\s]+/g, 'api-key=***')
+        : 'Unknown error'
+      console.warn(`[HeliusProvider] getTokenBalance error (${this.sanitizeUrl(url)}), falling back to DAS:`, sanitizedError)
       const assets = await this.getAssetsByOwner(owner)
       const asset = assets.find((a) => a.mint === mint)
       return asset?.amount ?? 0n
