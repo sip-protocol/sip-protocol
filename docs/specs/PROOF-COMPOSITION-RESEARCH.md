@@ -240,7 +240,7 @@ Proof composition is feasible and should be pursued in phases:
 2. **M14:** Integrate Aligned Layer for cross-system attestation
 3. **M15+:** Evaluate native cross-system verification based on ecosystem maturity
 
-The "C+B Hybrid" strategy (Settlement Aggregation + Proof Composition) remains the right approach, with proof composition providing SIP's technical moat through unique privacy primitives from multiple ZK systems.
+The "Dual Moat" strategy (Settlement Aggregation + Proof Composition) remains the right approach, with proof composition providing SIP's technical moat through unique privacy primitives from multiple ZK systems.
 
 ## References
 

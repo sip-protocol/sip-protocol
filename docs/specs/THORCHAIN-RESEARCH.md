@@ -579,9 +579,9 @@ THORChain + SwapKit enables access to 5,500+ tokens via DEX aggregation:
 
 ### Fit with SIP Strategy
 
-SIP's C+B Hybrid Strategy:
-- **Option C (Settlement Aggregator):** THORChain aligns perfectly. Add as pluggable backend.
-- **Option B (Proof Composition):** THORChain swaps can be attested by Mina succinct proofs (future).
+SIP's Dual Moat Strategy:
+- **Settlement Aggregation:** THORChain aligns perfectly. Add as pluggable backend.
+- **Proof Composition:** THORChain swaps can be attested by Mina succinct proofs (future).
 
 **Multi-Foundation Grants:** THORChain integration enables positioning for:
 - Zcash Foundation (privacy + Bitcoin swaps)

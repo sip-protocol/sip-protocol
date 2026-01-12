@@ -256,9 +256,9 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 ---
 
-## Architecture (C+B Hybrid Strategy)
+## Architecture (Dual Moat Strategy)
 
-SIP combines **Settlement Aggregation (C)** for standardization with **Proof Composition (B)** for technical moat.
+SIP combines **Settlement Aggregation** for standardization with **Proof Composition** for technical moat.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -426,9 +426,9 @@ interface Commitment {
 **Vision:** THE privacy standard for Web3 — like HTTPS for the internet
 **Positioning:** Privacy middleware (chain-agnostic, settlement-agnostic)
 **Target users:** DAOs, institutions, wallets, DEXs needing compliant privacy
-**Strategy:** C+B Hybrid
-- **Option C (Core):** Settlement Aggregator — one privacy layer, settle anywhere
-- **Option B (Moat):** Proof Composition — compose proofs from Zcash + Mina + Noir
+**Strategy:** Dual Moat
+- **Settlement Aggregation (Core):** One privacy layer, settle anywhere
+- **Proof Composition (Moat):** Compose proofs from Zcash + Mina + Noir
 
 **Expansion Path:**
 1. Phase 1 (M1-M8): Foundation — Core tech, NEAR Intents ✅

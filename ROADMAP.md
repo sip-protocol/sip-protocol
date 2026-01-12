@@ -189,11 +189,11 @@ Current SOL-NEAR swaps via NEAR Intents provide **partial privacy**:
 
 ---
 
-## Strategic Architecture: C+B Hybrid
+## Strategic Architecture: Dual Moat
 
 SIP combines two complementary strategies:
 
-### Option C: Settlement Aggregator (Core Value)
+### Settlement Aggregation (Core Value)
 
 ```
 "One privacy layer, settle anywhere"
@@ -215,7 +215,7 @@ SIP combines two complementary strategies:
 
 **Why**: Creates switching costs, standardization, network effects.
 
-### Option B: Proof Aggregator (Technical Moat)
+### Proof Composition (Technical Moat)
 
 ```
 "Compose proofs for unique capabilities"
@@ -234,8 +234,8 @@ SIP combines two complementary strategies:
 
 | Layer | Strategy | Role | Moat Type |
 |-------|----------|------|-----------|
-| Privacy | Option C | Core value, standardization | Network effects |
-| Proofs | Option B | Technical differentiation | Innovation |
+| Privacy | Settlement Aggregation | Core value, standardization | Network effects |
+| Proofs | Proof Composition | Technical differentiation | Innovation |
 | Settlement | Utility | Pluggable, not core | Flexibility |
 
 ---
