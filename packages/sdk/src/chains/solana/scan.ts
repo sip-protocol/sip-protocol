@@ -13,7 +13,6 @@ import {
   getAssociatedTokenAddress,
   createTransferInstruction,
   getAccount,
-  TOKEN_PROGRAM_ID,
 } from '@solana/spl-token'
 import {
   checkEd25519StealthAddress,
@@ -35,7 +34,8 @@ import {
   SOLANA_TOKEN_MINTS,
   type SolanaCluster,
 } from './constants'
-import { hexToBytes, bytesToHex } from '@noble/hashes/utils'
+import type { SolanaRPCProvider } from './providers/interface'
+import { hexToBytes } from '@noble/hashes/utils'
 import { ed25519 } from '@noble/curves/ed25519'
 
 /**
@@ -71,6 +71,7 @@ export async function scanForPayments(
     fromSlot,
     toSlot,
     limit = 100,
+    provider,
   } = params
 
   const results: SolanaScanResult[] = []
@@ -145,12 +146,32 @@ export async function scanForPayments(
             // Parse token transfer from transaction
             const transferInfo = parseTokenTransfer(tx)
             if (transferInfo) {
+              // If provider is available, use it for more accurate current balance
+              let amount = transferInfo.amount
+              const tokenSymbol = getTokenSymbol(transferInfo.mint)
+
+              if (provider && announcement.stealthAddress) {
+                try {
+                  // Use getTokenBalance for efficient single-token query
+                  const balance = await provider.getTokenBalance(
+                    announcement.stealthAddress,
+                    transferInfo.mint
+                  )
+                  // Only use provider balance if > 0 (confirms tokens still there)
+                  if (balance > 0n) {
+                    amount = balance
+                  }
+                } catch {
+                  // Fallback to parsed transfer info if provider fails
+                }
+              }
+
               results.push({
                 stealthAddress: announcement.stealthAddress || '',
                 ephemeralPublicKey: announcement.ephemeralPublicKey,
-                amount: transferInfo.amount,
+                amount,
                 mint: transferInfo.mint,
-                tokenSymbol: getTokenSymbol(transferInfo.mint),
+                tokenSymbol,
                 txSignature: sigInfo.signature,
                 slot: sigInfo.slot,
                 timestamp: sigInfo.blockTime || 0,
@@ -327,12 +348,39 @@ export async function claimStealthPayment(
 
 /**
  * Get token balance for a stealth address
+ *
+ * @param connection - Solana RPC connection
+ * @param stealthAddress - Stealth address to check (base58)
+ * @param mint - SPL token mint address
+ * @param provider - Optional RPC provider for efficient queries
+ * @returns Token balance in smallest unit
+ *
+ * @example
+ * ```typescript
+ * // Using standard RPC
+ * const balance = await getStealthBalance(connection, stealthAddr, mint)
+ *
+ * // Using Helius for efficient queries
+ * const helius = createProvider('helius', { apiKey })
+ * const balance = await getStealthBalance(connection, stealthAddr, mint, helius)
+ * ```
  */
 export async function getStealthBalance(
   connection: SolanaScanParams['connection'],
   stealthAddress: string,
-  mint: PublicKey
+  mint: PublicKey,
+  provider?: SolanaRPCProvider
 ): Promise<bigint> {
+  // Use provider if available for efficient queries
+  if (provider) {
+    try {
+      return await provider.getTokenBalance(stealthAddress, mint.toBase58())
+    } catch {
+      // Fallback to standard RPC if provider fails
+    }
+  }
+
+  // Standard RPC fallback
   try {
     const stealthPubkey = new PublicKey(stealthAddress)
     const ata = await getAssociatedTokenAddress(mint, stealthPubkey, true)

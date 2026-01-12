@@ -1,0 +1,43 @@
+/**
+ * Solana RPC Providers
+ *
+ * SIP is RPC-provider-agnostic — developers choose their preferred provider.
+ *
+ * @example
+ * ```typescript
+ * import { createProvider, scanForPayments } from '@sip-protocol/sdk'
+ *
+ * // Helius — efficient DAS queries (recommended for production)
+ * const helius = createProvider('helius', {
+ *   apiKey: process.env.HELIUS_API_KEY!
+ * })
+ *
+ * // Generic — standard RPC, no API key needed
+ * const generic = createProvider('generic', {
+ *   endpoint: 'https://api.devnet.solana.com'
+ * })
+ *
+ * // Same API, different backends
+ * const payments = await scanForPayments({
+ *   provider: helius,
+ *   viewingPrivateKey,
+ *   spendingPublicKey,
+ * })
+ * ```
+ *
+ * @packageDocumentation
+ */
+
+// Interface and factory
+export {
+  createProvider,
+  type SolanaRPCProvider,
+  type TokenAsset,
+  type ProviderConfig,
+  type ProviderType,
+  type GenericProviderConfig,
+} from './interface'
+
+// Provider implementations
+export { HeliusProvider, type HeliusProviderConfig } from './helius'
+export { GenericProvider } from './generic'
