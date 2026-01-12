@@ -585,6 +585,17 @@ export {
   type TimeLockResult,
   type UnlockResult,
   type TimeLockParams,
+  // Range SAS Integration
+  AttestationGatedDisclosure,
+  AttestationSchema,
+  createMockAttestation,
+  verifyAttestationSignature,
+  fetchAttestation,
+  type RangeSASAttestation,
+  type AttestationGatedConfig,
+  type ViewingKeyDerivationResult,
+  type ViewingKeyScope,
+  type AttestationVerificationResult,
 } from './compliance'
 
 // Sealed-Bid Auctions
