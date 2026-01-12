@@ -133,9 +133,10 @@ export class TritonProvider implements SolanaRPCProvider {
     const rpcEndpoint = config.endpoint ?? TRITON_RPC_ENDPOINTS[cluster]
 
     // Append x-token to RPC endpoint
-    const rpcUrl = rpcEndpoint.includes('?')
-      ? `${rpcEndpoint}&x-token=${config.xToken}`
-      : `${rpcEndpoint}/${config.xToken}`
+    const normalizedEndpoint = rpcEndpoint.replace(/\/$/, '') // Remove trailing slash
+    const rpcUrl = normalizedEndpoint.includes('?')
+      ? `${normalizedEndpoint}&x-token=${config.xToken}`
+      : `${normalizedEndpoint}/${config.xToken}`
 
     this.connection = new Connection(rpcUrl, 'confirmed')
     this.grpcEndpoint = config.grpcEndpoint ?? TRITON_GRPC_ENDPOINTS[cluster]
