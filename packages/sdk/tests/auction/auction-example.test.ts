@@ -1,7 +1,7 @@
 /**
- * Tests for the auction demo
+ * Tests for the sealed-bid auction example
  *
- * Ensures the demo runs correctly and demonstrates all key features
+ * Ensures the auction example runs correctly and demonstrates all key features
  */
 
 import { describe, it, expect } from 'vitest'
@@ -9,7 +9,7 @@ import { SealedBidAuction } from '../../src/auction/sealed-bid'
 import type { BidReceipt, SealedBid, RevealedBid } from '../../src/auction/sealed-bid'
 import { hexToBytes } from '@noble/hashes/utils'
 
-describe('Auction Demo', () => {
+describe('Sealed-Bid Auction Example', () => {
   it('should complete a full auction lifecycle', () => {
     const auction = new SealedBidAuction()
 

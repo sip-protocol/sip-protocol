@@ -631,7 +631,7 @@ import { SIP } from Platform.select({
 1. Create `packages/sdk-react-native` directory
 2. Set up React Native library boilerplate
 3. Implement Phase 1 (crypto-only SDK)
-4. Test with demo React Native app
+4. Test with example React Native app
 5. Begin Mopro integration research (iOS first)
 6. Build proof-of-concept with funding proof
 7. Expand to full Phase 2 implementation

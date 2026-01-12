@@ -31,7 +31,7 @@ import {
 // ─── Configuration ────────────────────────────────────────────────────────────
 
 const CHAIN = 'ethereum' as const
-const DEMO_PAYMENT_COUNT = 5 // Number of simulated payments to scan
+const SAMPLE_PAYMENT_COUNT = 5 // Number of simulated payments to scan
 
 // ─── Main Example ─────────────────────────────────────────────────────────────
 
@@ -100,7 +100,7 @@ async function main() {
 
   // Simulate a list of published stealth addresses (from an announcement log)
   // In production, this would come from an on-chain event log or indexer
-  const publishedPayments = generateDummyPayments(DEMO_PAYMENT_COUNT - 1)
+  const publishedPayments = generateDummyPayments(SAMPLE_PAYMENT_COUNT - 1)
 
   // Add our real payment somewhere in the list
   publishedPayments.splice(2, 0, stealthAddress)
@@ -191,7 +191,7 @@ function truncateHex(hex: HexString, chars: number = 10): string {
 }
 
 /**
- * Generate dummy stealth addresses for scanning demo
+ * Generate dummy stealth addresses for scanning example
  * These won't match the recipient's keys
  */
 function generateDummyPayments(count: number): StealthAddress[] {

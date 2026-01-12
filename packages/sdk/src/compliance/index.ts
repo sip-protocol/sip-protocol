@@ -83,3 +83,17 @@ export {
   type DeriveViewingKeyParams,
   type DeriveMultipleParams,
 } from './derivation'
+
+// Range SAS (Solana Attestation Service) Integration
+export {
+  AttestationGatedDisclosure,
+  AttestationSchema,
+  createMockAttestation,
+  verifyAttestationSignature,
+  fetchAttestation,
+  type RangeSASAttestation,
+  type AttestationGatedConfig,
+  type ViewingKeyDerivationResult,
+  type ViewingKeyScope,
+  type AttestationVerificationResult,
+} from './range-sas'

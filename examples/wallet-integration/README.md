@@ -22,7 +22,7 @@ Connect to real wallets (Phantom, MetaMask, Ledger) and sign transactions with S
 # Install dependencies
 pnpm install
 
-# Run mock wallet demo (no real wallet needed)
+# Run mock wallet example (no real wallet needed)
 npx ts-node index.ts
 
 # Run with Phantom (browser required)

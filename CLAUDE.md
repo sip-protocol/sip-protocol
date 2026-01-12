@@ -17,7 +17,8 @@
 | Repo | Purpose | Tech Stack | Version |
 |------|---------|------------|---------|
 | `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.6.0 |
-| `sip-protocol/sip-website` | Demo app + Marketing site | Next.js 14, Tailwind | v0.1.0 |
+| `sip-protocol/sip-app` | **App** - Privacy applications (payments, wallet, DEX) | Next.js 14, Tailwind | v0.0.1 |
+| `sip-protocol/sip-website` | Marketing site (demo deprecated → sip-app) | Next.js 14, Tailwind | v0.1.0 |
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro, MDX | v0.0.1 |
 | `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro, MDX, Tailwind | v0.0.1 |
 | `sip-protocol/circuits` | Noir ZK circuits | Noir, Barretenberg | - |
@@ -98,9 +99,31 @@ pnpm build                      # Build all packages
 
 ---
 
-### 2. sip-website
+### 2. sip-app (NEW)
 
-**Purpose:** Demo application + Marketing website
+**Purpose:** World-class privacy applications (payments, wallet, DEX, enterprise)
+**Tech Stack:** Next.js 14, React 18, Tailwind CSS, Zustand, Vitest
+**Key Commands:**
+```bash
+pnpm dev                        # Dev server (localhost:3000)
+pnpm test -- --run              # Run tests
+pnpm build                      # Build for production
+pnpm typecheck                  # Type check
+```
+**App Routes:**
+- `/payments` - Private payments (hackathon focus)
+- `/wallet` - Wallet interface
+- `/dex` - Private DEX (replaces sip-website /demo)
+- `/enterprise` - Enterprise compliance dashboard
+
+**Deployment:** app.sip-protocol.org (Docker + GHCR, port 5004)
+**CLAUDE.md:** [sip-app/CLAUDE.md](https://github.com/sip-protocol/sip-app/blob/main/CLAUDE.md)
+
+---
+
+### 3. sip-website
+
+**Purpose:** Marketing website (demo pages deprecated → sip-app)
 **Tech Stack:** Next.js 14, React 18, Tailwind CSS, Zustand, Vitest
 **Key Commands:**
 ```bash
@@ -116,13 +139,20 @@ pnpm typecheck                  # Type check
 - `src/stores/` - Zustand stores (wallet, toast)
 - `tests/` - Test suites
 
-**Features:** Wallet connection, quote fetching, swap execution, privacy toggle, SDK showcase, grants pitch pages
+**Features:** SDK showcase, grants pitch pages, about, roadmap
 **Deployment:** sip-protocol.org (Docker + GHCR)
 **CLAUDE.md:** [sip-website/CLAUDE.md](https://github.com/sip-protocol/sip-website/blob/main/CLAUDE.md)
 
+**DEPRECATED PAGES (migrating to sip-app):**
+- `/demo` → `app.sip-protocol.org/dex`
+- `/claim` → `app.sip-protocol.org/payments/receive`
+- `/phantom-poc` → `app.sip-protocol.org/wallet`
+- `/jupiter-poc` → `app.sip-protocol.org/dex/jupiter`
+- `/compliance-dashboard` → `app.sip-protocol.org/enterprise/compliance`
+
 ---
 
-### 3. docs-sip
+### 4. docs-sip
 
 **Purpose:** Official documentation website
 **Tech Stack:** Astro 5, Starlight, MDX
@@ -142,7 +172,7 @@ npm run preview                 # Preview build
 
 ---
 
-### 4. circuits
+### 5. circuits
 
 **Purpose:** Noir ZK circuits for privacy proofs
 **Tech Stack:** Noir, Barretenberg, Nargo CLI
@@ -163,7 +193,7 @@ nargo verify                    # Verify proof
 
 ---
 
-### 5. blog-sip
+### 6. blog-sip
 
 **Purpose:** Official blog for technical deep-dives and ecosystem updates
 **Tech Stack:** Astro 4, MDX, Tailwind CSS
@@ -185,7 +215,7 @@ pnpm preview                    # Preview build
 
 ---
 
-### 6. .github
+### 7. .github
 
 **Purpose:** Organization-wide GitHub configuration
 **Key Files:**
@@ -226,9 +256,9 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 ---
 
-## Architecture (C+B Hybrid Strategy)
+## Architecture (Dual Moat Strategy)
 
-SIP combines **Settlement Aggregation (C)** for standardization with **Proof Composition (B)** for technical moat.
+SIP combines **Settlement Aggregation** for standardization with **Proof Composition** for technical moat.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -245,12 +275,18 @@ SIP combines **Settlement Aggregation (C)** for standardization with **Proof Com
 │  │ • Privacy Levels       • Unified API            • Compliance Ready    │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ INFRASTRUCTURE AGNOSTIC (Pluggable Everything)                        │ │
+│  │ • Settlement backends  → NEAR, Zcash, Direct Chain, Mina              │ │
+│  │ • Privacy backends     → SIP Native, PrivacyCash, Arcium, Inco        │ │
+│  │ • RPC providers        → Helius, QuickNode, Triton, Generic   [M17]   │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
 │  │ PROOF COMPOSITION (Technical Moat) [Phase 5: M19-M21]                 │ │
 │  │ • Zcash → Privacy execution     • Mina → Succinct verification        │ │
 │  │ • Noir  → Validity proofs       • Compose proofs from multiple systems│ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 └────────────────────────────────┬────────────────────────────────────────────┘
-                                 │ "Settle anywhere"
+                                 │ "Settle anywhere, use any provider"
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  SETTLEMENT LAYER (Pluggable)                                               │
@@ -265,6 +301,25 @@ SIP combines **Settlement Aggregation (C)** for standardization with **Proof Com
 ```
 
 **One-liner**: SIP is privacy middleware — we sit between apps and chains, making any transaction private.
+
+### Infrastructure Agnostic Philosophy
+
+SIP is **pluggable at every layer** — developers choose their preferred backends:
+
+| Layer | Options | Philosophy |
+|-------|---------|------------|
+| **Settlement** | NEAR Intents, Zcash, Direct Chain, Mina | Settle anywhere |
+| **Privacy** | SIP Native, PrivacyCash, Arcium, Inco | Choose your privacy model |
+| **RPC Provider** | Helius, QuickNode, Triton, Generic | Use your preferred infra |
+
+```typescript
+// Same API, different backends — developer choice
+const payments = await scanForPayments({
+  provider: createProvider('helius', { apiKey }),  // or 'quicknode', 'triton', 'generic'
+  viewingPrivateKey,
+  spendingPublicKey,
+})
+```
 
 **Key Files:**
 - `packages/sdk/src/stealth.ts` - Stealth address generation (EIP-5564, secp256k1)
@@ -396,9 +451,9 @@ interface Commitment {
 **Vision:** THE privacy standard for Web3 — like HTTPS for the internet
 **Positioning:** Privacy middleware (chain-agnostic, settlement-agnostic)
 **Target users:** DAOs, institutions, wallets, DEXs needing compliant privacy
-**Strategy:** C+B Hybrid
-- **Option C (Core):** Settlement Aggregator — one privacy layer, settle anywhere
-- **Option B (Moat):** Proof Composition — compose proofs from Zcash + Mina + Noir
+**Strategy:** Dual Moat
+- **Settlement Aggregation (Core):** One privacy layer, settle anywhere
+- **Proof Composition (Moat):** Compose proofs from Zcash + Mina + Noir
 
 **Expansion Path:**
 1. Phase 1 (M1-M8): Foundation — Core tech, NEAR Intents ✅
@@ -489,7 +544,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | M4: Network Integration | NEAR, Zcash, wallets | ✅ |
 | M5: Documentation & Launch | Docs, whitepaper | ✅ |
 | M6: Launch & Publish | npm publish, docs site | ✅ |
-| M7: Real Demo Integration | Live demo | ✅ |
+| M7: Real Integration | Live application | ✅ |
 | M8: Production Hardening | Noir circuits, multi-curve | ✅ |
 
 ### Phase 2: Standard (2025) ✅
@@ -540,10 +595,10 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 | Service | Port | Container | Domain |
 |---------|------|-----------|--------|
-| sip-website (blue) | 5000 | sip-website-blue | sip-protocol.org |
-| sip-website (green) | 5001 | sip-website-green | - |
-| sip-website (staging) | 5002 | sip-website-staging | - |
+| sip-website | 5000 | sip-website | sip-protocol.org |
 | sip-docs | 5003 | sip-docs | docs.sip-protocol.org |
+| sip-blog | 5004 | sip-blog | blog.sip-protocol.org |
+| sip-app | 5005 | sip-app | app.sip-protocol.org |
 
 ### Deployment Flow
 

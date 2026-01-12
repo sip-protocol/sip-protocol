@@ -324,10 +324,10 @@ viewingKey: generateViewingKey()
 
 ```
 sip-protocol/
-├── apps/
-│   └── demo/                 # Next.js demo application
-│       ├── src/app/          # App router pages
-│       └── src/components/   # UI components
+├── examples/                  # Integration examples
+│   ├── private-swap/          # Private swap example
+│   ├── private-payment/       # Stealth payment example
+│   └── compliance/            # Viewing key example
 ├── packages/
 │   ├── sdk/                  # @sip-protocol/sdk
 │   │   ├── src/stealth.ts    # Stealth address generation
@@ -378,7 +378,7 @@ User Input → Privacy Layer → Intent Creation → Solver Network → Executio
 |---------|-------------|--------|
 | [`@sip-protocol/sdk`](packages/sdk) | Core SDK for creating shielded intents | ✅ Active |
 | [`@sip-protocol/types`](packages/types) | TypeScript type definitions | ✅ Active |
-| [`apps/demo`](apps/demo) | Reference implementation and demo app | ✅ Active |
+| [`examples`](examples/) | Integration examples and reference implementations | ✅ Active |
 
 ---
 
@@ -390,7 +390,7 @@ User Input → Privacy Layer → Intent Creation → Solver Network → Executio
 - ✅ SDK architecture (SIP client, IntentBuilder)
 - ✅ Stealth address generation (secp256k1, EIP-5564 style)
 - ✅ Pedersen commitment implementation
-- ✅ Demo application with comparison view
+- ✅ Reference application with comparison view
 - ✅ Monorepo setup (pnpm + Turborepo)
 
 ### Phase 2: Core Protocol 🔄 **In Progress**
@@ -424,7 +424,7 @@ User Input → Privacy Layer → Intent Creation → Solver Network → Executio
 
 | Category | Technology | Purpose |
 |----------|------------|---------|
-| **Framework** | Next.js 14 (App Router) | Demo application |
+| **Framework** | Next.js 14 (App Router) | Reference application |
 | **Language** | TypeScript (strict mode) | Type safety |
 | **Styling** | Tailwind CSS + shadcn/ui | UI components |
 | **State** | Zustand | Client state management |
@@ -561,6 +561,6 @@ SIP builds on the shoulders of giants:
 
 *Privacy is not a feature. It's a right.*
 
-[Documentation](docs/) · [Demo](apps/demo) · [Report Bug](https://github.com/RECTOR-LABS/sip-protocol/issues)
+[Documentation](docs/) · [Examples](examples/) · [Report Bug](https://github.com/RECTOR-LABS/sip-protocol/issues)
 
 </div>

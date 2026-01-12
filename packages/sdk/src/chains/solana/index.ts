@@ -85,3 +85,27 @@ export {
   claimStealthPayment,
   getStealthBalance,
 } from './scan'
+
+// RPC Providers (Infrastructure Agnostic)
+export {
+  createProvider,
+  HeliusProvider,
+  GenericProvider,
+  type SolanaRPCProvider,
+  type TokenAsset,
+  type ProviderConfig,
+  type ProviderType,
+  type GenericProviderConfig,
+  type HeliusProviderConfig,
+} from './providers'
+
+// Helius Webhook (Real-time Scanning)
+export {
+  createWebhookHandler,
+  processWebhookTransaction,
+  type HeliusWebhookTransaction,
+  type HeliusEnhancedTransaction,
+  type HeliusWebhookPayload,
+  type WebhookHandlerConfig,
+  type WebhookProcessResult,
+} from './providers'

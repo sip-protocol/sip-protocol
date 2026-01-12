@@ -205,7 +205,7 @@ examples/
 └── zcash-connection/
     ├── README.md               # Testnet setup, API reference
     ├── package.json
-    └── index.ts                # RPC client + ShieldedService demo
+    └── index.ts                # RPC client + ShieldedService example
 ```
 
 ## Dependencies

@@ -189,11 +189,11 @@ Current SOL-NEAR swaps via NEAR Intents provide **partial privacy**:
 
 ---
 
-## Strategic Architecture: C+B Hybrid
+## Strategic Architecture: Dual Moat
 
 SIP combines two complementary strategies:
 
-### Option C: Settlement Aggregator (Core Value)
+### Settlement Aggregation (Core Value)
 
 ```
 "One privacy layer, settle anywhere"
@@ -215,7 +215,7 @@ SIP combines two complementary strategies:
 
 **Why**: Creates switching costs, standardization, network effects.
 
-### Option B: Proof Aggregator (Technical Moat)
+### Proof Composition (Technical Moat)
 
 ```
 "Compose proofs for unique capabilities"
@@ -234,8 +234,8 @@ SIP combines two complementary strategies:
 
 | Layer | Strategy | Role | Moat Type |
 |-------|----------|------|-----------|
-| Privacy | Option C | Core value, standardization | Network effects |
-| Proofs | Option B | Technical differentiation | Innovation |
+| Privacy | Settlement Aggregation | Core value, standardization | Network effects |
+| Proofs | Proof Composition | Technical differentiation | Innovation |
 | Settlement | Utility | Pluggable, not core | Flexibility |
 
 ---
@@ -255,7 +255,7 @@ PHASE 1: FOUNDATION     PHASE 2: STANDARD      PHASE 3: ECOSYSTEM     PHASE 4: E
      │                      │                      │                      │                    │
 • SDK ✅                • Stable Core ✅       • Compliance ✅       • Narrative       • Zcash route
 • NEAR adapter ✅       • ZK Production ✅     • React/CLI/API ✅      Capture         • Proof compo
-• Demo ✅               • Multi-Settlement ✅  • Hardware wallets ✅ • Solana Anchor   • SIP-EIP
+• App ✅                • Multi-Settlement ✅  • Hardware wallets ✅ • Solana Anchor   • SIP-EIP
 • Noir circuits ✅      • Multi-Chain ✅       • WalletConnect ✅    • ETH Solidity    • $5B vol
 • 2,757 tests ✅        • 15+ chains ✅        • 157 new tests ✅    • Full privacy    • Industry std
 ```
@@ -344,7 +344,7 @@ Polish and publish.
 | Issue | Description | Status |
 |-------|-------------|--------|
 | [#39](../../issues/39) | [EPIC] Documentation & Launch | ✅ Done |
-| [#40](../../issues/40) | Demo application polish | ✅ Done |
+| [#40](../../issues/40) | Reference application polish | ✅ Done |
 | [#41](../../issues/41) | Deploy to production | ✅ Done |
 | [#42](../../issues/42) | Internal security review | ✅ Done |
 | [#43](../../issues/43) | Security audit preparation | ✅ Done |
@@ -368,13 +368,13 @@ Publish SDK to npm and integrate into website.
 
 **Achievement**: @sip-protocol/sdk and @sip-protocol/types published to npm. docs.sip-protocol.org live.
 
-#### M7: Real Demo Integration ✅ Complete
+#### M7: Real Integration ✅ Complete
 
-Connect demo UI to real SDK with actual blockchain transactions.
+Connect application UI to real SDK with actual blockchain transactions.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#54](../../issues/54) | [EPIC] Real Demo Integration | ✅ Done |
+| [#54](../../issues/54) | [EPIC] Real Integration | ✅ Done |
 | [#55](../../issues/55) | Wallet connection component (Phantom, MetaMask) | ✅ Done |
 | [#56](../../issues/56) | SDK client initialization | ✅ Done |
 | [#57](../../issues/57) | Testnet configuration (Solana Devnet, Sepolia) | ✅ Done |
@@ -383,7 +383,7 @@ Connect demo UI to real SDK with actual blockchain transactions.
 | [#60](../../issues/60) | Explorer links and tx status | ✅ Done |
 | [#61](../../issues/61) | Error handling and edge cases | ✅ Done |
 
-**Achievement**: Full demo with wallet connection, quote fetching, transaction execution. 122 tests in sip-website.
+**Achievement**: Full application with wallet connection, quote fetching, transaction execution. 122 tests in sip-website.
 
 #### M8: Production Hardening ✅ Complete
 
@@ -545,64 +545,87 @@ Multi-wallet support and hardware wallet integration.
 
 **Epic Issue:** [#443 - HACK-EPIC: Solana Privacy Hack](../../issues/443)
 
+> **⚠️ IMPORTANT:** The hackathon is a BONUS, not our primary goal. We are building SIP to become THE privacy standard for Web3. The hackathon deadline should NOT rush our architecture decisions. If we miss the submission deadline but build something excellent, that's still a win. Quality over prizes. The real prize is market leadership.
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                     SOLANA PRIVACY HACK STRATEGY                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   CURRENT STATE (Realistic Judge Assessment): 52/100                        │
-│   ─────────────────────────────────────────────────                         │
-│   Auto-deductions: No demo video (-25), No devnet deployment (-20)          │
-│   Strengths: SDK production-ready (2,757 tests), viewing keys, compliance   │
-│   Weaknesses: Missing demo, missing devnet, no Helius/Range integrations    │
+│   TRACKS (3):                                                               │
+│   • Private Payments ($15K) — Devnet deploy + app.sip-protocol.org/payments │
+│   • Privacy Tooling ($15K) — SDK + React hooks (STRONGEST)                  │
+│   • Open Track ($18K) — Privacy Aggregator narrative                        │
 │                                                                             │
-│   TRACK RECOMMENDATIONS:                                                     │
-│   • Privacy Tooling ($15K) — 68/100 — SDK + React hooks are strong          │
-│   • Open Track ($18K) — 60/100 — Needs narrative polish                     │
-│   • Range Compliant Privacy ($1.5K+) — 65/100 — Viewing keys align well     │
+│   SPONSOR BOUNTIES (8):                                                     │
+│   • Arcium ($10K) — MPC + C-SPL token standard                              │
+│   • Aztec/Noir ($10K) — Already using Noir! Just showcase                   │
+│   • Inco ($6K) — FHE compute privacy adapter                                │
+│   • PrivacyCash ($6K) — Pool mixing backend integration                     │
+│   • Helius ($5K) — DAS API + Webhooks for stealth scanning                  │
+│   • Range ($1.5K+) — Viewing keys = selective disclosure (SWEET SPOT)       │
+│   • Encrypt.trade ($1K) — Surveillance tool + privacy explainer             │
+│   • QuickNode (TBD) — Details pending                                       │
 │                                                                             │
-│   CONDITIONAL (If Implemented During Hack):                                 │
-│   • Private Payments ($15K) — Currently 45/100, needs devnet deployment     │
-│   • Helius ($5K) — Requires DAS/Webhooks integration                        │
-│                                                                             │
-│   REALISTIC TARGET: $15K (Privacy Tooling)                                  │
-│   STRETCH GOAL: $38.5K (Tooling + Open + Range + Helius)                    │
+│   TOTAL POTENTIAL: $88K+ (all tracks + all bounties)                        │
+│   REALISTIC TARGET: $36.5K (Tooling + Noir + Range + Helius + Encrypt)      │
+│   STRETCH GOAL: $88K+ (everything)                                          │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Hackathon Sprint Issues:**
 
-| Issue | Description | Priority | Target Track |
-|-------|-------------|----------|--------------|
-| [#444](../../issues/444) | Demo video (3 min) | 🔴 Critical | All tracks |
-| [#445](../../issues/445) | Devnet deployment | 🔴 Critical | Private Payments |
+| Issue | Description | Priority | Target Track/Bounty |
+|-------|-------------|----------|---------------------|
+| [#444](../../issues/444) | Showcase video (3 min) | 🔴 Critical | All tracks |
+| [#445](../../issues/445) | Devnet deployment | 🔴 Critical | Private Payments $15K |
 | [#446](../../issues/446) | Helius DAS integration | 🟡 High | Helius $5K |
 | [#447](../../issues/447) | Helius webhook scanning | 🟡 High | Helius $5K |
 | [#448](../../issues/448) | Range SAS example | 🟡 High | Range $1.5K+ |
-| [#449](../../issues/449) | React hooks demo | 🟢 Medium | Tooling $15K |
+| [#449](../../issues/449) | React hooks examples | 🟢 Medium | Tooling $15K |
 | [#450](../../issues/450) | Submission materials | 🔴 Critical | All tracks |
+| [#480](../../issues/480) | PrivacyCash Adapter | 🟡 High | PrivacyCash $6K |
+| [#481](../../issues/481) | Arcium Adapter | 🟡 High | Arcium $10K |
+| [#482](../../issues/482) | Inco Adapter | 🟡 High | Inco $6K |
+| [#484](../../issues/484) | C-SPL Token Standard | 🟡 High | Arcium $10K |
+| [#485](../../issues/485) | Wallet Surveillance Tool | 🟡 High | Encrypt.trade $1K |
+| [#486](../../issues/486) | Aztec/Noir Bounty Strategy | 🟡 High | Aztec/Noir $10K |
+| [#488](../../issues/488) | D3.js Privacy Dashboard | 🟡 High | Privacy UX |
+| [#490](../../issues/490) | Privacy Advisor Agent | 🟢 Medium | User guidance |
+| [blog#80](https://github.com/sip-protocol/blog-sip/issues/80) | Privacy Explainer Content | 🟢 Medium | Encrypt.trade $500 |
 
 **Hackathon Sprint Timeline:**
 
-| Week | Deliverables | Issues | Score Impact |
-|------|--------------|--------|--------------|
-| Week 1 (Jan 12-18) | Devnet deployment, Helius DAS | #445, #446 | +20 (devnet) |
-| Week 2 (Jan 19-25) | Demo video, React demo, Range example | #444, #449, #448 | +25 (video) |
-| Week 3 (Jan 26-Feb 1) | Polish, submission materials | #450, #447 | Final polish |
+| Week | Deliverables | Issues | Target Bounties |
+|------|--------------|--------|-----------------|
+| Week 1 (Jan 12-18) | Devnet deploy, Helius DAS, Noir showcase | #445, #446, #486 | Tooling, Helius, Aztec |
+| Week 2 (Jan 19-25) | Video, React examples, Range integration, Surveillance + D3.js | #444, #449, #448, #485, #488 | All tracks, Range, Encrypt |
+| Week 3 (Jan 26-Feb 1) | Adapters (PrivacyCash/Arcium/Inco), Polish, Submissions | #480, #481, #482, #484, #450 | Sponsor bounties |
 
-**Target Score After Sprint:** 85-90/100 (competitive for prizes)
+**Bounty Coverage Matrix:**
 
-**Competitor Context (From Analysis):**
-- **PrivacyCash:** Pool mixing, 10K+ SOL — we beat them with cryptographic privacy
-- **Light Protocol:** Pivoted to compression — we fill the privacy gap they left
-- **Elusiv:** Shutdown Feb 2024 — we learn from their mistakes (viewing keys essential)
-- **Arcium:** MPC focus — complementary, not competitive
+| Bounty | Prize | Key Requirement | Our Solution | Issue |
+|--------|-------|-----------------|--------------|-------|
+| **Tooling Track** | $15K | Dev tools for privacy | SDK + React hooks + CLI | #449 |
+| **Aztec/Noir** | $10K | ZK apps with Noir | Already using Noir! | #486 |
+| **Arcium** | $10K | MPC + C-SPL tokens | Arcium Adapter + C-SPL | #481, #484 |
+| **Inco** | $6K | FHE compute privacy | Inco Adapter | #482 |
+| **PrivacyCash** | $6K | SDK integration | PrivacyCash Adapter | #480 |
+| **Helius** | $5K | DAS + Webhooks | Stealth scanning | #446, #447 |
+| **Range** | $1.5K+ | Selective disclosure | Viewing keys (core!) | #448 |
+| **Encrypt.trade** | $1K | Surveillance tool + explainer | Privacy score + blog | #485, blog#80 |
 
-**Critical Integrations for Hackathon:**
-1. **Helius DAS API** — Efficient stealth address scanning (10x faster than naive approach)
-2. **Helius Webhooks** — Real-time payment notifications for stealth addresses
-3. **Devnet Deployment** — Prove SDK works with real Solana transactions
+**Competitor Context:**
+- **PrivacyCash:** Pool mixing — we INTEGRATE them as backend option
+- **Arcium:** MPC compute — we INTEGRATE them for compute privacy
+- **Inco:** FHE state — we INTEGRATE them for encrypted state
+- **Light Protocol:** Pivoted to compression — we fill the privacy gap
+
+**Critical Path (Blockers):**
+1. **Showcase video (#444)** — Required for ALL submissions
+2. **Devnet deployment (#445)** — Required for Private Payments track
+3. **Noir showcase (#486)** — Low-hanging $10K (already built!)
 
 See private strategy docs: `~/.claude/sip-protocol/SOLANA-PRIVACY-HACK.md`
 
@@ -614,10 +637,10 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 
 | Issue | Description | Budget | Status |
 |-------|-------------|--------|--------|
-| [#229](../../issues/229) | [EPIC] Narrative Capture | $10K total | 🎯 Starting |
-| - | Content Campaign (8 articles + 15 threads) | $4,500 (45%) | 🔲 Planned |
-| - | Community Building (Discord + Twitter) | $3,500 (35%) | 🔲 Planned |
-| - | Ecosystem Presentations (3 events) | $2,000 (20%) | 🔲 Planned |
+| [#451](../../issues/451) | [EPIC] Narrative Capture | $10K total | 🎯 Starting |
+| [#384-391](../../issues?q=is%3Aissue+M16+article) | Content Campaign (8 articles + 15 threads) | $4,500 (45%) | 🔲 Planned |
+| [#392-395](../../issues?q=is%3Aissue+M16+community) | Community Building (Discord + Twitter) | $3,500 (35%) | 🔲 Planned |
+| [#396](../../issues/396) | Ecosystem Presentations (3 events) | $2,000 (20%) | 🔲 Planned |
 
 **Deliverables:**
 - **Content:** 8 technical articles (Medium, Mirror, dev.to) + 15 Twitter threads
@@ -666,43 +689,162 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 
 | Issue | Description | Priority | Status |
 |-------|-------------|----------|--------|
-| - | [EPIC] SIP Solana Program (Anchor) | - | 🔲 Planned |
-| - | Anchor program: shielded_transfer instruction | Critical | 🔲 Planned |
-| - | Anchor program: claim_transfer instruction | Critical | 🔲 Planned |
-| - | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
-| - | On-chain ZK proof verifier (Noir→Solana) | Critical | 🔲 Planned |
-| - | Ed25519 stealth address scanning | Critical | 🔲 Planned |
-| - | Viewing key disclosure mechanism | High | 🔲 Planned |
-| - | SDK API: `sip.shieldedTransfer(solana, ...)` | High | 🔲 Planned |
-| - | Jupiter DEX integration (private swaps) | High | 🔲 Planned |
-| - | **Jito relayer integration** (gas abstraction) | High | 🔲 Planned |
-| - | Anchor program audit preparation | High | 🔲 Planned |
-| - | Same-chain test suite (100+ tests) | High | 🔲 Planned |
-| - | Developer documentation | Medium | 🔲 Planned |
-| - | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | 🔲 Planned |
-| - | **Helius DAS API integration** (efficient stealth scanning) | High | 🔲 Planned |
-| - | **Helius Enhanced Transactions** (better UX) | Medium | 🔲 Planned |
-| - | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
-| - | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
-| - | **Devnet deployment** (verifier.so + demo app) | Critical | 🔲 Planned |
+| [#401](../../issues/401) | [EPIC] SIP Solana Program (Anchor) | - | 🔲 Planned |
+| [#399](../../issues/399) | Anchor program: shielded_transfer instruction | Critical | 🔲 Planned |
+| [#400](../../issues/400) | Anchor program: claim_transfer instruction | Critical | 🔲 Planned |
+| [#402](../../issues/402) | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
+| [#403](../../issues/403) | On-chain ZK proof verifier (Noir→Solana) | Critical | 🔲 Planned |
+| [#262](../../issues/262) | Ed25519 stealth address scanning | Critical | 🔲 Planned |
+| [#479](../../issues/479) | Viewing key disclosure mechanism | High | 🔲 Planned |
+| [#374](../../issues/374) | SDK API: `sip.shieldedTransfer(solana, ...)` | High | 🔲 Planned |
+| [#454](../../issues/454) | Jupiter DEX integration (private swaps) | High | 🔲 Planned |
+| [#421](../../issues/421) | **Jito relayer integration** (gas abstraction) | High | 🔲 Planned |
+| [#404](../../issues/404) | Anchor program audit preparation | High | 🔲 Planned |
+| [#379](../../issues/379) | Same-chain test suite (100+ tests) | High | 🔲 Planned |
+| [#377](../../issues/377) | Developer documentation | Medium | 🔲 Planned |
+| [#441](../../issues/441) | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | 🔲 Planned |
+| [#493](../../issues/493) | **SolanaRPCProvider interface** (unified provider abstraction) | High | 🔲 Planned |
+| [#446](../../issues/446) | **Helius DAS adapter** (token queries via DAS API) | High | 🔲 Planned |
+| [#494](../../issues/494) | **QuickNode adapter** (Yellowstone gRPC streams) | Medium | 🔲 Planned |
+| [#495](../../issues/495) | **Triton adapter** (Geyser plugin integration) | Medium | 🔲 Planned |
+| [#496](../../issues/496) | **Generic RPC adapter** (standard RPC fallback) | High | 🔲 Planned |
+| [#456](../../issues/456) | **Helius Enhanced Transactions** (better UX) | Medium | 🔲 Planned |
+| [#447](../../issues/447) | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
+| [#457](../../issues/457) | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
+| [#445](../../issues/445) | **Devnet deployment** (verifier.so + reference app) | Critical | 🔲 Planned |
+| [#480](../../issues/480) | **PrivacyCash Adapter** (pool mixing backend) | High | 🔲 Planned |
+| [#481](../../issues/481) | **Arcium Adapter** (MPC compute privacy) | Medium | 🔲 Planned |
+| [#482](../../issues/482) | **Inco Adapter** (FHE compute privacy) | Medium | 🔲 Planned |
+| [#483](../../issues/483) | **PrivacyBackend interface** (unified backend abstraction) | High | 🔲 Planned |
+| [#487](../../issues/487) | **SmartRouter v2** (backend selection logic) | Medium | 🔲 Planned |
+| [#489](../../issues/489) | **Network Privacy** (Tor/SOCKS5 proxy support) | Medium | 🔲 Planned |
+| [#472](../../issues/472) | **app.sip-protocol.org** (dedicated app subdomain) | High | 🔲 Planned |
 
 **Relayer Strategy:** Use Jito for gas abstraction — no dedicated infrastructure needed. User signs shielded tx → Jito relayer submits → Pays gas → Gets fee from commitment. Relayer is gas-only (not asset movement) = lower regulatory risk.
 
-**Why SIP beats PrivacyCash:**
+**Privacy Backend Aggregation Strategy:**
 
-| Feature | PrivacyCash (Mixer) | SIP Anchor (Cryptographic) |
-|---------|---------------------|----------------------------|
-| Privacy method | Pool mixing | Pedersen + Stealth |
-| Amount privacy | ❌ Visible on-chain | ✅ Hidden (Pedersen commitment) |
-| Any amount | ✅ Arbitrary amounts | ✅ Arbitrary amounts |
-| Amount correlation | ❌ Vulnerable (amounts visible) | ✅ Protected (amounts hidden) |
-| Speed | ⚡ Instant | ⚡ Instant |
-| Compliance | ❌ None | ✅ Viewing keys |
-| Regulatory risk | 🔴 HIGH (mixer) | 🟢 LOW (cryptographic) |
-| Gas abstraction | ❌ No relayer | ✅ Jito relayer integration |
-| On-chain code | Circom ZK circuits | Noir + Anchor |
+SIP is a **Privacy Aggregator** — one SDK that integrates ALL privacy approaches. Users choose what fits their needs.
 
-> **Note:** PrivacyCash supports arbitrary amounts, but amounts are VISIBLE on-chain. This enables correlation attacks — if Alice deposits 1.337 SOL (unique amount), tracking that withdrawal is trivial. SIP hides amounts cryptographically via Pedersen commitments.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    SIP PRIVACY BACKEND ARCHITECTURE                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   TRANSACTION PRIVACY (Who sends what to whom):                             │
+│   ──────────────────────────────────────────────                            │
+│   • SIP Native — Stealth addresses + Pedersen commitments                   │
+│   • PrivacyCash — Pool mixing (integrated as backend)                       │
+│                                                                             │
+│   COMPUTE PRIVACY (What happens inside contracts):                          │
+│   ────────────────────────────────────────────────                          │
+│   • Arcium — MPC (Multi-Party Computation)                                  │
+│   • Inco — FHE (Fully Homomorphic Encryption)                               │
+│                                                                             │
+│   COMPLETE PRIVACY = Transaction Privacy + Compute Privacy                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Privacy Backend Comparison:**
+
+| Backend | Type | Amount Hidden | Sender Hidden | Compute Hidden | Compliance | Best For |
+|---------|------|---------------|---------------|----------------|------------|----------|
+| **SIP Native** | ZK + Stealth | ✅ Pedersen | ✅ Stealth | ❌ | ✅ Viewing keys | Compliant payments |
+| **PrivacyCash** | Pool Mixing | ❌ Visible | ✅ Pool | ❌ | ❌ | Anonymity set |
+| **Arcium** | MPC | ✅ In compute | ❌ | ✅ MPC | ⚠️ Limited | Private DeFi logic |
+| **Inco** | FHE | ✅ Encrypted | ❌ | ✅ FHE | ⚠️ Limited | Encrypted state |
+
+**User Choice API:**
+
+```typescript
+const sip = new SIPClient({ chain: 'solana' })
+
+// SIP Native — cryptographic privacy with compliance
+await sip.shieldedTransfer({ backend: 'sip-native', ... })
+
+// PrivacyCash — pool mixing for anonymity set
+await sip.shieldedTransfer({ backend: 'privacycash', ... })
+
+// Auto — SmartRouter chooses based on amount, compliance needs
+await sip.shieldedTransfer({ backend: 'auto', ... })
+
+// SIP + Arcium — transaction privacy + compute privacy
+await sip.privateSwap({ txBackend: 'sip-native', computeBackend: 'arcium', ... })
+```
+
+> **Philosophy:** SIP doesn't compete with PrivacyCash, Arcium, or Inco — we INTEGRATE them. One standard, all approaches.
+
+**RPC Provider Abstraction (Infrastructure Agnostic):**
+
+SIP is **RPC-provider-agnostic** — developers choose their preferred Solana RPC provider. Each provider has unique moats we leverage through a unified interface.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      SIP RPC PROVIDER ARCHITECTURE                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  SolanaRPCProvider Interface (Unified API)                          │   │
+│   │  • getAssetsByOwner()    — Token balance queries                    │   │
+│   │  • getTokenBalance()     — Specific mint balance                    │   │
+│   │  • subscribeToTransfers() — Real-time notifications (if supported)  │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│              ┌─────────────────────┼─────────────────────┐                  │
+│              ▼                     ▼                     ▼                  │
+│   ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐         │
+│   │  Helius Adapter  │  │ QuickNode Adapter│  │  Triton Adapter  │         │
+│   │  • DAS API       │  │  • Yellowstone   │  │  • Geyser plugins│         │
+│   │  • Webhooks      │  │  • Functions     │  │  • High-throughput│        │
+│   └──────────────────┘  └──────────────────┘  └──────────────────┘         │
+│              │                     │                     │                  │
+│              └─────────────────────┼─────────────────────┘                  │
+│                                    ▼                                        │
+│                         ┌──────────────────┐                                │
+│                         │  Generic Adapter │                                │
+│                         │  • Standard RPC  │                                │
+│                         │  • Self-hosted   │                                │
+│                         │  • Fallback      │                                │
+│                         └──────────────────┘                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**RPC Provider Comparison:**
+
+| Provider | Moat API | Best For | Issue |
+|----------|----------|----------|-------|
+| **Helius** | DAS (Digital Asset Standard) | Token balances, NFT metadata | [#446](../../issues/446) |
+| **QuickNode** | Yellowstone gRPC, Functions | Real-time streams, custom logic | [#494](../../issues/494) |
+| **Triton** | Geyser plugins | High-throughput indexing | [#495](../../issues/495) |
+| **Generic** | Standard RPC | Self-hosted, fallback | [#496](../../issues/496) |
+
+**Provider Interface:** [#493](../../issues/493)
+
+**Developer Choice API:**
+
+```typescript
+import { scanForPayments, createProvider } from '@sip-protocol/sdk'
+
+// Helius — efficient DAS queries (recommended for production)
+const helius = createProvider('helius', { apiKey: process.env.HELIUS_API_KEY })
+
+// QuickNode — real-time streams
+const quicknode = createProvider('quicknode', { apiKey: process.env.QUICKNODE_API_KEY })
+
+// Generic — standard RPC, no API key needed
+const generic = createProvider('generic', { connection })
+
+// Same API, different backends — developer choice
+const payments = await scanForPayments({
+  provider: helius, // or quicknode, triton, generic
+  viewingPrivateKey,
+  spendingPublicKey,
+})
+```
+
+> **Philosophy:** SIP doesn't lock developers to one RPC provider — we provide a unified interface that leverages each provider's unique moats. Use Helius DAS for efficient queries, QuickNode for real-time streams, or your own node.
 
 **Success Metrics:**
 - Anchor program deployed to devnet
@@ -743,19 +885,19 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 
 | Issue | Description | Priority | Status |
 |-------|-------------|----------|--------|
-| - | [EPIC] SIP Ethereum Contract (Solidity) | - | 🔲 Planned |
-| - | Solidity contract: shieldedTransfer function | Critical | 🔲 Planned |
-| - | Solidity contract: claimTransfer function | Critical | 🔲 Planned |
-| - | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
-| - | On-chain ZK proof verifier (Noir→EVM) | Critical | 🔲 Planned |
-| - | EIP-5564 stealth address implementation | Critical | 🔲 Planned |
-| - | Viewing key disclosure mechanism | High | 🔲 Planned |
-| - | SDK API: `sip.shieldedTransfer(ethereum, ...)` | High | 🔲 Planned |
-| - | **Gelato/ERC-4337 relayer** (gas abstraction) | High | 🔲 Planned |
-| - | **L2 Tier 1: Base, Arbitrum, Optimism** | Critical | 🔲 Planned |
+| [#405](../../issues/405) | [EPIC] SIP Ethereum Contract (Solidity) | - | 🔲 Planned |
+| [#406](../../issues/406) | Solidity contract: shieldedTransfer function | Critical | 🔲 Planned |
+| [#407](../../issues/407) | Solidity contract: claimTransfer function | Critical | 🔲 Planned |
+| [#408](../../issues/408) | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
+| [#409](../../issues/409) | On-chain ZK proof verifier (Noir→EVM) | Critical | 🔲 Planned |
+| [#410](../../issues/410) | EIP-5564 stealth address implementation | Critical | 🔲 Planned |
+| [#382](../../issues/382) | Viewing key disclosure mechanism | High | 🔲 Planned |
+| [#382](../../issues/382) | SDK API: `sip.shieldedTransfer(ethereum, ...)` | High | 🔲 Planned |
+| [#422](../../issues/422) | **Gelato/ERC-4337 relayer** (gas abstraction) | High | 🔲 Planned |
+| [#458](../../issues/458) | **L2 Tier 1: Base, Arbitrum, Optimism** | Critical | 🔲 Planned |
 | - | L2 Tier 2: Polygon, zkSync (if survives) | Medium | 🔲 Planned |
 | - | Gas optimization (batching, storage packing) | Medium | 🔲 Planned |
-| - | Integration examples (Uniswap, 1inch) | Medium | 🔲 Planned |
+| [#459](../../issues/459) | Integration examples (Uniswap, 1inch) | Medium | 🔲 Planned |
 
 **L2 Strategy (Based on Dec 2025 Market Data):**
 - **Base** (60%+ tx share), **Arbitrum** (44% TVL), **Optimism** (6% TVL) = 90%+ of L2 market
@@ -853,6 +995,7 @@ Build unique capabilities that create defensible advantage.
 | - | Proof composition v1 (if feasible) | 🔲 Future |
 | - | **Oblivious Sync Service** (Tachyon-inspired privacy during sync) | 🔲 Future |
 | - | **Quantum-Resistant Storage** (Winternitz WOTS vaults) | 🔲 Future |
+| [#491](../../issues/491) | **WOTS+ Post-Quantum Signatures** (stealth address signing) | 🔲 Future |
 | - | **BNB Chain support** (4.32M daily wallets, Asia market) | 🔲 Future |
 | - | Multi-language SDK (Python, Rust) | 🔲 Future |
 | - | Chain-specific optimizations | 🔲 Future |
@@ -1121,5 +1264,5 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: January 11, 2026*
+*Last updated: January 12, 2026*
 *Hackathon sprint added: Solana Privacy Hack (Jan 12 - Feb 1, 2026)*
