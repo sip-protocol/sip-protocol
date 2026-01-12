@@ -73,3 +73,21 @@ export {
 //
 // Types are safe to export (no runtime WASM dependency)
 export type { BrowserNoirProviderConfig, ProofProgressCallback } from './browser'
+
+// Compliance proofs (non-financial ZK use cases)
+// For Aztec/Noir bounty - "Best Non-Financial ZK Use Case"
+export { ComplianceProofProvider } from './compliance-proof'
+export {
+  DEFAULT_VALIDITY_PERIOD_SECONDS,
+  SUPPORTED_JURISDICTIONS,
+  COMPLIANCE_CIRCUIT_IDS,
+} from './compliance-proof'
+export type {
+  ComplianceProofType,
+  ComplianceProofConfig,
+  ViewingKeyAccessParams,
+  SanctionsClearParams,
+  BalanceAttestationParams,
+  HistoryCompletenessParams,
+  ComplianceProofResult,
+} from './compliance-proof'
