@@ -13,6 +13,8 @@ import {
   createProvider,
   HeliusProvider,
   GenericProvider,
+  QuickNodeProvider,
+  TritonProvider,
 } from '../../../src/chains/solana/providers'
 import type {
   SolanaRPCProvider,
@@ -42,22 +44,20 @@ describe('Solana RPC Providers', () => {
       ).toThrow('Unknown provider type: unknown')
     })
 
-    it('should throw helpful error for quicknode (not yet implemented)', () => {
-      expect(() =>
-        createProvider('quicknode', { apiKey: 'test' })
-      ).toThrow(/Provider 'quicknode' is not yet implemented/)
-      expect(() =>
-        createProvider('quicknode', { apiKey: 'test' })
-      ).toThrow(/issues\/494/)
+    it('should create QuickNodeProvider with quicknode type', () => {
+      const provider = createProvider('quicknode', {
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+      })
+      expect(provider).toBeInstanceOf(QuickNodeProvider)
+      expect(provider.name).toBe('quicknode')
     })
 
-    it('should throw helpful error for triton (not yet implemented)', () => {
-      expect(() =>
-        createProvider('triton', { apiKey: 'test' })
-      ).toThrow(/Provider 'triton' is not yet implemented/)
-      expect(() =>
-        createProvider('triton', { apiKey: 'test' })
-      ).toThrow(/issues\/495/)
+    it('should create TritonProvider with triton type', () => {
+      const provider = createProvider('triton', {
+        xToken: 'test-x-token',
+      })
+      expect(provider).toBeInstanceOf(TritonProvider)
+      expect(provider.name).toBe('triton')
     })
   })
 
@@ -340,6 +340,220 @@ describe('Solana RPC Providers', () => {
     })
   })
 
+  describe('QuickNodeProvider', () => {
+    it('should require endpoint', () => {
+      expect(
+        () => new QuickNodeProvider({ endpoint: '' })
+      ).toThrow('QuickNode endpoint is required')
+    })
+
+    it('should validate endpoint URL format', () => {
+      expect(
+        () => new QuickNodeProvider({ endpoint: 'not-a-url' })
+      ).toThrow('Invalid QuickNode endpoint URL')
+    })
+
+    it('should accept valid endpoint', () => {
+      const provider = new QuickNodeProvider({
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+      })
+      expect(provider.name).toBe('quicknode')
+    })
+
+    it('should support subscriptions by default', () => {
+      const provider = new QuickNodeProvider({
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+      })
+      expect(provider.supportsSubscriptions()).toBe(true)
+    })
+
+    it('should allow disabling subscriptions', () => {
+      const provider = new QuickNodeProvider({
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+        enableGrpc: false,
+      })
+      expect(provider.supportsSubscriptions()).toBe(false)
+    })
+
+    it('should expose connection for advanced use', () => {
+      const provider = new QuickNodeProvider({
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+      })
+      const connection = provider.getConnection()
+      expect(connection).toBeDefined()
+    })
+
+    it('should validate owner address in getAssetsByOwner', async () => {
+      const provider = new QuickNodeProvider({
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+      })
+
+      await expect(
+        provider.getAssetsByOwner('invalid-address')
+      ).rejects.toThrow('Invalid Solana address for owner')
+    })
+
+    it('should validate addresses in getTokenBalance', async () => {
+      const provider = new QuickNodeProvider({
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+      })
+
+      await expect(
+        provider.getTokenBalance('invalid-owner', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+      ).rejects.toThrow('Invalid Solana address for owner')
+
+      await expect(
+        provider.getTokenBalance('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'invalid-mint')
+      ).rejects.toThrow('Invalid Solana address for mint')
+    })
+
+    it('should validate address in subscribeToTransfers', async () => {
+      const provider = new QuickNodeProvider({
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+      })
+
+      await expect(
+        provider.subscribeToTransfers('invalid-address', () => {})
+      ).rejects.toThrow('Invalid Solana address for address')
+    })
+
+    it('should throw when subscribing with gRPC disabled', async () => {
+      const provider = new QuickNodeProvider({
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+        enableGrpc: false,
+      })
+
+      await expect(
+        provider.subscribeToTransfers('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', () => {})
+      ).rejects.toThrow('gRPC subscriptions are disabled')
+    })
+
+    it('should cleanup resources on close', async () => {
+      const provider = new QuickNodeProvider({
+        endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123',
+      })
+
+      // Should not throw
+      await provider.close()
+    })
+  })
+
+  describe('TritonProvider', () => {
+    it('should require xToken', () => {
+      expect(
+        () => new TritonProvider({ xToken: '' })
+      ).toThrow('Triton x-token is required')
+    })
+
+    it('should accept valid xToken', () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+      })
+      expect(provider.name).toBe('triton')
+    })
+
+    it('should use default mainnet endpoint', () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+        cluster: 'mainnet-beta',
+      })
+      expect(provider.name).toBe('triton')
+    })
+
+    it('should use devnet endpoint when specified', () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+        cluster: 'devnet',
+      })
+      expect(provider.name).toBe('triton')
+    })
+
+    it('should accept custom endpoint', () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+        endpoint: 'https://custom.rpcpool.com',
+      })
+      expect(provider.name).toBe('triton')
+    })
+
+    it('should support subscriptions by default', () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+      })
+      expect(provider.supportsSubscriptions()).toBe(true)
+    })
+
+    it('should allow disabling subscriptions', () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+        enableGrpc: false,
+      })
+      expect(provider.supportsSubscriptions()).toBe(false)
+    })
+
+    it('should expose connection for advanced use', () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+      })
+      const connection = provider.getConnection()
+      expect(connection).toBeDefined()
+    })
+
+    it('should validate owner address in getAssetsByOwner', async () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+      })
+
+      await expect(
+        provider.getAssetsByOwner('invalid-address')
+      ).rejects.toThrow('Invalid Solana address for owner')
+    })
+
+    it('should validate addresses in getTokenBalance', async () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+      })
+
+      await expect(
+        provider.getTokenBalance('invalid-owner', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+      ).rejects.toThrow('Invalid Solana address for owner')
+
+      await expect(
+        provider.getTokenBalance('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'invalid-mint')
+      ).rejects.toThrow('Invalid Solana address for mint')
+    })
+
+    it('should validate address in subscribeToTransfers', async () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+      })
+
+      await expect(
+        provider.subscribeToTransfers('invalid-address', () => {})
+      ).rejects.toThrow('Invalid Solana address for address')
+    })
+
+    it('should throw when subscribing with gRPC disabled', async () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+        enableGrpc: false,
+      })
+
+      await expect(
+        provider.subscribeToTransfers('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', () => {})
+      ).rejects.toThrow('gRPC subscriptions are disabled')
+    })
+
+    it('should cleanup resources on close', async () => {
+      const provider = new TritonProvider({
+        xToken: 'test-x-token',
+      })
+
+      // Should not throw
+      await provider.close()
+    })
+  })
+
   describe('SolanaRPCProvider interface contract', () => {
     const providers: Array<{ name: string; create: () => SolanaRPCProvider }> = [
       {
@@ -350,6 +564,16 @@ describe('Solana RPC Providers', () => {
         name: 'GenericProvider',
         create: () =>
           new GenericProvider({ endpoint: 'https://api.devnet.solana.com' }),
+      },
+      {
+        name: 'QuickNodeProvider',
+        create: () =>
+          new QuickNodeProvider({ endpoint: 'https://example.solana-mainnet.quiknode.pro/abc123' }),
+      },
+      {
+        name: 'TritonProvider',
+        create: () =>
+          new TritonProvider({ xToken: 'test-x-token' }),
       },
     ]
 
