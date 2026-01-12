@@ -352,8 +352,11 @@ async function processRawTransaction(
       announcement.ephemeralPublicKey
     )
 
-    // Parse view tag
+    // Parse view tag with bounds checking (view tags are 1 byte: 0-255)
     const viewTagNumber = parseInt(announcement.viewTag, 16)
+    if (!Number.isFinite(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > 255) {
+      continue // Invalid view tag, skip this announcement
+    }
     const stealthAddressToCheck: StealthAddress = {
       address: announcement.stealthAddress
         ? solanaAddressToEd25519PublicKey(announcement.stealthAddress)
