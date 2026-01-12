@@ -35,7 +35,7 @@
  * ## Available Backends
  *
  * - **SIPNativeBackend** — Stealth addresses + Pedersen commitments
- * - **PrivacyCashBackend** — Pool mixing (coming in #480)
+ * - **PrivacyCashBackend** — Pool mixing (Tornado Cash-style anonymity sets)
  * - **ArciumBackend** — MPC compute privacy (coming in #481)
  * - **IncoBackend** — FHE compute privacy (coming in #482)
  *
@@ -63,6 +63,24 @@ export { PrivacyBackendRegistry, defaultRegistry } from './registry'
 
 // Backends
 export { SIPNativeBackend, type SIPNativeBackendConfig } from './sip-native'
+export { PrivacyCashBackend, type PrivacyCashBackendConfig } from './privacycash'
+
+// PrivacyCash types (for advanced usage)
+export {
+  SOL_POOL_SIZES,
+  USDC_POOL_SIZES,
+  USDT_POOL_SIZES,
+  SOL_POOL_AMOUNTS,
+  SPL_POOL_AMOUNTS,
+  SPL_TOKEN_MINTS,
+  findMatchingPoolSize,
+  findNearestPoolSize,
+  isValidPoolAmount,
+  getAvailablePoolSizes,
+  type PrivacyCashSPLToken,
+  type PoolInfo,
+  type IPrivacyCashSDK,
+} from './privacycash-types'
 
 // Router
 export { SmartRouter } from './router'
