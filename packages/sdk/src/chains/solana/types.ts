@@ -165,9 +165,16 @@ export function parseAnnouncement(memo: string): SolanaAnnouncement | null {
     return null
   }
 
+  const viewTag = parts[1]
+
+  // M4 FIX: Validate viewTag is valid hex (1-2 chars, representing 0-255)
+  if (!/^[0-9a-fA-F]{1,2}$/.test(viewTag)) {
+    return null
+  }
+
   return {
     ephemeralPublicKey: parts[0],
-    viewTag: parts[1],
+    viewTag,
     stealthAddress: parts[2],
   }
 }

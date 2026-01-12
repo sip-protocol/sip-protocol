@@ -21,6 +21,10 @@
  */
 
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
+import { ValidationError } from '../../../errors'
+
+/** Default fetch timeout in milliseconds */
+const FETCH_TIMEOUT_MS = 30000
 
 /**
  * Helius API response types
@@ -139,19 +143,52 @@ export class HeliusProvider implements SolanaRPCProvider {
   }
 
   /**
+   * M9 FIX: Fetch with timeout using AbortController
+   */
+  private async fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+    try {
+      return await fetch(url, { ...options, signal: controller.signal })
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+
+  /**
+   * M3 FIX: Validate Solana address format (base58, 32-44 chars)
+   */
+  private validateAddress(address: string, paramName: string): void {
+    if (!address || typeof address !== 'string') {
+      throw new ValidationError(`${paramName} is required`, paramName)
+    }
+    if (address.length < 32 || address.length > 44) {
+      throw new ValidationError(`Invalid Solana address format for ${paramName}`, paramName)
+    }
+    // Basic base58 character check (no 0, O, I, l)
+    if (!/^[1-9A-HJ-NP-Za-km-z]+$/.test(address)) {
+      throw new ValidationError(`Invalid base58 characters in ${paramName}`, paramName)
+    }
+  }
+
+  /**
    * Get all token assets owned by an address using DAS API
    *
    * Uses getAssetsByOwner for comprehensive asset information including
    * NFTs and fungible tokens with metadata.
    */
   async getAssetsByOwner(owner: string): Promise<TokenAsset[]> {
+    // M3 FIX: Validate owner address before API call
+    this.validateAddress(owner, 'owner')
+
     const assets: TokenAsset[] = []
     let page = 1
     const limit = 1000
     let hasMore = true
 
     while (hasMore) {
-      const response = await fetch(this.rpcUrl, {
+      // M9 FIX: Use fetch with timeout
+      const response = await this.fetchWithTimeout(this.rpcUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -192,11 +229,10 @@ export class HeliusProvider implements SolanaRPCProvider {
           const tokenInfo = item.token_info
           if (!tokenInfo?.balance) continue
 
-          // Convert balance to BigInt, handling both string and number types
-          // String is preferred for large values to preserve precision
-          const balanceValue = typeof tokenInfo.balance === 'string'
-            ? BigInt(tokenInfo.balance)
-            : BigInt(Math.floor(tokenInfo.balance))
+          // M8 FIX: Convert balance to BigInt safely without precision loss
+          // Always convert to string first to handle large values (> 2^53)
+          const balanceStr = String(tokenInfo.balance).split('.')[0] // Remove decimals if any
+          const balanceValue = BigInt(balanceStr)
 
           assets.push({
             mint: item.id,
@@ -235,16 +271,21 @@ export class HeliusProvider implements SolanaRPCProvider {
    * More efficient than getAssetsByOwner when you only need one token's balance.
    */
   async getTokenBalance(owner: string, mint: string): Promise<bigint> {
+    // M3 FIX: Validate addresses before API call
+    this.validateAddress(owner, 'owner')
+    this.validateAddress(mint, 'mint')
+
     const url = `${this.restUrl}/addresses/${owner}/balances?api-key=${this.apiKey}`
 
     try {
-      const response = await fetch(url)
+      // M9 FIX: Use fetch with timeout
+      const response = await this.fetchWithTimeout(url)
 
       if (!response.ok) {
-        // Fallback to DAS if balances API fails
-        const assets = await this.getAssetsByOwner(owner)
-        const asset = assets.find((a) => a.mint === mint)
-        return asset?.amount ?? 0n
+        // M2 FIX: Don't fallback to expensive getAssetsByOwner
+        // Just return 0n - caller can retry or use getAssetsByOwner explicitly if needed
+        console.warn(`[HeliusProvider] Balances API returned ${response.status}, returning 0n`)
+        return 0n
       }
 
       const data = (await response.json()) as HeliusBalancesResponse
@@ -252,14 +293,13 @@ export class HeliusProvider implements SolanaRPCProvider {
       const token = data.tokens?.find((t) => t.mint === mint)
       return token ? BigInt(token.amount) : 0n
     } catch (error) {
+      // M2 FIX: Don't fallback to expensive getAssetsByOwner on error
       // Sanitize error to prevent API key leakage
       const sanitizedError = error instanceof Error
         ? error.message.replace(/api-key=[^&\s]+/g, 'api-key=***')
         : 'Unknown error'
-      console.warn(`[HeliusProvider] getTokenBalance error (${this.sanitizeUrl(url)}), falling back to DAS:`, sanitizedError)
-      const assets = await this.getAssetsByOwner(owner)
-      const asset = assets.find((a) => a.mint === mint)
-      return asset?.amount ?? 0n
+      console.warn(`[HeliusProvider] getTokenBalance error: ${sanitizedError}`)
+      return 0n
     }
   }
 

@@ -6,6 +6,27 @@
  *
  * @see https://docs.helius.dev/webhooks-and-websockets/webhooks
  *
+ * ## M11 FIX: Security Requirements
+ *
+ * **IMPORTANT: This handler processes webhook payloads without source verification.**
+ *
+ * To secure your webhook endpoint in production:
+ *
+ * 1. **HTTPS Only**: Always serve your webhook endpoint over HTTPS
+ *    to prevent payload tampering in transit.
+ *
+ * 2. **Signature Verification**: If Helius provides webhook signatures,
+ *    verify them before processing. See Helius docs for details.
+ *
+ * 3. **IP Allowlisting**: Consider restricting your webhook endpoint to
+ *    Helius IP ranges only (check Helius documentation for current IPs).
+ *
+ * 4. **Rate Limiting**: Implement rate limiting to prevent DoS attacks
+ *    on your webhook endpoint.
+ *
+ * 5. **Webhook Secret**: Use a secret token in your webhook URL path
+ *    (e.g., `/webhook/helius/<secret>`) to prevent unauthorized access.
+ *
  * @example Server setup (Express.js)
  * ```typescript
  * import express from 'express'
@@ -205,7 +226,23 @@ export type HeliusWebhookPayload =
  * Configuration for webhook handler
  */
 export interface WebhookHandlerConfig {
-  /** Recipient's viewing private key (hex) */
+  /**
+   * Recipient's viewing private key (hex)
+   *
+   * M12 FIX: SECURITY WARNING
+   *
+   * This is a sensitive cryptographic key that enables detection of ALL
+   * incoming stealth payments to this recipient. Handle with extreme care:
+   *
+   * - **Never log** this key (not even in debug logs)
+   * - **Never transmit** over network (except encrypted channels)
+   * - **Never store** in plaintext (use HSM, secure enclave, or encrypted storage)
+   * - **Rotate periodically** if your security model allows
+   * - **Limit access** to only the code paths that absolutely need it
+   *
+   * Compromise of this key allows an attacker to identify all your incoming
+   * payments and link them together, breaking privacy.
+   */
   viewingPrivateKey: HexString
   /** Recipient's spending public key (hex) */
   spendingPublicKey: HexString

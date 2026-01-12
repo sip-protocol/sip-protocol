@@ -30,6 +30,7 @@ import {
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
   getAccount,
+  TokenAccountNotFoundError,
 } from '@solana/spl-token'
 import type { SolanaRPCProvider, TokenAsset, GenericProviderConfig } from './interface'
 
@@ -133,8 +134,15 @@ export class GenericProvider implements SolanaRPCProvider {
 
       const account = await getAccount(this.connection, ata)
       return account.amount
-    } catch {
-      // Account doesn't exist or other RPC error
+    } catch (error) {
+      // M1 FIX: Distinguish "account not found" from RPC errors
+      // TokenAccountNotFoundError means no balance - return 0n silently
+      if (error instanceof TokenAccountNotFoundError) {
+        return 0n
+      }
+      // Other errors (RPC failure, network issues) - log warning for debugging
+      // but still return 0n for resilience
+      console.warn('[GenericProvider] getTokenBalance RPC error:', error)
       return 0n
     }
   }

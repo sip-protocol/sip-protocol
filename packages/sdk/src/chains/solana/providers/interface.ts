@@ -27,6 +27,7 @@
 
 import { HeliusProvider, type HeliusProviderConfig } from './helius'
 import { GenericProvider } from './generic'
+import { ValidationError } from '../../../errors'
 
 /**
  * Token asset information returned by providers
@@ -162,9 +163,24 @@ export function createProvider(
 ): SolanaRPCProvider {
   switch (type) {
     case 'helius':
+      // M6 FIX: Validate required config fields before casting
+      if (!config.apiKey) {
+        throw new ValidationError(
+          'apiKey is required for Helius provider. Get one at https://dev.helius.xyz',
+          'apiKey'
+        )
+      }
       return new HeliusProvider(config as HeliusProviderConfig)
     case 'generic':
-      return new GenericProvider(config as GenericProviderConfig)
+      // M6 FIX: Validate that at least one connection method is provided
+      const genericConfig = config as GenericProviderConfig
+      if (!genericConfig.connection && !genericConfig.endpoint && !genericConfig.cluster) {
+        throw new ValidationError(
+          'Generic provider requires either connection, endpoint, or cluster',
+          'config'
+        )
+      }
+      return new GenericProvider(genericConfig)
     case 'quicknode':
     case 'triton':
       throw new Error(

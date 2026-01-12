@@ -136,7 +136,7 @@ describe('Solana RPC Providers', () => {
           json: () => Promise.resolve(mockResponse),
         } as Response)
 
-        const assets = await provider.getAssetsByOwner('test-address')
+        const assets = await provider.getAssetsByOwner('11111111111111111111111111111111')
 
         expect(assets).toHaveLength(2) // Only fungible tokens
         expect(assets[0]).toEqual({
@@ -166,7 +166,7 @@ describe('Solana RPC Providers', () => {
           statusText: 'Unauthorized',
         } as Response)
 
-        await expect(provider.getAssetsByOwner('test-address')).rejects.toThrow(
+        await expect(provider.getAssetsByOwner('11111111111111111111111111111111')).rejects.toThrow(
           'Helius API error: 401 Unauthorized'
         )
       })
@@ -188,7 +188,7 @@ describe('Solana RPC Providers', () => {
           json: () => Promise.resolve(mockErrorResponse),
         } as Response)
 
-        await expect(provider.getAssetsByOwner('test-address')).rejects.toThrow(
+        await expect(provider.getAssetsByOwner('11111111111111111111111111111111')).rejects.toThrow(
           'Helius RPC error: Invalid Request (code: -32600)'
         )
       })
@@ -224,7 +224,7 @@ describe('Solana RPC Providers', () => {
           json: () => Promise.resolve(mockResponse),
         } as Response)
 
-        const assets = await provider.getAssetsByOwner('test-address')
+        const assets = await provider.getAssetsByOwner('11111111111111111111111111111111')
 
         expect(assets).toHaveLength(1)
         expect(assets[0].amount).toBe(BigInt(largeBalance))
@@ -253,7 +253,7 @@ describe('Solana RPC Providers', () => {
         } as Response)
 
         const balance = await provider.getTokenBalance(
-          'owner-address',
+          '11111111111111111111111111111111', // Valid base58 address (System Program)
           'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
         )
 
@@ -274,8 +274,8 @@ describe('Solana RPC Providers', () => {
         } as Response)
 
         const balance = await provider.getTokenBalance(
-          'owner-address',
-          'non-existent-mint'
+          '11111111111111111111111111111111', // Valid base58 address (System Program)
+          'So11111111111111111111111111111111111111112' // Valid mint address
         )
 
         expect(balance).toBe(0n)

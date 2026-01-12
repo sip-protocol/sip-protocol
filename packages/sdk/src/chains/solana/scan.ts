@@ -141,12 +141,18 @@ export async function scanForPayments(
             viewTag: viewTagNumber,
           }
 
-          // Check if this is our payment
-          const isOurs = checkEd25519StealthAddress(
-            stealthAddressToCheck,
-            viewingPrivateKey,
-            spendingPublicKey
-          )
+          // M5 FIX: Wrap in try-catch to handle malformed/invalid curve points
+          let isOurs = false
+          try {
+            isOurs = checkEd25519StealthAddress(
+              stealthAddressToCheck,
+              viewingPrivateKey,
+              spendingPublicKey
+            )
+          } catch {
+            // Invalid ephemeral key or malformed data - not our payment
+            continue
+          }
 
           if (isOurs) {
             // Parse token transfer from transaction
@@ -204,6 +210,19 @@ export async function scanForPayments(
  * Claim a stealth payment
  *
  * Derives the stealth private key and transfers funds to the destination.
+ *
+ * **M7 FIX: IMPORTANT - SOL Fee Requirement**
+ *
+ * The stealth address is set as the transaction fee payer. This means the
+ * stealth address MUST have SOL to pay transaction fees (~0.000005 SOL).
+ *
+ * Options to ensure the stealth address has SOL:
+ * 1. Sender includes a small SOL transfer alongside the SPL token transfer
+ * 2. Recipient manually funds the stealth address before claiming
+ * 3. Use a relayer service that sponsors fees (future enhancement)
+ *
+ * If the stealth address has no SOL, the claim will fail with
+ * "insufficient funds for transaction fee".
  *
  * @param params - Claim parameters
  * @returns Claim result with transaction signature
