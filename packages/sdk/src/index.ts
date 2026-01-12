@@ -774,6 +774,9 @@ export {
   createProvider,
   HeliusProvider,
   GenericProvider,
+  // Helius Webhook (Real-time Scanning)
+  createWebhookHandler,
+  processWebhookTransaction,
 } from './chains/solana'
 
 export type {
@@ -792,6 +795,12 @@ export type {
   ProviderType,
   GenericProviderConfig,
   HeliusProviderConfig,
+  // Webhook types
+  HeliusWebhookTransaction,
+  HeliusEnhancedTransaction,
+  HeliusWebhookPayload,
+  WebhookHandlerConfig,
+  WebhookProcessResult,
 } from './chains/solana'
 
 // Same-Chain Executors
