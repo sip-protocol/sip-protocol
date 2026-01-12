@@ -169,7 +169,23 @@ export class SurveillanceAnalyzer {
         url.searchParams.set('before', beforeSignature)
       }
 
-      const response = await fetch(url.toString())
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
+
+      let response: Response
+      try {
+        response = await fetch(url.toString(), {
+          signal: controller.signal,
+        })
+      } catch (error) {
+        clearTimeout(timeoutId)
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error('Helius API request timed out after 30 seconds')
+        }
+        throw error
+      }
+      clearTimeout(timeoutId)
 
       if (!response.ok) {
         throw new Error(
@@ -376,29 +392,30 @@ export class SurveillanceAnalyzer {
    * Get quick privacy score without full analysis
    *
    * Performs a lighter analysis suitable for real-time display.
-   * Uses only the most recent transactions.
+   * Uses only the most recent transactions (100 max).
    */
   async quickScore(walletAddress: string): Promise<{
     score: number
     risk: 'critical' | 'high' | 'medium' | 'low'
     topIssue: string | null
   }> {
-    // Fetch only recent transactions for quick analysis
-    const originalMax = this.config.maxTransactions
-    this.config.maxTransactions = 100
+    // Create a temporary analyzer with limited transactions for quick analysis
+    // This avoids mutating shared state and is thread-safe
+    const quickAnalyzer = new SurveillanceAnalyzer({
+      heliusApiKey: this.config.heliusApiKey,
+      cluster: this.config.cluster,
+      maxTransactions: 100,
+      includeSocialLinks: false, // Skip social links for speed
+      customExchangeAddresses: this.config.customExchangeAddresses,
+    })
 
-    try {
-      const result = await this.analyze(walletAddress)
+    const result = await quickAnalyzer.analyze(walletAddress)
+    const topRecommendation = result.privacyScore.recommendations[0]
 
-      const topRecommendation = result.privacyScore.recommendations[0]
-
-      return {
-        score: result.privacyScore.overall,
-        risk: result.privacyScore.risk,
-        topIssue: topRecommendation?.title ?? null,
-      }
-    } finally {
-      this.config.maxTransactions = originalMax
+    return {
+      score: result.privacyScore.overall,
+      risk: result.privacyScore.risk,
+      topIssue: topRecommendation?.title ?? null,
     }
   }
 }
