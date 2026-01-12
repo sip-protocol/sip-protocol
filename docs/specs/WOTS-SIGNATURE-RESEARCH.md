@@ -18,7 +18,7 @@ This document evaluates adding WOTS+ (Winternitz One-Time Signature Plus) suppor
 | Criterion | Finding | Verdict |
 |-----------|---------|---------|
 | Technical Feasibility | WOTS+ signature (2,144 bytes) exceeds Solana tx limit (1,232 bytes) | ❌ Blocked |
-| Compute Cost | ~5,700 CU for verification (acceptable) | ✅ OK |
+| Compute Cost | ~62,700 CU for verification (acceptable) | ✅ OK |
 | Library Availability | Limited standalone libraries, mostly SPHINCS+ wrappers | ⚠️ Partial |
 | User Demand | Marketing-driven, no urgent security need | ⚠️ Low |
 | Alternative | Winternitz Vault (SIP-10) already provides quantum resistance | ✅ Better |
