@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from 'express'
-import { z, ZodSchema } from 'zod'
+import { z } from 'zod'
+import type { ZodType } from 'zod'
 
 /**
  * Zod schema validation middleware factory
  */
 export function validateRequest(schema: {
-  body?: ZodSchema
-  query?: ZodSchema
-  params?: ZodSchema
+  body?: ZodType
+  query?: ZodType
+  params?: ZodType
 }) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -15,10 +16,14 @@ export function validateRequest(schema: {
         req.body = await schema.body.parseAsync(req.body)
       }
       if (schema.query) {
-        req.query = await schema.query.parseAsync(req.query)
+        // Zod 4 returns unknown, cast to Express expected type
+        req.query = (await schema.query.parseAsync(req.query)) as typeof req.query
       }
       if (schema.params) {
-        req.params = await schema.params.parseAsync(req.params)
+        // Zod 4 returns unknown, cast to Express expected type
+        req.params = (await schema.params.parseAsync(
+          req.params
+        )) as typeof req.params
       }
       next()
     } catch (error) {
@@ -28,7 +33,8 @@ export function validateRequest(schema: {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid request data',
-            details: error.errors,
+            // Zod 4 renamed 'errors' to 'issues'
+            details: error.issues,
           },
         })
       }
