@@ -400,6 +400,8 @@ export class AllBackendsFailedError extends Error {
       `All ${attemptedBackends.length} backend(s) failed: [${backendList}]. ` +
       `Check errors map for details.`
     )
+    // Fix prototype chain for instanceof in transpiled code
+    Object.setPrototypeOf(this, AllBackendsFailedError.prototype)
   }
 
   /**
@@ -434,5 +436,7 @@ export class CircuitOpenError extends Error {
       `Circuit breaker open for '${backendName}'. ` +
       `Will attempt reset in ${remainingSec}s.`
     )
+    // Fix prototype chain for instanceof in transpiled code
+    Object.setPrototypeOf(this, CircuitOpenError.prototype)
   }
 }

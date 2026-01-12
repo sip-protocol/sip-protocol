@@ -488,6 +488,55 @@ describe('SmartRouter', () => {
       // unhealthy should not have been attempted
       expect(result.metadata?.attemptedBackends).not.toContain('unhealthy')
     })
+
+    it('should not count skipped unhealthy backends against maxFallbackAttempts', async () => {
+      // Create 5 backends: 1 primary (fails) + 2 unhealthy + 2 healthy (1 fails, 1 works)
+      const primary = createMockBackend('primary')
+      const unhealthy1 = createMockBackend('unhealthy1')
+      const unhealthy2 = createMockBackend('unhealthy2')
+      const failingHealthy = createMockBackend('failing-healthy')
+      const workingHealthy = createMockBackend('working-healthy')
+
+      vi.mocked(primary.execute).mockResolvedValue({
+        success: false,
+        error: 'Primary failed',
+        backend: 'primary',
+      })
+      vi.mocked(failingHealthy.execute).mockResolvedValue({
+        success: false,
+        error: 'Also failed',
+        backend: 'failing-healthy',
+      })
+
+      // Register with priorities to control order
+      registry.register(primary, { priority: 100 })
+      registry.register(unhealthy1, { priority: 90 })
+      registry.register(unhealthy2, { priority: 80 })
+      registry.register(failingHealthy, { priority: 70 })
+      registry.register(workingHealthy, { priority: 60 })
+
+      // Open circuits for unhealthy backends
+      registry.openCircuit('unhealthy1')
+      registry.openCircuit('unhealthy2')
+
+      // With maxFallbackAttempts=2, we should:
+      // 1. Try primary (fails)
+      // 2. Skip unhealthy1 (doesn't count)
+      // 3. Skip unhealthy2 (doesn't count)
+      // 4. Try failing-healthy (fails, counts as attempt 1)
+      // 5. Try working-healthy (succeeds, counts as attempt 2)
+      const result = await router.execute(defaultParams, {
+        maxFallbackAttempts: 2,
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.backend).toBe('working-healthy')
+      expect(result.metadata?.attemptedBackends).toEqual([
+        'primary',
+        'failing-healthy',
+        'working-healthy',
+      ])
+    })
   })
 
   // ─── Health Recording Tests ───────────────────────────────────────────────────

@@ -282,22 +282,30 @@ export class SmartRouter {
     const errors = new Map<string, string>()
     errors.set(selection.backend.name, result.error || 'Unknown error')
 
-    const maxAttempts = Math.min(
-      fullConfig.maxFallbackAttempts ?? 3,
-      selection.alternatives.length
-    )
+    const maxFallbackAttempts = fullConfig.maxFallbackAttempts ?? 3
 
-    for (let i = 0; i < maxAttempts; i++) {
+    // Iterate over all alternatives, but limit actual attempts
+    // Skipped backends (unhealthy/already attempted) don't count against the limit
+    let actualAttempts = 0
+    for (
+      let i = 0;
+      i < selection.alternatives.length && actualAttempts < maxFallbackAttempts;
+      i++
+    ) {
       const alternative = selection.alternatives[i]
 
-      // Skip if already attempted or unhealthy
+      // Skip if already attempted (defensive - shouldn't happen with unique names)
       if (attemptedBackends.includes(alternative.backend.name)) {
         continue
       }
+
+      // Skip unhealthy backends unless explicitly included
       if (!fullConfig.includeUnhealthy && !this.registry.isHealthy(alternative.backend.name)) {
         continue
       }
 
+      // This counts as an actual attempt
+      actualAttempts++
       attemptedBackends.push(alternative.backend.name)
       const fallbackResult = await this.executeOnBackend(alternative.backend, params)
 
