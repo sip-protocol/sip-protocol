@@ -157,10 +157,11 @@ describe('Helius Webhook Handler', () => {
         onPaymentFound,
       })
 
+      // L9 FIX: Use valid base58 addresses (no 0, O, I, l characters)
       const mockTx = createMockWebhookTransaction({
-        ephemeralPublicKey: 'otherEphemeralKey12345678901234567890123',
+        ephemeralPublicKey: '2222222222222222222222222222222222222222222',
         viewTag: 'ab',
-        stealthAddress: 'otherStealthAddress123456789012345678901',
+        stealthAddress: '33333333333333333333333333333333333333333333',
       })
 
       const results = await handler(mockTx)
@@ -179,13 +180,14 @@ describe('Helius Webhook Handler', () => {
         onPaymentFound,
       })
 
+      // L9 FIX: Use valid base58 addresses
       const mockTxs = [
         createMockWebhookTransaction(
-          { ephemeralPublicKey: 'key1234567890123456789012345678901234', viewTag: 'aa' },
+          { ephemeralPublicKey: '11111111111111111111111111111111111111111111', viewTag: 'aa' },
           { signature: 'sig1' }
         ),
         createMockWebhookTransaction(
-          { ephemeralPublicKey: 'key2345678901234567890123456789012345', viewTag: 'bb' },
+          { ephemeralPublicKey: '22222222222222222222222222222222222222222222', viewTag: 'bb' },
           { signature: 'sig2' }
         ),
       ]
@@ -206,8 +208,9 @@ describe('Helius Webhook Handler', () => {
         onPaymentFound,
       })
 
+      // L9 FIX: Use valid base58 addresses
       const mockTx = createMockWebhookTransaction({
-        ephemeralPublicKey: 'key1234567890123456789012345678901234',
+        ephemeralPublicKey: '44444444444444444444444444444444444444444444',
         viewTag: 'aa',
       })
       mockTx.meta.err = { message: 'Transaction failed' }
@@ -424,8 +427,9 @@ describe('Helius Webhook Handler', () => {
         onPaymentFound,
       })
 
+      // L9 FIX: Use valid base58 addresses
       const mockTx = createMockWebhookTransaction(
-        { ephemeralPublicKey: 'key1234567890123456789012345678901234', viewTag: 'aa' },
+        { ephemeralPublicKey: '55555555555555555555555555555555555555555555', viewTag: 'aa' },
         { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', amount: '5000000' }
       )
 
@@ -444,8 +448,9 @@ describe('Helius Webhook Handler', () => {
         onPaymentFound: vi.fn(),
       })
 
+      // L9 FIX: Use valid base58 addresses
       const tx = createMockWebhookTransaction({
-        ephemeralPublicKey: 'key1234567890123456789012345678901234',
+        ephemeralPublicKey: '66666666666666666666666666666666666666666666',
         viewTag: 'aa',
       })
 
@@ -460,10 +465,11 @@ describe('Helius Webhook Handler', () => {
         onPaymentFound: vi.fn(),
       })
 
+      // L9 FIX: Use valid base58 addresses
       const txs = [
-        createMockWebhookTransaction({ ephemeralPublicKey: 'key1', viewTag: 'aa' }, { signature: 's1' }),
-        createMockWebhookTransaction({ ephemeralPublicKey: 'key2', viewTag: 'bb' }, { signature: 's2' }),
-        createMockWebhookTransaction({ ephemeralPublicKey: 'key3', viewTag: 'cc' }, { signature: 's3' }),
+        createMockWebhookTransaction({ ephemeralPublicKey: '77777777777777777777777777777777777777777777', viewTag: 'aa' }, { signature: 's1' }),
+        createMockWebhookTransaction({ ephemeralPublicKey: '88888888888888888888888888888888888888888888', viewTag: 'bb' }, { signature: 's2' }),
+        createMockWebhookTransaction({ ephemeralPublicKey: '99999999999999999999999999999999999999999999', viewTag: 'cc' }, { signature: 's3' }),
       ]
 
       const results = await handler(txs)

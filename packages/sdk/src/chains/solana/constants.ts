@@ -75,6 +75,26 @@ export const ESTIMATED_TX_FEE_LAMPORTS = 5000n
  */
 export const ATA_RENT_LAMPORTS = 2039280n
 
+// L2 FIX: Named constants for magic numbers
+
+/**
+ * Maximum pagination pages to prevent infinite loops
+ * Used in HeliusProvider.getAssetsByOwner
+ */
+export const MAX_PAGINATION_PAGES = 100
+
+/**
+ * Maximum valid view tag value (1 byte: 0-255)
+ * View tags are used for efficient stealth address scanning
+ */
+export const MAX_VIEW_TAG_VALUE = 255
+
+/**
+ * Default limit for scanning transactions
+ * Used in scanForPayments when limit is not specified
+ */
+export const DEFAULT_SCAN_LIMIT = 100
+
 /**
  * Get explorer URL for a transaction
  */

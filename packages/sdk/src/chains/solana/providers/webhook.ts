@@ -67,7 +67,7 @@ import {
 import type { StealthAddress } from '@sip-protocol/types'
 import { parseAnnouncement } from '../types'
 import type { SolanaScanResult } from '../types'
-import { SIP_MEMO_PREFIX, SOLANA_TOKEN_MINTS } from '../constants'
+import { SIP_MEMO_PREFIX, SOLANA_TOKEN_MINTS, MAX_VIEW_TAG_VALUE } from '../constants'
 import { ValidationError } from '../../../errors'
 
 /**
@@ -393,7 +393,8 @@ async function processRawTransaction(
 
     // Parse view tag with bounds checking (view tags are 1 byte: 0-255)
     const viewTagNumber = parseInt(announcement.viewTag, 16)
-    if (!Number.isFinite(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > 255) {
+    // L2 FIX: Use named constant for max view tag value
+    if (!Number.isFinite(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > MAX_VIEW_TAG_VALUE) {
       continue // Invalid view tag, skip this announcement
     }
     const stealthAddressToCheck: StealthAddress = {
@@ -450,7 +451,14 @@ async function processRawTransaction(
 }
 
 /**
- * Parse token transfer info from webhook transaction
+ * L4 FIX: Parse token transfer info from webhook transaction
+ *
+ * Examines pre/post token balances in the webhook payload to find
+ * incoming token transfers. Returns the first token that increased in balance.
+ *
+ * @param tx - The Helius webhook transaction payload
+ * @returns Token transfer info { mint, amount } or null if no transfer found
+ * @internal
  */
 function parseTokenTransferFromWebhook(
   tx: HeliusWebhookTransaction
@@ -482,7 +490,14 @@ function parseTokenTransferFromWebhook(
 }
 
 /**
- * Get token symbol from mint address
+ * L4 FIX: Get token symbol from mint address
+ *
+ * Looks up the human-readable symbol (e.g., "USDC", "USDT") for a given
+ * SPL token mint address.
+ *
+ * @param mint - The SPL token mint address (base58)
+ * @returns The token symbol if known, undefined otherwise
+ * @internal
  */
 function getTokenSymbol(mint: string): string | undefined {
   for (const [symbol, address] of Object.entries(SOLANA_TOKEN_MINTS)) {
@@ -494,8 +509,14 @@ function getTokenSymbol(mint: string): string | undefined {
 }
 
 /**
- * Type guard for raw transaction
- * Raw transactions have transaction.signatures array, enhanced have signature directly
+ * L4 FIX: Type guard for raw Helius webhook transaction
+ *
+ * Distinguishes between raw and enhanced webhook formats.
+ * Raw transactions have `transaction.signatures[]`, enhanced have `signature` at top level.
+ *
+ * @param tx - Unknown transaction object to check
+ * @returns True if tx is a HeliusWebhookTransaction (raw format)
+ * @internal
  */
 function isRawTransaction(tx: unknown): tx is HeliusWebhookTransaction {
   return (
@@ -508,14 +529,42 @@ function isRawTransaction(tx: unknown): tx is HeliusWebhookTransaction {
 }
 
 /**
- * Get signature from either transaction type
+ * L5 FIX: Type guard for enhanced Helius webhook transaction
+ *
+ * Distinguishes enhanced from raw webhook formats.
+ * Enhanced transactions have `signature` at top level, raw have `transaction.signatures[]`.
+ *
+ * @param tx - Unknown transaction object to check
+ * @returns True if tx is a HeliusEnhancedTransaction (enhanced format)
+ * @internal
+ */
+function isEnhancedTransaction(tx: unknown): tx is HeliusEnhancedTransaction {
+  return (
+    typeof tx === 'object' &&
+    tx !== null &&
+    'signature' in tx &&
+    typeof (tx as HeliusEnhancedTransaction).signature === 'string' &&
+    'type' in tx &&
+    typeof (tx as HeliusEnhancedTransaction).type === 'string'
+  )
+}
+
+/**
+ * L4 FIX: Get transaction signature from either webhook format
+ *
+ * Extracts the transaction signature from both raw and enhanced
+ * Helius webhook payloads. Raw transactions store signatures in
+ * `transaction.signatures[0]`, enhanced store at top-level `signature`.
+ *
+ * @param tx - Transaction in either raw or enhanced format
+ * @returns The transaction signature, or 'unknown' if not found
+ * @internal
  */
 function getSignature(tx: HeliusWebhookTransaction | HeliusEnhancedTransaction): string {
-  // Enhanced transactions have signature at top level
-  if ('signature' in tx && typeof (tx as HeliusEnhancedTransaction).signature === 'string') {
-    return (tx as HeliusEnhancedTransaction).signature
+  // L5 FIX: Use type guards for cleaner type narrowing
+  if (isEnhancedTransaction(tx)) {
+    return tx.signature
   }
-  // Raw transactions have signatures array in transaction object
   if (isRawTransaction(tx)) {
     return tx.transaction?.signatures?.[0] ?? 'unknown'
   }

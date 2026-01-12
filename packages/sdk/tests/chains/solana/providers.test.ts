@@ -8,7 +8,10 @@
  * - GenericProvider
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+
+// L7 FIX: Store original fetch to restore after tests
+const originalFetch = global.fetch
 import {
   createProvider,
   HeliusProvider,
@@ -21,6 +24,12 @@ import type {
 } from '../../../src/chains/solana/providers/interface'
 
 describe('Solana RPC Providers', () => {
+  // L7 FIX: Restore global.fetch after each test to prevent test pollution
+  afterEach(() => {
+    global.fetch = originalFetch
+    vi.restoreAllMocks()
+  })
+
   describe('createProvider factory', () => {
     it('should create HeliusProvider with helius type', () => {
       const provider = createProvider('helius', { apiKey: 'test-key' })

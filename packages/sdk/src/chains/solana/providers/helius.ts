@@ -22,6 +22,7 @@
 
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
 import { ValidationError } from '../../../errors'
+import { MAX_PAGINATION_PAGES } from '../constants'
 
 /** Default fetch timeout in milliseconds */
 const FETCH_TIMEOUT_MS = 30000
@@ -85,9 +86,17 @@ interface HeliusBalancesResponse {
  * Helius provider configuration
  */
 export interface HeliusProviderConfig extends ProviderConfig {
-  /** Helius API key (required) */
+  /** Helius API key (required) - Get one at https://dev.helius.xyz */
   apiKey: string
-  /** Solana cluster (default: mainnet-beta) */
+  /**
+   * L8 FIX: Solana cluster to connect to
+   *
+   * @default 'mainnet-beta'
+   *
+   * Supported clusters:
+   * - `'mainnet-beta'` - Solana mainnet (production)
+   * - `'devnet'` - Solana devnet (testing)
+   */
   cluster?: 'mainnet-beta' | 'devnet'
 }
 
@@ -254,10 +263,9 @@ export class HeliusProvider implements SolanaRPCProvider {
         await this.throttle()
       }
 
-      // Safety limit to prevent infinite loops
-      if (page > 100) {
-        // Don't log URL to prevent API key exposure
-        console.warn('[HeliusProvider] Reached page limit (100), stopping pagination')
+      // L2 FIX: Use named constant for safety limit
+      if (page > MAX_PAGINATION_PAGES) {
+        console.warn(`[HeliusProvider] Reached page limit (${MAX_PAGINATION_PAGES}), stopping pagination`)
         break
       }
     }

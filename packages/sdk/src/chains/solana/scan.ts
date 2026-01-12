@@ -32,6 +32,8 @@ import {
   MEMO_PROGRAM_ID,
   getExplorerUrl,
   SOLANA_TOKEN_MINTS,
+  DEFAULT_SCAN_LIMIT,
+  MAX_VIEW_TAG_VALUE,
   type SolanaCluster,
 } from './constants'
 import type { SolanaRPCProvider } from './providers/interface'
@@ -70,7 +72,7 @@ export async function scanForPayments(
     spendingPublicKey,
     fromSlot,
     toSlot,
-    limit = 100,
+    limit = DEFAULT_SCAN_LIMIT, // L2 FIX: Use named constant
     provider,
   } = params
 
@@ -129,7 +131,8 @@ export async function scanForPayments(
           const viewTagNumber = parseInt(announcement.viewTag, 16)
 
           // H3 FIX: Validate view tag is within valid bounds (0-255)
-          if (!Number.isFinite(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > 255) {
+          // L2 FIX: Use named constant for max view tag value
+          if (!Number.isFinite(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > MAX_VIEW_TAG_VALUE) {
             continue // Skip invalid view tags
           }
 
@@ -428,7 +431,14 @@ export async function getStealthBalance(
 }
 
 /**
- * Parse token transfer info from a transaction
+ * L4 FIX: Parse token transfer info from a Solana transaction
+ *
+ * Examines pre/post token balances to find incoming transfers.
+ * Returns the first token that increased in balance.
+ *
+ * @param tx - The transaction to parse (from getTransaction RPC call)
+ * @returns Token transfer info { mint, amount } or null if no transfer found
+ * @internal
  */
 function parseTokenTransfer(
   tx: Awaited<ReturnType<typeof import('@solana/web3.js').Connection.prototype.getTransaction>>
@@ -459,7 +469,14 @@ function parseTokenTransfer(
 }
 
 /**
- * Get token symbol from mint address
+ * L4 FIX: Get token symbol from mint address
+ *
+ * Looks up the human-readable symbol (e.g., "USDC", "USDT") for a given
+ * SPL token mint address.
+ *
+ * @param mint - The SPL token mint address (base58)
+ * @returns The token symbol if known, undefined otherwise
+ * @internal
  */
 function getTokenSymbol(mint: string): string | undefined {
   for (const [symbol, address] of Object.entries(SOLANA_TOKEN_MINTS)) {
@@ -471,7 +488,14 @@ function getTokenSymbol(mint: string): string | undefined {
 }
 
 /**
- * Detect Solana cluster from RPC endpoint
+ * L4 FIX: Detect Solana cluster from RPC endpoint URL
+ *
+ * Parses the RPC endpoint URL to determine which Solana cluster
+ * (mainnet-beta, devnet, testnet, or localnet) is being used.
+ *
+ * @param endpoint - The RPC endpoint URL
+ * @returns The detected cluster type
+ * @internal
  */
 function detectCluster(endpoint: string): SolanaCluster {
   if (endpoint.includes('devnet')) {
@@ -487,7 +511,14 @@ function detectCluster(endpoint: string): SolanaCluster {
 }
 
 /**
- * Convert bytes to bigint (little-endian, for ed25519 scalars)
+ * L4 FIX: Convert bytes to bigint (little-endian)
+ *
+ * Converts a Uint8Array to a BigInt using little-endian byte order,
+ * which is the standard for ed25519 scalar values.
+ *
+ * @param bytes - The byte array to convert
+ * @returns The BigInt representation
+ * @internal
  */
 function bytesToBigIntLE(bytes: Uint8Array): bigint {
   let result = 0n
