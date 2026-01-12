@@ -570,10 +570,10 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 | Service | Port | Container | Domain |
 |---------|------|-----------|--------|
-| sip-website (blue) | 5000 | sip-website-blue | sip-protocol.org |
-| sip-website (green) | 5001 | sip-website-green | - |
-| sip-website (staging) | 5002 | sip-website-staging | - |
+| sip-website | 5000 | sip-website | sip-protocol.org |
 | sip-docs | 5003 | sip-docs | docs.sip-protocol.org |
+| sip-blog | 5004 | sip-blog | blog.sip-protocol.org |
+| sip-app | 5005 | sip-app | app.sip-protocol.org |
 
 ### Deployment Flow
 
