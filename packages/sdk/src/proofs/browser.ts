@@ -44,7 +44,7 @@ import type { MobileDeviceInfo, MobileWASMCompatibility } from './browser-utils'
 // Import Noir JS (works in browser with WASM)
 import { Noir } from '@noir-lang/noir_js'
 import type { CompiledCircuit } from '@noir-lang/types'
-import { UltraHonkBackend } from '@aztec/bb.js'
+import { UltraHonkBackend, Barretenberg } from '@aztec/bb.js'
 import { secp256k1 } from '@noble/curves/secp256k1'
 
 // Import compiled circuit artifacts
@@ -147,6 +147,9 @@ export class BrowserNoirProvider implements ProofProvider {
   // Mobile device info (cached)
   private deviceInfo: MobileDeviceInfo | null = null
   private wasmCompatibility: MobileWASMCompatibility | null = null
+
+  // Barretenberg instance (shared by all backends)
+  private barretenberg: Barretenberg | null = null
 
   // Circuit instances
   private fundingNoir: Noir | null = null
@@ -395,14 +398,23 @@ export class BrowserNoirProvider implements ProofProvider {
 
       onProgress?.({
         stage: 'initializing',
-        percent: 20,
+        percent: 15,
+        message: 'Initializing Barretenberg...',
+      })
+
+      // Initialize Barretenberg (bb.js 3.x requires shared instance)
+      this.barretenberg = await Barretenberg.new()
+
+      onProgress?.({
+        stage: 'initializing',
+        percent: 30,
         message: 'Creating proof backends...',
       })
 
-      // Create backends (this loads WASM)
-      this.fundingBackend = new UltraHonkBackend(fundingCircuit.bytecode)
-      this.validityBackend = new UltraHonkBackend(validityCircuit.bytecode)
-      this.fulfillmentBackend = new UltraHonkBackend(fulfillmentCircuit.bytecode)
+      // Create backends (bb.js 3.x requires Barretenberg instance)
+      this.fundingBackend = new UltraHonkBackend(fundingCircuit.bytecode, this.barretenberg)
+      this.validityBackend = new UltraHonkBackend(validityCircuit.bytecode, this.barretenberg)
+      this.fulfillmentBackend = new UltraHonkBackend(fulfillmentCircuit.bytecode, this.barretenberg)
 
       onProgress?.({
         stage: 'initializing',
@@ -960,25 +972,28 @@ export class BrowserNoirProvider implements ProofProvider {
    * Destroy the provider and free resources
    */
   async destroy(): Promise<void> {
-    if (this.fundingBackend) {
-      await this.fundingBackend.destroy()
-      this.fundingBackend = null
-    }
-    if (this.validityBackend) {
-      await this.validityBackend.destroy()
-      this.validityBackend = null
-    }
-    if (this.fulfillmentBackend) {
-      await this.fulfillmentBackend.destroy()
-      this.fulfillmentBackend = null
-    }
+    // Clear backend references (bb.js 3.x backends don't have destroy method)
+    this.fundingBackend = null
+    this.validityBackend = null
+    this.fulfillmentBackend = null
+
+    // Terminate worker if running
     if (this.worker) {
       this.worker.terminate()
       this.worker = null
     }
+
+    // Clear Noir instances
     this.fundingNoir = null
     this.validityNoir = null
     this.fulfillmentNoir = null
+
+    // Destroy shared Barretenberg instance (bb.js 3.x)
+    if (this.barretenberg) {
+      await this.barretenberg.destroy()
+      this.barretenberg = null
+    }
+
     this._isReady = false
   }
 

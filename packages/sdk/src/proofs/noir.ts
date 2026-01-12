@@ -26,7 +26,7 @@ import { ProofError, ErrorCode } from '../errors'
 // Import Noir JS (dynamically loaded to support both Node and browser)
 import { Noir } from '@noir-lang/noir_js'
 import type { CompiledCircuit } from '@noir-lang/types'
-import { UltraHonkBackend } from '@aztec/bb.js'
+import { UltraHonkBackend, Barretenberg } from '@aztec/bb.js'
 import { secp256k1 } from '@noble/curves/secp256k1'
 
 // Import compiled circuit artifacts
@@ -118,6 +118,9 @@ export class NoirProofProvider implements ProofProvider {
   private _isReady = false
   private config: NoirProviderConfig
 
+  // Barretenberg instance (shared by all backends)
+  private barretenberg: Barretenberg | null = null
+
   // Circuit instances
   private fundingNoir: Noir | null = null
   private fundingBackend: UltraHonkBackend | null = null
@@ -194,12 +197,19 @@ export class NoirProofProvider implements ProofProvider {
         console.log('[NoirProofProvider] Initializing...')
       }
 
+      // Initialize Barretenberg (bb.js 3.x requires shared instance)
+      this.barretenberg = await Barretenberg.new()
+
+      if (this.config.verbose) {
+        console.log('[NoirProofProvider] Barretenberg initialized')
+      }
+
       // Initialize Funding Proof circuit
       // Cast to CompiledCircuit - the JSON artifact matches the expected structure
       const fundingCircuit = fundingCircuitArtifact as unknown as CompiledCircuit
 
-      // Create backend for proof generation
-      this.fundingBackend = new UltraHonkBackend(fundingCircuit.bytecode)
+      // Create backend for proof generation (bb.js 3.x requires Barretenberg instance)
+      this.fundingBackend = new UltraHonkBackend(fundingCircuit.bytecode, this.barretenberg)
 
       // Create Noir instance for witness generation
       this.fundingNoir = new Noir(fundingCircuit)
@@ -214,8 +224,8 @@ export class NoirProofProvider implements ProofProvider {
       // Initialize Validity Proof circuit
       const validityCircuit = validityCircuitArtifact as unknown as CompiledCircuit
 
-      // Create backend for validity proof generation
-      this.validityBackend = new UltraHonkBackend(validityCircuit.bytecode)
+      // Create backend for validity proof generation (bb.js 3.x requires Barretenberg instance)
+      this.validityBackend = new UltraHonkBackend(validityCircuit.bytecode, this.barretenberg)
 
       // Create Noir instance for validity witness generation
       this.validityNoir = new Noir(validityCircuit)
@@ -227,8 +237,8 @@ export class NoirProofProvider implements ProofProvider {
       // Initialize Fulfillment Proof circuit
       const fulfillmentCircuit = fulfillmentCircuitArtifact as unknown as CompiledCircuit
 
-      // Create backend for fulfillment proof generation
-      this.fulfillmentBackend = new UltraHonkBackend(fulfillmentCircuit.bytecode)
+      // Create backend for fulfillment proof generation (bb.js 3.x requires Barretenberg instance)
+      this.fulfillmentBackend = new UltraHonkBackend(fulfillmentCircuit.bytecode, this.barretenberg)
 
       // Create Noir instance for fulfillment witness generation
       this.fulfillmentNoir = new Noir(fulfillmentCircuit)
@@ -819,21 +829,22 @@ export class NoirProofProvider implements ProofProvider {
    * Destroy the provider and free resources
    */
   async destroy(): Promise<void> {
-    if (this.fundingBackend) {
-      await this.fundingBackend.destroy()
-      this.fundingBackend = null
-    }
-    if (this.validityBackend) {
-      await this.validityBackend.destroy()
-      this.validityBackend = null
-    }
-    if (this.fulfillmentBackend) {
-      await this.fulfillmentBackend.destroy()
-      this.fulfillmentBackend = null
-    }
+    // Clear backend references (bb.js 3.x backends don't have destroy method)
+    this.fundingBackend = null
+    this.validityBackend = null
+    this.fulfillmentBackend = null
+
+    // Clear Noir instances
     this.fundingNoir = null
     this.validityNoir = null
     this.fulfillmentNoir = null
+
+    // Destroy shared Barretenberg instance (bb.js 3.x)
+    if (this.barretenberg) {
+      await this.barretenberg.destroy()
+      this.barretenberg = null
+    }
+
     this._isReady = false
   }
 
