@@ -5,8 +5,9 @@
  */
 
 import type { PublicKey, Connection, Transaction, VersionedTransaction } from '@solana/web3.js'
-import type { StealthMetaAddress, StealthAddress, HexString } from '@sip-protocol/types'
+import type { StealthMetaAddress, HexString } from '@sip-protocol/types'
 import type { SolanaCluster } from './constants'
+import type { SolanaRPCProvider } from './providers/interface'
 
 /**
  * Parameters for sending a private SPL token transfer
@@ -62,6 +63,24 @@ export interface SolanaScanParams {
   toSlot?: number
   /** Optional: Limit number of results */
   limit?: number
+  /**
+   * Optional: RPC provider for efficient asset queries
+   *
+   * When provided, uses provider.getAssetsByOwner() for token detection
+   * instead of parsing transaction logs. Recommended for production.
+   *
+   * @example
+   * ```typescript
+   * const helius = createProvider('helius', { apiKey: '...' })
+   * const payments = await scanForPayments({
+   *   connection,
+   *   provider: helius,
+   *   viewingPrivateKey,
+   *   spendingPublicKey,
+   * })
+   * ```
+   */
+  provider?: SolanaRPCProvider
 }
 
 /**

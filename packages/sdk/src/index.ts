@@ -770,6 +770,10 @@ export {
   // Types helpers
   parseAnnouncement,
   createAnnouncementMemo,
+  // RPC Providers (Infrastructure Agnostic)
+  createProvider,
+  HeliusProvider,
+  GenericProvider,
 } from './chains/solana'
 
 export type {
@@ -781,6 +785,13 @@ export type {
   SolanaClaimResult,
   SolanaAnnouncement,
   SolanaCluster as SolanaSameChainCluster,
+  // RPC Provider types
+  SolanaRPCProvider,
+  TokenAsset,
+  ProviderConfig,
+  ProviderType,
+  GenericProviderConfig,
+  HeliusProviderConfig,
 } from './chains/solana'
 
 // Same-Chain Executors

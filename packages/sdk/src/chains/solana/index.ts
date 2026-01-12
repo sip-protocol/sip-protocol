@@ -85,3 +85,16 @@ export {
   claimStealthPayment,
   getStealthBalance,
 } from './scan'
+
+// RPC Providers (Infrastructure Agnostic)
+export {
+  createProvider,
+  HeliusProvider,
+  GenericProvider,
+  type SolanaRPCProvider,
+  type TokenAsset,
+  type ProviderConfig,
+  type ProviderType,
+  type GenericProviderConfig,
+  type HeliusProviderConfig,
+} from './providers'
