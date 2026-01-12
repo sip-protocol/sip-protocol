@@ -43,7 +43,7 @@
  * })
  *
  * if (availability.available) {
- *   console.log(`Anonymity set: ${availability.metadata?.anonymitySet}`)
+ *   console.log(`Estimated cost: ${availability.estimatedCost}`)
  * }
  * ```
  *
@@ -285,7 +285,7 @@ export class PrivacyCashBackend implements PrivacyBackend {
           isSOL,
           token: isSOL ? 'SOL' : this.getSPLToken(params.mint!),
           note: simulatedNote, // In production, this is the withdrawal proof
-          anonymitySet: await this.getPoolAnonymitySet(params.amount, isSOL),
+          anonymitySet: await this.getPoolAnonymitySet(params.amount, isSOL, params.mint),
           timestamp: Date.now(),
           warning: 'Simulated result - SDK integration pending',
         },
@@ -407,9 +407,10 @@ export class PrivacyCashBackend implements PrivacyBackend {
    */
   private async getPoolAnonymitySet(
     amount: bigint,
-    isSOL: boolean
+    isSOL: boolean,
+    mint?: string | null
   ): Promise<number> {
-    const token = isSOL ? undefined : 'USDC' as PrivacyCashSPLToken
+    const token = isSOL ? undefined : (mint ? this.getSPLToken(mint) : undefined)
     const poolInfo = await this.getPoolInfo(amount, token)
     return poolInfo.depositors
   }
@@ -442,7 +443,11 @@ export class PrivacyCashBackend implements PrivacyBackend {
         randomBytes[i] = Math.floor(Math.random() * 256)
       }
     }
-    return `privacycash:${Buffer.from(randomBytes).toString('hex')}`
+    // Convert to hex string (browser-compatible, no Buffer dependency)
+    const hex = Array.from(randomBytes)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+    return `privacycash:${hex}`
   }
 
   /**
