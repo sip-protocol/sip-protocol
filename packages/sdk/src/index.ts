@@ -815,6 +815,7 @@ export {
   estimateComputeUnits,
   // Error
   SolanaNoirError,
+  SolanaNoirErrorCode,
   // Constants
   CIRCUIT_METADATA,
   DEFAULT_RPC_URLS,
@@ -830,7 +831,7 @@ export type {
   SolanaVerifyInstruction,
   SolanaVerificationResult,
   SolanaNoirVerifierConfig,
-  SolanaNoirErrorCode,
+  SolanaNoirErrorCode as SolanaNoirErrorCodeType,
   ProofStatistics,
   BatchVerificationRequest,
   BatchVerificationResult,

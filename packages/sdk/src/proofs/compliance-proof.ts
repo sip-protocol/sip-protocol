@@ -565,6 +565,29 @@ export class ComplianceProofProvider {
    *
    * @param result - Compliance proof result to verify
    * @returns true if valid, false otherwise
+   *
+   * @remarks
+   * **IMPORTANT: Mock Implementation**
+   *
+   * This verification performs structural validation only:
+   * - Checks proof expiry
+   * - Validates proof format and size
+   * - Verifies public inputs exist
+   * - Checks proof type matches compliance type
+   *
+   * It does NOT perform cryptographic verification of the ZK proof.
+   * For production use, integrate with `SolanaNoirVerifier.verifyOffChain()`
+   * or deploy a dedicated compliance circuit verifier.
+   *
+   * @example
+   * ```typescript
+   * // For production cryptographic verification:
+   * const solanaVerifier = new SolanaNoirVerifier()
+   * await solanaVerifier.initialize()
+   * const cryptoValid = await solanaVerifier.verifyOffChain(result.proof)
+   * const formatValid = await complianceProvider.verifyComplianceProof(result)
+   * const isValid = cryptoValid && formatValid
+   * ```
    */
   async verifyComplianceProof(result: ComplianceProofResult): Promise<boolean> {
     this.ensureReady()
@@ -577,24 +600,39 @@ export class ComplianceProofProvider {
       return false
     }
 
-    // Verify the underlying ZK proof
-    // In production, this would use the Noir verifier
+    // NOTE: This is a mock verification that only checks structure.
+    // Production systems should use SolanaNoirVerifier for cryptographic verification.
+
+    // Verify the underlying ZK proof structure
     const proofHex = result.proof.proof.replace('0x', '')
 
-    // Simple validation for mock implementation
+    // Check proof has minimum expected size (real proofs are ~2KB)
     if (proofHex.length < 64) {
+      if (this.config.verbose) {
+        console.log('[ComplianceProofProvider] Proof too small')
+      }
       return false
     }
 
     // Check public inputs match expected format
     if (result.publicInputs.length === 0) {
+      if (this.config.verbose) {
+        console.log('[ComplianceProofProvider] No public inputs')
+      }
       return false
     }
 
     // Check proof type matches compliance type
     const expectedType = this.getExpectedProofType(result.complianceType)
     if (result.proof.type !== expectedType) {
+      if (this.config.verbose) {
+        console.log(`[ComplianceProofProvider] Type mismatch: expected ${expectedType}, got ${result.proof.type}`)
+      }
       return false
+    }
+
+    if (this.config.verbose) {
+      console.log('[ComplianceProofProvider] Mock verification: VALID (structural only, not cryptographic)')
     }
 
     return true

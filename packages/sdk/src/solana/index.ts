@@ -39,6 +39,8 @@ export {
   CIRCUIT_METADATA,
   DEFAULT_RPC_URLS,
   SOLANA_ZK_PROGRAM_IDS,
+  MAX_PROOF_SIZE_BYTES,
+  MAX_PUBLIC_INPUTS,
   SolanaNoirError,
   SolanaNoirErrorCode,
   isNoirCircuitType,

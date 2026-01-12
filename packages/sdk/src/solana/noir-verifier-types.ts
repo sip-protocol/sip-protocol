@@ -283,6 +283,22 @@ export class SolanaNoirError extends Error {
   }
 }
 
+// ─── Size Limits ─────────────────────────────────────────────────────────────
+
+/**
+ * Maximum proof size in bytes
+ *
+ * UltraHonk proofs are typically ~2KB, but we allow up to 4KB for safety.
+ */
+export const MAX_PROOF_SIZE_BYTES = 4096
+
+/**
+ * Maximum number of public inputs
+ *
+ * Based on Solana transaction size limits and our circuit designs.
+ */
+export const MAX_PUBLIC_INPUTS = 32
+
 // ─── Utility Types ───────────────────────────────────────────────────────────
 
 /**
