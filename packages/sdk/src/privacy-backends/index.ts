@@ -42,6 +42,10 @@
  * - **ArciumBackend** — MPC (Multi-Party Computation)
  * - **IncoBackend** — FHE (Fully Homomorphic Encryption)
  *
+ * ### Confidential Tokens
+ * - **CSPLClient** — C-SPL (Confidential SPL) token operations
+ * - **PrivateSwap** — Full privacy swaps (SIP + C-SPL + Arcium)
+ *
  * @module privacy-backends
  */
 
@@ -142,6 +146,46 @@ export {
   type IIncoClient,
   type IncoConfig,
 } from './inco-types'
+
+// C-SPL (Confidential SPL) types and client
+export { CSPLClient, type CSPLClientConfig } from './cspl'
+export {
+  CSPL_TOKENS,
+  CSPL_PROGRAM_IDS,
+  CSPL_OPERATION_COSTS,
+  CSPL_OPERATION_TIMES,
+  DEFAULT_SWAP_SLIPPAGE_BPS,
+  MAX_PENDING_TRANSFERS,
+  type CSPLToken,
+  type ConfidentialTokenAccount,
+  type ConfidentialBalance,
+  type ConfidentialTransferParams,
+  type ConfidentialTransferResult,
+  type WrapTokenParams,
+  type WrapTokenResult,
+  type UnwrapTokenParams,
+  type UnwrapTokenResult,
+  type ConfidentialSwapParams,
+  type ConfidentialSwapResult,
+  type ConfidentialPool,
+  type CSPLEncryptionParams,
+  type CSPLDecryptionParams,
+  type EncryptedAmount,
+  type CSPLEncryptionType,
+  type CSPLAuditorConfig,
+  type CSPLAuditorPermission,
+  type CompliantTransferParams,
+  type ICSPLClient,
+} from './cspl-types'
+
+// Private Swap (SIP Native + C-SPL + Arcium integration)
+export {
+  PrivateSwap,
+  type PrivateSwapConfig,
+  type PrivateSwapParams,
+  type PrivateSwapResult,
+  type PrivateSwapStep,
+} from './private-swap'
 
 // Router
 export { SmartRouter } from './router'
