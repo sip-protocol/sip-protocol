@@ -47,6 +47,7 @@ import type { StealthAddress } from '@sip-protocol/types'
 import { parseAnnouncement } from '../types'
 import type { SolanaScanResult } from '../types'
 import { SIP_MEMO_PREFIX, SOLANA_TOKEN_MINTS } from '../constants'
+import { ValidationError } from '../../../errors'
 
 /**
  * Helius raw webhook payload for a transaction
@@ -264,6 +265,17 @@ export function createWebhookHandler(
 ): (payload: HeliusWebhookPayload) => Promise<WebhookProcessResult[]> {
   const { viewingPrivateKey, spendingPublicKey, onPaymentFound, onError } = config
 
+  // Validate required keys
+  if (!viewingPrivateKey || !viewingPrivateKey.startsWith('0x')) {
+    throw new ValidationError('viewingPrivateKey must be a valid hex string starting with 0x', 'viewingPrivateKey')
+  }
+  if (!spendingPublicKey || !spendingPublicKey.startsWith('0x')) {
+    throw new ValidationError('spendingPublicKey must be a valid hex string starting with 0x', 'spendingPublicKey')
+  }
+  if (typeof onPaymentFound !== 'function') {
+    throw new ValidationError('onPaymentFound callback is required', 'onPaymentFound')
+  }
+
   return async (payload: HeliusWebhookPayload): Promise<WebhookProcessResult[]> => {
     // Normalize to array
     const transactions = Array.isArray(payload) ? payload : [payload]
@@ -311,10 +323,15 @@ async function processRawTransaction(
   spendingPublicKey: HexString,
   onPaymentFound: (payment: SolanaScanResult) => void | Promise<void>
 ): Promise<WebhookProcessResult> {
-  const signature = tx.transaction.signatures[0]
+  const signature = tx.transaction?.signatures?.[0] ?? 'unknown'
 
   // Check if transaction failed
-  if (tx.meta.err) {
+  if (tx.meta?.err) {
+    return { found: false, signature }
+  }
+
+  // Ensure log messages exist
+  if (!tx.meta?.logMessages) {
     return { found: false, signature }
   }
 
@@ -373,8 +390,12 @@ async function processRawTransaction(
         timestamp: tx.blockTime,
       }
 
-      // Call the callback
-      await onPaymentFound(payment)
+      // Call the callback (wrap in try-catch to prevent callback errors from breaking processing)
+      try {
+        await onPaymentFound(payment)
+      } catch {
+        // Callback error should not prevent returning the found payment
+      }
 
       return { found: true, payment, signature }
     }
@@ -429,6 +450,7 @@ function getTokenSymbol(mint: string): string | undefined {
 
 /**
  * Type guard for raw transaction
+ * Raw transactions have transaction.signatures array, enhanced have signature directly
  */
 function isRawTransaction(tx: unknown): tx is HeliusWebhookTransaction {
   return (
@@ -436,7 +458,7 @@ function isRawTransaction(tx: unknown): tx is HeliusWebhookTransaction {
     tx !== null &&
     'meta' in tx &&
     'transaction' in tx &&
-    typeof (tx as HeliusWebhookTransaction).meta?.logMessages !== 'undefined'
+    Array.isArray((tx as HeliusWebhookTransaction).transaction?.signatures)
   )
 }
 
@@ -444,10 +466,15 @@ function isRawTransaction(tx: unknown): tx is HeliusWebhookTransaction {
  * Get signature from either transaction type
  */
 function getSignature(tx: HeliusWebhookTransaction | HeliusEnhancedTransaction): string {
-  if ('signature' in tx) {
-    return tx.signature
+  // Enhanced transactions have signature at top level
+  if ('signature' in tx && typeof (tx as HeliusEnhancedTransaction).signature === 'string') {
+    return (tx as HeliusEnhancedTransaction).signature
   }
-  return tx.transaction.signatures[0] || 'unknown'
+  // Raw transactions have signatures array in transaction object
+  if (isRawTransaction(tx)) {
+    return tx.transaction?.signatures?.[0] ?? 'unknown'
+  }
+  return 'unknown'
 }
 
 /**

@@ -87,6 +87,30 @@ describe('Helius Webhook Handler', () => {
       expect(typeof handler).toBe('function')
     })
 
+    it('should throw on invalid viewingPrivateKey', () => {
+      expect(() => createWebhookHandler({
+        viewingPrivateKey: 'invalid' as `0x${string}`,
+        spendingPublicKey: spendingPublicKey,
+        onPaymentFound: vi.fn(),
+      })).toThrow('viewingPrivateKey must be a valid hex string')
+    })
+
+    it('should throw on invalid spendingPublicKey', () => {
+      expect(() => createWebhookHandler({
+        viewingPrivateKey: recipientKeys.viewingPrivateKey,
+        spendingPublicKey: 'invalid' as `0x${string}`,
+        onPaymentFound: vi.fn(),
+      })).toThrow('spendingPublicKey must be a valid hex string')
+    })
+
+    it('should throw when onPaymentFound is not provided', () => {
+      expect(() => createWebhookHandler({
+        viewingPrivateKey: recipientKeys.viewingPrivateKey,
+        spendingPublicKey: spendingPublicKey,
+        onPaymentFound: undefined as unknown as () => void,
+      })).toThrow('onPaymentFound callback is required')
+    })
+
     it('should detect payment for our viewing key', async () => {
       const onPaymentFound = vi.fn()
 
@@ -221,6 +245,77 @@ describe('Helius Webhook Handler', () => {
 
       expect(results).toHaveLength(1)
       expect(results[0].found).toBe(false)
+    })
+
+    it('should handle transactions without logMessages gracefully', async () => {
+      const onPaymentFound = vi.fn()
+
+      const handler = createWebhookHandler({
+        viewingPrivateKey: recipientKeys.viewingPrivateKey,
+        spendingPublicKey: spendingPublicKey,
+        onPaymentFound,
+      })
+
+      const txWithoutLogs = {
+        blockTime: 1700000000,
+        slot: 250000000,
+        meta: {
+          err: null,
+          fee: 5000,
+          innerInstructions: [],
+          // logMessages intentionally missing
+          postBalances: [],
+          preBalances: [],
+          postTokenBalances: [],
+          preTokenBalances: [],
+          rewards: [],
+        },
+        transaction: {
+          message: { accountKeys: [], instructions: [], recentBlockhash: 'hash' },
+          signatures: ['sig-no-logs'],
+        },
+      } as unknown as HeliusWebhookTransaction
+
+      const results = await handler(txWithoutLogs)
+
+      expect(results).toHaveLength(1)
+      expect(results[0].found).toBe(false)
+      expect(results[0].signature).toBe('sig-no-logs')
+    })
+
+    it('should handle transactions with empty signatures array', async () => {
+      const onPaymentFound = vi.fn()
+
+      const handler = createWebhookHandler({
+        viewingPrivateKey: recipientKeys.viewingPrivateKey,
+        spendingPublicKey: spendingPublicKey,
+        onPaymentFound,
+      })
+
+      const txWithEmptySignatures = {
+        blockTime: 1700000000,
+        slot: 250000000,
+        meta: {
+          err: null,
+          fee: 5000,
+          innerInstructions: [],
+          logMessages: ['Program log: Not SIP'],
+          postBalances: [],
+          preBalances: [],
+          postTokenBalances: [],
+          preTokenBalances: [],
+          rewards: [],
+        },
+        transaction: {
+          message: { accountKeys: [], instructions: [], recentBlockhash: 'hash' },
+          signatures: [],
+        },
+      } as unknown as HeliusWebhookTransaction
+
+      const results = await handler(txWithEmptySignatures)
+
+      expect(results).toHaveLength(1)
+      expect(results[0].signature).toBe('unknown')
     })
 
     it('should skip enhanced transactions (no log messages)', async () => {
