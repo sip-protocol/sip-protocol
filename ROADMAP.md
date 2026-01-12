@@ -703,7 +703,11 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 | [#379](../../issues/379) | Same-chain test suite (100+ tests) | High | 🔲 Planned |
 | [#377](../../issues/377) | Developer documentation | Medium | 🔲 Planned |
 | [#441](../../issues/441) | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | 🔲 Planned |
-| [#446](../../issues/446) | **Helius DAS API integration** (efficient stealth scanning) | High | 🔲 Planned |
+| [#493](../../issues/493) | **SolanaRPCProvider interface** (unified provider abstraction) | High | 🔲 Planned |
+| [#446](../../issues/446) | **Helius DAS adapter** (token queries via DAS API) | High | 🔲 Planned |
+| [#494](../../issues/494) | **QuickNode adapter** (Yellowstone gRPC streams) | Medium | 🔲 Planned |
+| [#495](../../issues/495) | **Triton adapter** (Geyser plugin integration) | Medium | 🔲 Planned |
+| [#496](../../issues/496) | **Generic RPC adapter** (standard RPC fallback) | High | 🔲 Planned |
 | [#456](../../issues/456) | **Helius Enhanced Transactions** (better UX) | Medium | 🔲 Planned |
 | [#447](../../issues/447) | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
 | [#457](../../issues/457) | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
@@ -770,6 +774,77 @@ await sip.privateSwap({ txBackend: 'sip-native', computeBackend: 'arcium', ... }
 ```
 
 > **Philosophy:** SIP doesn't compete with PrivacyCash, Arcium, or Inco — we INTEGRATE them. One standard, all approaches.
+
+**RPC Provider Abstraction (Infrastructure Agnostic):**
+
+SIP is **RPC-provider-agnostic** — developers choose their preferred Solana RPC provider. Each provider has unique moats we leverage through a unified interface.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      SIP RPC PROVIDER ARCHITECTURE                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  SolanaRPCProvider Interface (Unified API)                          │   │
+│   │  • getAssetsByOwner()    — Token balance queries                    │   │
+│   │  • getTokenBalance()     — Specific mint balance                    │   │
+│   │  • subscribeToTransfers() — Real-time notifications (if supported)  │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│              ┌─────────────────────┼─────────────────────┐                  │
+│              ▼                     ▼                     ▼                  │
+│   ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐         │
+│   │  Helius Adapter  │  │ QuickNode Adapter│  │  Triton Adapter  │         │
+│   │  • DAS API       │  │  • Yellowstone   │  │  • Geyser plugins│         │
+│   │  • Webhooks      │  │  • Functions     │  │  • High-throughput│        │
+│   └──────────────────┘  └──────────────────┘  └──────────────────┘         │
+│              │                     │                     │                  │
+│              └─────────────────────┼─────────────────────┘                  │
+│                                    ▼                                        │
+│                         ┌──────────────────┐                                │
+│                         │  Generic Adapter │                                │
+│                         │  • Standard RPC  │                                │
+│                         │  • Self-hosted   │                                │
+│                         │  • Fallback      │                                │
+│                         └──────────────────┘                                │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**RPC Provider Comparison:**
+
+| Provider | Moat API | Best For | Issue |
+|----------|----------|----------|-------|
+| **Helius** | DAS (Digital Asset Standard) | Token balances, NFT metadata | [#446](../../issues/446) |
+| **QuickNode** | Yellowstone gRPC, Functions | Real-time streams, custom logic | [#494](../../issues/494) |
+| **Triton** | Geyser plugins | High-throughput indexing | [#495](../../issues/495) |
+| **Generic** | Standard RPC | Self-hosted, fallback | [#496](../../issues/496) |
+
+**Provider Interface:** [#493](../../issues/493)
+
+**Developer Choice API:**
+
+```typescript
+import { scanForPayments, createProvider } from '@sip-protocol/sdk'
+
+// Helius — efficient DAS queries (recommended for production)
+const helius = createProvider('helius', { apiKey: process.env.HELIUS_API_KEY })
+
+// QuickNode — real-time streams
+const quicknode = createProvider('quicknode', { apiKey: process.env.QUICKNODE_API_KEY })
+
+// Generic — standard RPC, no API key needed
+const generic = createProvider('generic', { connection })
+
+// Same API, different backends — developer choice
+const payments = await scanForPayments({
+  provider: helius, // or quicknode, triton, generic
+  viewingPrivateKey,
+  spendingPublicKey,
+})
+```
+
+> **Philosophy:** SIP doesn't lock developers to one RPC provider — we provide a unified interface that leverages each provider's unique moats. Use Helius DAS for efficient queries, QuickNode for real-time streams, or your own node.
 
 **Success Metrics:**
 - Anchor program deployed to devnet

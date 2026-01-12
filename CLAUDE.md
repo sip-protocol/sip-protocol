@@ -275,12 +275,18 @@ SIP combines **Settlement Aggregation** for standardization with **Proof Composi
 │  │ • Privacy Levels       • Unified API            • Compliance Ready    │ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 │  ┌───────────────────────────────────────────────────────────────────────┐ │
+│  │ INFRASTRUCTURE AGNOSTIC (Pluggable Everything)                        │ │
+│  │ • Settlement backends  → NEAR, Zcash, Direct Chain, Mina              │ │
+│  │ • Privacy backends     → SIP Native, PrivacyCash, Arcium, Inco        │ │
+│  │ • RPC providers        → Helius, QuickNode, Triton, Generic   [M17]   │ │
+│  └───────────────────────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────────────────────┐ │
 │  │ PROOF COMPOSITION (Technical Moat) [Phase 5: M19-M21]                 │ │
 │  │ • Zcash → Privacy execution     • Mina → Succinct verification        │ │
 │  │ • Noir  → Validity proofs       • Compose proofs from multiple systems│ │
 │  └───────────────────────────────────────────────────────────────────────┘ │
 └────────────────────────────────┬────────────────────────────────────────────┘
-                                 │ "Settle anywhere"
+                                 │ "Settle anywhere, use any provider"
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  SETTLEMENT LAYER (Pluggable)                                               │
@@ -295,6 +301,25 @@ SIP combines **Settlement Aggregation** for standardization with **Proof Composi
 ```
 
 **One-liner**: SIP is privacy middleware — we sit between apps and chains, making any transaction private.
+
+### Infrastructure Agnostic Philosophy
+
+SIP is **pluggable at every layer** — developers choose their preferred backends:
+
+| Layer | Options | Philosophy |
+|-------|---------|------------|
+| **Settlement** | NEAR Intents, Zcash, Direct Chain, Mina | Settle anywhere |
+| **Privacy** | SIP Native, PrivacyCash, Arcium, Inco | Choose your privacy model |
+| **RPC Provider** | Helius, QuickNode, Triton, Generic | Use your preferred infra |
+
+```typescript
+// Same API, different backends — developer choice
+const payments = await scanForPayments({
+  provider: createProvider('helius', { apiKey }),  // or 'quicknode', 'triton', 'generic'
+  viewingPrivateKey,
+  spendingPublicKey,
+})
+```
 
 **Key Files:**
 - `packages/sdk/src/stealth.ts` - Stealth address generation (EIP-5564, secp256k1)
