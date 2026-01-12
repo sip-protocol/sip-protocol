@@ -1,0 +1,21 @@
+{
+  "name": "@sip-protocol/noir-solana-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo: Noir ZK proofs on Solana",
+  "type": "module",
+  "scripts": {
+    "demo": "tsx src/index.ts",
+    "demo:browser": "vite",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sip-protocol/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.0",
+    "vite": "^5.0.0"
+  }
+}
