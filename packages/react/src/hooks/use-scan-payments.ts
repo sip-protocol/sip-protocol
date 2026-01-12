@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   scanForPayments,
   claimStealthPayment,
-  getStealthBalance,
 } from '@sip-protocol/sdk'
 import type {
   SolanaScanParams,
@@ -291,30 +290,45 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
 
   /**
    * Claim all unclaimed payments
+   *
+   * @remarks
+   * This is a convenience method that iterates through unclaimed payments.
+   * However, it requires mint PublicKey objects which cannot be constructed
+   * from string addresses without @solana/web3.js dependency.
+   *
+   * For now, use `claim()` directly for each payment with the mint PublicKey:
+   * ```typescript
+   * import { PublicKey } from '@solana/web3.js'
+   *
+   * for (const payment of payments.filter(p => !p.claimed)) {
+   *   await claim(payment, {
+   *     spendingPrivateKey: '0x...',
+   *     destinationAddress: 'myWallet...',
+   *     mint: new PublicKey(payment.mint),
+   *   })
+   * }
+   * ```
+   *
+   * @todo Implement proper claimAll when we can resolve mint strings to PublicKey
+   * objects without direct @solana/web3.js dependency. Options:
+   * 1. Accept a mintResolver function from user
+   * 2. Store mint as PublicKey in SolanaScanResult
+   * 3. Add PublicKey-like interface to SDK types
    */
   const claimAll = useCallback(
-    async (claimAllParams: ClaimAllParams): Promise<SolanaClaimResult[]> => {
+    async (_claimAllParams: ClaimAllParams): Promise<SolanaClaimResult[]> => {
       const unclaimed = payments.filter((p) => !p.claimed)
-      const results: SolanaClaimResult[] = []
 
-      for (const payment of unclaimed) {
-        // Get mint from payment - need to construct PublicKey
-        // This requires the user to have @solana/web3.js, which they should
-        // since they're using Solana wallet adapter
-        try {
-          // We need the mint as a PublicKey, but we only have the string
-          // The user needs to provide a way to construct this
-          // For now, we'll skip if we can't get the mint info
-          console.warn(
-            `Skipping payment ${payment.txSignature}: claimAll requires mint PublicKey construction. ` +
-            `Use claim() directly with the mint PublicKey for each payment.`
-          )
-        } catch {
-          // Skip failed claims, continue with others
-        }
+      if (unclaimed.length > 0) {
+        console.warn(
+          `[useScanPayments] claimAll() is not yet implemented. ` +
+          `Found ${unclaimed.length} unclaimed payment(s). ` +
+          `Use claim() directly with mint PublicKey for each payment.`
+        )
       }
 
-      return results
+      // TODO: Implement when mint resolution is available
+      return []
     },
     [payments]
   )
@@ -381,6 +395,7 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
   }, [status])
 
   // Auto-start scanning if interval is provided
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on mount/unmount
   useEffect(() => {
     if (scanInterval > 0) {
       startAutoScan(scanInterval)
@@ -389,7 +404,7 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
     return () => {
       stopAutoScan()
     }
-  }, []) // Only run on mount/unmount - don't re-run when dependencies change
+  }, [])
 
   return {
     status,
