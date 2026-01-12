@@ -40,7 +40,7 @@
  *
  * ### Compute Privacy (hide contract execution)
  * - **ArciumBackend** — MPC (Multi-Party Computation)
- * - **IncoBackend** — FHE compute privacy (coming in #482)
+ * - **IncoBackend** — FHE (Fully Homomorphic Encryption)
  *
  * @module privacy-backends
  */
@@ -79,6 +79,7 @@ export { PrivacyCashBackend, type PrivacyCashBackendConfig } from './privacycash
 
 // Compute Backends
 export { ArciumBackend, type ArciumBackendConfig } from './arcium'
+export { IncoBackend, type IncoBackendConfig } from './inco'
 
 // PrivacyCash types (for advanced usage)
 export {
@@ -116,6 +117,31 @@ export {
   type IArciumClient,
   type IArciumReader,
 } from './arcium-types'
+
+// Inco types (for advanced usage)
+export {
+  INCO_RPC_URLS,
+  INCO_CHAIN_IDS,
+  INCO_SUPPORTED_CHAINS,
+  DEFAULT_FHE_TIMEOUT_MS,
+  ESTIMATED_FHE_TIME_MS,
+  BASE_FHE_COST_WEI,
+  COST_PER_ENCRYPTED_INPUT_WEI,
+  type IncoNetwork,
+  type IncoProduct,
+  type EncryptedType,
+  type EncryptedValue,
+  type EncryptParams,
+  type DecryptParams,
+  type DecryptResult,
+  type SubmitFHEParams,
+  type FHEComputationInfo,
+  type AttestationType,
+  type AttestationRequest,
+  type AttestationResult,
+  type IIncoClient,
+  type IncoConfig,
+} from './inco-types'
 
 // Router
 export { SmartRouter } from './router'
