@@ -238,15 +238,17 @@ router.get(
   validateRequest({ params: schemas.swapStatus }),
   async (req: Request, res: Response) => {
     const { id } = req.params
+    // Express 5 types params as string | string[] - ensure we have a string
+    const swapId = Array.isArray(id) ? id[0] : id
 
-    const swap = swaps.get(id)
+    const swap = swaps.get(swapId)
 
     if (!swap) {
       return res.status(404).json({
         success: false,
         error: {
           code: 'SWAP_NOT_FOUND',
-          message: `Swap ${id} not found`,
+          message: `Swap ${swapId} not found`,
         },
       })
     }
