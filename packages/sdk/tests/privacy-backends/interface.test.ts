@@ -1,0 +1,341 @@
+/**
+ * Privacy Backend Interface Contract Tests
+ *
+ * These tests verify that all implementations correctly implement
+ * the PrivacyBackend interface contract.
+ */
+
+import { describe, it, expect, beforeEach } from 'vitest'
+import { SIPNativeBackend } from '../../src/privacy-backends/sip-native'
+import type {
+  PrivacyBackend,
+  BackendCapabilities,
+  TransferParams,
+  AvailabilityResult,
+  TransactionResult,
+} from '../../src/privacy-backends/interface'
+
+// All backend implementations to test
+const backendFactories: Array<{
+  name: string
+  create: () => PrivacyBackend
+}> = [
+  {
+    name: 'SIPNativeBackend',
+    create: () => new SIPNativeBackend(),
+  },
+  // Add more backends here as they are implemented:
+  // { name: 'PrivacyCashBackend', create: () => new PrivacyCashBackend() },
+  // { name: 'ArciumBackend', create: () => new ArciumBackend() },
+  // { name: 'IncoBackend', create: () => new IncoBackend() },
+]
+
+const validParams: TransferParams = {
+  chain: 'solana',
+  sender: 'sender-address',
+  recipient: 'recipient-address',
+  mint: null,
+  amount: 1000000n,
+  decimals: 9,
+}
+
+describe('PrivacyBackend Interface Contract', () => {
+  backendFactories.forEach(({ name, create }) => {
+    describe(name, () => {
+      let backend: PrivacyBackend
+
+      beforeEach(() => {
+        backend = create()
+      })
+
+      describe('required properties', () => {
+        it('should have a non-empty name', () => {
+          expect(typeof backend.name).toBe('string')
+          expect(backend.name.length).toBeGreaterThan(0)
+        })
+
+        it('should have a valid type', () => {
+          expect(['transaction', 'compute', 'both']).toContain(backend.type)
+        })
+
+        it('should have a non-empty chains array', () => {
+          expect(Array.isArray(backend.chains)).toBe(true)
+          expect(backend.chains.length).toBeGreaterThan(0)
+        })
+      })
+
+      describe('checkAvailability', () => {
+        it('should return an AvailabilityResult', async () => {
+          const result = await backend.checkAvailability(validParams)
+
+          expect(typeof result).toBe('object')
+          expect(typeof result.available).toBe('boolean')
+        })
+
+        it('should include reason when not available', async () => {
+          const unsupportedParams: TransferParams = {
+            ...validParams,
+            chain: 'unsupported-chain' as any,
+          }
+
+          const result = await backend.checkAvailability(unsupportedParams)
+
+          if (!result.available) {
+            expect(typeof result.reason).toBe('string')
+            expect(result.reason!.length).toBeGreaterThan(0)
+          }
+        })
+
+        it('should include cost estimate when available', async () => {
+          const result = await backend.checkAvailability(validParams)
+
+          if (result.available) {
+            expect(result.estimatedCost).toBeDefined()
+            expect(typeof result.estimatedCost).toBe('bigint')
+          }
+        })
+
+        it('should include time estimate when available', async () => {
+          const result = await backend.checkAvailability(validParams)
+
+          if (result.available) {
+            expect(result.estimatedTime).toBeDefined()
+            expect(typeof result.estimatedTime).toBe('number')
+          }
+        })
+      })
+
+      describe('getCapabilities', () => {
+        it('should return a BackendCapabilities object', () => {
+          const caps = backend.getCapabilities()
+
+          expect(typeof caps).toBe('object')
+        })
+
+        it('should have all required boolean fields', () => {
+          const caps = backend.getCapabilities()
+
+          expect(typeof caps.hiddenAmount).toBe('boolean')
+          expect(typeof caps.hiddenSender).toBe('boolean')
+          expect(typeof caps.hiddenRecipient).toBe('boolean')
+          expect(typeof caps.hiddenCompute).toBe('boolean')
+          expect(typeof caps.complianceSupport).toBe('boolean')
+          expect(typeof caps.setupRequired).toBe('boolean')
+        })
+
+        it('should have valid latencyEstimate', () => {
+          const caps = backend.getCapabilities()
+
+          expect(['fast', 'medium', 'slow']).toContain(caps.latencyEstimate)
+        })
+
+        it('should have valid supportedTokens', () => {
+          const caps = backend.getCapabilities()
+
+          expect(['native', 'spl', 'all']).toContain(caps.supportedTokens)
+        })
+
+        it('should have optional anonymitySet as number or undefined', () => {
+          const caps = backend.getCapabilities()
+
+          if (caps.anonymitySet !== undefined) {
+            expect(typeof caps.anonymitySet).toBe('number')
+            expect(caps.anonymitySet).toBeGreaterThan(0)
+          }
+        })
+
+        it('should be deterministic (same result on multiple calls)', () => {
+          const caps1 = backend.getCapabilities()
+          const caps2 = backend.getCapabilities()
+
+          expect(caps1.hiddenAmount).toBe(caps2.hiddenAmount)
+          expect(caps1.complianceSupport).toBe(caps2.complianceSupport)
+          expect(caps1.latencyEstimate).toBe(caps2.latencyEstimate)
+        })
+      })
+
+      describe('execute', () => {
+        it('should return a TransactionResult', async () => {
+          const result = await backend.execute(validParams)
+
+          expect(typeof result).toBe('object')
+          expect(typeof result.success).toBe('boolean')
+          expect(result.backend).toBe(backend.name)
+        })
+
+        it('should include signature on success', async () => {
+          const result = await backend.execute(validParams)
+
+          if (result.success) {
+            expect(result.signature).toBeDefined()
+            expect(typeof result.signature).toBe('string')
+          }
+        })
+
+        it('should include error on failure', async () => {
+          const invalidParams: TransferParams = {
+            ...validParams,
+            chain: 'unsupported-chain' as any,
+          }
+
+          const result = await backend.execute(invalidParams)
+
+          if (!result.success) {
+            expect(result.error).toBeDefined()
+            expect(typeof result.error).toBe('string')
+          }
+        })
+      })
+
+      describe('estimateCost', () => {
+        it('should return a bigint', async () => {
+          const cost = await backend.estimateCost(validParams)
+
+          expect(typeof cost).toBe('bigint')
+        })
+
+        it('should return non-negative cost', async () => {
+          const cost = await backend.estimateCost(validParams)
+
+          expect(cost >= 0n).toBe(true)
+        })
+
+        it('should be consistent with checkAvailability estimate', async () => {
+          const availability = await backend.checkAvailability(validParams)
+          const cost = await backend.estimateCost(validParams)
+
+          if (availability.available && availability.estimatedCost !== undefined) {
+            // Should be the same or very close
+            expect(cost).toBe(availability.estimatedCost)
+          }
+        })
+      })
+    })
+  })
+})
+
+describe('BackendCapabilities type', () => {
+  it('should allow all required fields', () => {
+    const caps: BackendCapabilities = {
+      hiddenAmount: true,
+      hiddenSender: true,
+      hiddenRecipient: true,
+      hiddenCompute: false,
+      complianceSupport: true,
+      setupRequired: false,
+      latencyEstimate: 'fast',
+      supportedTokens: 'all',
+    }
+
+    expect(caps.hiddenAmount).toBe(true)
+    expect(caps.complianceSupport).toBe(true)
+  })
+
+  it('should allow optional fields', () => {
+    const caps: BackendCapabilities = {
+      hiddenAmount: true,
+      hiddenSender: true,
+      hiddenRecipient: true,
+      hiddenCompute: false,
+      complianceSupport: true,
+      setupRequired: false,
+      latencyEstimate: 'fast',
+      supportedTokens: 'all',
+      anonymitySet: 100,
+      minAmount: 1000n,
+      maxAmount: 1000000n,
+    }
+
+    expect(caps.anonymitySet).toBe(100)
+    expect(caps.minAmount).toBe(1000n)
+    expect(caps.maxAmount).toBe(1000000n)
+  })
+})
+
+describe('TransferParams type', () => {
+  it('should require all mandatory fields', () => {
+    const params: TransferParams = {
+      chain: 'solana',
+      sender: 'sender',
+      recipient: 'recipient',
+      mint: null,
+      amount: 1000n,
+      decimals: 9,
+    }
+
+    expect(params.chain).toBe('solana')
+    expect(params.amount).toBe(1000n)
+  })
+
+  it('should allow optional fields', () => {
+    const params: TransferParams = {
+      chain: 'solana',
+      sender: 'sender',
+      recipient: 'recipient',
+      mint: 'token-mint',
+      amount: 1000n,
+      decimals: 6,
+      viewingKey: {
+        key: '0x1234' as any,
+        path: 'm/0',
+        hash: '0xabcd' as any,
+      },
+      options: {
+        customOption: 'value',
+      },
+    }
+
+    expect(params.viewingKey).toBeDefined()
+    expect(params.options).toBeDefined()
+  })
+})
+
+describe('AvailabilityResult type', () => {
+  it('should work for available result', () => {
+    const result: AvailabilityResult = {
+      available: true,
+      estimatedCost: 5000n,
+      estimatedTime: 1000,
+    }
+
+    expect(result.available).toBe(true)
+    expect(result.reason).toBeUndefined()
+  })
+
+  it('should work for unavailable result', () => {
+    const result: AvailabilityResult = {
+      available: false,
+      reason: 'Chain not supported',
+    }
+
+    expect(result.available).toBe(false)
+    expect(result.reason).toBe('Chain not supported')
+  })
+})
+
+describe('TransactionResult type', () => {
+  it('should work for successful result', () => {
+    const result: TransactionResult = {
+      success: true,
+      signature: 'tx-signature',
+      backend: 'sip-native',
+      metadata: {
+        timestamp: Date.now(),
+      },
+    }
+
+    expect(result.success).toBe(true)
+    expect(result.error).toBeUndefined()
+  })
+
+  it('should work for failed result', () => {
+    const result: TransactionResult = {
+      success: false,
+      error: 'Transfer failed',
+      backend: 'sip-native',
+    }
+
+    expect(result.success).toBe(false)
+    expect(result.signature).toBeUndefined()
+  })
+})

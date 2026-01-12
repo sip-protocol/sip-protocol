@@ -585,6 +585,17 @@ export {
   type TimeLockResult,
   type UnlockResult,
   type TimeLockParams,
+  // Range SAS Integration
+  AttestationGatedDisclosure,
+  AttestationSchema,
+  createMockAttestation,
+  verifyAttestationSignature,
+  fetchAttestation,
+  type RangeSASAttestation,
+  type AttestationGatedConfig,
+  type ViewingKeyDerivationResult,
+  type ViewingKeyScope,
+  type AttestationVerificationResult,
 } from './compliance'
 
 // Sealed-Bid Auctions
@@ -817,6 +828,37 @@ export type {
   SameChainTransferResult,
   SolanaSameChainConfig,
 } from './executors'
+
+// Privacy Backends (Privacy Aggregator Layer)
+export {
+  // Registry
+  PrivacyBackendRegistry,
+  defaultRegistry,
+  // Backends
+  SIPNativeBackend,
+  // Router
+  SmartRouter as PrivacySmartRouter,
+} from './privacy-backends'
+
+export type {
+  // Core interface
+  PrivacyBackend,
+  BackendType as PrivacyBackendType,
+  LatencyEstimate,
+  BackendCapabilities as PrivacyBackendCapabilities,
+  TransferParams as PrivacyTransferParams,
+  TransactionResult as PrivacyTransactionResult,
+  AvailabilityResult as PrivacyAvailabilityResult,
+  // Router types
+  RouterPriority,
+  SmartRouterConfig as PrivacySmartRouterConfig,
+  BackendSelectionResult as PrivacyBackendSelectionResult,
+  // Registration
+  BackendRegistrationOptions,
+  RegisteredBackend,
+  // Backend config
+  SIPNativeBackendConfig,
+} from './privacy-backends'
 
 // Surveillance Analysis (Privacy Scoring)
 export {
