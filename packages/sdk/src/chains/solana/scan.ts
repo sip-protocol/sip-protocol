@@ -242,6 +242,9 @@ export async function scanForPayments(
  * console.log('Claimed! Tx:', result.txSignature)
  * ```
  */
+/** Minimum SOL balance required for transaction fees (in lamports) */
+const MIN_SOL_FOR_FEES = 5000n // ~0.000005 SOL, typical tx fee
+
 export async function claimStealthPayment(
   params: SolanaClaimParams
 ): Promise<SolanaClaimResult> {
@@ -254,6 +257,17 @@ export async function claimStealthPayment(
     destinationAddress,
     mint,
   } = params
+
+  // M7 FIX: Check SOL balance for fees before attempting claim
+  const stealthPubkeyForBalance = new PublicKey(stealthAddress)
+  const solBalance = await connection.getBalance(stealthPubkeyForBalance)
+  if (BigInt(solBalance) < MIN_SOL_FOR_FEES) {
+    throw new Error(
+      `Insufficient SOL for transaction fees. Stealth address has ${solBalance} lamports, ` +
+      `needs at least ${MIN_SOL_FOR_FEES} lamports (~0.000005 SOL). ` +
+      `Fund the stealth address with SOL before claiming.`
+    )
+  }
 
   // Convert addresses to hex for SDK functions
   const stealthAddressHex = solanaAddressToEd25519PublicKey(stealthAddress)

@@ -205,10 +205,19 @@ export type HeliusWebhookPayload =
   | HeliusEnhancedTransaction[]
 
 /**
- * Configuration for webhook handler
+ * Configuration for the Helius webhook handler
+ *
+ * @security This config contains sensitive cryptographic keys.
+ * Never log, store in plain text, or transmit insecurely.
  */
 export interface WebhookHandlerConfig {
-  /** Recipient's viewing private key (hex) */
+  /**
+   * Recipient's viewing private key (hex)
+   *
+   * @security SENSITIVE - This key enables detection of incoming payments.
+   * Store securely (encrypted). Never log or expose in error messages.
+   * Use environment variables or secure vault in production.
+   */
   viewingPrivateKey: HexString
   /** Recipient's spending public key (hex) */
   spendingPublicKey: HexString

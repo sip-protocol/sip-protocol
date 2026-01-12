@@ -49,11 +49,19 @@ export interface SolanaPrivateTransferResult {
 
 /**
  * Parameters for scanning for incoming stealth payments
+ *
+ * @security This interface requires sensitive cryptographic keys.
+ * Never log, store in plain text, or transmit these keys insecurely.
  */
 export interface SolanaScanParams {
   /** Solana RPC connection */
   connection: Connection
-  /** Recipient's viewing private key (hex) */
+  /**
+   * Recipient's viewing private key (hex)
+   *
+   * @security SENSITIVE - This key enables scanning for incoming payments.
+   * Store securely (encrypted). Never log or expose in error messages.
+   */
   viewingPrivateKey: HexString
   /** Recipient's spending public key (hex) */
   spendingPublicKey: HexString
@@ -107,6 +115,10 @@ export interface SolanaScanResult {
 
 /**
  * Parameters for claiming a stealth payment
+ *
+ * @security This interface requires highly sensitive cryptographic keys.
+ * The spending private key can authorize fund transfers.
+ * Never log, store in plain text, or transmit these keys insecurely.
  */
 export interface SolanaClaimParams {
   /** Solana RPC connection */
@@ -115,9 +127,21 @@ export interface SolanaClaimParams {
   stealthAddress: string
   /** Ephemeral public key from the payment (base58) */
   ephemeralPublicKey: string
-  /** Recipient's viewing private key (hex) */
+  /**
+   * Recipient's viewing private key (hex)
+   *
+   * @security SENSITIVE - Required for stealth key derivation.
+   * Store securely (encrypted). Never log or expose in error messages.
+   */
   viewingPrivateKey: HexString
-  /** Recipient's spending private key (hex) */
+  /**
+   * Recipient's spending private key (hex)
+   *
+   * @security CRITICAL - This key can authorize fund transfers.
+   * Store with maximum security (hardware wallet, secure enclave, or encrypted storage).
+   * Never log, expose in errors, or transmit over network.
+   * Clear from memory after use when possible.
+   */
   spendingPrivateKey: HexString
   /** Destination address to send claimed funds (base58) */
   destinationAddress: string

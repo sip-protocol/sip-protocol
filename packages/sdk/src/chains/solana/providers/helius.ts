@@ -89,9 +89,17 @@ interface HeliusBalancesResponse {
 
 /**
  * Helius provider configuration
+ *
+ * @security API keys should be treated as sensitive credentials.
  */
 export interface HeliusProviderConfig extends ProviderConfig {
-  /** Helius API key (required) */
+  /**
+   * Helius API key (required)
+   *
+   * @security Treat as sensitive credential. Use environment variables.
+   * Never commit to source control or log in error messages.
+   * The SDK masks this key in error messages automatically.
+   */
   apiKey: string
   /** Solana cluster (default: mainnet-beta) */
   cluster?: 'mainnet-beta' | 'devnet'
