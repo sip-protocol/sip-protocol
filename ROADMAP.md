@@ -189,6 +189,82 @@ Current SOL-NEAR swaps via NEAR Intents provide **partial privacy**:
 
 ---
 
+## Full Stack Privacy (NEW Jan 2026)
+
+SIP provides **on-chain privacy**. Dark/Prop AMMs (GoonFi, HumidiFi, SolFi) provide **execution privacy**. Combined = **Full Stack Privacy**.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         PRIVACY LAYERS                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  EXECUTION PRIVACY (Dark AMMs)                                              │
+│  ────────────────────────────────                                           │
+│  ✅ MEV protection (private quotes, no mempool exposure)                    │
+│  ✅ Better execution prices (tighter spreads)                               │
+│  ❌ Wallet address visible on-chain                                         │
+│  ❌ Transaction amounts visible after execution                             │
+│  ❌ No compliance tooling                                                   │
+│                                                                             │
+│  ON-CHAIN PRIVACY (SIP)                                                     │
+│  ─────────────────────────                                                  │
+│  ✅ Stealth addresses (unlinkable recipients)                               │
+│  ✅ Pedersen commitments (hidden amounts)                                   │
+│  ✅ Viewing keys (selective disclosure for compliance)                      │
+│  ✅ Transaction graph protection                                            │
+│                                                                             │
+│  FULL STACK PRIVACY = Execution Privacy + On-Chain Privacy                  │
+│  ─────────────────────────────────────────────────────────                  │
+│  Dark AMM + SIP = MEV protection + hidden sender/amount/recipient           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER: "Swap 100 SOL → USDC with full privacy"                             │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  SIP PROTOCOL                                     ◄═══ ON-CHAIN PRIVACY    │
+│  • Stealth address for output    • Pedersen commitment for amount          │
+│  • Viewing key for compliance    • Shielded intent wrapper                 │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  JUPITER AGGREGATOR                                                         │
+│  Routes to best price across all DEXs (public + dark)                      │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  DARK AMM (GoonFi, HumidiFi, etc.)             ◄═══ EXECUTION PRIVACY      │
+│  • Private RFQ (MEV protection)  • Atomic execution  • Tighter spreads     │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  OUTPUT: USDC at stealth address — unlinkable, amount hidden, MEV-free     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Comparison
+
+| Solution | MEV Protection | Amount Hidden | Wallet Hidden | Compliance |
+|----------|---------------|---------------|---------------|------------|
+| Public AMM (Raydium) | ❌ | ❌ | ❌ | ❌ |
+| Dark AMM only | ✅ | ❌ | ❌ | ❌ |
+| PrivacyCash | ❌ | ❌ | ✅ Pool mixing | ❌ |
+| **SIP + Dark AMM** | ✅ | ✅ Pedersen | ✅ Stealth | ✅ Viewing keys |
+
+> **Note:** Jupiter DEX integration (#454) naturally routes through Dark AMMs when they offer best prices. SIP adds the privacy layer on top.
+
+---
+
 ## Strategic Architecture: Dual Moat
 
 SIP combines two complementary strategies:
@@ -697,7 +773,7 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 | [#262](../../issues/262) | Ed25519 stealth address scanning | Critical | 🔲 Planned |
 | [#479](../../issues/479) | Viewing key disclosure mechanism | High | 🔲 Planned |
 | [#374](../../issues/374) | SDK API: `sip.shieldedTransfer(solana, ...)` | High | 🔲 Planned |
-| [#454](../../issues/454) | Jupiter DEX integration (private swaps) | High | 🔲 Planned |
+| [#454](../../issues/454) | Jupiter DEX integration (private swaps via Dark AMMs) | High | 🔲 Planned |
 | [#421](../../issues/421) | **Jito relayer integration** (gas abstraction) | High | 🔲 Planned |
 | [#404](../../issues/404) | Anchor program audit preparation | High | 🔲 Planned |
 | [#379](../../issues/379) | Same-chain test suite (100+ tests) | High | 🔲 Planned |
@@ -1264,5 +1340,6 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: January 12, 2026*
+*Last updated: January 13, 2026*
+*Added: Full Stack Privacy concept (Dark AMM + SIP integration)*
 *Hackathon sprint added: Solana Privacy Hack (Jan 12 - Feb 1, 2026)*
