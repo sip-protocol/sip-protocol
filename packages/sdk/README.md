@@ -350,6 +350,50 @@ const result = await combined.executePrivateTransfer({
 
 See [ARCIUM-INTEGRATION.md](docs/ARCIUM-INTEGRATION.md) for full documentation.
 
+### Helius Integration (Solana)
+
+SIP Protocol integrates with Helius for production-grade Solana stealth payment scanning:
+
+```typescript
+import { createProvider, scanForPayments } from '@sip-protocol/sdk'
+
+// Create Helius provider with DAS API
+const helius = createProvider('helius', {
+  apiKey: process.env.HELIUS_API_KEY!,
+  cluster: 'mainnet-beta',
+})
+
+// Scan for stealth payments efficiently
+const payments = await scanForPayments({
+  connection,
+  viewingPrivateKey,
+  spendingPublicKey,
+  provider: helius, // Uses DAS API for efficient queries
+})
+```
+
+For real-time detection, use webhooks:
+
+```typescript
+import { createWebhookHandler } from '@sip-protocol/sdk'
+
+const handler = createWebhookHandler({
+  viewingPrivateKey,
+  spendingPublicKey,
+  onPaymentFound: (payment) => {
+    console.log('Payment received!', payment.amount)
+  },
+})
+
+// In Express.js route
+app.post('/webhook/helius', async (req, res) => {
+  await handler(req.body)
+  res.status(200).send('OK')
+})
+```
+
+See [HELIUS-INTEGRATION.md](docs/HELIUS-INTEGRATION.md) for full documentation.
+
 ## Supported Chains
 
 | Chain | Input | Output | Stealth Curve |
