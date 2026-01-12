@@ -137,6 +137,110 @@ export interface AvailabilityResult {
   estimatedTime?: number
 }
 
+// ─── Compute Privacy Types ───────────────────────────────────────────────────
+
+/**
+ * Supported cipher types for encrypted computation
+ */
+export type CipherType = 'aes128' | 'aes192' | 'aes256' | 'rescue'
+
+/**
+ * Computation status for tracking MPC/FHE operations
+ */
+export type ComputationStatus =
+  | 'submitted'
+  | 'encrypting'
+  | 'processing'
+  | 'finalizing'
+  | 'completed'
+  | 'failed'
+
+/**
+ * Parameters for a privacy-preserving computation
+ *
+ * Used by compute backends (Arcium, Inco) for MPC/FHE operations.
+ *
+ * @example
+ * ```typescript
+ * const params: ComputationParams = {
+ *   chain: 'solana',
+ *   circuitId: 'private-swap',
+ *   encryptedInputs: [encryptedAmount, encryptedPrice],
+ *   cluster: 'mainnet-cluster-1',
+ * }
+ * ```
+ */
+export interface ComputationParams {
+  /** Target blockchain */
+  chain: ChainType
+  /** Circuit or program identifier for the computation */
+  circuitId: string
+  /** Encrypted inputs for the MPC/FHE computation */
+  encryptedInputs: Uint8Array[]
+  /** MPC cluster or FHE node to use */
+  cluster?: string
+  /** Callback address for computation results */
+  callbackAddress?: string
+  /** Cipher type for input encryption */
+  cipher?: CipherType
+  /** Timeout in milliseconds */
+  timeout?: number
+  /** Additional backend-specific options */
+  options?: Record<string, unknown>
+}
+
+/**
+ * Result of a privacy-preserving computation
+ *
+ * Returned by compute backends after MPC/FHE execution.
+ */
+export interface ComputationResult {
+  /** Whether the computation was successful */
+  success: boolean
+  /** Unique computation identifier for tracking */
+  computationId?: string
+  /** Decrypted output data (if available and authorized) */
+  output?: Uint8Array
+  /** Error message if failed */
+  error?: string
+  /** Backend that executed the computation */
+  backend: string
+  /** Current computation status */
+  status?: ComputationStatus
+  /** Cryptographic proof of correct computation */
+  proof?: HexString
+  /** Timestamp when computation completed */
+  completedAt?: number
+  /** Additional metadata */
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Union type for backend operation parameters
+ *
+ * Backends accept either transfer params (transaction privacy)
+ * or computation params (compute privacy).
+ */
+export type BackendParams = TransferParams | ComputationParams
+
+/**
+ * Type guard to check if params are for computation
+ */
+export function isComputationParams(
+  params: BackendParams
+): params is ComputationParams {
+  return 'circuitId' in params && 'encryptedInputs' in params
+}
+
+/**
+ * Type guard to check if params are for transfer
+ */
+export function isTransferParams(
+  params: BackendParams
+): params is TransferParams {
+  return 'sender' in params && 'recipient' in params && 'amount' in params
+}
+
 // ─── Privacy Backend Interface ───────────────────────────────────────────────
 
 /**
@@ -144,6 +248,23 @@ export interface AvailabilityResult {
  *
  * All privacy implementations (SIP Native, PrivacyCash, Arcium, Inco)
  * must implement this interface for unified access.
+ *
+ * ## Backend Types
+ *
+ * - **Transaction backends** (type: 'transaction'): Implement `execute()` for transfers
+ * - **Compute backends** (type: 'compute'): Implement `executeComputation()` for MPC/FHE
+ * - **Hybrid backends** (type: 'both'): Implement both methods
+ *
+ * @example
+ * ```typescript
+ * // Transaction backend usage
+ * const sipNative = new SIPNativeBackend()
+ * await sipNative.execute({ chain: 'solana', sender, recipient, amount, ... })
+ *
+ * // Compute backend usage
+ * const arcium = new ArciumBackend()
+ * await arcium.executeComputation({ chain: 'solana', circuitId, encryptedInputs, ... })
+ * ```
  */
 export interface PrivacyBackend {
   /** Unique backend identifier */
@@ -153,15 +274,18 @@ export interface PrivacyBackend {
   readonly type: BackendType
 
   /** Supported blockchain networks */
-  readonly chains: ChainType[]
+  readonly chains: string[]
 
   /**
    * Check if backend is available for given parameters
    *
-   * @param params - Transfer parameters
+   * Accepts either TransferParams (for transaction backends) or
+   * ComputationParams (for compute backends).
+   *
+   * @param params - Transfer or computation parameters
    * @returns Availability result with cost/time estimates
    */
-  checkAvailability(params: TransferParams): Promise<AvailabilityResult>
+  checkAvailability(params: BackendParams): Promise<AvailabilityResult>
 
   /**
    * Get backend capabilities and trade-offs
@@ -173,18 +297,34 @@ export interface PrivacyBackend {
   /**
    * Execute a privacy-preserving transfer
    *
+   * Implemented by transaction backends (SIP Native, PrivacyCash).
+   * Compute backends should return an error directing users to executeComputation().
+   *
    * @param params - Transfer parameters
    * @returns Transaction result
    */
   execute(params: TransferParams): Promise<TransactionResult>
 
   /**
-   * Estimate cost for a transfer (without executing)
+   * Execute a privacy-preserving computation
    *
-   * @param params - Transfer parameters
+   * Implemented by compute backends (Arcium, Inco).
+   * Transaction backends do not implement this method.
+   *
+   * @param params - Computation parameters
+   * @returns Computation result with status and output
+   */
+  executeComputation?(params: ComputationParams): Promise<ComputationResult>
+
+  /**
+   * Estimate cost for an operation (without executing)
+   *
+   * Accepts either TransferParams or ComputationParams.
+   *
+   * @param params - Transfer or computation parameters
    * @returns Estimated cost in native token smallest units
    */
-  estimateCost(params: TransferParams): Promise<bigint>
+  estimateCost(params: BackendParams): Promise<bigint>
 }
 
 // ─── SmartRouter Types ───────────────────────────────────────────────────────
