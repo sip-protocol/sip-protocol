@@ -41,3 +41,14 @@ export {
 // Provider implementations
 export { HeliusProvider, type HeliusProviderConfig } from './helius'
 export { GenericProvider } from './generic'
+
+// Webhook handler for real-time scanning
+export {
+  createWebhookHandler,
+  processWebhookTransaction,
+  type HeliusWebhookTransaction,
+  type HeliusEnhancedTransaction,
+  type HeliusWebhookPayload,
+  type WebhookHandlerConfig,
+  type WebhookProcessResult,
+} from './webhook'
