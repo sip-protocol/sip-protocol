@@ -2,9 +2,10 @@
  * SmartRouter Tests
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { SmartRouter } from '../../src/privacy-backends/router'
 import { PrivacyBackendRegistry } from '../../src/privacy-backends/registry'
+import { AllBackendsFailedError } from '../../src/privacy-backends/interface'
 import type {
   PrivacyBackend,
   BackendCapabilities,
@@ -313,6 +314,243 @@ describe('SmartRouter', () => {
         expect(result.backend.name).toBe('with-compliance')
         expect(result.reason).toContain('viewing key')
       })
+    })
+  })
+
+  // ─── Health-Aware Selection Tests ─────────────────────────────────────────────
+
+  describe('health-aware selection', () => {
+    it('should skip unhealthy backends by default', async () => {
+      registry.register(createMockBackend('healthy'))
+      registry.register(createMockBackend('unhealthy'))
+
+      // Open circuit for unhealthy backend
+      registry.openCircuit('unhealthy')
+
+      const result = await router.selectBackend(defaultParams)
+
+      expect(result.backend.name).toBe('healthy')
+      expect(result.alternatives).toHaveLength(0)
+    })
+
+    it('should include unhealthy backends when includeUnhealthy is true', async () => {
+      registry.register(createMockBackend('healthy'))
+      registry.register(createMockBackend('unhealthy'))
+
+      registry.openCircuit('unhealthy')
+
+      const result = await router.selectBackend(defaultParams, {
+        includeUnhealthy: true,
+      })
+
+      // Should have both backends available
+      expect(result.alternatives.length + 1).toBe(2)
+    })
+
+    it('should throw when all backends are unhealthy', async () => {
+      registry.register(createMockBackend('backend-1'))
+      registry.register(createMockBackend('backend-2'))
+
+      registry.openCircuit('backend-1')
+      registry.openCircuit('backend-2')
+
+      await expect(router.selectBackend(defaultParams)).rejects.toThrow(
+        'No backends meet the requirements'
+      )
+    })
+  })
+
+  // ─── Fallback Tests ───────────────────────────────────────────────────────────
+
+  describe('fallback behavior', () => {
+    it('should try alternative when primary fails', async () => {
+      const failingBackend = createMockBackend('failing')
+      vi.mocked(failingBackend.execute).mockResolvedValue({
+        success: false,
+        error: 'Primary failed',
+        backend: 'failing',
+      })
+
+      const workingBackend = createMockBackend('working')
+
+      registry.register(failingBackend)
+      registry.register(workingBackend)
+
+      const result = await router.execute(defaultParams, {
+        enableFallback: true,
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.backend).toBe('working')
+      expect(result.metadata?.fallbackFrom).toBe('failing')
+    })
+
+    it('should not try fallback when enableFallback is false', async () => {
+      const failingBackend = createMockBackend('failing')
+      vi.mocked(failingBackend.execute).mockResolvedValue({
+        success: false,
+        error: 'Primary failed',
+        backend: 'failing',
+      })
+
+      registry.register(failingBackend)
+      registry.register(createMockBackend('working'))
+
+      const result = await router.execute(defaultParams, {
+        enableFallback: false,
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.backend).toBe('failing')
+    })
+
+    it('should throw AllBackendsFailedError when all backends fail', async () => {
+      const failing1 = createMockBackend('failing-1')
+      const failing2 = createMockBackend('failing-2')
+
+      vi.mocked(failing1.execute).mockResolvedValue({
+        success: false,
+        error: 'Error 1',
+        backend: 'failing-1',
+      })
+      vi.mocked(failing2.execute).mockResolvedValue({
+        success: false,
+        error: 'Error 2',
+        backend: 'failing-2',
+      })
+
+      registry.register(failing1)
+      registry.register(failing2)
+
+      await expect(router.execute(defaultParams)).rejects.toThrow(AllBackendsFailedError)
+
+      try {
+        await router.execute(defaultParams)
+      } catch (error) {
+        expect(error).toBeInstanceOf(AllBackendsFailedError)
+        const allFailed = error as AllBackendsFailedError
+        expect(allFailed.attemptedBackends).toContain('failing-1')
+        expect(allFailed.attemptedBackends).toContain('failing-2')
+        expect(allFailed.errors.get('failing-1')).toBe('Error 1')
+        expect(allFailed.errors.get('failing-2')).toBe('Error 2')
+      }
+    })
+
+    it('should respect maxFallbackAttempts', async () => {
+      const backends = ['b1', 'b2', 'b3', 'b4', 'b5'].map(name => {
+        const backend = createMockBackend(name)
+        vi.mocked(backend.execute).mockResolvedValue({
+          success: false,
+          error: `${name} failed`,
+          backend: name,
+        })
+        return backend
+      })
+
+      for (const backend of backends) {
+        registry.register(backend)
+      }
+
+      try {
+        await router.execute(defaultParams, {
+          maxFallbackAttempts: 2,
+        })
+      } catch (error) {
+        expect(error).toBeInstanceOf(AllBackendsFailedError)
+        const allFailed = error as AllBackendsFailedError
+        // Primary + 2 fallback attempts = 3 total
+        expect(allFailed.attemptedBackends).toHaveLength(3)
+      }
+    })
+
+    it('should skip unhealthy backends during fallback', async () => {
+      const failing = createMockBackend('failing')
+      const unhealthy = createMockBackend('unhealthy')
+      const working = createMockBackend('working')
+
+      vi.mocked(failing.execute).mockResolvedValue({
+        success: false,
+        error: 'Failed',
+        backend: 'failing',
+      })
+
+      registry.register(failing)
+      registry.register(unhealthy)
+      registry.register(working)
+
+      // Open circuit for unhealthy
+      registry.openCircuit('unhealthy')
+
+      const result = await router.execute(defaultParams)
+
+      expect(result.success).toBe(true)
+      expect(result.backend).toBe('working')
+      // unhealthy should not have been attempted
+      expect(result.metadata?.attemptedBackends).not.toContain('unhealthy')
+    })
+  })
+
+  // ─── Health Recording Tests ───────────────────────────────────────────────────
+
+  describe('health recording', () => {
+    it('should record success on successful execution', async () => {
+      const backend = createMockBackend('test')
+      registry.register(backend)
+
+      await router.execute(defaultParams)
+
+      const metrics = registry.getMetrics('test')
+      expect(metrics).toBeDefined()
+      expect(metrics!.successfulRequests).toBe(1)
+      expect(metrics!.failedRequests).toBe(0)
+    })
+
+    it('should record failure on failed execution', async () => {
+      const backend = createMockBackend('test')
+      vi.mocked(backend.execute).mockResolvedValue({
+        success: false,
+        error: 'Test error',
+        backend: 'test',
+      })
+      registry.register(backend)
+
+      await router.execute(defaultParams, { enableFallback: false })
+
+      const metrics = registry.getMetrics('test')
+      expect(metrics).toBeDefined()
+      expect(metrics!.failedRequests).toBe(1)
+    })
+
+    it('should record failure on exception', async () => {
+      const backend = createMockBackend('test')
+      vi.mocked(backend.execute).mockRejectedValue(new Error('Connection error'))
+      registry.register(backend)
+
+      await router.execute(defaultParams, { enableFallback: false })
+
+      const health = registry.getHealthState('test')
+      expect(health).toBeDefined()
+      expect(health!.consecutiveFailures).toBe(1)
+      expect(health!.lastFailureReason).toBe('Connection error')
+    })
+
+    it('should open circuit after multiple failures', async () => {
+      const backend = createMockBackend('test')
+      vi.mocked(backend.execute).mockResolvedValue({
+        success: false,
+        error: 'Keeps failing',
+        backend: 'test',
+      })
+      registry.register(backend)
+
+      // Execute 3 times (default threshold)
+      for (let i = 0; i < 3; i++) {
+        await router.execute(defaultParams, { enableFallback: false })
+      }
+
+      expect(registry.isHealthy('test')).toBe(false)
+      const health = registry.getHealthState('test')
+      expect(health!.circuitState).toBe('open')
     })
   })
 })
