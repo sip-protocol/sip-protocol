@@ -281,6 +281,75 @@ const result = await service.shieldedSend({
 })
 ```
 
+### Privacy Backends
+
+SIP Protocol supports multiple privacy backends for different use cases:
+
+```typescript
+import {
+  // Backend registry and router
+  PrivacyBackendRegistry,
+  SmartRouter,
+  // Individual backends
+  SIPNativeBackend,      // Stealth addresses + Pedersen commitments
+  PrivacyCashBackend,    // Pool mixing (anonymity sets)
+  ArciumBackend,         // MPC compute privacy + C-SPL tokens
+} from '@sip-protocol/sdk'
+
+// Set up registry with multiple backends
+const registry = new PrivacyBackendRegistry()
+registry.register(new SIPNativeBackend())
+registry.register(new ArciumBackend({ network: 'devnet' }))
+
+// SmartRouter auto-selects optimal backend
+const router = new SmartRouter(registry)
+const result = await router.execute(transferParams, {
+  prioritize: 'privacy', // or 'speed', 'cost', 'compliance'
+})
+```
+
+### Arcium Integration (C-SPL Tokens)
+
+Arcium provides compute privacy through MPC and C-SPL confidential tokens:
+
+```typescript
+import {
+  createCombinedPrivacyServiceDevnet,
+  createCSPLServiceDevnet,
+} from '@sip-protocol/sdk'
+
+// Option 1: C-SPL only (amount privacy)
+const cspl = createCSPLServiceDevnet()
+await cspl.initialize()
+
+const wrap = await cspl.wrap({
+  splMint: 'USDC-mint',
+  owner: 'your-wallet',
+  amount: 100_000000n,
+})
+
+// Option 2: Combined privacy (SIP + Arcium)
+const combined = createCombinedPrivacyServiceDevnet()
+await combined.initialize()
+
+const result = await combined.executePrivateTransfer({
+  splMint: 'USDC-mint',
+  sender: 'your-wallet',
+  recipientMetaAddress: 'sip:solana:0x02...:0x03...',
+  amount: 100_000000n,
+  decimals: 6,
+  viewingKey: '0x04...', // For compliance
+})
+
+// Privacy achieved:
+// - Hidden recipient (stealth address)
+// - Hidden amount (C-SPL encryption)
+// - Hidden sender (no linkability)
+// - Compliance support (viewing key)
+```
+
+See [ARCIUM-INTEGRATION.md](docs/ARCIUM-INTEGRATION.md) for full documentation.
+
 ## Supported Chains
 
 | Chain | Input | Output | Stealth Curve |

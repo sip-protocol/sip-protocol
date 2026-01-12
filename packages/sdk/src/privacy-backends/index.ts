@@ -34,9 +34,9 @@
  *
  * ## Available Backends
  *
- * - **SIPNativeBackend** — Stealth addresses + Pedersen commitments
+ * - **SIPNativeBackend** — Stealth addresses + Pedersen commitments (transaction privacy)
  * - **PrivacyCashBackend** — Pool mixing (Tornado Cash-style anonymity sets)
- * - **ArciumBackend** — MPC compute privacy (coming in #481)
+ * - **ArciumBackend** — MPC compute privacy + C-SPL confidential tokens
  * - **IncoBackend** — FHE compute privacy (coming in #482)
  *
  * @module privacy-backends
@@ -64,6 +64,63 @@ export { PrivacyBackendRegistry, defaultRegistry } from './registry'
 // Backends
 export { SIPNativeBackend, type SIPNativeBackendConfig } from './sip-native'
 export { PrivacyCashBackend, type PrivacyCashBackendConfig } from './privacycash'
+export {
+  ArciumBackend,
+  createArciumDevnetBackend,
+  createArciumTestnetBackend,
+  createArciumMainnetBackend,
+} from './arcium'
+
+// Arcium types (for C-SPL and MPC operations)
+export {
+  // Network
+  ARCIUM_RPC_ENDPOINTS,
+  ARCIUM_PROGRAM_IDS,
+  // C-SPL Tokens
+  CSPL_TOKEN_REGISTRY,
+  hasCSPLSupport,
+  getCSPLToken,
+  deriveCSPLMint,
+  // Utilities
+  estimateArciumCost,
+  validateCSPLTransferParams,
+  // Error
+  ArciumError,
+  ArciumErrorCode,
+  // Types
+  type ArciumNetwork,
+  type ArciumBackendConfig,
+  type CSPLToken,
+  type CSPLTransferParams,
+  type CSPLTransferResult,
+  type ComputationStatus,
+  type ComputationReference,
+  type ComputationResult,
+  type ConfidentialSwapParams,
+  type ConfidentialSwapResult,
+  type WrapToCSPLParams,
+  type UnwrapFromCSPLParams,
+  type WrapResult,
+} from './arcium-types'
+
+// C-SPL Token Service
+export {
+  CSPLTokenService,
+  createCSPLServiceDevnet,
+  createCSPLServiceTestnet,
+  createCSPLServiceMainnet,
+  type CSPLTokenServiceConfig,
+  type ConfidentialBalance,
+  type CSPLTokenAccount,
+  type WrapParams,
+  type WrapResult as CSPLWrapResult,
+  type UnwrapParams,
+  type UnwrapResult as CSPLUnwrapResult,
+  type ConfidentialTransferParams,
+  type ConfidentialTransferResult,
+  type ApproveParams,
+  type ApproveResult,
+} from './cspl-token'
 
 // PrivacyCash types (for advanced usage)
 export {
@@ -84,3 +141,17 @@ export {
 
 // Router
 export { SmartRouter } from './router'
+
+// Combined Privacy Service (SIP + Arcium synergy)
+export {
+  CombinedPrivacyService,
+  createCombinedPrivacyServiceDevnet,
+  createCombinedPrivacyServiceTestnet,
+  createCombinedPrivacyServiceMainnet,
+  type CombinedPrivacyServiceConfig,
+  type CombinedTransferParams,
+  type CombinedTransferResult,
+  type StealthAddressResult,
+  type ClaimParams,
+  type ClaimResult,
+} from './combined-privacy'
