@@ -11,7 +11,11 @@ import {
   type HeliusWebhookTransaction,
   type HeliusEnhancedTransaction,
 } from '../../../src/chains/solana/providers/webhook'
-import { generateEd25519StealthMetaAddress, generateEd25519StealthAddress } from '../../../src/stealth'
+import {
+  generateEd25519StealthMetaAddress,
+  generateEd25519StealthAddress,
+  ed25519PublicKeyToSolanaAddress,
+} from '../../../src/stealth'
 import { createAnnouncementMemo } from '../../../src/chains/solana/types'
 
 describe('Helius Webhook Handler', () => {
@@ -119,9 +123,9 @@ describe('Helius Webhook Handler', () => {
         recipientKeys.metaAddress
       )
 
-      // Convert ephemeral public key to base58 format (simplified for test)
-      // In real usage, this would be the Solana address format
-      const ephemeralBase58 = stealthAddress.ephemeralPublicKey.slice(2, 46) + 'AAAAAAAAAA' // Pad to 44 chars
+      // L9 FIX: Convert ephemeral public key to proper base58 Solana address format
+      const ephemeralBase58 = ed25519PublicKeyToSolanaAddress(stealthAddress.ephemeralPublicKey)
+      const stealthAddressBase58 = ed25519PublicKeyToSolanaAddress(stealthAddress.address)
 
       const handler = createWebhookHandler({
         viewingPrivateKey: recipientKeys.viewingPrivateKey,
@@ -132,7 +136,7 @@ describe('Helius Webhook Handler', () => {
       const mockTx = createMockWebhookTransaction({
         ephemeralPublicKey: ephemeralBase58,
         viewTag: stealthAddress.viewTag.toString(16).padStart(2, '0'),
-        stealthAddress: stealthAddress.address.slice(2, 46) + 'AAAAAAAAAA',
+        stealthAddress: stealthAddressBase58,
       })
 
       const results = await handler(mockTx)
