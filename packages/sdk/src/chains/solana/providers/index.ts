@@ -41,6 +41,7 @@ export {
 // Provider implementations
 export { HeliusProvider, type HeliusProviderConfig } from './helius'
 export { GenericProvider } from './generic'
+export { TritonProvider, type TritonProviderConfig } from './triton'
 
 // Webhook handler for real-time scanning
 export {

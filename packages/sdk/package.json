@@ -58,10 +58,11 @@
     "@noir-lang/types": "1.0.0-beta.15",
     "@scure/base": "^2.0.0",
     "@sip-protocol/types": "^0.2.1",
-    "@solana/web3.js": "^1.95.0",
-    "@solana/spl-token": "^0.4.0"
+    "@solana/spl-token": "^0.4.0",
+    "@solana/web3.js": "^1.95.0"
   },
   "devDependencies": {
+    "@triton-one/yellowstone-grpc": "^5.0.1",
     "@vitest/coverage-v8": "1.6.1",
     "fast-check": "^4.3.0",
     "tsup": "^8.0.0",

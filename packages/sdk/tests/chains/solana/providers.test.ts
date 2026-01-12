@@ -13,6 +13,7 @@ import {
   createProvider,
   HeliusProvider,
   GenericProvider,
+  TritonProvider,
 } from '../../../src/chains/solana/providers'
 import type {
   SolanaRPCProvider,
@@ -51,13 +52,12 @@ describe('Solana RPC Providers', () => {
       ).toThrow(/issues\/494/)
     })
 
-    it('should throw helpful error for triton (not yet implemented)', () => {
-      expect(() =>
-        createProvider('triton', { apiKey: 'test' })
-      ).toThrow(/Provider 'triton' is not yet implemented/)
-      expect(() =>
-        createProvider('triton', { apiKey: 'test' })
-      ).toThrow(/issues\/495/)
+    it('should create TritonProvider with triton type', () => {
+      const provider = createProvider('triton', {
+        endpoint: 'https://sip-protocol.mainnet.rpcpool.com',
+      })
+      expect(provider).toBeInstanceOf(TritonProvider)
+      expect(provider.name).toBe('triton')
     })
   })
 

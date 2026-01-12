@@ -27,6 +27,7 @@
 
 import { HeliusProvider, type HeliusProviderConfig } from './helius'
 import { GenericProvider } from './generic'
+import { TritonProvider, type TritonProviderConfig } from './triton'
 
 /**
  * Token asset information returned by providers
@@ -153,24 +154,29 @@ export function createProvider(
   config: GenericProviderConfig
 ): SolanaRPCProvider
 export function createProvider(
-  type: ProviderType,
-  config: ProviderConfig | GenericProviderConfig
+  type: 'triton',
+  config: TritonProviderConfig
 ): SolanaRPCProvider
 export function createProvider(
   type: ProviderType,
-  config: ProviderConfig | GenericProviderConfig
+  config: ProviderConfig | GenericProviderConfig | TritonProviderConfig
+): SolanaRPCProvider
+export function createProvider(
+  type: ProviderType,
+  config: ProviderConfig | GenericProviderConfig | TritonProviderConfig
 ): SolanaRPCProvider {
   switch (type) {
     case 'helius':
       return new HeliusProvider(config as HeliusProviderConfig)
     case 'generic':
       return new GenericProvider(config as GenericProviderConfig)
-    case 'quicknode':
     case 'triton':
+      return new TritonProvider(config as TritonProviderConfig)
+    case 'quicknode':
       throw new Error(
-        `Provider '${type}' is not yet implemented. ` +
-        `Use 'helius' or 'generic' for now. ` +
-        `See https://github.com/sip-protocol/sip-protocol/issues/${type === 'quicknode' ? '494' : '495'}`
+        `Provider 'quicknode' is not yet implemented. ` +
+        `Use 'helius', 'triton', or 'generic' for now. ` +
+        `See https://github.com/sip-protocol/sip-protocol/issues/494`
       )
     default:
       throw new Error(`Unknown provider type: ${type}`)
