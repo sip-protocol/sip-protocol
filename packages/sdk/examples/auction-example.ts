@@ -20,7 +20,7 @@ import { hexToBytes } from '@noble/hashes/utils'
 
 async function main() {
   console.log('╔════════════════════════════════════════════════════════════════╗')
-  console.log('║         PRIVATE SEALED-BID AUCTION DEMONSTRATION               ║')
+  console.log('║            PRIVATE SEALED-BID AUCTION EXAMPLE                  ║')
   console.log('╚════════════════════════════════════════════════════════════════╝\n')
 
   const auction = new SealedBidAuction()
@@ -247,7 +247,7 @@ async function main() {
   console.log()
 
   // ============================================================================
-  // PRIVACY GUARANTEES DEMONSTRATION
+  // PRIVACY GUARANTEES
   // ============================================================================
   console.log('━━━ PRIVACY GUARANTEES ━━━\n')
 

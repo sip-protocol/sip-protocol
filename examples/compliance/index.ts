@@ -31,8 +31,8 @@ import {
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
-// Simulated transactions for demo
-const DEMO_TRANSACTIONS: TransactionData[] = [
+// Sample transactions for example
+const SAMPLE_TRANSACTIONS: TransactionData[] = [
   {
     sender: '0x1234567890abcdef1234567890abcdef12345678',
     recipient: '0xabcdef1234567890abcdef1234567890abcdef12',
@@ -156,7 +156,7 @@ async function main() {
   const encryptedTransactions: EncryptedTransaction[] = []
 
   console.log('Encrypting transactions for auditor:')
-  for (const tx of DEMO_TRANSACTIONS) {
+  for (const tx of SAMPLE_TRANSACTIONS) {
     const encrypted = encryptForViewing(tx, auditorKey)
     encryptedTransactions.push(encrypted)
 

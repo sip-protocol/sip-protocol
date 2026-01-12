@@ -15,7 +15,7 @@
  */
 
 import {
-  // Mock wallet adapters (for testing/demo)
+  // Mock wallet adapters (for testing/examples)
   createMockSolanaAdapter,
   createMockEthereumAdapter,
   createMockLedgerAdapter,
@@ -43,7 +43,7 @@ async function main() {
   console.log('See README.md for real wallet integration examples.')
   console.log('')
 
-  // Run all wallet demos
+  // Run all wallet examples
   await demonstrateSolanaWallet()
   await demonstrateEthereumWallet()
   await demonstrateHardwareWallet()
@@ -54,7 +54,7 @@ async function main() {
   console.log('')
 }
 
-// ─── Solana Wallet Demo ───────────────────────────────────────────────────────
+// ─── Solana Wallet Example ────────────────────────────────────────────────────
 
 async function demonstrateSolanaWallet() {
   console.log('SOLANA WALLET (Mock Phantom)')
@@ -118,7 +118,7 @@ async function demonstrateSolanaWallet() {
   console.log('')
 }
 
-// ─── Ethereum Wallet Demo ─────────────────────────────────────────────────────
+// ─── Ethereum Wallet Example ──────────────────────────────────────────────────
 
 async function demonstrateEthereumWallet() {
   console.log('ETHEREUM WALLET (Mock MetaMask)')
@@ -189,7 +189,7 @@ async function demonstrateEthereumWallet() {
   console.log('')
 }
 
-// ─── Hardware Wallet Demo ─────────────────────────────────────────────────────
+// ─── Hardware Wallet Example ──────────────────────────────────────────────────
 
 async function demonstrateHardwareWallet() {
   console.log('HARDWARE WALLET (Mock Ledger)')
@@ -199,7 +199,7 @@ async function demonstrateHardwareWallet() {
   const wallet = createMockLedgerAdapter({
     model: 'Nano X',
     chain: 'ethereum',
-    autoApprove: true, // Auto-approve for demo
+    autoApprove: true, // Auto-approve for testing
   })
 
   console.log('1. Creating wallet adapter...')

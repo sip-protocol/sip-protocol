@@ -519,7 +519,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | M4: Network Integration | NEAR, Zcash, wallets | ✅ |
 | M5: Documentation & Launch | Docs, whitepaper | ✅ |
 | M6: Launch & Publish | npm publish, docs site | ✅ |
-| M7: Real Demo Integration | Live demo | ✅ |
+| M7: Real Integration | Live application | ✅ |
 | M8: Production Hardening | Noir circuits, multi-curve | ✅ |
 
 ### Phase 2: Standard (2025) ✅

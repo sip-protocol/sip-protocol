@@ -254,7 +254,7 @@ const viewingKey = generateViewingKey(userSecret)
 - **Docs:** https://docs.swapkit.dev
 - **Use Case:** Rapid integration, wallet UI
 
-**Recommendation:** Start with **XChainJS** for granular control over privacy layer integration. Consider SwapKit wrapper for demo app.
+**Recommendation:** Start with **XChainJS** for granular control over privacy layer integration. Consider SwapKit wrapper for reference app.
 
 ### API Endpoints
 

@@ -255,7 +255,7 @@ PHASE 1: FOUNDATION     PHASE 2: STANDARD      PHASE 3: ECOSYSTEM     PHASE 4: E
      │                      │                      │                      │                    │
 • SDK ✅                • Stable Core ✅       • Compliance ✅       • Narrative       • Zcash route
 • NEAR adapter ✅       • ZK Production ✅     • React/CLI/API ✅      Capture         • Proof compo
-• Demo ✅               • Multi-Settlement ✅  • Hardware wallets ✅ • Solana Anchor   • SIP-EIP
+• App ✅                • Multi-Settlement ✅  • Hardware wallets ✅ • Solana Anchor   • SIP-EIP
 • Noir circuits ✅      • Multi-Chain ✅       • WalletConnect ✅    • ETH Solidity    • $5B vol
 • 2,757 tests ✅        • 15+ chains ✅        • 157 new tests ✅    • Full privacy    • Industry std
 ```
@@ -344,7 +344,7 @@ Polish and publish.
 | Issue | Description | Status |
 |-------|-------------|--------|
 | [#39](../../issues/39) | [EPIC] Documentation & Launch | ✅ Done |
-| [#40](../../issues/40) | Demo application polish | ✅ Done |
+| [#40](../../issues/40) | Reference application polish | ✅ Done |
 | [#41](../../issues/41) | Deploy to production | ✅ Done |
 | [#42](../../issues/42) | Internal security review | ✅ Done |
 | [#43](../../issues/43) | Security audit preparation | ✅ Done |
@@ -368,13 +368,13 @@ Publish SDK to npm and integrate into website.
 
 **Achievement**: @sip-protocol/sdk and @sip-protocol/types published to npm. docs.sip-protocol.org live.
 
-#### M7: Real Demo Integration ✅ Complete
+#### M7: Real Integration ✅ Complete
 
-Connect demo UI to real SDK with actual blockchain transactions.
+Connect application UI to real SDK with actual blockchain transactions.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| [#54](../../issues/54) | [EPIC] Real Demo Integration | ✅ Done |
+| [#54](../../issues/54) | [EPIC] Real Integration | ✅ Done |
 | [#55](../../issues/55) | Wallet connection component (Phantom, MetaMask) | ✅ Done |
 | [#56](../../issues/56) | SDK client initialization | ✅ Done |
 | [#57](../../issues/57) | Testnet configuration (Solana Devnet, Sepolia) | ✅ Done |
@@ -383,7 +383,7 @@ Connect demo UI to real SDK with actual blockchain transactions.
 | [#60](../../issues/60) | Explorer links and tx status | ✅ Done |
 | [#61](../../issues/61) | Error handling and edge cases | ✅ Done |
 
-**Achievement**: Full demo with wallet connection, quote fetching, transaction execution. 122 tests in sip-website.
+**Achievement**: Full application with wallet connection, quote fetching, transaction execution. 122 tests in sip-website.
 
 #### M8: Production Hardening ✅ Complete
 
@@ -578,19 +578,21 @@ Multi-wallet support and hardware wallet integration.
 
 | Issue | Description | Priority | Target Track/Bounty |
 |-------|-------------|----------|---------------------|
-| [#444](../../issues/444) | Demo video (3 min) | 🔴 Critical | All tracks |
+| [#444](../../issues/444) | Showcase video (3 min) | 🔴 Critical | All tracks |
 | [#445](../../issues/445) | Devnet deployment | 🔴 Critical | Private Payments $15K |
 | [#446](../../issues/446) | Helius DAS integration | 🟡 High | Helius $5K |
 | [#447](../../issues/447) | Helius webhook scanning | 🟡 High | Helius $5K |
 | [#448](../../issues/448) | Range SAS example | 🟡 High | Range $1.5K+ |
-| [#449](../../issues/449) | React hooks demo | 🟢 Medium | Tooling $15K |
+| [#449](../../issues/449) | React hooks examples | 🟢 Medium | Tooling $15K |
 | [#450](../../issues/450) | Submission materials | 🔴 Critical | All tracks |
 | [#480](../../issues/480) | PrivacyCash Adapter | 🟡 High | PrivacyCash $6K |
 | [#481](../../issues/481) | Arcium Adapter | 🟡 High | Arcium $10K |
 | [#482](../../issues/482) | Inco Adapter | 🟡 High | Inco $6K |
 | [#484](../../issues/484) | C-SPL Token Standard | 🟡 High | Arcium $10K |
-| [#485](../../issues/485) | Wallet Surveillance Tool | 🟡 High | Encrypt.trade $500 |
+| [#485](../../issues/485) | Wallet Surveillance Tool | 🟡 High | Encrypt.trade $1K |
 | [#486](../../issues/486) | Aztec/Noir Bounty Strategy | 🟡 High | Aztec/Noir $10K |
+| [#488](../../issues/488) | D3.js Privacy Dashboard | 🟡 High | Privacy UX |
+| [#490](../../issues/490) | Privacy Advisor Agent | 🟢 Medium | User guidance |
 | [blog#80](https://github.com/sip-protocol/blog-sip/issues/80) | Privacy Explainer Content | 🟢 Medium | Encrypt.trade $500 |
 
 **Hackathon Sprint Timeline:**
@@ -598,7 +600,7 @@ Multi-wallet support and hardware wallet integration.
 | Week | Deliverables | Issues | Target Bounties |
 |------|--------------|--------|-----------------|
 | Week 1 (Jan 12-18) | Devnet deploy, Helius DAS, Noir showcase | #445, #446, #486 | Tooling, Helius, Aztec |
-| Week 2 (Jan 19-25) | Demo video, React demo, Range example, Surveillance tool | #444, #449, #448, #485 | All tracks, Range, Encrypt |
+| Week 2 (Jan 19-25) | Video, React examples, Range integration, Surveillance + D3.js | #444, #449, #448, #485, #488 | All tracks, Range, Encrypt |
 | Week 3 (Jan 26-Feb 1) | Adapters (PrivacyCash/Arcium/Inco), Polish, Submissions | #480, #481, #482, #484, #450 | Sponsor bounties |
 
 **Bounty Coverage Matrix:**
@@ -621,7 +623,7 @@ Multi-wallet support and hardware wallet integration.
 - **Light Protocol:** Pivoted to compression — we fill the privacy gap
 
 **Critical Path (Blockers):**
-1. **Demo video (#444)** — Required for ALL submissions
+1. **Showcase video (#444)** — Required for ALL submissions
 2. **Devnet deployment (#445)** — Required for Private Payments track
 3. **Noir showcase (#486)** — Low-hanging $10K (already built!)
 
@@ -705,12 +707,13 @@ Establish SIP as "the right way to do privacy" before competitors solidify.
 | [#456](../../issues/456) | **Helius Enhanced Transactions** (better UX) | Medium | 🔲 Planned |
 | [#447](../../issues/447) | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
 | [#457](../../issues/457) | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
-| [#445](../../issues/445) | **Devnet deployment** (verifier.so + demo app) | Critical | 🔲 Planned |
+| [#445](../../issues/445) | **Devnet deployment** (verifier.so + reference app) | Critical | 🔲 Planned |
 | [#480](../../issues/480) | **PrivacyCash Adapter** (pool mixing backend) | High | 🔲 Planned |
 | [#481](../../issues/481) | **Arcium Adapter** (MPC compute privacy) | Medium | 🔲 Planned |
 | [#482](../../issues/482) | **Inco Adapter** (FHE compute privacy) | Medium | 🔲 Planned |
 | [#483](../../issues/483) | **PrivacyBackend interface** (unified backend abstraction) | High | 🔲 Planned |
 | [#487](../../issues/487) | **SmartRouter v2** (backend selection logic) | Medium | 🔲 Planned |
+| [#489](../../issues/489) | **Network Privacy** (Tor/SOCKS5 proxy support) | Medium | 🔲 Planned |
 | [#472](../../issues/472) | **app.sip-protocol.org** (dedicated app subdomain) | High | 🔲 Planned |
 
 **Relayer Strategy:** Use Jito for gas abstraction — no dedicated infrastructure needed. User signs shielded tx → Jito relayer submits → Pays gas → Gets fee from commitment. Relayer is gas-only (not asset movement) = lower regulatory risk.
@@ -917,6 +920,7 @@ Build unique capabilities that create defensible advantage.
 | - | Proof composition v1 (if feasible) | 🔲 Future |
 | - | **Oblivious Sync Service** (Tachyon-inspired privacy during sync) | 🔲 Future |
 | - | **Quantum-Resistant Storage** (Winternitz WOTS vaults) | 🔲 Future |
+| [#491](../../issues/491) | **WOTS+ Post-Quantum Signatures** (stealth address signing) | 🔲 Future |
 | - | **BNB Chain support** (4.32M daily wallets, Asia market) | 🔲 Future |
 | - | Multi-language SDK (Python, Rust) | 🔲 Future |
 | - | Chain-specific optimizations | 🔲 Future |
@@ -1185,5 +1189,5 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: January 11, 2026*
+*Last updated: January 12, 2026*
 *Hackathon sprint added: Solana Privacy Hack (Jan 12 - Feb 1, 2026)*

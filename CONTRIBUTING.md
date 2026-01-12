@@ -79,8 +79,7 @@ pnpm dev
 
 ```
 sip-protocol/
-├── apps/
-│   └── demo/           # Demo application
+├── examples/           # Integration examples
 ├── packages/
 │   ├── sdk/            # Core SDK
 │   └── types/          # TypeScript types
