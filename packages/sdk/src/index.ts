@@ -859,3 +859,40 @@ export type {
   // Backend config
   SIPNativeBackendConfig,
 } from './privacy-backends'
+
+// Surveillance Analysis (Privacy Scoring)
+export {
+  // Main analyzer
+  SurveillanceAnalyzer,
+  createSurveillanceAnalyzer,
+  // Individual algorithms
+  analyzeAddressReuse,
+  detectClusters,
+  detectExchangeExposure,
+  analyzeTemporalPatterns,
+  // Scoring utilities
+  calculatePrivacyScore,
+  calculateSIPComparison,
+  // Known exchanges
+  KNOWN_EXCHANGES,
+} from './surveillance'
+
+export type {
+  // Core types
+  RiskLevel,
+  PrivacyScore,
+  PrivacyScoreBreakdown,
+  PrivacyRecommendation,
+  FullAnalysisResult,
+  SurveillanceAnalyzerConfig,
+  // Analysis results
+  AddressReuseResult,
+  ClusterResult,
+  ExchangeExposureResult,
+  TemporalPatternResult,
+  SocialLinkResult,
+  SIPProtectionComparison,
+  // Supporting types
+  AnalyzableTransaction,
+  KnownExchange,
+} from './surveillance'
