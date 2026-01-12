@@ -46,9 +46,13 @@ export { GenericProvider } from './generic'
 export {
   createWebhookHandler,
   processWebhookTransaction,
+  verifyWebhookSignature,
+  verifyAuthToken,
   type HeliusWebhookTransaction,
   type HeliusEnhancedTransaction,
   type HeliusWebhookPayload,
   type WebhookHandlerConfig,
   type WebhookProcessResult,
+  type WebhookRequest,
+  type WebhookHandler,
 } from './webhook'

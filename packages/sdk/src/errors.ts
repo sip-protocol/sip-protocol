@@ -81,6 +81,13 @@ export enum ErrorCode {
   WALLET_CONNECTION_FAILED = 'SIP_7002',
   WALLET_SIGNING_FAILED = 'SIP_7003',
   WALLET_TRANSACTION_FAILED = 'SIP_7004',
+
+  // Security errors (8xxx)
+  SECURITY_ERROR = 'SIP_8000',
+  INVALID_SIGNATURE = 'SIP_8001',
+  INVALID_AUTH = 'SIP_8002',
+  UNAUTHORIZED = 'SIP_8003',
+  RATE_LIMIT_EXCEEDED = 'SIP_8004',
 }
 
 // ─── Serialized Error Type ───────────────────────────────────────────────────
@@ -423,6 +430,60 @@ export class NetworkError extends SIPError {
   }
 }
 
+// ─── Security Error ──────────────────────────────────────────────────────────
+
+/**
+ * Error thrown when security/authentication checks fail
+ *
+ * Used for signature verification, authorization, and rate limiting.
+ *
+ * @example
+ * ```typescript
+ * throw new SecurityError('Invalid webhook signature', 'INVALID_SIGNATURE')
+ *
+ * // With context
+ * throw new SecurityError('Rate limit exceeded', 'RATE_LIMIT_EXCEEDED', {
+ *   context: { limit: 100, window: '1m' }
+ * })
+ * ```
+ */
+export class SecurityError extends SIPError {
+  /** Security error type for programmatic handling */
+  readonly securityType: string
+
+  constructor(
+    message: string,
+    securityType: string = 'SECURITY_ERROR',
+    options?: {
+      cause?: Error
+      context?: Record<string, unknown>
+    }
+  ) {
+    // Map security type to error code
+    let code: ErrorCode
+    switch (securityType) {
+      case 'INVALID_SIGNATURE':
+        code = ErrorCode.INVALID_SIGNATURE
+        break
+      case 'INVALID_AUTH':
+        code = ErrorCode.INVALID_AUTH
+        break
+      case 'UNAUTHORIZED':
+        code = ErrorCode.UNAUTHORIZED
+        break
+      case 'RATE_LIMIT_EXCEEDED':
+        code = ErrorCode.RATE_LIMIT_EXCEEDED
+        break
+      default:
+        code = ErrorCode.SECURITY_ERROR
+    }
+
+    super(message, code, options)
+    this.name = 'SecurityError'
+    this.securityType = securityType
+  }
+}
+
 // ─── Error Utilities ─────────────────────────────────────────────────────────
 
 /**
@@ -430,6 +491,13 @@ export class NetworkError extends SIPError {
  */
 export function isSIPError(error: unknown): error is SIPError {
   return error instanceof SIPError
+}
+
+/**
+ * Check if an error is a security error
+ */
+export function isSecurityError(error: unknown): error is SecurityError {
+  return error instanceof SecurityError
 }
 
 /**

@@ -119,28 +119,54 @@ export async function scanForPayments(
           const announcement = parseAnnouncement(memoContent)
           if (!announcement) continue
 
-          // Check if this payment is for us using view tag first
-          const ephemeralPubKeyHex = solanaAddressToEd25519PublicKey(
-            announcement.ephemeralPublicKey
-          )
+          // M5 FIX: Wrap ephemeral key conversion in try-catch
+          let ephemeralPubKeyHex: HexString
+          try {
+            ephemeralPubKeyHex = solanaAddressToEd25519PublicKey(
+              announcement.ephemeralPublicKey
+            )
+          } catch {
+            // Invalid ephemeral key format, skip this announcement
+            continue
+          }
 
           // Construct stealth address object for checking
           // viewTag is a number (0-255), parse from hex string
           const viewTagNumber = parseInt(announcement.viewTag, 16)
-          const stealthAddressToCheck: StealthAddress = {
-            address: announcement.stealthAddress
+
+          // M5 FIX: Validate view tag range
+          if (!Number.isInteger(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > 255) {
+            continue
+          }
+
+          let stealthAddressHex: HexString
+          try {
+            stealthAddressHex = announcement.stealthAddress
               ? solanaAddressToEd25519PublicKey(announcement.stealthAddress)
-              : ('0x' + '00'.repeat(32)) as HexString, // Will be computed
+              : ('0x' + '00'.repeat(32)) as HexString
+          } catch {
+            continue
+          }
+
+          const stealthAddressToCheck: StealthAddress = {
+            address: stealthAddressHex,
             ephemeralPublicKey: ephemeralPubKeyHex,
             viewTag: viewTagNumber,
           }
 
-          // Check if this is our payment
-          const isOurs = checkEd25519StealthAddress(
-            stealthAddressToCheck,
-            viewingPrivateKey,
-            spendingPublicKey
-          )
+          // M5 FIX: Wrap checkEd25519StealthAddress in try-catch
+          // This can throw for invalid curve points
+          let isOurs = false
+          try {
+            isOurs = checkEd25519StealthAddress(
+              stealthAddressToCheck,
+              viewingPrivateKey,
+              spendingPublicKey
+            )
+          } catch {
+            // Invalid keys or malformed data - not our payment
+            continue
+          }
 
           if (isOurs) {
             // Parse token transfer from transaction
@@ -179,14 +205,15 @@ export async function scanForPayments(
             }
           }
         }
-      } catch (err) {
-        // Skip failed transaction parsing
-        console.warn(`Failed to parse tx ${sigInfo.signature}:`, err)
+      } catch {
+        // M10 FIX: Skip failed transaction parsing silently
+        // Individual tx parse failures shouldn't block scanning
       }
     }
   } catch (err) {
-    console.error('Scan failed:', err)
-    throw new Error(`Failed to scan for payments: ${err}`)
+    // M10 FIX: Remove console.error, throw proper error
+    const message = err instanceof Error ? err.message : String(err)
+    throw new Error(`Failed to scan for payments: ${message}`)
   }
 
   return results

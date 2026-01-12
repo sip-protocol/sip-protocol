@@ -30,8 +30,11 @@ import {
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
   getAccount,
+  TokenAccountNotFoundError,
+  TokenInvalidAccountOwnerError,
 } from '@solana/spl-token'
 import type { SolanaRPCProvider, TokenAsset, GenericProviderConfig } from './interface'
+import { NetworkError } from '../../../errors'
 
 /**
  * RPC endpoint URLs by cluster
@@ -119,6 +122,12 @@ export class GenericProvider implements SolanaRPCProvider {
    *
    * Uses getAccount on the associated token address.
    */
+  /**
+   * Get token balance for a specific mint
+   *
+   * M1 FIX: Properly differentiate between missing accounts (return 0n)
+   * and actual RPC errors (throw NetworkError)
+   */
   async getTokenBalance(owner: string, mint: string): Promise<bigint> {
     // Validate addresses before trying to fetch (these errors should propagate)
     const ownerPubkey = validateSolanaAddress(owner, 'owner')
@@ -133,9 +142,32 @@ export class GenericProvider implements SolanaRPCProvider {
 
       const account = await getAccount(this.connection, ata)
       return account.amount
-    } catch {
-      // Account doesn't exist or other RPC error
-      return 0n
+    } catch (error) {
+      // M1 FIX: Only return 0n for "account not found" errors
+      // Throw for actual RPC/network errors
+      if (
+        error instanceof TokenAccountNotFoundError ||
+        error instanceof TokenInvalidAccountOwnerError
+      ) {
+        // Account doesn't exist - this is expected, return 0n
+        return 0n
+      }
+
+      // Check for common RPC error patterns
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      if (
+        errorMessage.includes('could not find account') ||
+        errorMessage.includes('Account does not exist')
+      ) {
+        return 0n
+      }
+
+      // Actual RPC/network error - throw
+      throw new NetworkError(
+        `Failed to get token balance: ${errorMessage}`,
+        undefined,
+        { endpoint: this.connection.rpcEndpoint }
+      )
     }
   }
 

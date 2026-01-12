@@ -21,6 +21,16 @@
  */
 
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
+import { ValidationError } from '../../../errors'
+
+/**
+ * Mask API key for safe logging/error messages
+ * Shows only first 4 and last 4 characters
+ */
+function maskApiKey(apiKey: string): string {
+  if (apiKey.length <= 8) return '***'
+  return `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}`
+}
 
 /**
  * Helius API response types
@@ -95,28 +105,41 @@ export interface HeliusProviderConfig extends ProviderConfig {
  */
 export class HeliusProvider implements SolanaRPCProvider {
   readonly name = 'helius'
-  private apiKey: string
-  private cluster: 'mainnet-beta' | 'devnet'
-  private rpcUrl: string
-  private restUrl: string
+  private readonly apiKey: string
+  private readonly cluster: 'mainnet-beta' | 'devnet'
+  private readonly rpcUrl: string
+  private readonly restUrl: string
 
   constructor(config: HeliusProviderConfig) {
+    // Validate API key
     if (!config.apiKey) {
-      throw new Error('Helius API key is required. Get one at https://dev.helius.xyz')
+      throw new ValidationError(
+        'Helius API key is required. Get one at https://dev.helius.xyz',
+        'apiKey'
+      )
+    }
+
+    // Validate API key format (basic check - Helius keys are UUIDs or alphanumeric)
+    if (typeof config.apiKey !== 'string' || config.apiKey.length < 8) {
+      throw new ValidationError(
+        'Invalid Helius API key format',
+        'apiKey'
+      )
     }
 
     this.apiKey = config.apiKey
     this.cluster = config.cluster ?? 'mainnet-beta'
 
-    // RPC endpoint for DAS API
+    // RPC endpoint for DAS API (no API key in URL - use header instead)
+    // H-1 FIX: API key moved from URL query parameter to Authorization header
     this.rpcUrl = this.cluster === 'devnet'
-      ? `https://devnet.helius-rpc.com/?api-key=${this.apiKey}`
-      : `https://mainnet.helius-rpc.com/?api-key=${this.apiKey}`
+      ? 'https://devnet.helius-rpc.com'
+      : 'https://mainnet.helius-rpc.com'
 
     // REST endpoint for balances API
     this.restUrl = this.cluster === 'devnet'
-      ? `https://api-devnet.helius.xyz/v0`
-      : `https://api.helius.xyz/v0`
+      ? 'https://api-devnet.helius.xyz/v0'
+      : 'https://api.helius.xyz/v0'
   }
 
   /**
@@ -126,6 +149,15 @@ export class HeliusProvider implements SolanaRPCProvider {
    * NFTs and fungible tokens with metadata.
    */
   async getAssetsByOwner(owner: string): Promise<TokenAsset[]> {
+    // Validate owner address
+    if (!owner || typeof owner !== 'string') {
+      throw new ValidationError('owner address is required', 'owner')
+    }
+    // Basic Solana address validation (32-44 chars, base58)
+    if (owner.length < 32 || owner.length > 44) {
+      throw new ValidationError('invalid Solana address format', 'owner')
+    }
+
     const assets: TokenAsset[] = []
     let page = 1
     const limit = 1000
@@ -134,7 +166,11 @@ export class HeliusProvider implements SolanaRPCProvider {
     while (hasMore) {
       const response = await fetch(this.rpcUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          // H-1 FIX: Use Authorization header instead of URL query parameter
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
         body: JSON.stringify({
           jsonrpc: '2.0',
           id: `sip-${Date.now()}`,
@@ -152,7 +188,10 @@ export class HeliusProvider implements SolanaRPCProvider {
       })
 
       if (!response.ok) {
-        throw new Error(`Helius API error: ${response.status} ${response.statusText}`)
+        // H-2 FIX: Never include API key in error messages
+        throw new Error(
+          `Helius API error: ${response.status} ${response.statusText} (key: ${maskApiKey(this.apiKey)})`
+        )
       }
 
       const data = (await response.json()) as HeliusDASResponse
@@ -210,10 +249,23 @@ export class HeliusProvider implements SolanaRPCProvider {
    * More efficient than getAssetsByOwner when you only need one token's balance.
    */
   async getTokenBalance(owner: string, mint: string): Promise<bigint> {
-    try {
-      const url = `${this.restUrl}/addresses/${owner}/balances?api-key=${this.apiKey}`
+    // Validate inputs
+    if (!owner || typeof owner !== 'string') {
+      throw new ValidationError('owner address is required', 'owner')
+    }
+    if (!mint || typeof mint !== 'string') {
+      throw new ValidationError('mint address is required', 'mint')
+    }
 
-      const response = await fetch(url)
+    try {
+      // H-1 FIX: Use Authorization header instead of API key in URL
+      const url = `${this.restUrl}/addresses/${owner}/balances`
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+      })
 
       if (!response.ok) {
         // Fallback to DAS if balances API fails
@@ -227,7 +279,10 @@ export class HeliusProvider implements SolanaRPCProvider {
       const token = data.tokens?.find((t) => t.mint === mint)
       return token ? BigInt(token.amount) : 0n
     } catch (error) {
-      console.warn('[HeliusProvider] getTokenBalance error, falling back to DAS:', error)
+      // H-2 FIX: Sanitize error message - don't log raw error which might contain sensitive data
+      console.warn(
+        `[HeliusProvider] getTokenBalance error for owner ${owner.slice(0, 8)}..., falling back to DAS`
+      )
       const assets = await this.getAssetsByOwner(owner)
       const asset = assets.find((a) => a.mint === mint)
       return asset?.amount ?? 0n

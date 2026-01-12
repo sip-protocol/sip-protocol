@@ -20,6 +20,10 @@ import type {
   ProviderType,
 } from '../../../src/chains/solana/providers/interface'
 
+// Valid Solana addresses for testing (32-44 chars, base58)
+const TEST_OWNER = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU'
+const TEST_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+
 describe('Solana RPC Providers', () => {
   describe('createProvider factory', () => {
     it('should create HeliusProvider with helius type', () => {
@@ -136,7 +140,7 @@ describe('Solana RPC Providers', () => {
           json: () => Promise.resolve(mockResponse),
         } as Response)
 
-        const assets = await provider.getAssetsByOwner('test-address')
+        const assets = await provider.getAssetsByOwner(TEST_OWNER)
 
         expect(assets).toHaveLength(2) // Only fungible tokens
         expect(assets[0]).toEqual({
@@ -166,7 +170,7 @@ describe('Solana RPC Providers', () => {
           statusText: 'Unauthorized',
         } as Response)
 
-        await expect(provider.getAssetsByOwner('test-address')).rejects.toThrow(
+        await expect(provider.getAssetsByOwner(TEST_OWNER)).rejects.toThrow(
           'Helius API error: 401 Unauthorized'
         )
       })
@@ -188,7 +192,7 @@ describe('Solana RPC Providers', () => {
           json: () => Promise.resolve(mockErrorResponse),
         } as Response)
 
-        await expect(provider.getAssetsByOwner('test-address')).rejects.toThrow(
+        await expect(provider.getAssetsByOwner(TEST_OWNER)).rejects.toThrow(
           'Helius RPC error: Invalid Request (code: -32600)'
         )
       })
@@ -224,7 +228,7 @@ describe('Solana RPC Providers', () => {
           json: () => Promise.resolve(mockResponse),
         } as Response)
 
-        const assets = await provider.getAssetsByOwner('test-address')
+        const assets = await provider.getAssetsByOwner(TEST_OWNER)
 
         expect(assets).toHaveLength(1)
         expect(assets[0].amount).toBe(BigInt(largeBalance))
