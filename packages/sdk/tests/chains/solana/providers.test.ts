@@ -41,6 +41,24 @@ describe('Solana RPC Providers', () => {
         createProvider('unknown' as ProviderType, {})
       ).toThrow('Unknown provider type: unknown')
     })
+
+    it('should throw helpful error for quicknode (not yet implemented)', () => {
+      expect(() =>
+        createProvider('quicknode', { apiKey: 'test' })
+      ).toThrow(/Provider 'quicknode' is not yet implemented/)
+      expect(() =>
+        createProvider('quicknode', { apiKey: 'test' })
+      ).toThrow(/issues\/494/)
+    })
+
+    it('should throw helpful error for triton (not yet implemented)', () => {
+      expect(() =>
+        createProvider('triton', { apiKey: 'test' })
+      ).toThrow(/Provider 'triton' is not yet implemented/)
+      expect(() =>
+        createProvider('triton', { apiKey: 'test' })
+      ).toThrow(/issues\/495/)
+    })
   })
 
   describe('HeliusProvider', () => {
@@ -152,6 +170,65 @@ describe('Solana RPC Providers', () => {
           'Helius API error: 401 Unauthorized'
         )
       })
+
+      it('should handle JSON-RPC errors', async () => {
+        const provider = new HeliusProvider({ apiKey: 'test-key' })
+
+        const mockErrorResponse = {
+          jsonrpc: '2.0',
+          error: {
+            code: -32600,
+            message: 'Invalid Request',
+          },
+          id: 'sip-test',
+        }
+
+        global.fetch = vi.fn().mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockErrorResponse),
+        } as Response)
+
+        await expect(provider.getAssetsByOwner('test-address')).rejects.toThrow(
+          'Helius RPC error: Invalid Request (code: -32600)'
+        )
+      })
+
+      it('should handle large balances as strings', async () => {
+        const provider = new HeliusProvider({ apiKey: 'test-key' })
+
+        // Large balance that would lose precision as JavaScript number
+        const largeBalance = '9999999999999999999'
+
+        const mockResponse = {
+          jsonrpc: '2.0',
+          result: {
+            items: [
+              {
+                id: 'test-mint',
+                interface: 'FungibleToken',
+                token_info: {
+                  balance: largeBalance, // String to preserve precision
+                  decimals: 9,
+                },
+              },
+            ],
+            total: 1,
+            limit: 1000,
+            page: 1,
+          },
+          id: 'sip-test',
+        }
+
+        global.fetch = vi.fn().mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockResponse),
+        } as Response)
+
+        const assets = await provider.getAssetsByOwner('test-address')
+
+        expect(assets).toHaveLength(1)
+        expect(assets[0].amount).toBe(BigInt(largeBalance))
+      })
     })
 
     describe('getTokenBalance (mocked)', () => {
@@ -236,6 +313,30 @@ describe('Solana RPC Providers', () => {
       const connection = provider.getConnection()
       expect(connection).toBeDefined()
       expect(connection.rpcEndpoint).toBe('https://api.devnet.solana.com')
+    })
+
+    it('should validate owner address in getAssetsByOwner', async () => {
+      const provider = new GenericProvider({
+        endpoint: 'https://api.devnet.solana.com',
+      })
+
+      await expect(
+        provider.getAssetsByOwner('invalid-address')
+      ).rejects.toThrow('Invalid Solana address for owner')
+    })
+
+    it('should validate addresses in getTokenBalance', async () => {
+      const provider = new GenericProvider({
+        endpoint: 'https://api.devnet.solana.com',
+      })
+
+      await expect(
+        provider.getTokenBalance('invalid-owner', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+      ).rejects.toThrow('Invalid Solana address for owner')
+
+      await expect(
+        provider.getTokenBalance('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'invalid-mint')
+      ).rejects.toThrow('Invalid Solana address for mint')
     })
   })
 

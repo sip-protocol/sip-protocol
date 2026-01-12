@@ -43,6 +43,18 @@ const CLUSTER_ENDPOINTS: Record<string, string> = {
 }
 
 /**
+ * Validate a Solana address (base58)
+ * @throws Error if address is invalid
+ */
+function validateSolanaAddress(address: string, paramName: string): PublicKey {
+  try {
+    return new PublicKey(address)
+  } catch {
+    throw new Error(`Invalid Solana address for ${paramName}: ${address}`)
+  }
+}
+
+/**
  * Generic RPC Provider implementation
  *
  * Uses standard Solana RPC methods. Works with any RPC endpoint.
@@ -69,7 +81,7 @@ export class GenericProvider implements SolanaRPCProvider {
    * but works with any RPC endpoint.
    */
   async getAssetsByOwner(owner: string): Promise<TokenAsset[]> {
-    const ownerPubkey = new PublicKey(owner)
+    const ownerPubkey = validateSolanaAddress(owner, 'owner')
 
     const accounts = await this.connection.getParsedTokenAccountsByOwner(
       ownerPubkey,
@@ -108,10 +120,11 @@ export class GenericProvider implements SolanaRPCProvider {
    * Uses getAccount on the associated token address.
    */
   async getTokenBalance(owner: string, mint: string): Promise<bigint> {
-    try {
-      const ownerPubkey = new PublicKey(owner)
-      const mintPubkey = new PublicKey(mint)
+    // Validate addresses before trying to fetch (these errors should propagate)
+    const ownerPubkey = validateSolanaAddress(owner, 'owner')
+    const mintPubkey = validateSolanaAddress(mint, 'mint')
 
+    try {
       const ata = await getAssociatedTokenAddress(
         mintPubkey,
         ownerPubkey,
@@ -121,7 +134,7 @@ export class GenericProvider implements SolanaRPCProvider {
       const account = await getAccount(this.connection, ata)
       return account.amount
     } catch {
-      // Account doesn't exist or other error
+      // Account doesn't exist or other RPC error
       return 0n
     }
   }

@@ -146,18 +146,20 @@ export async function scanForPayments(
             // Parse token transfer from transaction
             const transferInfo = parseTokenTransfer(tx)
             if (transferInfo) {
-              // If provider is available, use it for more accurate balance info
+              // If provider is available, use it for more accurate current balance
               let amount = transferInfo.amount
-              let tokenSymbol = getTokenSymbol(transferInfo.mint)
+              const tokenSymbol = getTokenSymbol(transferInfo.mint)
 
               if (provider && announcement.stealthAddress) {
                 try {
-                  // Use provider for efficient balance query
-                  const assets = await provider.getAssetsByOwner(announcement.stealthAddress)
-                  const asset = assets.find((a) => a.mint === transferInfo.mint)
-                  if (asset) {
-                    amount = asset.amount
-                    tokenSymbol = asset.symbol ?? tokenSymbol
+                  // Use getTokenBalance for efficient single-token query
+                  const balance = await provider.getTokenBalance(
+                    announcement.stealthAddress,
+                    transferInfo.mint
+                  )
+                  // Only use provider balance if > 0 (confirms tokens still there)
+                  if (balance > 0n) {
+                    amount = balance
                   }
                 } catch {
                   // Fallback to parsed transfer info if provider fails

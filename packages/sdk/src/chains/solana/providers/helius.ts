@@ -38,7 +38,8 @@ interface HeliusDASAsset {
     }
   }
   token_info?: {
-    balance?: number
+    /** Balance as string to preserve precision for large values */
+    balance?: string | number
     decimals?: number
     symbol?: string
     token_program?: string
@@ -52,12 +53,16 @@ interface HeliusDASAsset {
 
 interface HeliusDASResponse {
   jsonrpc: string
-  result: {
+  result?: {
     items: HeliusDASAsset[]
     total: number
     limit: number
     page: number
     cursor?: string
+  }
+  error?: {
+    code: number
+    message: string
   }
   id: string
 }
@@ -152,6 +157,11 @@ export class HeliusProvider implements SolanaRPCProvider {
 
       const data = (await response.json()) as HeliusDASResponse
 
+      // Handle JSON-RPC errors
+      if (data.error) {
+        throw new Error(`Helius RPC error: ${data.error.message} (code: ${data.error.code})`)
+      }
+
       if (data.result?.items) {
         for (const item of data.result.items) {
           // Skip NFTs (interface !== 'FungibleToken' and 'FungibleAsset')
@@ -163,9 +173,15 @@ export class HeliusProvider implements SolanaRPCProvider {
           const tokenInfo = item.token_info
           if (!tokenInfo?.balance) continue
 
+          // Convert balance to BigInt, handling both string and number types
+          // String is preferred for large values to preserve precision
+          const balanceValue = typeof tokenInfo.balance === 'string'
+            ? BigInt(tokenInfo.balance)
+            : BigInt(Math.floor(tokenInfo.balance))
+
           assets.push({
             mint: item.id,
-            amount: BigInt(tokenInfo.balance),
+            amount: balanceValue,
             decimals: tokenInfo.decimals ?? 0,
             symbol: tokenInfo.symbol ?? item.content?.metadata?.symbol,
             name: item.content?.metadata?.name,
