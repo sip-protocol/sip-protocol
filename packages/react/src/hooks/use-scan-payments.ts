@@ -316,7 +316,8 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
    * 3. Add PublicKey-like interface to SDK types
    */
   const claimAll = useCallback(
-    async (_claimAllParams: ClaimAllParams): Promise<SolanaClaimResult[]> => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async (claimAllParams: ClaimAllParams): Promise<SolanaClaimResult[]> => {
       const unclaimed = payments.filter((p) => !p.claimed)
 
       if (unclaimed.length > 0) {
@@ -394,8 +395,7 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
     }
   }, [status])
 
-  // Auto-start scanning if interval is provided
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally run only on mount/unmount
+  // Auto-start scanning if interval is provided (runs only on mount/unmount)
   useEffect(() => {
     if (scanInterval > 0) {
       startAutoScan(scanInterval)
