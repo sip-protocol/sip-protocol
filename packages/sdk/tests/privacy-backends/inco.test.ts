@@ -1,20 +1,20 @@
 /**
- * Arcium Backend Tests
+ * Inco Backend Tests
  *
- * Comprehensive test suite for the Arcium MPC compute privacy backend.
+ * Comprehensive test suite for the Inco FHE compute privacy backend.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { ArciumBackend } from '../../src/privacy-backends/arcium'
+import { IncoBackend } from '../../src/privacy-backends/inco'
 import {
-  ARCIUM_CLUSTERS,
-  BASE_COMPUTATION_COST_LAMPORTS,
-  ESTIMATED_COMPUTATION_TIME_MS,
-} from '../../src/privacy-backends/arcium-types'
+  INCO_RPC_URLS,
+  INCO_SUPPORTED_CHAINS,
+  BASE_FHE_COST_WEI,
+  ESTIMATED_FHE_TIME_MS,
+} from '../../src/privacy-backends/inco-types'
 import type {
   ComputationParams,
   TransferParams,
-  CipherType,
 } from '../../src/privacy-backends/interface'
 
 // ─── Test Helpers ────────────────────────────────────────────────────────────
@@ -23,8 +23,8 @@ function createValidComputationParams(
   overrides: Partial<ComputationParams> = {}
 ): ComputationParams {
   return {
-    chain: 'solana',
-    circuitId: 'test-circuit',
+    chain: 'ethereum',
+    circuitId: '0x1234567890abcdef1234567890abcdef12345678',
     encryptedInputs: [new Uint8Array([1, 2, 3, 4])],
     ...overrides,
   }
@@ -34,124 +34,171 @@ function createValidTransferParams(
   overrides: Partial<TransferParams> = {}
 ): TransferParams {
   return {
-    chain: 'solana',
-    sender: 'sender-address',
-    recipient: 'recipient-address',
+    chain: 'ethereum',
+    sender: '0xsender',
+    recipient: '0xrecipient',
     mint: null,
-    amount: BigInt(1_000_000_000),
-    decimals: 9,
+    amount: BigInt('1000000000000000000'),
+    decimals: 18,
     ...overrides,
   }
 }
 
 // ─── Constructor Tests ───────────────────────────────────────────────────────
 
-describe('ArciumBackend', () => {
+describe('IncoBackend', () => {
   describe('constructor', () => {
     it('should create with default config', () => {
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
 
-      expect(backend.name).toBe('arcium')
+      expect(backend.name).toBe('inco')
       expect(backend.type).toBe('compute')
-      expect(backend.chains).toContain('solana')
+      expect(backend.chains).toContain('ethereum')
     })
 
     it('should accept custom rpcUrl', () => {
-      const backend = new ArciumBackend({
+      const backend = new IncoBackend({
         rpcUrl: 'https://custom.rpc.url',
       })
 
-      expect(backend.name).toBe('arcium')
+      expect(backend.name).toBe('inco')
+      expect(backend.getConfig().rpcUrl).toBe('https://custom.rpc.url')
     })
 
     it('should accept custom network', () => {
-      const backend = new ArciumBackend({
-        network: 'testnet',
+      const backend = new IncoBackend({
+        network: 'mainnet',
       })
 
-      expect(backend.name).toBe('arcium')
+      expect(backend.getConfig().network).toBe('mainnet')
     })
 
-    it('should accept custom cluster', () => {
-      const backend = new ArciumBackend({
-        cluster: 'custom-cluster-1',
+    it('should accept custom chainId', () => {
+      const backend = new IncoBackend({
+        chainId: 1,
       })
 
-      expect(backend.name).toBe('arcium')
+      expect(backend.getConfig().chainId).toBe(1)
     })
 
-    it('should accept custom defaultCipher', () => {
-      const backend = new ArciumBackend({
-        defaultCipher: 'aes128',
+    it('should accept custom product', () => {
+      const backend = new IncoBackend({
+        product: 'atlas',
       })
 
-      expect(backend.name).toBe('arcium')
+      expect(backend.getConfig().product).toBe('atlas')
     })
 
     it('should accept custom timeout', () => {
-      const backend = new ArciumBackend({
+      const backend = new IncoBackend({
         timeout: 600000,
       })
 
-      expect(backend.name).toBe('arcium')
+      expect(backend.getConfig().timeout).toBe(600000)
     })
 
-    it('should use default cluster for network', () => {
-      const devnetBackend = new ArciumBackend({ network: 'devnet' })
-      const testnetBackend = new ArciumBackend({ network: 'testnet' })
+    it('should use default RPC URL for testnet', () => {
+      const backend = new IncoBackend({ network: 'testnet' })
 
-      // Both should create successfully with their network's default cluster
-      expect(devnetBackend.name).toBe('arcium')
-      expect(testnetBackend.name).toBe('arcium')
+      expect(backend.getConfig().rpcUrl).toBe(INCO_RPC_URLS.testnet)
+    })
+
+    it('should use default RPC URL for mainnet', () => {
+      const backend = new IncoBackend({ network: 'mainnet' })
+
+      expect(backend.getConfig().rpcUrl).toBe(INCO_RPC_URLS.mainnet)
     })
   })
 
   // ─── Capabilities Tests ──────────────────────────────────────────────────────
 
   describe('getCapabilities', () => {
-    it('should return correct capabilities for compute backend', () => {
-      const backend = new ArciumBackend()
+    it('should return correct capabilities for FHE compute backend', () => {
+      const backend = new IncoBackend()
       const caps = backend.getCapabilities()
 
-      // Compute backend capabilities
+      // FHE backend capabilities
       expect(caps.hiddenCompute).toBe(true) // PRIMARY PURPOSE
-      expect(caps.setupRequired).toBe(true) // Need circuit upload
-      expect(caps.latencyEstimate).toBe('slow') // MPC coordination
+      expect(caps.setupRequired).toBe(true) // Contract must use Inco SDK
+      expect(caps.latencyEstimate).toBe('medium') // Faster than MPC
+    })
+
+    it('should hide amounts in encrypted state', () => {
+      const backend = new IncoBackend()
+      const caps = backend.getCapabilities()
+
+      // Key difference from Arcium: FHE can encrypt state including amounts
+      expect(caps.hiddenAmount).toBe(true)
     })
 
     it('should NOT hide transaction details', () => {
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
       const caps = backend.getCapabilities()
 
-      // Arcium does NOT provide transaction privacy
-      expect(caps.hiddenAmount).toBe(false)
+      // FHE doesn't hide tx sender/recipient
       expect(caps.hiddenSender).toBe(false)
       expect(caps.hiddenRecipient).toBe(false)
     })
 
     it('should NOT support compliance features', () => {
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
       const caps = backend.getCapabilities()
 
       expect(caps.complianceSupport).toBe(false)
       expect(caps.anonymitySet).toBeUndefined()
     })
 
-    it('should support all tokens in compute', () => {
-      const backend = new ArciumBackend()
+    it('should support all tokens', () => {
+      const backend = new IncoBackend()
       const caps = backend.getCapabilities()
 
       expect(caps.supportedTokens).toBe('all')
     })
   })
 
+  // ─── Chain Support Tests ───────────────────────────────────────────────────────
+
+  describe('chain support', () => {
+    it('should support all EVM chains', () => {
+      const backend = new IncoBackend()
+
+      for (const chain of INCO_SUPPORTED_CHAINS) {
+        expect(backend.chains).toContain(chain)
+      }
+    })
+
+    it('should support Solana (beta)', () => {
+      const backend = new IncoBackend()
+
+      expect(backend.chains).toContain('solana')
+    })
+
+    it('should support ethereum', () => {
+      const backend = new IncoBackend()
+
+      expect(backend.chains).toContain('ethereum')
+    })
+
+    it('should support base', () => {
+      const backend = new IncoBackend()
+
+      expect(backend.chains).toContain('base')
+    })
+
+    it('should support arbitrum', () => {
+      const backend = new IncoBackend()
+
+      expect(backend.chains).toContain('arbitrum')
+    })
+  })
+
   // ─── checkAvailability Tests ─────────────────────────────────────────────────
 
   describe('checkAvailability', () => {
-    let backend: ArciumBackend
+    let backend: IncoBackend
 
     beforeEach(() => {
-      backend = new ArciumBackend()
+      backend = new IncoBackend()
     })
 
     describe('with ComputationParams', () => {
@@ -170,16 +217,48 @@ describe('ArciumBackend', () => {
 
         const result = await backend.checkAvailability(params)
 
-        expect(result.estimatedTime).toBe(ESTIMATED_COMPUTATION_TIME_MS)
+        expect(result.estimatedTime).toBe(ESTIMATED_FHE_TIME_MS)
       })
 
-      it('should not be available for unsupported chain', async () => {
+      it('should be available for ethereum chain', async () => {
         const params = createValidComputationParams({ chain: 'ethereum' })
 
         const result = await backend.checkAvailability(params)
 
+        expect(result.available).toBe(true)
+      })
+
+      it('should be available for base chain', async () => {
+        const params = createValidComputationParams({ chain: 'base' })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(true)
+      })
+
+      it('should be available for arbitrum chain', async () => {
+        const params = createValidComputationParams({ chain: 'arbitrum' })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(true)
+      })
+
+      it('should be available for solana chain (beta)', async () => {
+        const params = createValidComputationParams({ chain: 'solana' })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(true)
+      })
+
+      it('should not be available for unsupported chain', async () => {
+        const params = createValidComputationParams({ chain: 'bitcoin' })
+
+        const result = await backend.checkAvailability(params)
+
         expect(result.available).toBe(false)
-        expect(result.reason).toContain('only supports Solana')
+        expect(result.reason).toContain('supports')
       })
 
       it('should not be available without circuitId', async () => {
@@ -188,7 +267,7 @@ describe('ArciumBackend', () => {
         const result = await backend.checkAvailability(params)
 
         expect(result.available).toBe(false)
-        expect(result.reason).toContain('circuitId is required')
+        expect(result.reason).toContain('circuitId')
       })
 
       it('should not be available without encryptedInputs', async () => {
@@ -209,27 +288,6 @@ describe('ArciumBackend', () => {
 
         expect(result.available).toBe(false)
         expect(result.reason).toContain('non-empty Uint8Array')
-      })
-
-      it('should accept valid cipher types', async () => {
-        const ciphers: CipherType[] = ['aes128', 'aes192', 'aes256', 'rescue']
-
-        for (const cipher of ciphers) {
-          const params = createValidComputationParams({ cipher })
-          const result = await backend.checkAvailability(params)
-          expect(result.available).toBe(true)
-        }
-      })
-
-      it('should reject invalid cipher type', async () => {
-        const params = createValidComputationParams({
-          cipher: 'invalid-cipher' as CipherType,
-        })
-
-        const result = await backend.checkAvailability(params)
-
-        expect(result.available).toBe(false)
-        expect(result.reason).toContain('Invalid cipher')
       })
 
       it('should accept multiple encrypted inputs', async () => {
@@ -263,10 +321,10 @@ describe('ArciumBackend', () => {
   // ─── execute Tests ───────────────────────────────────────────────────────────
 
   describe('execute', () => {
-    let backend: ArciumBackend
+    let backend: IncoBackend
 
     beforeEach(() => {
-      backend = new ArciumBackend()
+      backend = new IncoBackend()
     })
 
     it('should fail with helpful error message', async () => {
@@ -277,7 +335,7 @@ describe('ArciumBackend', () => {
       expect(result.success).toBe(false)
       expect(result.error).toContain('compute privacy backend')
       expect(result.error).toContain('executeComputation')
-      expect(result.backend).toBe('arcium')
+      expect(result.backend).toBe('inco')
     })
 
     it('should include hint in metadata', async () => {
@@ -293,10 +351,10 @@ describe('ArciumBackend', () => {
   // ─── executeComputation Tests ────────────────────────────────────────────────
 
   describe('executeComputation', () => {
-    let backend: ArciumBackend
+    let backend: IncoBackend
 
     beforeEach(() => {
-      backend = new ArciumBackend()
+      backend = new IncoBackend()
     })
 
     it('should execute successfully for valid params', async () => {
@@ -306,39 +364,38 @@ describe('ArciumBackend', () => {
 
       expect(result.success).toBe(true)
       expect(result.computationId).toBeDefined()
-      expect(result.backend).toBe('arcium')
+      expect(result.backend).toBe('inco')
       expect(result.status).toBe('submitted')
     })
 
-    it('should include circuit info in metadata', async () => {
+    it('should include contract info in metadata', async () => {
+      const contractAddress = '0xcontract123'
       const params = createValidComputationParams({
-        circuitId: 'my-circuit',
+        circuitId: contractAddress,
       })
 
       const result = await backend.executeComputation(params)
 
-      expect(result.metadata?.circuitId).toBe('my-circuit')
+      expect(result.metadata?.contractAddress).toBe(contractAddress)
       expect(result.metadata?.inputCount).toBe(1)
     })
 
-    it('should use custom cluster', async () => {
+    it('should use custom function name from options', async () => {
       const params = createValidComputationParams({
-        cluster: 'custom-cluster',
+        options: { functionName: 'vote' },
       })
 
       const result = await backend.executeComputation(params)
 
-      expect(result.metadata?.cluster).toBe('custom-cluster')
+      expect(result.metadata?.functionName).toBe('vote')
     })
 
-    it('should use custom cipher', async () => {
-      const params = createValidComputationParams({
-        cipher: 'aes128',
-      })
+    it('should default to compute function name', async () => {
+      const params = createValidComputationParams()
 
       const result = await backend.executeComputation(params)
 
-      expect(result.metadata?.cipher).toBe('aes128')
+      expect(result.metadata?.functionName).toBe('compute')
     })
 
     it('should fail for invalid params', async () => {
@@ -351,21 +408,30 @@ describe('ArciumBackend', () => {
     })
 
     it('should fail for unsupported chain', async () => {
-      const params = createValidComputationParams({ chain: 'ethereum' })
+      const params = createValidComputationParams({ chain: 'bitcoin' })
 
       const result = await backend.executeComputation(params)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('only supports Solana')
+      expect(result.error).toContain('supports')
     })
 
     it('should include network in metadata', async () => {
-      const backend = new ArciumBackend({ network: 'testnet' })
+      const backend = new IncoBackend({ network: 'mainnet' })
       const params = createValidComputationParams()
 
       const result = await backend.executeComputation(params)
 
-      expect(result.metadata?.network).toBe('testnet')
+      expect(result.metadata?.network).toBe('mainnet')
+    })
+
+    it('should include product in metadata', async () => {
+      const backend = new IncoBackend({ product: 'atlas' })
+      const params = createValidComputationParams()
+
+      const result = await backend.executeComputation(params)
+
+      expect(result.metadata?.product).toBe('atlas')
     })
 
     it('should generate unique computation IDs', async () => {
@@ -378,13 +444,105 @@ describe('ArciumBackend', () => {
     })
   })
 
+  // ─── encryptValue Tests ──────────────────────────────────────────────────────
+
+  describe('encryptValue', () => {
+    let backend: IncoBackend
+
+    beforeEach(() => {
+      backend = new IncoBackend()
+    })
+
+    it('should encrypt bigint as euint256', async () => {
+      const value = BigInt(12345)
+
+      const result = await backend.encryptValue(value, 'euint256')
+
+      expect(result.handle).toBeDefined()
+      expect(result.type).toBe('euint256')
+      expect(result.ciphertext).toBeInstanceOf(Uint8Array)
+    })
+
+    it('should encrypt boolean as ebool', async () => {
+      const value = true
+
+      const result = await backend.encryptValue(value, 'ebool')
+
+      expect(result.handle).toBeDefined()
+      expect(result.type).toBe('ebool')
+    })
+
+    it('should encrypt string as eaddress', async () => {
+      const value = '0x1234567890abcdef1234567890abcdef12345678'
+
+      const result = await backend.encryptValue(value, 'eaddress')
+
+      expect(result.handle).toBeDefined()
+      expect(result.type).toBe('eaddress')
+    })
+
+    it('should throw for type mismatch - euint256 needs bigint', async () => {
+      await expect(
+        backend.encryptValue(true, 'euint256')
+      ).rejects.toThrow('euint256 requires a bigint value')
+    })
+
+    it('should throw for type mismatch - ebool needs boolean', async () => {
+      await expect(
+        backend.encryptValue(BigInt(1), 'ebool')
+      ).rejects.toThrow('ebool requires a boolean value')
+    })
+
+    it('should throw for type mismatch - eaddress needs string', async () => {
+      await expect(
+        backend.encryptValue(true, 'eaddress')
+      ).rejects.toThrow('eaddress requires a string value')
+    })
+
+    it('should include chainId in result', async () => {
+      const backend = new IncoBackend({ chainId: 1 })
+
+      const result = await backend.encryptValue(BigInt(100), 'euint256')
+
+      expect(result.chainId).toBe(1)
+    })
+  })
+
+  // ─── decryptValue Tests ──────────────────────────────────────────────────────
+
+  describe('decryptValue', () => {
+    let backend: IncoBackend
+
+    beforeEach(() => {
+      backend = new IncoBackend()
+    })
+
+    it('should return bigint for euint256', async () => {
+      const result = await backend.decryptValue('handle123', 'euint256')
+
+      expect(typeof result).toBe('bigint')
+    })
+
+    it('should return boolean for ebool', async () => {
+      const result = await backend.decryptValue('handle123', 'ebool')
+
+      expect(typeof result).toBe('boolean')
+    })
+
+    it('should return string for eaddress', async () => {
+      const result = await backend.decryptValue('handle123', 'eaddress')
+
+      expect(typeof result).toBe('string')
+    })
+  })
+
   // ─── estimateCost Tests ──────────────────────────────────────────────────────
 
   describe('estimateCost', () => {
-    let backend: ArciumBackend
+    let backend: IncoBackend
 
     beforeEach(() => {
-      backend = new ArciumBackend()
+      backend = new IncoBackend()
     })
 
     it('should return cost for computation params', async () => {
@@ -400,7 +558,7 @@ describe('ArciumBackend', () => {
 
       const cost = await backend.estimateCost(params)
 
-      expect(cost).toBeGreaterThanOrEqual(BASE_COMPUTATION_COST_LAMPORTS)
+      expect(cost).toBeGreaterThanOrEqual(BASE_FHE_COST_WEI)
     })
 
     it('should increase cost with more inputs', async () => {
@@ -448,10 +606,10 @@ describe('ArciumBackend', () => {
   // ─── Computation Tracking Tests ──────────────────────────────────────────────
 
   describe('computation tracking', () => {
-    let backend: ArciumBackend
+    let backend: IncoBackend
 
     beforeEach(() => {
-      backend = new ArciumBackend()
+      backend = new IncoBackend()
     })
 
     it('should cache computation info after execution', async () => {
@@ -461,7 +619,7 @@ describe('ArciumBackend', () => {
       const info = await backend.getComputationInfo(result.computationId!)
 
       expect(info).toBeDefined()
-      expect(info?.circuitId).toBe(params.circuitId)
+      expect(info?.contractAddress).toBe(params.circuitId)
       expect(info?.status).toBe('submitted')
     })
 
@@ -491,6 +649,15 @@ describe('ArciumBackend', () => {
       expect(awaitResult.output).toBeDefined()
     })
 
+    it('should include output handle after completion', async () => {
+      const params = createValidComputationParams()
+      const execResult = await backend.executeComputation(params)
+
+      const awaitResult = await backend.awaitComputation(execResult.computationId!)
+
+      expect(awaitResult.metadata?.outputHandle).toBeDefined()
+    })
+
     it('should fail await for unknown computation', async () => {
       const result = await backend.awaitComputation('unknown-id')
 
@@ -514,7 +681,7 @@ describe('ArciumBackend', () => {
 
   describe('PrivacyBackend interface compliance', () => {
     it('should implement all required properties', () => {
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
 
       expect(typeof backend.name).toBe('string')
       expect(backend.name.length).toBeGreaterThan(0)
@@ -523,7 +690,7 @@ describe('ArciumBackend', () => {
     })
 
     it('should implement all required methods', () => {
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
 
       expect(typeof backend.checkAvailability).toBe('function')
       expect(typeof backend.getCapabilities).toBe('function')
@@ -532,13 +699,13 @@ describe('ArciumBackend', () => {
     })
 
     it('should implement executeComputation method', () => {
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
 
       expect(typeof backend.executeComputation).toBe('function')
     })
 
     it('should have type = compute', () => {
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
 
       expect(backend.type).toBe('compute')
     })
@@ -547,33 +714,33 @@ describe('ArciumBackend', () => {
 
 // ─── Integration Tests ───────────────────────────────────────────────────────
 
-describe('Arcium Integration', () => {
+describe('Inco Integration', () => {
   describe('registry integration', () => {
     it('should be registerable in PrivacyBackendRegistry', async () => {
       const { PrivacyBackendRegistry } = await import('../../src/privacy-backends/registry')
       const registry = new PrivacyBackendRegistry()
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
 
       registry.register(backend)
 
-      expect(registry.get('arcium')).toBe(backend)
+      expect(registry.get('inco')).toBe(backend)
     })
 
     it('should be findable by chain', async () => {
       const { PrivacyBackendRegistry } = await import('../../src/privacy-backends/registry')
       const registry = new PrivacyBackendRegistry()
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
 
       registry.register(backend)
 
-      const solanaBackends = registry.getByChain('solana')
-      expect(solanaBackends).toContain(backend)
+      const ethBackends = registry.getByChain('ethereum')
+      expect(ethBackends).toContain(backend)
     })
 
     it('should be findable by type', async () => {
       const { PrivacyBackendRegistry } = await import('../../src/privacy-backends/registry')
       const registry = new PrivacyBackendRegistry()
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
 
       registry.register(backend)
 
@@ -584,7 +751,7 @@ describe('Arcium Integration', () => {
     it('should not appear in compliant backends', async () => {
       const { PrivacyBackendRegistry } = await import('../../src/privacy-backends/registry')
       const registry = new PrivacyBackendRegistry()
-      const backend = new ArciumBackend()
+      const backend = new IncoBackend()
 
       registry.register(backend)
 
@@ -593,48 +760,64 @@ describe('Arcium Integration', () => {
     })
   })
 
-  describe('comparison with transaction backends', () => {
+  describe('comparison with other backends', () => {
+    it('should have different capabilities than Arcium', async () => {
+      const { ArciumBackend } = await import('../../src/privacy-backends/arcium')
+
+      const inco = new IncoBackend()
+      const arcium = new ArciumBackend()
+
+      const incoCaps = inco.getCapabilities()
+      const arciumCaps = arcium.getCapabilities()
+
+      // Both provide compute privacy
+      expect(incoCaps.hiddenCompute).toBe(true)
+      expect(arciumCaps.hiddenCompute).toBe(true)
+
+      // Key difference: Inco hides amounts (encrypted state)
+      expect(incoCaps.hiddenAmount).toBe(true)
+      expect(arciumCaps.hiddenAmount).toBe(false)
+
+      // Different latencies (FHE faster than MPC)
+      expect(incoCaps.latencyEstimate).toBe('medium')
+      expect(arciumCaps.latencyEstimate).toBe('slow')
+    })
+
     it('should have different capabilities than SIPNative', async () => {
       const { SIPNativeBackend } = await import('../../src/privacy-backends/sip-native')
 
-      const arcium = new ArciumBackend()
+      const inco = new IncoBackend()
       const sipNative = new SIPNativeBackend()
 
-      const arciumCaps = arcium.getCapabilities()
+      const incoCaps = inco.getCapabilities()
       const sipNativeCaps = sipNative.getCapabilities()
 
-      // Arcium provides compute privacy
-      expect(arciumCaps.hiddenCompute).toBe(true)
-      expect(sipNativeCaps.hiddenCompute).toBe(false)
-
-      // SIPNative provides transaction privacy
-      expect(arciumCaps.hiddenAmount).toBe(false)
-      expect(sipNativeCaps.hiddenAmount).toBe(true)
-
-      // Different latencies
-      expect(arciumCaps.latencyEstimate).toBe('slow')
-      expect(sipNativeCaps.latencyEstimate).toBe('fast')
-    })
-
-    it('should have different capabilities than PrivacyCash', async () => {
-      const { PrivacyCashBackend } = await import('../../src/privacy-backends/privacycash')
-
-      const arcium = new ArciumBackend()
-      const privacyCash = new PrivacyCashBackend()
-
-      const arciumCaps = arcium.getCapabilities()
-      const pcCaps = privacyCash.getCapabilities()
-
       // Type comparison
-      expect(arcium.type).toBe('compute')
-      expect(privacyCash.type).toBe('transaction')
+      expect(inco.type).toBe('compute')
+      expect(sipNative.type).toBe('transaction')
 
       // Compute vs transaction privacy
-      expect(arciumCaps.hiddenCompute).toBe(true)
-      expect(pcCaps.hiddenCompute).toBe(false)
+      expect(incoCaps.hiddenCompute).toBe(true)
+      expect(sipNativeCaps.hiddenCompute).toBe(false)
 
-      expect(arciumCaps.hiddenSender).toBe(false)
-      expect(pcCaps.hiddenSender).toBe(true)
+      expect(incoCaps.hiddenSender).toBe(false)
+      expect(sipNativeCaps.hiddenSender).toBe(true)
+    })
+
+    it('should support more chains than Arcium', async () => {
+      const { ArciumBackend } = await import('../../src/privacy-backends/arcium')
+
+      const inco = new IncoBackend()
+      const arcium = new ArciumBackend()
+
+      // Inco supports EVM chains + Solana
+      expect(inco.chains.length).toBeGreaterThan(arcium.chains.length)
+      expect(inco.chains).toContain('ethereum')
+      expect(inco.chains).toContain('base')
+
+      // Arcium only supports Solana
+      expect(arcium.chains).toContain('solana')
+      expect(arcium.chains).not.toContain('ethereum')
     })
   })
 
@@ -644,15 +827,15 @@ describe('Arcium Integration', () => {
       const { SmartRouter } = await import('../../src/privacy-backends/router')
 
       const registry = new PrivacyBackendRegistry()
-      const arcium = new ArciumBackend()
-      registry.register(arcium)
+      const inco = new IncoBackend()
+      registry.register(inco)
 
       const router = new SmartRouter(registry)
       const params = createValidComputationParams()
 
       const selection = await router.selectComputeBackend(params)
 
-      expect(selection.backend.name).toBe('arcium')
+      expect(selection.backend.name).toBe('inco')
     })
 
     it('should execute computation via SmartRouter', async () => {
@@ -660,8 +843,8 @@ describe('Arcium Integration', () => {
       const { SmartRouter } = await import('../../src/privacy-backends/router')
 
       const registry = new PrivacyBackendRegistry()
-      const arcium = new ArciumBackend()
-      registry.register(arcium)
+      const inco = new IncoBackend()
+      registry.register(inco)
 
       const router = new SmartRouter(registry)
       const params = createValidComputationParams()
@@ -669,31 +852,56 @@ describe('Arcium Integration', () => {
       const result = await router.executeComputation(params)
 
       expect(result.success).toBe(true)
-      expect(result.backend).toBe('arcium')
+      expect(result.backend).toBe('inco')
+    })
+
+    it('should prefer Inco for ethereum compute operations', async () => {
+      const { PrivacyBackendRegistry } = await import('../../src/privacy-backends/registry')
+      const { SmartRouter } = await import('../../src/privacy-backends/router')
+      const { ArciumBackend } = await import('../../src/privacy-backends/arcium')
+
+      const registry = new PrivacyBackendRegistry()
+      registry.register(new IncoBackend())
+      registry.register(new ArciumBackend())
+
+      const router = new SmartRouter(registry)
+      const params = createValidComputationParams({ chain: 'ethereum' })
+
+      const selection = await router.selectComputeBackend(params)
+
+      // Inco should be selected for Ethereum (Arcium doesn't support it)
+      expect(selection.backend.name).toBe('inco')
     })
   })
 })
 
 // ─── Constants Tests ─────────────────────────────────────────────────────────
 
-describe('Arcium Constants', () => {
-  describe('ARCIUM_CLUSTERS', () => {
-    it('should have cluster for each network', () => {
-      expect(ARCIUM_CLUSTERS.devnet).toBeDefined()
-      expect(ARCIUM_CLUSTERS.testnet).toBeDefined()
-      expect(ARCIUM_CLUSTERS['mainnet-beta']).toBeDefined()
+describe('Inco Constants', () => {
+  describe('INCO_RPC_URLS', () => {
+    it('should have URL for each network', () => {
+      expect(INCO_RPC_URLS.testnet).toBeDefined()
+      expect(INCO_RPC_URLS.mainnet).toBeDefined()
+    })
+  })
+
+  describe('INCO_SUPPORTED_CHAINS', () => {
+    it('should include major EVM chains', () => {
+      expect(INCO_SUPPORTED_CHAINS).toContain('ethereum')
+      expect(INCO_SUPPORTED_CHAINS).toContain('base')
+      expect(INCO_SUPPORTED_CHAINS).toContain('arbitrum')
     })
   })
 
   describe('cost constants', () => {
     it('should have reasonable base cost', () => {
-      // ~0.05 SOL
-      expect(BASE_COMPUTATION_COST_LAMPORTS).toBe(BigInt(50_000_000))
+      // 0.01 ETH
+      expect(BASE_FHE_COST_WEI).toBe(BigInt('10000000000000000'))
     })
 
     it('should have reasonable estimated time', () => {
-      // 60 seconds
-      expect(ESTIMATED_COMPUTATION_TIME_MS).toBe(60_000)
+      // 30 seconds
+      expect(ESTIMATED_FHE_TIME_MS).toBe(30_000)
     })
   })
 })

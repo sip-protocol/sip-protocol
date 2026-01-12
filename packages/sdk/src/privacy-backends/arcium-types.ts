@@ -1,440 +1,328 @@
 /**
- * Arcium Privacy Backend Types
+ * Arcium SDK Type Definitions
  *
- * Type definitions for Arcium MPC (Multi-Party Computation) privacy backend
- * and C-SPL (Confidential SPL) token standard integration.
+ * Type definitions for the @arcium-hq/client and @arcium-hq/reader packages.
+ * Arcium provides MPC (Multi-Party Computation) for encrypted computation on Solana.
  *
- * ## Overview
+ * ## Architecture
  *
- * Arcium provides **compute privacy** for Solana:
- * - Encrypted computation via MPC (Multi-Party Computation)
- * - C-SPL token standard for confidential balances/transfers
- * - Confidential Auditor Adapter for compliance
+ * - **Client SDK**: Handles encryption/decryption and computation submission
+ * - **Reader SDK**: Queries computation state and subscribes to updates
+ * - **MPC Nodes**: Process encrypted data without seeing plaintext
  *
- * ## C-SPL Token Standard
- *
- * ```
- * ┌─────────────────────────────────────────────────────────────┐
- * │  C-SPL vs SPL Token                                        │
- * │                                                             │
- * │  Feature          │ SPL Token    │ C-SPL Token             │
- * │  ─────────────────┼──────────────┼─────────────────────────│
- * │  Balances         │ Public       │ Encrypted               │
- * │  Transfer Amounts │ Public       │ Encrypted               │
- * │  Sender/Recipient │ Public       │ Public                  │
- * │  DeFi Compatible  │ ✅           │ ✅                      │
- * │  Compliance       │ Manual       │ Auditor Adapter         │
- * └─────────────────────────────────────────────────────────────┘
- * ```
- *
- * @module privacy-backends/arcium-types
+ * @see https://docs.arcium.com/developers
+ * @see https://ts.arcium.com/api
  */
 
-// ─── Network Configuration ───────────────────────────────────────────────────
+import type { CipherType, ComputationStatus } from './interface'
+
+// ─── Re-export from interface ────────────────────────────────────────────────
+
+export type { CipherType, ComputationStatus }
+
+// ─── Arcium-Specific Types ───────────────────────────────────────────────────
 
 /**
- * Arcium network environment
+ * Arcium network configuration
  */
-export type ArciumNetwork = 'devnet' | 'testnet' | 'mainnet'
+export type ArciumNetwork = 'devnet' | 'testnet' | 'mainnet-beta'
 
 /**
- * Arcium RPC endpoints by network
+ * Configuration for Arcium SDK connection
  */
-export const ARCIUM_RPC_ENDPOINTS: Record<ArciumNetwork, string> = {
-  devnet: 'https://devnet.arcium.network',
-  testnet: 'https://testnet.arcium.network',
-  mainnet: 'https://mainnet.arcium.network',
+export interface ArciumConfig {
+  /** Solana RPC endpoint URL */
+  rpcUrl: string
+  /** Network type */
+  network: ArciumNetwork
+  /** Default MPC cluster to use */
+  cluster?: string
+  /** Default cipher for encryption */
+  defaultCipher?: CipherType
 }
 
 /**
- * Arcium program IDs
+ * MPC cluster information
  *
- * Note: These are placeholder IDs until official deployment
+ * Clusters are groups of MPC nodes that coordinate computation.
  */
-export const ARCIUM_PROGRAM_IDS = {
-  /** Main Arcium program */
-  ARCIUM_PROGRAM: 'ArciumProgram11111111111111111111111111111',
-  /** C-SPL Token program */
-  CSPL_TOKEN_PROGRAM: 'CSPLToken111111111111111111111111111111111',
-  /** Confidential Auditor program */
-  AUDITOR_PROGRAM: 'ArciumAuditor1111111111111111111111111111',
-} as const
-
-// ─── C-SPL Token Types ───────────────────────────────────────────────────────
-
-/**
- * C-SPL Token definition
- *
- * Represents a confidential version of an SPL token
- */
-export interface CSPLToken {
-  /** Original SPL token mint address */
-  splMint: string
-  /** C-SPL wrapped mint address (derived from SPL mint) */
-  csplMint: string
-  /** Token symbol (e.g., 'USDC', 'SOL') */
-  symbol: string
-  /** Token decimals */
-  decimals: number
-  /** Whether wrapping/unwrapping is enabled */
-  wrapEnabled: boolean
-}
-
-/**
- * Known C-SPL token registry
- *
- * Maps SPL token mints to their C-SPL counterparts
- */
-export const CSPL_TOKEN_REGISTRY: Record<string, CSPLToken> = {
-  // Native SOL (wrapped)
-  So11111111111111111111111111111111111111112: {
-    splMint: 'So11111111111111111111111111111111111111112',
-    csplMint: 'cSOL1111111111111111111111111111111111111111',
-    symbol: 'cSOL',
-    decimals: 9,
-    wrapEnabled: true,
-  },
-  // USDC
-  EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: {
-    splMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-    csplMint: 'cUSDC111111111111111111111111111111111111111',
-    symbol: 'cUSDC',
-    decimals: 6,
-    wrapEnabled: true,
-  },
-  // USDT
-  Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB: {
-    splMint: 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB',
-    csplMint: 'cUSDT111111111111111111111111111111111111111',
-    symbol: 'cUSDT',
-    decimals: 6,
-    wrapEnabled: true,
-  },
-}
-
-/**
- * Check if an SPL token has C-SPL support
- */
-export function hasCSPLSupport(splMint: string): boolean {
-  return splMint in CSPL_TOKEN_REGISTRY
-}
-
-/**
- * Get C-SPL token info for an SPL mint
- */
-export function getCSPLToken(splMint: string): CSPLToken | null {
-  return CSPL_TOKEN_REGISTRY[splMint] ?? null
-}
-
-// ─── MPC Computation Types ───────────────────────────────────────────────────
-
-/**
- * MPC computation status
- */
-export type ComputationStatus =
-  | 'pending'      // Submitted, waiting for execution
-  | 'executing'    // Currently being computed by MXE nodes
-  | 'finalized'    // Successfully completed
-  | 'failed'       // Computation failed
-
-/**
- * MPC computation reference
- *
- * Unique identifier for tracking a computation
- */
-export interface ComputationReference {
-  /** Computation ID (on-chain) */
+export interface ArciumCluster {
+  /** Cluster identifier */
   id: string
-  /** Cluster that executed the computation */
-  clusterId: string
-  /** Slot when computation was submitted */
-  submitSlot: number
+  /** Human-readable cluster name */
+  name: string
+  /** Number of MPC nodes in the cluster */
+  nodes: number
+  /** Cluster operational status */
+  status: 'active' | 'inactive' | 'maintenance'
+  /** Minimum nodes required for computation */
+  threshold: number
+  /** Supported cipher types */
+  supportedCiphers: CipherType[]
 }
 
 /**
- * MPC computation result
+ * Circuit definition for MPC computation
+ *
+ * Circuits define the computation logic that runs on encrypted data.
  */
-export interface ComputationResult {
-  /** Computation reference */
-  reference: ComputationReference
-  /** Computation status */
+export interface ArciumCircuit {
+  /** Circuit identifier */
+  id: string
+  /** Human-readable circuit name */
+  name: string
+  /** Number of encrypted inputs */
+  inputCount: number
+  /** Number of outputs */
+  outputCount: number
+  /** Circuit version */
+  version?: string
+  /** Circuit description */
+  description?: string
+}
+
+/**
+ * Parameters for submitting a computation to Arcium
+ */
+export interface SubmitComputationParams {
+  /** Circuit to execute */
+  circuitId: string
+  /** Encrypted input data */
+  encryptedInputs: Uint8Array[]
+  /** MPC cluster to use */
+  cluster: string
+  /** Callback program address for results */
+  callback?: string
+  /** Priority level (affects ordering) */
+  priority?: 'low' | 'normal' | 'high'
+}
+
+/**
+ * Result from a completed computation
+ */
+export interface ComputationOutput {
+  /** Unique computation identifier */
+  computationId: string
+  /** Decrypted output data */
+  output: Uint8Array
+  /** Proof of correct computation */
+  proof: string
+  /** Completion timestamp */
+  timestamp: number
+  /** Cluster that processed the computation */
+  cluster: string
+  /** Number of MPC nodes that participated */
+  participatingNodes: number
+}
+
+/**
+ * Computation state information
+ */
+export interface ComputationInfo {
+  /** Computation identifier */
+  id: string
+  /** Current status */
   status: ComputationStatus
-  /** Encrypted output (if finalized) */
-  encryptedOutput?: Uint8Array
-  /** Decrypted output (if decryption key provided) */
-  decryptedOutput?: unknown
-  /** Transaction signature (if on-chain) */
-  signature?: string
+  /** Circuit being executed */
+  circuitId: string
+  /** Cluster processing the computation */
+  cluster: string
+  /** Submission timestamp */
+  submittedAt: number
+  /** Completion timestamp (if completed) */
+  completedAt?: number
   /** Error message (if failed) */
   error?: string
-  /** Computation duration in ms */
-  durationMs?: number
+  /** Progress percentage (0-100) */
+  progress?: number
 }
 
-// ─── Confidential Transfer Types ─────────────────────────────────────────────
-
 /**
- * Parameters for C-SPL confidential transfer
+ * Encryption result from the client SDK
  */
-export interface CSPLTransferParams {
-  /** C-SPL token to transfer */
-  token: CSPLToken
-  /** Transfer amount (will be encrypted) */
-  amount: bigint
-  /** Sender address (public) */
-  sender: string
-  /** Recipient address (public) */
-  recipient: string
-  /** Auditor public key (for compliance) */
-  auditorKey?: string
-  /** Memo (optional, public) */
-  memo?: string
+export interface EncryptionResult {
+  /** Encrypted data */
+  ciphertext: Uint8Array
+  /** Cipher type used */
+  cipher: CipherType
+  /** Encryption nonce/IV */
+  nonce: Uint8Array
 }
 
 /**
- * Result of C-SPL confidential transfer
+ * Decryption result from the client SDK
  */
-export interface CSPLTransferResult {
-  /** Whether transfer succeeded */
-  success: boolean
-  /** Transaction signature */
-  signature?: string
-  /** Computation reference (for MPC tracking) */
-  computation?: ComputationReference
-  /** Error message if failed */
-  error?: string
-  /** Transfer metadata */
-  metadata?: {
-    /** Amount transferred (encrypted on-chain) */
-    amount: bigint
-    /** Token transferred */
-    token: CSPLToken
-    /** Timestamp */
-    timestamp: number
-  }
+export interface DecryptionResult {
+  /** Decrypted plaintext */
+  plaintext: Uint8Array
+  /** Whether decryption was verified */
+  verified: boolean
 }
 
-// ─── Wrap/Unwrap Types ───────────────────────────────────────────────────────
+// ─── SDK Interfaces ──────────────────────────────────────────────────────────
 
 /**
- * Parameters for wrapping SPL to C-SPL
- */
-export interface WrapToCSPLParams {
-  /** SPL token mint */
-  splMint: string
-  /** Amount to wrap */
-  amount: bigint
-  /** Owner address */
-  owner: string
-}
-
-/**
- * Parameters for unwrapping C-SPL to SPL
- */
-export interface UnwrapFromCSPLParams {
-  /** C-SPL token mint */
-  csplMint: string
-  /** Amount to unwrap */
-  amount: bigint
-  /** Owner address */
-  owner: string
-  /** Recipient address (can be different from owner) */
-  recipient?: string
-}
-
-/**
- * Result of wrap/unwrap operation
- */
-export interface WrapResult {
-  /** Whether operation succeeded */
-  success: boolean
-  /** Transaction signature */
-  signature?: string
-  /** Resulting token account */
-  tokenAccount?: string
-  /** Error message if failed */
-  error?: string
-}
-
-// ─── Confidential Swap Types ─────────────────────────────────────────────────
-
-/**
- * Parameters for confidential swap via Arcium MPC
- */
-export interface ConfidentialSwapParams {
-  /** Input C-SPL token */
-  inputToken: CSPLToken
-  /** Output C-SPL token */
-  outputToken: CSPLToken
-  /** Input amount (will be encrypted) */
-  inputAmount: bigint
-  /** Minimum output amount (slippage protection) */
-  minOutputAmount: bigint
-  /** Trader address */
-  trader: string
-  /** DEX to route through (e.g., 'jupiter', 'raydium') */
-  dex?: string
-  /** Deadline (Unix timestamp) */
-  deadline?: number
-}
-
-/**
- * Result of confidential swap
- */
-export interface ConfidentialSwapResult {
-  /** Whether swap succeeded */
-  success: boolean
-  /** Transaction signature */
-  signature?: string
-  /** Computation reference */
-  computation?: ComputationReference
-  /** Output amount received (decrypted for user) */
-  outputAmount?: bigint
-  /** Effective price */
-  effectivePrice?: number
-  /** Error message if failed */
-  error?: string
-}
-
-// ─── Backend Configuration ───────────────────────────────────────────────────
-
-/**
- * Arcium backend configuration
- */
-export interface ArciumBackendConfig {
-  /**
-   * Arcium network to connect to
-   * @default 'devnet'
-   */
-  network?: ArciumNetwork
-
-  /**
-   * Custom RPC endpoint (overrides network default)
-   */
-  rpcUrl?: string
-
-  /**
-   * Solana RPC endpoint for transaction submission
-   */
-  solanaRpcUrl?: string
-
-  /**
-   * Enable verbose logging
-   * @default false
-   */
-  verbose?: boolean
-
-  /**
-   * Timeout for MPC computations in ms
-   * @default 60000
-   */
-  computationTimeout?: number
-
-  /**
-   * Maximum retries for failed operations
-   * @default 3
-   */
-  maxRetries?: number
-
-  /**
-   * Default auditor public key for compliance
-   */
-  defaultAuditorKey?: string
-}
-
-// ─── Error Types ─────────────────────────────────────────────────────────────
-
-/**
- * Arcium error codes
- */
-export enum ArciumErrorCode {
-  /** Network connection failed */
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  /** Token not supported for C-SPL */
-  UNSUPPORTED_TOKEN = 'UNSUPPORTED_TOKEN',
-  /** Insufficient balance */
-  INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
-  /** MPC computation failed */
-  COMPUTATION_FAILED = 'COMPUTATION_FAILED',
-  /** Computation timed out */
-  COMPUTATION_TIMEOUT = 'COMPUTATION_TIMEOUT',
-  /** Invalid parameters */
-  INVALID_PARAMS = 'INVALID_PARAMS',
-  /** Wrap/unwrap failed */
-  WRAP_FAILED = 'WRAP_FAILED',
-  /** Swap execution failed */
-  SWAP_FAILED = 'SWAP_FAILED',
-  /** Auditor verification failed */
-  AUDITOR_ERROR = 'AUDITOR_ERROR',
-}
-
-/**
- * Arcium backend error
- */
-export class ArciumError extends Error {
-  constructor(
-    message: string,
-    public readonly code: ArciumErrorCode,
-    public readonly details?: Record<string, unknown>
-  ) {
-    super(message)
-    this.name = 'ArciumError'
-  }
-}
-
-// ─── Utility Functions ───────────────────────────────────────────────────────
-
-/**
- * Derive C-SPL mint address from SPL mint
+ * Arcium Client SDK interface
  *
- * In production, this would use a PDA derivation
+ * The actual SDK is @arcium-hq/client.
+ * This interface defines the expected API for our adapter.
  */
-export function deriveCSPLMint(splMint: string): string {
-  // Check registry first
-  const registered = getCSPLToken(splMint)
-  if (registered) {
-    return registered.csplMint
-  }
+export interface IArciumClient {
+  /**
+   * Initialize connection to Arcium network
+   */
+  connect(config: ArciumConfig): Promise<void>
 
-  // For unknown tokens, derive a deterministic address
-  // In production, this would be a proper PDA derivation
-  return `cSPL_${splMint.slice(0, 32)}`
+  /**
+   * Disconnect from Arcium network
+   */
+  disconnect(): Promise<void>
+
+  /**
+   * Encrypt data for MPC computation
+   *
+   * @param data - Plaintext data to encrypt
+   * @param cipher - Cipher type to use
+   * @returns Encrypted data
+   */
+  encrypt(data: Uint8Array, cipher: CipherType): Promise<EncryptionResult>
+
+  /**
+   * Decrypt computation output
+   *
+   * @param ciphertext - Encrypted data
+   * @returns Decrypted data
+   */
+  decrypt(ciphertext: Uint8Array): Promise<DecryptionResult>
+
+  /**
+   * Upload a circuit definition
+   *
+   * @param circuit - Circuit to upload
+   * @returns Circuit ID
+   */
+  uploadCircuit(circuit: ArciumCircuit): Promise<string>
+
+  /**
+   * Submit a computation to the MPC network
+   *
+   * @param params - Computation parameters
+   * @returns Computation ID for tracking
+   */
+  submitComputation(params: SubmitComputationParams): Promise<string>
+
+  /**
+   * Wait for computation to complete
+   *
+   * @param computationId - Computation to wait for
+   * @param timeout - Optional timeout in milliseconds
+   * @returns Computation output
+   */
+  awaitFinalization(
+    computationId: string,
+    timeout?: number
+  ): Promise<ComputationOutput>
+
+  /**
+   * Get computation status
+   *
+   * @param computationId - Computation to check
+   * @returns Current status
+   */
+  getComputationStatus(computationId: string): Promise<ComputationStatus>
+
+  /**
+   * Get detailed computation info
+   *
+   * @param computationId - Computation to query
+   * @returns Full computation info
+   */
+  getComputationInfo(computationId: string): Promise<ComputationInfo>
+
+  /**
+   * List available MPC clusters
+   *
+   * @returns Array of available clusters
+   */
+  listClusters(): Promise<ArciumCluster[]>
+
+  /**
+   * Get cluster by ID
+   *
+   * @param clusterId - Cluster identifier
+   * @returns Cluster info
+   */
+  getCluster(clusterId: string): Promise<ArciumCluster>
 }
 
 /**
- * Validate C-SPL transfer parameters
- */
-export function validateCSPLTransferParams(params: CSPLTransferParams): void {
-  if (!params.token) {
-    throw new ArciumError('Token is required', ArciumErrorCode.INVALID_PARAMS)
-  }
-  if (params.amount <= 0n) {
-    throw new ArciumError('Amount must be positive', ArciumErrorCode.INVALID_PARAMS)
-  }
-  if (!params.sender) {
-    throw new ArciumError('Sender is required', ArciumErrorCode.INVALID_PARAMS)
-  }
-  if (!params.recipient) {
-    throw new ArciumError('Recipient is required', ArciumErrorCode.INVALID_PARAMS)
-  }
-}
-
-/**
- * Estimate MPC computation cost
+ * Arcium Reader SDK interface
  *
- * @param operationType - Type of operation
- * @returns Estimated cost in lamports
+ * The actual SDK is @arcium-hq/reader.
+ * This interface defines the expected API for querying state.
  */
-export function estimateArciumCost(
-  operationType: 'transfer' | 'swap' | 'wrap' | 'unwrap'
-): bigint {
-  // Base costs for different operations (in lamports)
-  const baseCosts: Record<string, bigint> = {
-    transfer: BigInt(10_000_000),  // ~0.01 SOL for MPC transfer
-    swap: BigInt(50_000_000),      // ~0.05 SOL for MPC swap (more compute)
-    wrap: BigInt(5_000_000),       // ~0.005 SOL for wrapping
-    unwrap: BigInt(5_000_000),     // ~0.005 SOL for unwrapping
-  }
+export interface IArciumReader {
+  /**
+   * Get computation account info
+   *
+   * @param computationId - Computation identifier
+   * @returns Computation info
+   */
+  getComputationAccInfo(computationId: string): Promise<ComputationInfo>
 
-  return baseCosts[operationType] ?? BigInt(10_000_000)
+  /**
+   * Subscribe to computation updates
+   *
+   * @param computationId - Computation to watch
+   * @param callback - Called on status changes
+   * @returns Unsubscribe function
+   */
+  subscribeComputation(
+    computationId: string,
+    callback: (info: ComputationInfo) => void
+  ): () => void
+
+  /**
+   * Get cluster account info
+   *
+   * @param clusterId - Cluster identifier
+   * @returns Cluster info
+   */
+  getClusterAccInfo(clusterId: string): Promise<ArciumCluster>
 }
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+/**
+ * Default Arcium clusters on different networks
+ */
+export const ARCIUM_CLUSTERS: Record<ArciumNetwork, string> = {
+  devnet: 'devnet-cluster-1',
+  testnet: 'testnet-cluster-1',
+  'mainnet-beta': 'mainnet-cluster-1',
+}
+
+/**
+ * Arcium program addresses on Solana
+ */
+export const ARCIUM_PROGRAM_IDS: Record<ArciumNetwork, string> = {
+  devnet: 'ArcmDevnetProgramAddress111111111111111111111',
+  testnet: 'ArcmTestnetProgramAddress11111111111111111111',
+  'mainnet-beta': 'ArcmMainnetProgramAddress11111111111111111111',
+}
+
+/**
+ * Default timeout for computation finalization (5 minutes)
+ */
+export const DEFAULT_COMPUTATION_TIMEOUT_MS = 300_000
+
+/**
+ * Estimated time for MPC computation (varies by circuit complexity)
+ */
+export const ESTIMATED_COMPUTATION_TIME_MS = 60_000
+
+/**
+ * Base cost for Arcium computation (in lamports)
+ * Actual cost depends on circuit complexity and cluster fees
+ */
+export const BASE_COMPUTATION_COST_LAMPORTS = BigInt(50_000_000) // ~0.05 SOL

@@ -31,6 +31,8 @@ import type {
   PrivacyBackend,
   TransferParams,
   TransactionResult,
+  ComputationParams,
+  ComputationResult,
   SmartRouterConfig,
   BackendSelectionResult,
   AvailabilityResult,
@@ -241,8 +243,166 @@ export class SmartRouter {
     params: TransferParams,
     config: Partial<SmartRouterConfig> = {}
   ): Promise<TransactionResult> {
-    const selection = await this.selectBackend(params, config)
+    const selection = await this.selectBackend(params, {
+      ...config,
+      allowComputePrivacy: false, // Only transaction backends for execute()
+    })
     return selection.backend.execute(params)
+  }
+
+  /**
+   * Execute a computation using the best available compute backend
+   *
+   * Selects from compute-type backends (Arcium, Inco) and executes
+   * the computation via MPC/FHE.
+   *
+   * @param params - Computation parameters
+   * @param config - Router configuration
+   * @returns Computation result
+   * @throws Error if no compute backend is available or supports the computation
+   *
+   * @example
+   * ```typescript
+   * const result = await router.executeComputation({
+   *   chain: 'solana',
+   *   circuitId: 'private-swap',
+   *   encryptedInputs: [encryptedAmount, encryptedPrice],
+   * })
+   * ```
+   */
+  async executeComputation(
+    params: ComputationParams,
+    config: Partial<SmartRouterConfig> = {}
+  ): Promise<ComputationResult> {
+    const selection = await this.selectComputeBackend(params, config)
+
+    if (!selection.backend.executeComputation) {
+      throw new Error(
+        `Backend '${selection.backend.name}' does not support compute operations. ` +
+        `This should not happen - please report this bug.`
+      )
+    }
+
+    return selection.backend.executeComputation(params)
+  }
+
+  /**
+   * Select the best compute backend for a computation
+   *
+   * @param params - Computation parameters
+   * @param config - Router configuration
+   * @returns Selection result with backend and reasoning
+   * @throws Error if no suitable compute backend is found
+   */
+  async selectComputeBackend(
+    params: ComputationParams,
+    config: Partial<SmartRouterConfig> = {}
+  ): Promise<BackendSelectionResult> {
+    const fullConfig = { ...DEFAULT_CONFIG, ...config }
+
+    // Get all backends for the chain
+    const chainBackends = this.registry.getByChain(params.chain)
+
+    // Filter to compute backends only
+    const computeBackends = chainBackends.filter(
+      b => b.type === 'compute' || b.type === 'both'
+    )
+
+    if (computeBackends.length === 0) {
+      throw new Error(
+        `No compute backends available for chain '${params.chain}'. ` +
+        `Register a compute backend (e.g., ArciumBackend) that supports this chain.`
+      )
+    }
+
+    // Filter and score backends
+    const scoredBackends: Array<{
+      backend: PrivacyBackend
+      availability: AvailabilityResult
+      score: number
+      reason: string
+    }> = []
+
+    for (const backend of computeBackends) {
+      // Check exclusions
+      if (fullConfig.excludeBackends?.includes(backend.name)) {
+        continue
+      }
+
+      // Check availability
+      const availability = await backend.checkAvailability(params)
+      if (!availability.available) {
+        continue
+      }
+
+      // Check cost limit
+      if (fullConfig.maxCost && availability.estimatedCost) {
+        if (availability.estimatedCost > fullConfig.maxCost) {
+          continue
+        }
+      }
+
+      // Check latency limit
+      if (fullConfig.maxLatency && availability.estimatedTime) {
+        if (availability.estimatedTime > fullConfig.maxLatency) {
+          continue
+        }
+      }
+
+      // Score this backend
+      const { score, reason } = this.scoreBackend(
+        backend,
+        availability,
+        fullConfig
+      )
+
+      scoredBackends.push({
+        backend,
+        availability,
+        score,
+        reason,
+      })
+    }
+
+    if (scoredBackends.length === 0) {
+      throw new Error(
+        `No compute backends meet the requirements for this computation. ` +
+        `Check that the circuit exists and the cluster is available.`
+      )
+    }
+
+    // Sort by score (descending)
+    scoredBackends.sort((a, b) => b.score - a.score)
+
+    // Preferred backend bonus
+    if (fullConfig.preferredBackend) {
+      const preferredIndex = scoredBackends.findIndex(
+        s => s.backend.name === fullConfig.preferredBackend
+      )
+      if (preferredIndex > 0) {
+        const preferred = scoredBackends[preferredIndex]
+        const leader = scoredBackends[0]
+        if (leader.score - preferred.score <= 10) {
+          scoredBackends.splice(preferredIndex, 1)
+          scoredBackends.unshift(preferred)
+          preferred.reason = `Preferred backend (within 10pts of optimal)`
+        }
+      }
+    }
+
+    const selected = scoredBackends[0]
+    const alternatives = scoredBackends.slice(1).map(s => ({
+      backend: s.backend,
+      score: s.score,
+      reason: s.reason,
+    }))
+
+    return {
+      backend: selected.backend,
+      reason: selected.reason,
+      alternatives,
+      score: selected.score,
+    }
   }
 
   /**

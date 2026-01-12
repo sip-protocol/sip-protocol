@@ -224,6 +224,11 @@ export {
   getBrowserInfo,
   browserHexToBytes,
   browserBytesToHex,
+  // Compliance proofs (Aztec/Noir bounty - Non-Financial ZK)
+  ComplianceProofProvider,
+  DEFAULT_VALIDITY_PERIOD_SECONDS,
+  SUPPORTED_JURISDICTIONS,
+  COMPLIANCE_CIRCUIT_IDS,
 } from './proofs'
 
 export type {
@@ -237,6 +242,14 @@ export type {
   NoirProviderConfig,
   BrowserNoirProviderConfig,
   ProofProgressCallback,
+  // Compliance proof types
+  ComplianceProofType,
+  ComplianceProofConfig,
+  ViewingKeyAccessParams,
+  SanctionsClearParams,
+  BalanceAttestationParams,
+  HistoryCompletenessParams,
+  ComplianceProofResult,
 } from './proofs'
 
 // Oracle attestation (for fulfillment proofs)
@@ -793,6 +806,40 @@ export {
   verifyWebhookSignature,
   verifyAuthToken,
 } from './chains/solana'
+
+// Solana Noir Verification (Aztec/Noir bounty)
+export {
+  SolanaNoirVerifier,
+  createDevnetVerifier,
+  createMainnetVerifier,
+  // Type guards
+  isNoirCircuitType,
+  isValidSolanaProof,
+  // Utilities
+  estimateComputeUnits,
+  // Error
+  SolanaNoirError,
+  SolanaNoirErrorCode,
+  // Constants
+  CIRCUIT_METADATA,
+  DEFAULT_RPC_URLS,
+  SOLANA_ZK_PROGRAM_IDS,
+  MAX_PROOF_SIZE_BYTES,
+  MAX_PUBLIC_INPUTS,
+} from './solana'
+
+export type {
+  NoirCircuitType,
+  SolanaVerificationKey,
+  SolanaSerializedProof,
+  SolanaVerifyInstruction,
+  SolanaVerificationResult,
+  SolanaNoirVerifierConfig,
+  SolanaNoirErrorCode as SolanaNoirErrorCodeType,
+  ProofStatistics,
+  BatchVerificationRequest,
+  BatchVerificationResult,
+} from './solana'
 
 export type {
   SolanaPrivateTransferParams,

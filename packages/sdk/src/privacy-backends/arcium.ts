@@ -1,132 +1,135 @@
 /**
  * Arcium Privacy Backend
  *
- * Implements the PrivacyBackend interface using Arcium's MPC (Multi-Party Computation)
- * for compute privacy and C-SPL tokens for confidential balances/transfers.
+ * Implements the PrivacyBackend interface using Arcium MPC (Multi-Party Computation).
+ * Arcium provides compute privacy - hiding what happens inside smart contracts.
  *
- * ## Overview
+ * ## Key Characteristics
  *
- * Arcium provides **compute privacy** — hiding what happens inside smart contracts:
- * - Encrypted computation via MPC (Multi-Party Computation)
- * - C-SPL token standard for confidential balances
- * - Confidential Auditor Adapter for compliance
+ * - **MPC Computation**: Encrypted data processed by multiple nodes
+ * - **Compute Privacy**: Hides contract execution logic, not transaction details
+ * - **Circuit-Based**: Computations defined by pre-uploaded circuits
+ * - **Cluster Coordination**: MPC nodes coordinate to produce results
  *
- * ## SIP + Arcium = Complete Privacy
+ * ## Trade-offs vs Transaction Backends
  *
- * ```
- * ┌─────────────────────────────────────────────────────────────┐
- * │  COMPLETE PRIVACY STACK                                     │
- * │                                                             │
- * │  SIP Native (Transaction Privacy)                          │
- * │  ✅ Hidden Sender (stealth addresses)                       │
- * │  ✅ Hidden Recipient (stealth addresses)                    │
- * │  ✅ Hidden Amount (Pedersen commitments)                    │
- * │                                                             │
- * │  Arcium (Compute Privacy)                                   │
- * │  ✅ Hidden Balances (C-SPL encrypted)                       │
- * │  ✅ Hidden Computation (MPC)                                │
- * │  ✅ Compliance Support (Auditor Adapter)                    │
- * └─────────────────────────────────────────────────────────────┘
- * ```
+ * | Feature | Arcium (Compute) | SIP Native (Transaction) |
+ * |---------|------------------|--------------------------|
+ * | Hides sender | ❌ | ✅ Stealth addresses |
+ * | Hides amount | ❌ (in tx) | ✅ Pedersen |
+ * | Hides computation | ✅ MPC | ❌ |
+ * | Setup required | ✅ Circuit upload | ❌ |
+ * | Latency | Slow (MPC coord) | Fast |
+ *
+ * ## Use Cases
+ *
+ * - Private DEX swap logic (hide slippage, routing)
+ * - Private auctions (hide bid amounts during bidding)
+ * - Private lending (hide collateral ratios)
+ * - Private governance (hide vote weights)
  *
  * @example
  * ```typescript
  * import { ArciumBackend, PrivacyBackendRegistry } from '@sip-protocol/sdk'
  *
- * const backend = new ArciumBackend({ network: 'devnet' })
- * const registry = new PrivacyBackendRegistry()
- * registry.register(backend, { priority: 100 })
- *
- * // Check capabilities
- * const caps = backend.getCapabilities()
- * console.log(caps.hiddenCompute) // true
- *
- * // Execute confidential transfer
- * const result = await backend.execute({
- *   chain: 'solana',
- *   sender: 'sender-address',
- *   recipient: 'recipient-address',
- *   mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // USDC
- *   amount: BigInt(1000000),
- *   decimals: 6,
+ * const backend = new ArciumBackend({
+ *   rpcUrl: 'https://api.devnet.solana.com',
+ *   network: 'devnet',
  * })
+ *
+ * const registry = new PrivacyBackendRegistry()
+ * registry.register(backend, { priority: 70 })
+ *
+ * // Execute private computation
+ * const result = await backend.executeComputation({
+ *   chain: 'solana',
+ *   circuitId: 'private-swap',
+ *   encryptedInputs: [encryptedAmount, encryptedPrice],
+ *   cluster: 'devnet-cluster-1',
+ * })
+ *
+ * if (result.success) {
+ *   console.log(`Computation ${result.computationId} completed`)
+ * }
  * ```
  *
- * @module privacy-backends/arcium
+ * @see https://docs.arcium.com/developers
  */
 
-import type { ChainType } from '@sip-protocol/types'
 import type {
   PrivacyBackend,
   BackendType,
   BackendCapabilities,
   TransferParams,
   TransactionResult,
+  ComputationParams,
+  ComputationResult,
   AvailabilityResult,
+  BackendParams,
+  ComputationStatus,
+  CipherType,
 } from './interface'
+
+import { isComputationParams } from './interface'
+
 import {
-  type ArciumBackendConfig,
+  ARCIUM_CLUSTERS,
+  DEFAULT_COMPUTATION_TIMEOUT_MS,
+  ESTIMATED_COMPUTATION_TIME_MS,
+  BASE_COMPUTATION_COST_LAMPORTS,
   type ArciumNetwork,
-  type CSPLToken,
-  type CSPLTransferParams,
-  type CSPLTransferResult,
-  type ComputationResult,
-  type ComputationStatus,
-  ARCIUM_RPC_ENDPOINTS,
-  CSPL_TOKEN_REGISTRY,
-  hasCSPLSupport,
-  getCSPLToken,
-  estimateArciumCost,
-  ArciumError,
-  ArciumErrorCode,
+  type IArciumClient,
+  type ComputationInfo,
 } from './arcium-types'
 
-// Re-export types for convenience
-export * from './arcium-types'
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
 /**
- * Supported chains for Arcium backend
- *
- * Currently Solana-only, as Arcium is built on Solana
+ * Configuration options for Arcium backend
  */
-const SUPPORTED_CHAINS: ChainType[] = ['solana']
-
-/**
- * Arcium backend capabilities
- *
- * Provides compute privacy with encrypted balances and MPC computation
- */
-const ARCIUM_CAPABILITIES: BackendCapabilities = {
-  hiddenAmount: true,       // C-SPL encrypts amounts
-  hiddenSender: false,      // Sender is public in Arcium
-  hiddenRecipient: false,   // Recipient is public in Arcium
-  hiddenCompute: true,      // MPC hides computation logic
-  complianceSupport: true,  // Confidential Auditor Adapter
-  anonymitySet: undefined,  // Not pool-based
-  setupRequired: false,     // No user setup required
-  latencyEstimate: 'medium', // MPC adds latency (~2-5 seconds)
-  supportedTokens: 'spl',   // C-SPL tokens only
-  minAmount: BigInt(1),     // Minimum 1 token unit
-  maxAmount: undefined,     // No maximum
+export interface ArciumBackendConfig {
+  /** Solana RPC endpoint URL */
+  rpcUrl?: string
+  /** Network type */
+  network?: ArciumNetwork
+  /** Default MPC cluster to use */
+  cluster?: string
+  /** Default cipher for encryption */
+  defaultCipher?: CipherType
+  /** Computation timeout in milliseconds */
+  timeout?: number
+  /** Custom SDK client (for testing) */
+  client?: IArciumClient
 }
 
-// ─── ArciumBackend Class ─────────────────────────────────────────────────────
+/**
+ * Arcium capabilities (static)
+ */
+const ARCIUM_CAPABILITIES: BackendCapabilities = {
+  hiddenAmount: false, // Arcium hides compute, not amounts
+  hiddenSender: false, // Arcium doesn't hide transaction sender
+  hiddenRecipient: false, // Arcium doesn't hide transaction recipient
+  hiddenCompute: true, // PRIMARY PURPOSE: Hide computation logic
+  complianceSupport: false, // No viewing keys for MPC
+  anonymitySet: undefined, // Not applicable for MPC
+  setupRequired: true, // Need circuit upload before use
+  latencyEstimate: 'slow', // MPC coordination takes time
+  supportedTokens: 'all', // Can work with any token in compute
+}
 
 /**
- * Arcium Privacy Backend
+ * Arcium MPC Compute Privacy Backend
  *
- * Provides compute privacy for Solana using MPC and C-SPL tokens.
- * Best combined with SIP Native for complete transaction + compute privacy.
+ * Provides compute privacy through Multi-Party Computation.
+ * Use this backend to hide smart contract execution logic.
  */
 export class ArciumBackend implements PrivacyBackend {
   readonly name = 'arcium'
   readonly type: BackendType = 'compute'
-  readonly chains: ChainType[] = SUPPORTED_CHAINS
+  readonly chains: string[] = ['solana']
 
-  private config: Required<ArciumBackendConfig>
-  private _isInitialized = false
+  private config: Required<Omit<ArciumBackendConfig, 'client'>> & {
+    client?: IArciumClient
+  }
+  private computationCache: Map<string, ComputationInfo> = new Map()
 
   /**
    * Create a new Arcium backend
@@ -134,116 +137,93 @@ export class ArciumBackend implements PrivacyBackend {
    * @param config - Backend configuration
    */
   constructor(config: ArciumBackendConfig = {}) {
-    const network = config.network ?? 'devnet'
-
     this.config = {
-      network,
-      rpcUrl: config.rpcUrl ?? ARCIUM_RPC_ENDPOINTS[network],
-      solanaRpcUrl: config.solanaRpcUrl ?? 'https://api.devnet.solana.com',
-      verbose: config.verbose ?? false,
-      computationTimeout: config.computationTimeout ?? 60000,
-      maxRetries: config.maxRetries ?? 3,
-      defaultAuditorKey: config.defaultAuditorKey ?? '',
-    }
-  }
-
-  /**
-   * Check if backend is initialized
-   */
-  get isInitialized(): boolean {
-    return this._isInitialized
-  }
-
-  /**
-   * Get current configuration
-   */
-  getConfig(): Readonly<ArciumBackendConfig> {
-    return { ...this.config }
-  }
-
-  /**
-   * Get Arcium network
-   */
-  getNetwork(): ArciumNetwork {
-    return this.config.network
-  }
-
-  /**
-   * Initialize the backend
-   *
-   * Connects to Arcium network and validates configuration
-   */
-  async initialize(): Promise<void> {
-    if (this._isInitialized) {
-      return
-    }
-
-    if (this.config.verbose) {
-      console.log('[ArciumBackend] Initializing...')
-      console.log(`[ArciumBackend] Network: ${this.config.network}`)
-      console.log(`[ArciumBackend] RPC: ${this.config.rpcUrl}`)
-    }
-
-    // In production, this would:
-    // 1. Connect to Arcium RPC
-    // 2. Verify program availability
-    // 3. Load C-SPL token registry
-
-    this._isInitialized = true
-
-    if (this.config.verbose) {
-      console.log('[ArciumBackend] Initialization complete')
+      rpcUrl: config.rpcUrl ?? 'https://api.devnet.solana.com',
+      network: config.network ?? 'devnet',
+      cluster: config.cluster ?? ARCIUM_CLUSTERS[config.network ?? 'devnet'],
+      defaultCipher: config.defaultCipher ?? 'aes256',
+      timeout: config.timeout ?? DEFAULT_COMPUTATION_TIMEOUT_MS,
+      client: config.client,
     }
   }
 
   /**
    * Check if backend is available for given parameters
    */
-  async checkAvailability(params: TransferParams): Promise<AvailabilityResult> {
-    // Check chain support (Solana only)
-    if (!this.chains.includes(params.chain)) {
+  async checkAvailability(params: BackendParams): Promise<AvailabilityResult> {
+    // Must be computation params for Arcium
+    if (!isComputationParams(params)) {
       return {
         available: false,
-        reason: `Chain '${params.chain}' not supported. Arcium only supports Solana.`,
+        reason:
+          'Arcium is a compute backend. Use ComputationParams with circuitId and encryptedInputs.',
       }
     }
 
-    // Check token support (must have C-SPL equivalent)
-    if (params.mint && !hasCSPLSupport(params.mint)) {
+    return this.checkComputeAvailability(params)
+  }
+
+  /**
+   * Check availability for computation params
+   */
+  private async checkComputeAvailability(
+    params: ComputationParams
+  ): Promise<AvailabilityResult> {
+    // Validate chain
+    if (params.chain !== 'solana') {
       return {
         available: false,
-        reason: `Token '${params.mint}' does not have C-SPL support. ` +
-          `Supported tokens: ${Object.values(CSPL_TOKEN_REGISTRY).map(t => t.symbol).join(', ')}`,
+        reason: `Arcium only supports Solana, not '${params.chain}'`,
       }
     }
 
-    // Native SOL requires wrapping
-    if (!params.mint) {
-      // SOL is supported via wrapped cSOL
-      const solMint = 'So11111111111111111111111111111111111111112'
-      if (!hasCSPLSupport(solMint)) {
+    // Validate circuitId
+    if (!params.circuitId || params.circuitId.trim() === '') {
+      return {
+        available: false,
+        reason: 'circuitId is required for Arcium computations',
+      }
+    }
+
+    // Validate encrypted inputs
+    if (!params.encryptedInputs || params.encryptedInputs.length === 0) {
+      return {
+        available: false,
+        reason: 'encryptedInputs array is required and must not be empty',
+      }
+    }
+
+    // Validate each input is a valid Uint8Array
+    for (let i = 0; i < params.encryptedInputs.length; i++) {
+      const input = params.encryptedInputs[i]
+      if (!(input instanceof Uint8Array) || input.length === 0) {
         return {
           available: false,
-          reason: 'Native SOL requires wrapping to cSOL. Use wrapped SOL mint.',
+          reason: `encryptedInputs[${i}] must be a non-empty Uint8Array`,
         }
       }
     }
 
-    // Check amount bounds
-    if (params.amount <= 0n) {
-      return {
-        available: false,
-        reason: 'Amount must be positive',
+    // Validate cipher type if provided
+    if (params.cipher) {
+      const validCiphers: CipherType[] = ['aes128', 'aes192', 'aes256', 'rescue']
+      if (!validCiphers.includes(params.cipher)) {
+        return {
+          available: false,
+          reason: `Invalid cipher '${params.cipher}'. Supported: ${validCiphers.join(', ')}`,
+        }
       }
     }
 
-    // Estimate cost
-    const estimatedCost = estimateArciumCost('transfer')
+    // In production, would check:
+    // - Circuit exists and is valid
+    // - Cluster is available
+    // - User has permissions
 
     return {
       available: true,
-      estimatedCost,
-      estimatedTime: 3000, // ~3 seconds for MPC transfer
+      estimatedCost: this.estimateComputeCost(params),
+      estimatedTime: ESTIMATED_COMPUTATION_TIME_MS,
     }
   }
 
@@ -255,18 +235,40 @@ export class ArciumBackend implements PrivacyBackend {
   }
 
   /**
-   * Execute a privacy-preserving transfer using C-SPL
+   * Execute a privacy-preserving transfer
    *
-   * Flow:
-   * 1. Validate parameters and token support
-   * 2. Get or derive C-SPL token
-   * 3. Submit confidential transfer via MPC
-   * 4. Wait for computation finalization
-   * 5. Return result with encrypted data
+   * Arcium is a compute backend - this method returns an error
+   * directing users to use executeComputation() instead.
    */
-  async execute(params: TransferParams): Promise<TransactionResult> {
+  async execute(_params: TransferParams): Promise<TransactionResult> {
+    return {
+      success: false,
+      error:
+        'Arcium is a compute privacy backend. ' +
+        'Use executeComputation() for MPC operations. ' +
+        'For transaction privacy, use SIPNativeBackend or PrivacyCashBackend.',
+      backend: this.name,
+      metadata: {
+        hint: 'executeComputation',
+        paramsType: 'ComputationParams',
+      },
+    }
+  }
+
+  /**
+   * Execute a privacy-preserving computation via MPC
+   *
+   * This submits encrypted data to the Arcium MPC network for processing.
+   * The computation is defined by a pre-uploaded circuit.
+   *
+   * @param params - Computation parameters
+   * @returns Computation result with ID for tracking
+   */
+  async executeComputation(
+    params: ComputationParams
+  ): Promise<ComputationResult> {
     // Validate availability first
-    const availability = await this.checkAvailability(params)
+    const availability = await this.checkComputeAvailability(params)
     if (!availability.available) {
       return {
         success: false,
@@ -276,312 +278,202 @@ export class ArciumBackend implements PrivacyBackend {
     }
 
     try {
-      // Get C-SPL token
-      const mint = params.mint ?? 'So11111111111111111111111111111111111111112'
-      const csplToken = getCSPLToken(mint)
+      const cluster = params.cluster ?? this.config.cluster
+      const cipher = params.cipher ?? this.config.defaultCipher
 
-      if (!csplToken) {
-        throw new ArciumError(
-          `No C-SPL token found for mint: ${mint}`,
-          ArciumErrorCode.UNSUPPORTED_TOKEN
-        )
+      // In a real implementation with the SDK:
+      // 1. const client = await this.getClient()
+      // 2. const computationId = await client.submitComputation({
+      //      circuitId: params.circuitId,
+      //      encryptedInputs: params.encryptedInputs,
+      //      cluster,
+      //      callback: params.callbackAddress,
+      //    })
+      // 3. Optionally await finalization
+
+      // Simulated result (SDK integration pending)
+      const simulatedComputationId = this.generateComputationId()
+
+      // Cache the computation info
+      const info: ComputationInfo = {
+        id: simulatedComputationId,
+        status: 'submitted',
+        circuitId: params.circuitId,
+        cluster,
+        submittedAt: Date.now(),
       }
-
-      // Build transfer parameters
-      const transferParams: CSPLTransferParams = {
-        token: csplToken,
-        amount: params.amount,
-        sender: params.sender,
-        recipient: params.recipient,
-        auditorKey: this.config.defaultAuditorKey || undefined,
-      }
-
-      if (this.config.verbose) {
-        console.log('[ArciumBackend] Executing confidential transfer...')
-        console.log(`[ArciumBackend] Token: ${csplToken.symbol}`)
-        console.log(`[ArciumBackend] Amount: ${params.amount}`)
-      }
-
-      // Execute confidential transfer
-      const result = await this.executeCSPLTransfer(transferParams)
-
-      if (!result.success) {
-        return {
-          success: false,
-          error: result.error,
-          backend: this.name,
-        }
-      }
-
-      if (this.config.verbose) {
-        console.log('[ArciumBackend] Transfer successful')
-        console.log(`[ArciumBackend] Signature: ${result.signature}`)
-      }
+      this.computationCache.set(simulatedComputationId, info)
 
       return {
         success: true,
-        signature: result.signature,
+        computationId: simulatedComputationId,
         backend: this.name,
+        status: 'submitted',
         metadata: {
-          chain: params.chain,
-          csplToken: csplToken.symbol,
-          amount: params.amount.toString(),
-          computationId: result.computation?.id,
-          timestamp: Date.now(),
+          circuitId: params.circuitId,
+          cluster,
+          cipher,
+          inputCount: params.encryptedInputs.length,
+          network: this.config.network,
+          submittedAt: Date.now(),
+          warning: 'Simulated result - SDK integration pending',
         },
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-
-      if (this.config.verbose) {
-        console.error('[ArciumBackend] Transfer failed:', errorMessage)
-      }
-
       return {
         success: false,
-        error: errorMessage,
+        error: error instanceof Error ? error.message : 'Unknown error',
         backend: this.name,
+        status: 'failed',
       }
     }
   }
 
   /**
-   * Estimate cost for a transfer
+   * Estimate cost for an operation
    */
-  async estimateCost(params: TransferParams): Promise<bigint> {
-    // Check if this is a simple transfer or swap
-    const isSwap = params.options?.['isSwap'] === true
-
-    if (isSwap) {
-      return estimateArciumCost('swap')
+  async estimateCost(params: BackendParams): Promise<bigint> {
+    if (isComputationParams(params)) {
+      return this.estimateComputeCost(params)
     }
 
-    return estimateArciumCost('transfer')
+    // Transfer params - return 0 as we don't support transfers
+    return BigInt(0)
   }
 
-  // ─── C-SPL Operations ────────────────────────────────────────────────────────
+  /**
+   * Get computation status
+   *
+   * @param computationId - Computation to check
+   * @returns Current status or undefined if not found
+   */
+  async getComputationStatus(
+    computationId: string
+  ): Promise<ComputationStatus | undefined> {
+    // Check cache first
+    const cached = this.computationCache.get(computationId)
+    if (cached) {
+      return cached.status
+    }
+
+    // In production, would query the Arcium network:
+    // const client = await this.getClient()
+    // return client.getComputationStatus(computationId)
+
+    return undefined
+  }
 
   /**
-   * Execute a C-SPL confidential transfer
+   * Get computation info
    *
-   * In production, this would:
-   * 1. Encrypt amount using MPC encryption
-   * 2. Build confidential transfer instruction
-   * 3. Submit to Arcium MPC cluster
-   * 4. Wait for finalization
+   * @param computationId - Computation to query
+   * @returns Computation info or undefined if not found
    */
-  private async executeCSPLTransfer(
-    params: CSPLTransferParams
-  ): Promise<CSPLTransferResult> {
-    // Simulate MPC computation for transfer
-    const computation = await this.simulateMPCComputation('transfer')
+  async getComputationInfo(
+    computationId: string
+  ): Promise<ComputationInfo | undefined> {
+    // Check cache
+    const cached = this.computationCache.get(computationId)
+    if (cached) {
+      return cached
+    }
 
-    if (computation.status === 'failed') {
+    // In production, would query the Arcium network
+    return undefined
+  }
+
+  /**
+   * Wait for computation to complete
+   *
+   * @param computationId - Computation to wait for
+   * @param timeout - Optional timeout override
+   * @returns Computation result
+   */
+  async awaitComputation(
+    computationId: string,
+    timeout?: number
+  ): Promise<ComputationResult> {
+    // In production, would use the SDK with timeout:
+    // const timeoutMs = timeout ?? this.config.timeout
+    void timeout // Mark as intentionally unused (for future SDK integration)
+    // const client = await this.getClient()
+    // const output = await client.awaitFinalization(computationId, timeoutMs)
+
+    // Simulated: Just return the cached info as completed
+    const info = this.computationCache.get(computationId)
+    if (!info) {
       return {
         success: false,
-        error: computation.error ?? 'MPC computation failed',
+        error: `Computation ${computationId} not found`,
+        backend: this.name,
+        status: 'failed',
       }
     }
 
-    // Generate simulated signature
-    const signature = this.generateSimulatedSignature()
+    // Simulate completion
+    info.status = 'completed'
+    info.completedAt = Date.now()
+    this.computationCache.set(computationId, info)
 
     return {
       success: true,
-      signature,
-      computation: computation.reference,
+      computationId,
+      output: new Uint8Array([0, 1, 2, 3]), // Simulated output
+      backend: this.name,
+      status: 'completed',
+      completedAt: info.completedAt,
       metadata: {
-        amount: params.amount,
-        token: params.token,
-        timestamp: Date.now(),
+        circuitId: info.circuitId,
+        cluster: info.cluster,
+        duration: info.completedAt - info.submittedAt,
+        warning: 'Simulated result - SDK integration pending',
       },
     }
-  }
-
-  /**
-   * Wrap SPL tokens to C-SPL
-   *
-   * @param splMint - SPL token mint address
-   * @param amount - Amount to wrap
-   * @param owner - Token owner address
-   * @returns Wrap result
-   */
-  async wrapToCSPL(
-    splMint: string,
-    amount: bigint,
-    _owner: string
-  ): Promise<{ success: boolean; signature?: string; error?: string }> {
-    if (!hasCSPLSupport(splMint)) {
-      return {
-        success: false,
-        error: `Token ${splMint} does not support C-SPL wrapping`,
-      }
-    }
-
-    if (this.config.verbose) {
-      const token = getCSPLToken(splMint)
-      console.log(`[ArciumBackend] Wrapping ${amount} ${token?.symbol} to C-SPL`)
-    }
-
-    // Simulate wrap operation
-    const computation = await this.simulateMPCComputation('wrap')
-
-    if (computation.status === 'failed') {
-      return {
-        success: false,
-        error: computation.error ?? 'Wrap computation failed',
-      }
-    }
-
-    return {
-      success: true,
-      signature: this.generateSimulatedSignature(),
-    }
-  }
-
-  /**
-   * Unwrap C-SPL tokens to SPL
-   *
-   * @param csplMint - C-SPL token mint address
-   * @param amount - Amount to unwrap
-   * @param owner - Token owner address
-   * @param recipient - Recipient address (defaults to owner)
-   * @returns Unwrap result
-   */
-  async unwrapFromCSPL(
-    csplMint: string,
-    amount: bigint,
-    _owner: string,
-    _recipient?: string
-  ): Promise<{ success: boolean; signature?: string; error?: string }> {
-    // Find the C-SPL token
-    const csplToken = Object.values(CSPL_TOKEN_REGISTRY).find(
-      t => t.csplMint === csplMint
-    )
-
-    if (!csplToken) {
-      return {
-        success: false,
-        error: `Unknown C-SPL token: ${csplMint}`,
-      }
-    }
-
-    if (this.config.verbose) {
-      console.log(`[ArciumBackend] Unwrapping ${amount} ${csplToken.symbol} to SPL`)
-    }
-
-    // Simulate unwrap operation
-    const computation = await this.simulateMPCComputation('unwrap')
-
-    if (computation.status === 'failed') {
-      return {
-        success: false,
-        error: computation.error ?? 'Unwrap computation failed',
-      }
-    }
-
-    return {
-      success: true,
-      signature: this.generateSimulatedSignature(),
-    }
-  }
-
-  /**
-   * Get supported C-SPL tokens
-   */
-  getSupportedCSPLTokens(): CSPLToken[] {
-    return Object.values(CSPL_TOKEN_REGISTRY)
-  }
-
-  /**
-   * Check if a token is supported
-   */
-  isTokenSupported(mint: string): boolean {
-    return hasCSPLSupport(mint)
   }
 
   // ─── Private Methods ─────────────────────────────────────────────────────────
 
   /**
-   * Simulate MPC computation
-   *
-   * In production, this would interact with Arcium SDK
+   * Estimate cost for a computation
    */
-  private async simulateMPCComputation(
-    operationType: string
-  ): Promise<ComputationResult> {
-    // Simulate computation latency
-    const latency = operationType === 'swap' ? 3000 : 1500
+  private estimateComputeCost(params: ComputationParams): bigint {
+    let cost = BASE_COMPUTATION_COST_LAMPORTS
 
-    // In real implementation, we would:
-    // 1. Submit computation to Arcium cluster
-    // 2. Poll for status
-    // 3. Return result
+    // More inputs = higher cost
+    const inputCost = BigInt(params.encryptedInputs.length) * BigInt(1_000_000)
+    cost += inputCost
 
-    // Simulate async processing
-    await new Promise(resolve => setTimeout(resolve, 50))
+    // Larger inputs = higher cost
+    const totalInputSize = params.encryptedInputs.reduce(
+      (sum, input) => sum + input.length,
+      0
+    )
+    const sizeCost = BigInt(Math.ceil(totalInputSize / 1000)) * BigInt(500_000)
+    cost += sizeCost
 
-    const computationId = `comp_${Date.now()}_${Math.random().toString(36).slice(2)}`
-
-    return {
-      reference: {
-        id: computationId,
-        clusterId: 'arcium-cluster-1',
-        submitSlot: Math.floor(Date.now() / 400), // ~400ms slot time
-      },
-      status: 'finalized' as ComputationStatus,
-      durationMs: latency,
-    }
+    return cost
   }
 
   /**
-   * Generate a simulated transaction signature
+   * Generate a unique computation ID
    */
-  private generateSimulatedSignature(): string {
-    const bytes = new Uint8Array(64)
-    for (let i = 0; i < 64; i++) {
-      bytes[i] = Math.floor(Math.random() * 256)
-    }
-    return Array.from(bytes)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
+  private generateComputationId(): string {
+    const timestamp = Date.now().toString(36)
+    const random = Math.random().toString(36).slice(2, 10)
+    return `arcium_${timestamp}_${random}`
   }
-}
 
-// ─── Factory Functions ───────────────────────────────────────────────────────
+  /**
+   * Clear computation cache
+   */
+  clearComputationCache(): void {
+    this.computationCache.clear()
+  }
 
-/**
- * Create an Arcium backend for devnet
- */
-export function createArciumDevnetBackend(
-  config: Omit<ArciumBackendConfig, 'network'> = {}
-): ArciumBackend {
-  return new ArciumBackend({
-    ...config,
-    network: 'devnet',
-  })
-}
-
-/**
- * Create an Arcium backend for testnet
- */
-export function createArciumTestnetBackend(
-  config: Omit<ArciumBackendConfig, 'network'> = {}
-): ArciumBackend {
-  return new ArciumBackend({
-    ...config,
-    network: 'testnet',
-  })
-}
-
-/**
- * Create an Arcium backend for mainnet
- */
-export function createArciumMainnetBackend(
-  config: Omit<ArciumBackendConfig, 'network'> = {}
-): ArciumBackend {
-  return new ArciumBackend({
-    ...config,
-    network: 'mainnet',
-  })
+  /**
+   * Get cached computation count
+   */
+  getCachedComputationCount(): number {
+    return this.computationCache.size
+  }
 }
