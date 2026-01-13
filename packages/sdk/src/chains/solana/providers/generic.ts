@@ -35,6 +35,7 @@ import {
 } from '@solana/spl-token'
 import type { SolanaRPCProvider, TokenAsset, GenericProviderConfig } from './interface'
 import { NetworkError } from '../../../errors'
+import { sanitizeUrl } from '../constants'
 
 /**
  * RPC endpoint URLs by cluster
@@ -170,10 +171,11 @@ export class GenericProvider implements SolanaRPCProvider {
       }
 
       // Actual RPC/network error - throw
+      // H-2 FIX: Sanitize endpoint URL to prevent credential exposure
       throw new NetworkError(
         `Failed to get token balance: ${errorMessage}`,
         undefined,
-        { endpoint: this.connection.rpcEndpoint }
+        { endpoint: sanitizeUrl(this.connection.rpcEndpoint) }
       )
     }
   }
