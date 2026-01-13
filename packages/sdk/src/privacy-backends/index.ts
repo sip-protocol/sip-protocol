@@ -100,6 +100,9 @@ export {
 export { SIPNativeBackend, type SIPNativeBackendConfig } from './sip-native'
 export { PrivacyCashBackend, type PrivacyCashBackendConfig } from './privacycash'
 
+// Mock Backend (for testing)
+export { MockBackend, createMockFactory, type MockBackendConfig } from './mock'
+
 // Compute Backends
 export { ArciumBackend, type ArciumBackendConfig } from './arcium'
 export { IncoBackend, type IncoBackendConfig } from './inco'
