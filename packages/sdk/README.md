@@ -394,6 +394,144 @@ app.post('/webhook/helius', async (req, res) => {
 
 See [HELIUS-INTEGRATION.md](docs/HELIUS-INTEGRATION.md) for full documentation.
 
+### QuickNode Integration (Solana)
+
+SIP Protocol integrates with QuickNode for high-performance Solana RPC and real-time streaming via Yellowstone gRPC:
+
+```typescript
+import { createProvider, QuickNodeProvider } from '@sip-protocol/sdk'
+
+// Option 1: Using factory function
+const quicknode = createProvider('quicknode', {
+  endpoint: process.env.QUICKNODE_ENDPOINT!, // e.g., https://example.solana-mainnet.quiknode.pro/abc123
+  cluster: 'mainnet-beta',
+})
+
+// Option 2: Direct instantiation
+const provider = new QuickNodeProvider({
+  endpoint: 'https://example.solana-mainnet.quiknode.pro/YOUR_API_KEY',
+  cluster: 'mainnet-beta',
+  enableGrpc: true, // Enable Yellowstone gRPC for real-time subscriptions
+})
+
+// Query token assets
+const assets = await provider.getAssetsByOwner('7xK9...')
+console.log('Token balances:', assets)
+
+// Get specific token balance
+const balance = await provider.getTokenBalance('7xK9...', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v') // USDC
+```
+
+For real-time stealth payment detection using Yellowstone gRPC:
+
+```typescript
+import { QuickNodeProvider } from '@sip-protocol/sdk'
+
+const quicknode = new QuickNodeProvider({
+  endpoint: process.env.QUICKNODE_ENDPOINT!,
+  enableGrpc: true, // Requires Yellowstone add-on on your QuickNode endpoint
+})
+
+// Subscribe to token transfers for a stealth address
+if (quicknode.supportsSubscriptions()) {
+  const unsubscribe = await quicknode.subscribeToTransfers(
+    stealthAddress,
+    (asset) => {
+      console.log('Stealth payment received!', {
+        mint: asset.mint,
+        amount: asset.amount.toString(),
+      })
+    }
+  )
+
+  // Later: cleanup subscription
+  unsubscribe()
+}
+
+// Cleanup all resources when done
+await quicknode.close()
+```
+
+**QuickNode Advantages for SIP:**
+- **Yellowstone gRPC**: Real-time token transfer notifications with low latency
+- **Reliability**: Enterprise-grade infrastructure with global edge network
+- **Flexibility**: Works with or without gRPC add-on (falls back to polling)
+
+See [QuickNode Solana Docs](https://www.quicknode.com/docs/solana) for endpoint setup.
+
+### Triton Integration (Solana)
+
+SIP Protocol integrates with Triton for ultra-low latency Solana RPC and Dragon's Mouth gRPC streaming:
+
+```typescript
+import { createProvider, TritonProvider } from '@sip-protocol/sdk'
+
+// Option 1: Using factory function
+const triton = createProvider('triton', {
+  xToken: process.env.TRITON_TOKEN!,
+  cluster: 'mainnet-beta',
+})
+
+// Option 2: Direct instantiation with custom endpoints
+const provider = new TritonProvider({
+  xToken: process.env.TRITON_TOKEN!,
+  endpoint: 'https://mainnet.rpcpool.com',      // Custom RPC endpoint
+  grpcEndpoint: 'https://grpc.rpcpool.com:443', // Custom gRPC endpoint
+  cluster: 'mainnet-beta',
+  enableGrpc: true,
+})
+
+// Query token assets
+const assets = await provider.getAssetsByOwner('7xK9...')
+
+// Get specific token balance
+const balance = await provider.getTokenBalance('7xK9...', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+```
+
+For real-time stealth payment detection using Dragon's Mouth gRPC:
+
+```typescript
+import { TritonProvider } from '@sip-protocol/sdk'
+
+const triton = new TritonProvider({
+  xToken: process.env.TRITON_TOKEN!,
+  enableGrpc: true,
+})
+
+// Subscribe to token transfers (~400ms latency advantage over WebSocket)
+if (triton.supportsSubscriptions()) {
+  const unsubscribe = await triton.subscribeToTransfers(
+    stealthAddress,
+    (asset) => {
+      console.log('Stealth payment received!', asset)
+    }
+  )
+
+  // Cleanup
+  unsubscribe()
+}
+
+await triton.close()
+```
+
+**Triton Advantages for SIP:**
+- **Dragon's Mouth gRPC**: ~400ms latency advantage over WebSocket
+- **Multi-region Failover**: High availability for production apps
+- **DeFi Optimized**: Ideal for trading and time-sensitive applications
+
+See [Triton Docs](https://docs.triton.one/chains/solana) for setup.
+
+### Provider Comparison
+
+| Provider | Best For | Real-time | Special Features |
+|----------|----------|-----------|------------------|
+| **Helius** | Production apps | Webhooks | DAS API, rich metadata |
+| **QuickNode** | Enterprise | Yellowstone gRPC | Global edge network |
+| **Triton** | DeFi/Trading | Dragon's Mouth gRPC | ~400ms latency advantage |
+| **Generic** | Development | WebSocket | No API key required |
+
+All providers implement the same `SolanaRPCProvider` interface — switch between them without changing your application code.
+
 ## Supported Chains
 
 | Chain | Input | Output | Stealth Curve |
@@ -420,6 +558,9 @@ The SDK uses localhost endpoints by default for local development:
 | Ethereum RPC | `localhost:8545` | `ETH_RPC_URL` |
 | Solana RPC | `localhost:8899` | `SOL_RPC_URL` |
 | Sui RPC | `localhost:9000` | `SUI_RPC_URL` |
+| Helius API | - | `HELIUS_API_KEY` |
+| QuickNode | - | `QUICKNODE_ENDPOINT` |
+| Triton | - | `TRITON_TOKEN` |
 
 These defaults allow you to run local nodes (Ganache, Hardhat, Solana Test Validator) without additional configuration.
 
@@ -439,6 +580,19 @@ const sip = new SIP({
     near: process.env.NEAR_RPC_URL,       // e.g., NEAR RPC
   },
 })
+```
+
+**Using RPC Providers for Solana:**
+
+```typescript
+import { createProvider } from '@sip-protocol/sdk'
+
+// Choose your preferred provider — same API, different backends
+const provider = createProvider('quicknode', {
+  endpoint: process.env.QUICKNODE_ENDPOINT!,
+})
+// or: createProvider('helius', { apiKey: process.env.HELIUS_API_KEY! })
+// or: createProvider('triton', { xToken: process.env.TRITON_TOKEN! })
 ```
 
 ### Zcash Configuration

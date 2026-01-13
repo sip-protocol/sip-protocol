@@ -37,10 +37,14 @@
  * ### Transaction Privacy (hide sender/amount/recipient)
  * - **SIPNativeBackend** — Stealth addresses + Pedersen commitments
  * - **PrivacyCashBackend** — Pool mixing (Tornado Cash-style anonymity sets)
+ * - **ShadowWireBackend** — Pedersen Commitments + Bulletproofs (Radr Labs)
  *
  * ### Compute Privacy (hide contract execution)
  * - **ArciumBackend** — MPC (Multi-Party Computation)
  * - **IncoBackend** — FHE (Fully Homomorphic Encryption)
+ *
+ * ### TEE Privacy (hardware-based)
+ * - **MagicBlockBackend** — Intel TDX TEE (Ephemeral Rollups)
  *
  * ### Confidential Tokens
  * - **CSPLClient** — C-SPL (Confidential SPL) token operations
@@ -99,10 +103,28 @@ export {
 // Transaction Backends
 export { SIPNativeBackend, type SIPNativeBackendConfig } from './sip-native'
 export { PrivacyCashBackend, type PrivacyCashBackendConfig } from './privacycash'
+export {
+  ShadowWireBackend,
+  createShadowWireBackend,
+  SHADOWWIRE_TOKEN_MINTS,
+  type ShadowWireBackendConfig,
+} from './shadowwire'
+
+// Mock Backend (for testing)
+export { MockBackend, createMockFactory, type MockBackendConfig } from './mock'
 
 // Compute Backends
 export { ArciumBackend, type ArciumBackendConfig } from './arcium'
 export { IncoBackend, type IncoBackendConfig } from './inco'
+
+// TEE Backend (Hardware-based Privacy)
+export {
+  MagicBlockBackend,
+  createMagicBlockBackend,
+  MAGICBLOCK_ENDPOINTS,
+  type MagicBlockBackendConfig,
+  type MagicBlockNetwork,
+} from './magicblock'
 
 // PrivacyCash types (for advanced usage)
 export {
