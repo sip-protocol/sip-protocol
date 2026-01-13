@@ -455,6 +455,8 @@ interface Commitment {
 - **Settlement Aggregation (Core):** One privacy layer, settle anywhere
 - **Proof Composition (Moat):** Compose proofs from Zcash + Mina + Noir
 
+**Mental Model:** "OpenRouter for privacy" — single API wrapping multiple settlement/privacy backends, like OpenRouter wraps LLM providers. The unique value-add is the cryptographic privacy layer (stealth addresses, Pedersen commitments, viewing keys) applied before routing to any backend.
+
 **Expansion Path:**
 1. Phase 1 (M1-M8): Foundation — Core tech, NEAR Intents ✅
 2. Phase 2 (M9-M12): Standard — Multi-backend, multi-chain ✅
