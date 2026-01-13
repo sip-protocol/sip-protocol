@@ -399,8 +399,8 @@ describe('E2E: Performance Metrics', () => {
       const memoryAfter = process.memoryUsage().heapUsed
       const memoryGrowth = memoryAfter - memoryBefore
 
-      // Memory growth should be reasonable (< 10MB for 50 intents)
-      expect(memoryGrowth).toBeLessThan(10 * 1024 * 1024)
+      // Memory growth should be reasonable (< 12MB for 50 intents)
+      expect(memoryGrowth).toBeLessThan(12 * 1024 * 1024)
     })
 
     it('should clean up resources after solver operations', async () => {

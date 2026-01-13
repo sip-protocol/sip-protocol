@@ -242,6 +242,9 @@ importers:
       '@ethereumjs/rlp':
         specifier: ^10.1.0
         version: 10.1.0
+      '@jup-ag/api':
+        specifier: ^6.0.48
+        version: 6.0.48
       '@magicblock-labs/ephemeral-rollups-sdk':
         specifier: ^0.7.2
         version: 0.7.2(fastestsmallesttextencoderdecoder@1.0.22)
@@ -1052,6 +1055,10 @@ packages:
 
   /@js-sdsl/ordered-map@4.4.2:
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
+
+  /@jup-ag/api@6.0.48:
+    resolution: {integrity: sha512-H66m/cIqdVIA0qLI2X76UOhuMXkS/+uI6e4KQuU3fn6FSBhCX/9fwt/4IdwES4KWXwGtvqhsg2ExkB9tRtNhyA==}
+    dev: false
 
   /@ledgerhq/devices@8.8.0:
     resolution: {integrity: sha512-ZFRAQQaESxIK/8SYrrHyqb7pQjLPO8f62PI6H16SP0/uC9fdZKR8NqOGMvIf7I6K442SkiQATnC/kxUeUTfuHA==}
