@@ -45,6 +45,7 @@
 - [Quick Start](#-quick-start)
 - [Architecture](#%EF%B8%8F-architecture)
 - [Packages](#-packages)
+- [Infrastructure](#-infrastructure)
 - [Roadmap](#-roadmap)
 - [Tech Stack](#%EF%B8%8F-tech-stack)
 - [Development](#-development)
@@ -379,6 +380,43 @@ User Input → Privacy Layer → Intent Creation → Solver Network → Executio
 | [`@sip-protocol/sdk`](packages/sdk) | Core SDK for creating shielded intents | ✅ Active |
 | [`@sip-protocol/types`](packages/types) | TypeScript type definitions | ✅ Active |
 | [`examples`](examples/) | Integration examples and reference implementations | ✅ Active |
+
+---
+
+## 🔌 Infrastructure
+
+SIP is **infrastructure-agnostic** — use your preferred RPC providers without changing your application code.
+
+### Solana RPC Providers
+
+| Provider | Best For | Real-time | Special Features |
+|----------|----------|-----------|------------------|
+| **[Helius](https://helius.dev)** | Production apps | Webhooks | DAS API, rich metadata |
+| **[QuickNode](https://quicknode.com)** | Enterprise | Yellowstone gRPC | Global edge network |
+| **[Triton](https://triton.one)** | DeFi/Trading | Dragon's Mouth gRPC | ~400ms latency advantage |
+| **Generic** | Development | WebSocket | No API key required |
+
+```typescript
+import { createProvider } from '@sip-protocol/sdk'
+
+// Same API, different backends — your choice
+const provider = createProvider('quicknode', { endpoint: process.env.QUICKNODE_ENDPOINT })
+// or: createProvider('helius', { apiKey: process.env.HELIUS_API_KEY })
+// or: createProvider('triton', { xToken: process.env.TRITON_TOKEN })
+// or: createProvider('generic', { connection })
+
+// All providers work identically
+const assets = await provider.getAssetsByOwner('7xK9...')
+```
+
+### Why Provider-Agnostic?
+
+- **No vendor lock-in** — switch providers without code changes
+- **Best-of-breed** — use Helius for DAS, QuickNode for gRPC, mix and match
+- **Open-source tooling** — unified interface benefits the entire ecosystem
+- **Resilience** — easy failover between providers
+
+See [SDK README](packages/sdk/README.md) for detailed provider documentation.
 
 ---
 
