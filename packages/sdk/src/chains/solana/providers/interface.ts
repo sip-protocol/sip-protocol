@@ -27,6 +27,8 @@
 
 import { HeliusProvider, type HeliusProviderConfig } from './helius'
 import { GenericProvider } from './generic'
+import { QuickNodeProvider, type QuickNodeProviderConfig } from './quicknode'
+import { TritonProvider, type TritonProviderConfig } from './triton'
 import { ValidationError } from '../../../errors'
 
 /**
@@ -130,19 +132,24 @@ export interface GenericProviderConfig extends ProviderConfig {
  *
  * @example
  * ```typescript
- * // Helius with API key
+ * // Helius with DAS API (recommended for production)
  * const helius = createProvider('helius', {
  *   apiKey: process.env.HELIUS_API_KEY,
  *   cluster: 'devnet'
  * })
  *
+ * // QuickNode with Yellowstone gRPC (real-time subscriptions)
+ * const quicknode = createProvider('quicknode', {
+ *   endpoint: process.env.QUICKNODE_ENDPOINT
+ * })
+ *
+ * // Triton with Dragon's Mouth gRPC (ultra-low latency)
+ * const triton = createProvider('triton', {
+ *   xToken: process.env.TRITON_TOKEN
+ * })
+ *
  * // Generic with existing connection
  * const generic = createProvider('generic', { connection })
- *
- * // Generic with endpoint
- * const devnet = createProvider('generic', {
- *   endpoint: 'https://api.devnet.solana.com'
- * })
  * ```
  */
 export function createProvider(
@@ -150,16 +157,24 @@ export function createProvider(
   config: ProviderConfig & { apiKey: string }
 ): SolanaRPCProvider
 export function createProvider(
+  type: 'quicknode',
+  config: QuickNodeProviderConfig
+): SolanaRPCProvider
+export function createProvider(
+  type: 'triton',
+  config: TritonProviderConfig
+): SolanaRPCProvider
+export function createProvider(
   type: 'generic',
   config: GenericProviderConfig
 ): SolanaRPCProvider
 export function createProvider(
   type: ProviderType,
-  config: ProviderConfig | GenericProviderConfig
+  config: ProviderConfig | GenericProviderConfig | QuickNodeProviderConfig | TritonProviderConfig
 ): SolanaRPCProvider
 export function createProvider(
   type: ProviderType,
-  config: ProviderConfig | GenericProviderConfig
+  config: ProviderConfig | GenericProviderConfig | QuickNodeProviderConfig | TritonProviderConfig
 ): SolanaRPCProvider {
   // Validate config before type casting
   if (!config || typeof config !== 'object') {
@@ -184,6 +199,10 @@ export function createProvider(
       }
       return new HeliusProvider(heliusConfig)
     }
+    case 'quicknode':
+      return new QuickNodeProvider(config as QuickNodeProviderConfig)
+    case 'triton':
+      return new TritonProvider(config as TritonProviderConfig)
     case 'generic': {
       // Validate GenericProvider config
       const genericConfig = config as GenericProviderConfig
@@ -196,13 +215,6 @@ export function createProvider(
       }
       return new GenericProvider(genericConfig)
     }
-    case 'quicknode':
-    case 'triton':
-      throw new Error(
-        `Provider '${type}' is not yet implemented. ` +
-        `Use 'helius' or 'generic' for now. ` +
-        `See https://github.com/sip-protocol/sip-protocol/issues/${type === 'quicknode' ? '494' : '495'}`
-      )
     default:
       throw new Error(`Unknown provider type: ${type}`)
   }
