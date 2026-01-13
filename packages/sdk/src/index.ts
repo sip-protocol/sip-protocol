@@ -949,3 +949,26 @@ export type {
   AnalyzableTransaction,
   KnownExchange,
 } from './surveillance'
+
+// Privacy Advisor Agent (LangChain-powered)
+export {
+  PrivacyAdvisorAgent,
+  createPrivacyAdvisor,
+} from './advisor'
+
+export type {
+  // Core types
+  AdvisorRole,
+  AdvisorMessage,
+  AdvisorStatus,
+  // Configuration
+  PrivacyAdvisorConfig,
+  AdvisoryContext,
+  // Response types
+  AdvisorResponse,
+  PrivacyAdvisoryReport,
+  AdvisorRecommendation,
+  // Utilities
+  ToolResult,
+  StreamCallback,
+} from './advisor'
