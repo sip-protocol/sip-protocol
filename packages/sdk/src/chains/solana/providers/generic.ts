@@ -46,8 +46,15 @@ const CLUSTER_ENDPOINTS: Record<string, string> = {
 }
 
 /**
- * Validate a Solana address (base58)
- * @throws Error if address is invalid
+ * Validate and parse a Solana address (base58)
+ *
+ * Attempts to create a PublicKey from the address string.
+ *
+ * @param address - Solana address in base58 format
+ * @param paramName - Parameter name for error message context
+ * @returns Validated PublicKey instance
+ * @throws Error if address is invalid base58 or wrong length
+ * @internal
  */
 function validateSolanaAddress(address: string, paramName: string): PublicKey {
   try {

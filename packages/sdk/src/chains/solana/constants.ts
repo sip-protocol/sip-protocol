@@ -75,6 +75,43 @@ export const ESTIMATED_TX_FEE_LAMPORTS = 5000n
  */
 export const ATA_RENT_LAMPORTS = 2039280n
 
+// ============================================================================
+// Named constants for magic numbers
+// ============================================================================
+
+/** Solana address minimum length (base58 encoded 32-byte public keys) */
+export const SOLANA_ADDRESS_MIN_LENGTH = 32
+
+/** Solana address maximum length (base58 encoded 32-byte public keys) */
+export const SOLANA_ADDRESS_MAX_LENGTH = 44
+
+/** View tag minimum value */
+export const VIEW_TAG_MIN = 0
+
+/** View tag maximum value (1 byte) */
+export const VIEW_TAG_MAX = 255
+
+/** Ed25519 key size in bytes */
+export const ED25519_KEY_BYTES = 32
+
+/** Ed25519 key hex length including '0x' prefix */
+export const ED25519_KEY_HEX_LENGTH = 66
+
+/** Default scan limit for pagination */
+export const DEFAULT_SCAN_LIMIT = 100
+
+/** Helius DAS API page limit */
+export const HELIUS_DAS_PAGE_LIMIT = 1000
+
+/** Helius maximum pages for pagination */
+export const HELIUS_MAX_PAGES = 100
+
+/** Helius API key minimum length */
+export const HELIUS_API_KEY_MIN_LENGTH = 8
+
+/** Webhook batch processing limit */
+export const WEBHOOK_MAX_BATCH_SIZE = 100
+
 /**
  * Get explorer URL for a transaction
  */

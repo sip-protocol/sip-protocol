@@ -32,6 +32,8 @@ import {
   MEMO_PROGRAM_ID,
   getExplorerUrl,
   SOLANA_TOKEN_MINTS,
+  DEFAULT_SCAN_LIMIT,
+  VIEW_TAG_MAX,
   type SolanaCluster,
 } from './constants'
 import type { SolanaRPCProvider } from './providers/interface'
@@ -70,7 +72,7 @@ export async function scanForPayments(
     spendingPublicKey,
     fromSlot,
     toSlot,
-    limit = 100,
+    limit = DEFAULT_SCAN_LIMIT,
     provider,
   } = params
 
@@ -135,7 +137,7 @@ export async function scanForPayments(
           const viewTagNumber = parseInt(announcement.viewTag, 16)
 
           // M5 FIX: Validate view tag range
-          if (!Number.isInteger(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > 255) {
+          if (!Number.isInteger(viewTagNumber) || viewTagNumber < 0 || viewTagNumber > VIEW_TAG_MAX) {
             continue
           }
 
@@ -434,6 +436,12 @@ export async function getStealthBalance(
 
 /**
  * Parse token transfer info from a transaction
+ *
+ * Analyzes pre/post token balances to determine the transferred token and amount.
+ *
+ * @param tx - Transaction with metadata from getTransaction
+ * @returns Token mint and amount transferred, or null if no transfer found
+ * @internal
  */
 function parseTokenTransfer(
   tx: Awaited<ReturnType<typeof import('@solana/web3.js').Connection.prototype.getTransaction>>
@@ -465,6 +473,12 @@ function parseTokenTransfer(
 
 /**
  * Get token symbol from mint address
+ *
+ * Looks up the token symbol for a known mint address.
+ *
+ * @param mint - SPL token mint address (base58)
+ * @returns Token symbol (e.g., 'USDC') or undefined if not found
+ * @internal
  */
 function getTokenSymbol(mint: string): string | undefined {
   for (const [symbol, address] of Object.entries(SOLANA_TOKEN_MINTS)) {
@@ -476,7 +490,13 @@ function getTokenSymbol(mint: string): string | undefined {
 }
 
 /**
- * Detect Solana cluster from RPC endpoint
+ * Detect Solana cluster from RPC endpoint URL
+ *
+ * Parses the endpoint URL to determine which Solana cluster it connects to.
+ *
+ * @param endpoint - RPC endpoint URL
+ * @returns Detected cluster name
+ * @internal
  */
 function detectCluster(endpoint: string): SolanaCluster {
   if (endpoint.includes('devnet')) {
@@ -492,7 +512,13 @@ function detectCluster(endpoint: string): SolanaCluster {
 }
 
 /**
- * Convert bytes to bigint (little-endian, for ed25519 scalars)
+ * Convert bytes to bigint in little-endian format
+ *
+ * Used for ed25519 scalar conversion where bytes are in little-endian order.
+ *
+ * @param bytes - Byte array to convert
+ * @returns BigInt representation of the bytes
+ * @internal
  */
 function bytesToBigIntLE(bytes: Uint8Array): bigint {
   let result = 0n

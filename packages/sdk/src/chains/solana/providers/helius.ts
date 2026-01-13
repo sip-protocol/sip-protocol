@@ -21,15 +21,70 @@
  */
 
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
-import { ValidationError } from '../../../errors'
+import { ValidationError, NetworkError } from '../../../errors'
+import {
+  SOLANA_ADDRESS_MIN_LENGTH,
+  SOLANA_ADDRESS_MAX_LENGTH,
+  HELIUS_API_KEY_MIN_LENGTH,
+  HELIUS_DAS_PAGE_LIMIT,
+  HELIUS_MAX_PAGES,
+} from '../constants'
+
+/** Default fetch timeout in milliseconds */
+const DEFAULT_FETCH_TIMEOUT_MS = 30000
 
 /**
  * Mask API key for safe logging/error messages
- * Shows only first 4 and last 4 characters
+ *
+ * Shows only first 4 and last 4 characters to prevent key exposure.
+ *
+ * @param apiKey - Helius API key to mask
+ * @returns Masked key (e.g., 'abcd...wxyz') or '***' if too short
+ * @internal
  */
 function maskApiKey(apiKey: string): string {
-  if (apiKey.length <= 8) return '***'
+  if (apiKey.length <= HELIUS_API_KEY_MIN_LENGTH) return '***'
   return `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}`
+}
+
+/**
+ * Fetch with configurable timeout using AbortController
+ *
+ * Wraps fetch with a timeout to prevent hanging requests.
+ *
+ * @param url - URL to fetch
+ * @param options - Fetch options (method, headers, body, etc.)
+ * @param timeoutMs - Timeout in milliseconds (default: 30000)
+ * @returns Fetch response
+ * @throws NetworkError if request times out
+ * @internal
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number = DEFAULT_FETCH_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
+    return response
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new NetworkError(
+        `Request timeout after ${timeoutMs}ms`,
+        undefined,
+        { endpoint: url }
+      )
+    }
+    throw error
+  } finally {
+    clearTimeout(timeoutId)
+  }
 }
 
 /**
@@ -128,7 +183,7 @@ export class HeliusProvider implements SolanaRPCProvider {
     }
 
     // Validate API key format (basic check - Helius keys are UUIDs or alphanumeric)
-    if (typeof config.apiKey !== 'string' || config.apiKey.length < 8) {
+    if (typeof config.apiKey !== 'string' || config.apiKey.length < HELIUS_API_KEY_MIN_LENGTH) {
       throw new ValidationError(
         'Invalid Helius API key format',
         'apiKey'
@@ -162,17 +217,17 @@ export class HeliusProvider implements SolanaRPCProvider {
       throw new ValidationError('owner address is required', 'owner')
     }
     // Basic Solana address validation (32-44 chars, base58)
-    if (owner.length < 32 || owner.length > 44) {
+    if (owner.length < SOLANA_ADDRESS_MIN_LENGTH || owner.length > SOLANA_ADDRESS_MAX_LENGTH) {
       throw new ValidationError('invalid Solana address format', 'owner')
     }
 
     const assets: TokenAsset[] = []
     let page = 1
-    const limit = 1000
+    const limit = HELIUS_DAS_PAGE_LIMIT
     let hasMore = true
 
     while (hasMore) {
-      const response = await fetch(this.rpcUrl, {
+      const response = await fetchWithTimeout(this.rpcUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -197,8 +252,10 @@ export class HeliusProvider implements SolanaRPCProvider {
 
       if (!response.ok) {
         // H-2 FIX: Never include API key in error messages
-        throw new Error(
-          `Helius API error: ${response.status} ${response.statusText} (key: ${maskApiKey(this.apiKey)})`
+        throw new NetworkError(
+          `Helius API error: ${response.status} ${response.statusText} (key: ${maskApiKey(this.apiKey)})`,
+          undefined,
+          { endpoint: this.rpcUrl, statusCode: response.status }
         )
       }
 
@@ -206,7 +263,11 @@ export class HeliusProvider implements SolanaRPCProvider {
 
       // Handle JSON-RPC errors
       if (data.error) {
-        throw new Error(`Helius RPC error: ${data.error.message} (code: ${data.error.code})`)
+        throw new NetworkError(
+          `Helius RPC error: ${data.error.message} (code: ${data.error.code})`,
+          undefined,
+          { endpoint: this.rpcUrl }
+        )
       }
 
       if (data.result?.items) {
@@ -221,10 +282,14 @@ export class HeliusProvider implements SolanaRPCProvider {
           if (!tokenInfo?.balance) continue
 
           // Convert balance to BigInt, handling both string and number types
-          // String is preferred for large values to preserve precision
-          const balanceValue = typeof tokenInfo.balance === 'string'
-            ? BigInt(tokenInfo.balance)
-            : BigInt(Math.floor(tokenInfo.balance))
+          // Always use string parsing for BigInt to avoid precision loss
+          let balanceValue: bigint
+          if (typeof tokenInfo.balance === 'string') {
+            balanceValue = BigInt(tokenInfo.balance)
+          } else {
+            // For numbers, convert to string first to avoid precision loss
+            balanceValue = BigInt(Math.floor(tokenInfo.balance).toString())
+          }
 
           assets.push({
             mint: item.id,
@@ -242,8 +307,7 @@ export class HeliusProvider implements SolanaRPCProvider {
       page++
 
       // Safety limit to prevent infinite loops
-      if (page > 100) {
-        console.warn('[HeliusProvider] Reached page limit (100), stopping pagination')
+      if (page > HELIUS_MAX_PAGES) {
         break
       }
     }
@@ -264,22 +328,35 @@ export class HeliusProvider implements SolanaRPCProvider {
     if (!mint || typeof mint !== 'string') {
       throw new ValidationError('mint address is required', 'mint')
     }
+    // Validate address format
+    if (owner.length < SOLANA_ADDRESS_MIN_LENGTH || owner.length > SOLANA_ADDRESS_MAX_LENGTH) {
+      throw new ValidationError('invalid owner address format', 'owner')
+    }
+    if (mint.length < SOLANA_ADDRESS_MIN_LENGTH || mint.length > SOLANA_ADDRESS_MAX_LENGTH) {
+      throw new ValidationError('invalid mint address format', 'mint')
+    }
+
+    const url = `${this.restUrl}/addresses/${owner}/balances`
 
     try {
-      // H-1 FIX: Use Authorization header instead of API key in URL
-      const url = `${this.restUrl}/addresses/${owner}/balances`
-
-      const response = await fetch(url, {
+      const response = await fetchWithTimeout(url, {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
         },
       })
 
       if (!response.ok) {
-        // Fallback to DAS if balances API fails
-        const assets = await this.getAssetsByOwner(owner)
-        const asset = assets.find((a) => a.mint === mint)
-        return asset?.amount ?? 0n
+        // Only fallback for specific recoverable errors (404, 503)
+        // Don't fallback for auth errors (401, 403) or client errors (400)
+        if (response.status === 404 || response.status === 503) {
+          return this.getTokenBalanceFallback(owner, mint)
+        }
+        // For other errors, throw rather than silently fallback
+        throw new NetworkError(
+          `Helius Balances API error: ${response.status}`,
+          undefined,
+          { endpoint: url, statusCode: response.status }
+        )
       }
 
       const data = (await response.json()) as HeliusBalancesResponse
@@ -287,14 +364,24 @@ export class HeliusProvider implements SolanaRPCProvider {
       const token = data.tokens?.find((t) => t.mint === mint)
       return token ? BigInt(token.amount) : 0n
     } catch (error) {
-      // H-2 FIX: Sanitize error message - don't log raw error which might contain sensitive data
-      console.warn(
-        `[HeliusProvider] getTokenBalance error for owner ${owner.slice(0, 8)}..., falling back to DAS`
-      )
-      const assets = await this.getAssetsByOwner(owner)
-      const asset = assets.find((a) => a.mint === mint)
-      return asset?.amount ?? 0n
+      // Only fallback for network/timeout errors, not all errors
+      if (error instanceof NetworkError && error.message.includes('timeout')) {
+        return this.getTokenBalanceFallback(owner, mint)
+      }
+      // Re-throw validation and other errors
+      throw error
     }
+  }
+
+  /**
+   * Fallback method to DAS API for token balance
+   * Only called for specific recoverable errors
+   * @internal
+   */
+  private async getTokenBalanceFallback(owner: string, mint: string): Promise<bigint> {
+    const assets = await this.getAssetsByOwner(owner)
+    const asset = assets.find((a) => a.mint === mint)
+    return asset?.amount ?? 0n
   }
 
   /**

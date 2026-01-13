@@ -27,6 +27,7 @@
 
 import { HeliusProvider, type HeliusProviderConfig } from './helius'
 import { GenericProvider } from './generic'
+import { ValidationError } from '../../../errors'
 
 /**
  * Token asset information returned by providers
@@ -160,11 +161,41 @@ export function createProvider(
   type: ProviderType,
   config: ProviderConfig | GenericProviderConfig
 ): SolanaRPCProvider {
+  // Validate config before type casting
+  if (!config || typeof config !== 'object') {
+    throw new ValidationError('Provider config is required', 'config')
+  }
+
   switch (type) {
-    case 'helius':
-      return new HeliusProvider(config as HeliusProviderConfig)
-    case 'generic':
-      return new GenericProvider(config as GenericProviderConfig)
+    case 'helius': {
+      // Validate required fields for HeliusProvider
+      const heliusConfig = config as HeliusProviderConfig
+      if (!heliusConfig.apiKey || typeof heliusConfig.apiKey !== 'string') {
+        throw new ValidationError(
+          'Helius provider requires an API key',
+          'apiKey'
+        )
+      }
+      if (heliusConfig.cluster && !['mainnet-beta', 'devnet'].includes(heliusConfig.cluster)) {
+        throw new ValidationError(
+          'Invalid cluster. Must be "mainnet-beta" or "devnet"',
+          'cluster'
+        )
+      }
+      return new HeliusProvider(heliusConfig)
+    }
+    case 'generic': {
+      // Validate GenericProvider config
+      const genericConfig = config as GenericProviderConfig
+      // Must have either connection, endpoint, or cluster
+      if (!genericConfig.connection && !genericConfig.endpoint && !genericConfig.cluster) {
+        throw new ValidationError(
+          'Generic provider requires either connection, endpoint, or cluster',
+          'config'
+        )
+      }
+      return new GenericProvider(genericConfig)
+    }
     case 'quicknode':
     case 'triton':
       throw new Error(

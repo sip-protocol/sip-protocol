@@ -265,8 +265,8 @@ describe('Solana RPC Providers', () => {
         } as Response)
 
         const balance = await provider.getTokenBalance(
-          'owner-address',
-          'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+          TEST_OWNER,
+          TEST_MINT
         )
 
         expect(balance).toBe(5000000n)
@@ -285,9 +285,11 @@ describe('Solana RPC Providers', () => {
           json: () => Promise.resolve(mockResponse),
         } as Response)
 
+        // Use valid addresses - we're testing the case where the token doesn't exist
+        // in the response, not invalid addresses
         const balance = await provider.getTokenBalance(
-          'owner-address',
-          'non-existent-mint'
+          TEST_OWNER,
+          'So11111111111111111111111111111111111111112' // Valid mint but not in response
         )
 
         expect(balance).toBe(0n)
