@@ -559,7 +559,7 @@ describe('CSPLClient', () => {
 
       await expect(
         client.getOrCreateAccount('', token)
-      ).rejects.toThrow('Owner')
+      ).rejects.toThrow('Invalid owner address format')
     })
 
     it('should throw without confidential mint', async () => {
@@ -596,7 +596,7 @@ describe('CSPLClient', () => {
     })
 
     it('should fail without token', async () => {
-      const result = await client.applyPendingBalance('owner123', {} as CSPLToken)
+      const result = await client.applyPendingBalance(TEST_ADDRESSES.owner, {} as CSPLToken)
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('Token')
@@ -664,8 +664,8 @@ describe('CSPLClient', () => {
     it('should track cache stats', async () => {
       const token = createTestToken()
 
-      await client.getOrCreateAccount('owner1', token)
-      await client.getBalance('owner1', token)
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
 
       const stats = client.getCacheStats()
 
@@ -676,8 +676,8 @@ describe('CSPLClient', () => {
     it('should clear cache', async () => {
       const token = createTestToken()
 
-      await client.getOrCreateAccount('owner1', token)
-      await client.getBalance('owner1', token)
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
 
       client.clearCache()
       const stats = client.getCacheStats()
@@ -787,28 +787,28 @@ describe('C-SPL Integration', () => {
       const wrapResult = await client.wrapToken({
         mint: token.mint,
         amount: BigInt('1000000000'),
-        owner: 'alice',
+        owner: TEST_ADDRESSES.alice,
       })
       expect(wrapResult.success).toBe(true)
 
       // 2. Transfer
       const transferResult = await client.transfer({
-        from: 'alice',
-        to: 'bob',
+        from: TEST_ADDRESSES.alice,
+        to: TEST_ADDRESSES.bob,
         token,
         encryptedAmount: wrapResult.encryptedBalance!,
       })
       expect(transferResult.success).toBe(true)
 
       // 3. Apply pending (bob)
-      const applyResult = await client.applyPendingBalance('bob', token)
+      const applyResult = await client.applyPendingBalance(TEST_ADDRESSES.bob, token)
       expect(applyResult.success).toBe(true)
 
       // 4. Unwrap (bob)
       const unwrapResult = await client.unwrapToken({
         token,
         encryptedAmount: new Uint8Array([1, 2, 3, 4]),
-        owner: 'bob',
+        owner: TEST_ADDRESSES.bob,
       })
       expect(unwrapResult.success).toBe(true)
     })

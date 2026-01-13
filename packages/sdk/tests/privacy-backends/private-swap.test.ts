@@ -14,13 +14,31 @@ import type { PrivateSwapParams } from '../../src/privacy-backends/private-swap'
 
 // ─── Test Helpers ────────────────────────────────────────────────────────────
 
+// Valid Solana base58 addresses for testing
+const TEST_ADDRESSES = {
+  user: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
+  solMint: 'So11111111111111111111111111111111111111112',
+  solConfMint: 'CSPLSoL1111111111111111111111111111111111',
+  usdcMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  usdcConfMint: 'CSPLUsdc111111111111111111111111111111111',
+}
+
 function createTestToken(symbol: string, decimals: number = 9): CSPLToken {
+  if (symbol === 'SOL') {
+    return {
+      mint: TEST_ADDRESSES.solMint,
+      confidentialMint: TEST_ADDRESSES.solConfMint,
+      decimals,
+      symbol: 'C-SOL',
+      name: 'Confidential SOL',
+    }
+  }
   return {
-    mint: `mint_${symbol}`,
-    confidentialMint: `cspl_${symbol}`,
+    mint: TEST_ADDRESSES.usdcMint,
+    confidentialMint: TEST_ADDRESSES.usdcConfMint,
     decimals,
-    symbol: `C-${symbol}`,
-    name: `Confidential ${symbol}`,
+    symbol: 'C-USDC',
+    name: 'Confidential USDC',
   }
 }
 
@@ -30,7 +48,7 @@ function createSwapParams(overrides: Partial<PrivateSwapParams> = {}): PrivateSw
     outputToken: createTestToken('USDC', 6),
     inputAmount: BigInt('1000000000'), // 1 SOL
     minOutputAmount: BigInt('50000000'), // 50 USDC
-    user: 'user123',
+    user: TEST_ADDRESSES.user,
     ...overrides,
   }
 }
@@ -440,7 +458,7 @@ describe('Private Swap Integration', () => {
         outputToken: createTestToken('USDC', 6),
         inputAmount: BigInt('5000000000'), // 5 SOL
         minOutputAmount: BigInt('200000000'), // Min 200 USDC
-        user: 'institutional_trader',
+        user: TEST_ADDRESSES.user, // Institutional trader
         useStealthOutput: true, // Use stealth address for output
       })
 
