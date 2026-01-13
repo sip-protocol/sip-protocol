@@ -43,6 +43,7 @@ import Client, {
 import { base58 } from '@scure/base'
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
 import { sanitizeUrl } from '../constants'
+import { ValidationError, ErrorCode } from '../../../errors'
 
 /**
  * QuickNode provider configuration
@@ -73,7 +74,7 @@ function validateSolanaAddress(address: string, paramName: string): PublicKey {
   try {
     return new PublicKey(address)
   } catch {
-    throw new Error(`Invalid Solana address for ${paramName}: ${address}`)
+    throw new ValidationError('invalid Solana address format', paramName, undefined, ErrorCode.INVALID_ADDRESS)
   }
 }
 
@@ -107,9 +108,11 @@ export class QuickNodeProvider implements SolanaRPCProvider {
 
   constructor(config: QuickNodeProviderConfig) {
     if (!config.endpoint) {
-      throw new Error(
-        'QuickNode endpoint is required. ' +
-        'Get one at https://www.quicknode.com/endpoints'
+      throw new ValidationError(
+        'endpoint is required. Get one at https://www.quicknode.com/endpoints',
+        'endpoint',
+        undefined,
+        ErrorCode.MISSING_REQUIRED
       )
     }
 
@@ -118,7 +121,12 @@ export class QuickNodeProvider implements SolanaRPCProvider {
       new URL(config.endpoint)
     } catch {
       // H-2 FIX: Sanitize URL to prevent credential exposure in error messages
-      throw new Error(`Invalid QuickNode endpoint URL: ${sanitizeUrl(config.endpoint)}`)
+      throw new ValidationError(
+        `invalid endpoint URL format: ${sanitizeUrl(config.endpoint)}`,
+        'endpoint',
+        undefined,
+        ErrorCode.INVALID_INPUT
+      )
     }
 
     this.connection = new Connection(config.endpoint, 'confirmed')
@@ -204,9 +212,11 @@ export class QuickNodeProvider implements SolanaRPCProvider {
    */
   private async getGrpcClient(): Promise<Client> {
     if (!this.grpcEnabled) {
-      throw new Error(
-        'gRPC subscriptions are disabled. ' +
-        'Set enableGrpc: true and ensure Yellowstone add-on is enabled.'
+      throw new ValidationError(
+        'gRPC subscriptions are disabled. Set enableGrpc: true and ensure Yellowstone add-on is enabled',
+        'enableGrpc',
+        undefined,
+        ErrorCode.INVALID_INPUT
       )
     }
 

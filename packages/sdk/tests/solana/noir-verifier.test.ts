@@ -12,6 +12,8 @@ import {
   CIRCUIT_METADATA,
   DEFAULT_RPC_URLS,
   SOLANA_ZK_PROGRAM_IDS,
+  SUNSPOT_VERIFIER_PROGRAM_IDS,
+  getSunspotVerifierProgramId,
   SolanaNoirError,
   SolanaNoirErrorCode,
   isNoirCircuitType,
@@ -585,5 +587,178 @@ describe('SolanaNoirError', () => {
 
     expect(error).toBeInstanceOf(Error)
     expect(error).toBeInstanceOf(SolanaNoirError)
+  })
+})
+
+// ─── Sunspot Integration Tests ────────────────────────────────────────────────
+
+describe('Sunspot Integration', () => {
+  describe('SUNSPOT_VERIFIER_PROGRAM_IDS', () => {
+    it('should have funding proof verifier on devnet', () => {
+      expect(SUNSPOT_VERIFIER_PROGRAM_IDS.FUNDING_PROOF_DEVNET).toBe(
+        '3nqQEuio4AVJo8H9pZJoERNFERWD5JNSqYan4UnsHhim'
+      )
+    })
+
+    it('should have placeholders for other verifiers', () => {
+      // These are TBD - will be deployed as part of the pipeline
+      expect(SUNSPOT_VERIFIER_PROGRAM_IDS.VALIDITY_PROOF_DEVNET).toBeDefined()
+      expect(SUNSPOT_VERIFIER_PROGRAM_IDS.FULFILLMENT_PROOF_DEVNET).toBeDefined()
+    })
+  })
+
+  describe('getSunspotVerifierProgramId', () => {
+    it('should return funding proof verifier for devnet', () => {
+      const programId = getSunspotVerifierProgramId('funding', 'devnet')
+
+      expect(programId).toBe('3nqQEuio4AVJo8H9pZJoERNFERWD5JNSqYan4UnsHhim')
+    })
+
+    it('should return null for validity proof on devnet (not deployed yet)', () => {
+      const programId = getSunspotVerifierProgramId('validity', 'devnet')
+
+      expect(programId).toBeNull()
+    })
+
+    it('should return null for mainnet (not deployed yet)', () => {
+      const programId = getSunspotVerifierProgramId('funding', 'mainnet-beta')
+
+      expect(programId).toBeNull()
+    })
+  })
+
+  describe('serializeProofForSunspot', () => {
+    let verifier: SolanaNoirVerifier
+
+    beforeEach(async () => {
+      verifier = new SolanaNoirVerifier()
+      await verifier.initialize()
+    })
+
+    afterEach(async () => {
+      await verifier.destroy()
+    })
+
+    it('should serialize proof for Sunspot verifier', () => {
+      const proof = createMockProof('funding')
+
+      const serialized = verifier.serializeProofForSunspot(proof)
+
+      // Should be Buffer
+      expect(Buffer.isBuffer(serialized)).toBe(true)
+
+      // Should contain proof bytes + public witness
+      expect(serialized.length).toBeGreaterThan(256)
+    })
+
+    it('should include public witness header', () => {
+      const proof = createMockProof('funding')
+
+      const serialized = verifier.serializeProofForSunspot(proof)
+
+      // Proof is 256 bytes (mock), then public witness starts
+      // Public witness format: [num_inputs (4 bytes)] [inputs...]
+      const numInputs = serialized.readUInt32LE(256)
+      expect(numInputs).toBe(3) // funding proof has 3 public inputs
+    })
+
+    it('should include all public inputs', () => {
+      const proof = createMockProof('funding')
+
+      const serialized = verifier.serializeProofForSunspot(proof)
+
+      // Total size: 256 (proof) + 4 (count) + 3*32 (inputs) = 356 bytes
+      expect(serialized.length).toBe(256 + 4 + 3 * 32)
+    })
+  })
+
+  describe('createSunspotVerifyInstruction', () => {
+    let verifier: SolanaNoirVerifier
+
+    beforeEach(async () => {
+      verifier = new SolanaNoirVerifier()
+      await verifier.initialize()
+    })
+
+    afterEach(async () => {
+      await verifier.destroy()
+    })
+
+    it('should create instruction with correct program ID', () => {
+      const proof = createMockProof('funding')
+      const programId = '3nqQEuio4AVJo8H9pZJoERNFERWD5JNSqYan4UnsHhim'
+
+      const instruction = verifier.createSunspotVerifyInstruction(proof, programId)
+
+      expect(instruction.programId.toBase58()).toBe(programId)
+    })
+
+    it('should have no required accounts', () => {
+      const proof = createMockProof('funding')
+      const programId = '3nqQEuio4AVJo8H9pZJoERNFERWD5JNSqYan4UnsHhim'
+
+      const instruction = verifier.createSunspotVerifyInstruction(proof, programId)
+
+      // Sunspot verifiers don't require any accounts
+      expect(instruction.keys).toHaveLength(0)
+    })
+
+    it('should include serialized proof as data', () => {
+      const proof = createMockProof('funding')
+      const programId = '3nqQEuio4AVJo8H9pZJoERNFERWD5JNSqYan4UnsHhim'
+
+      const instruction = verifier.createSunspotVerifyInstruction(proof, programId)
+
+      // Data should match serializeProofForSunspot output
+      const expectedData = verifier.serializeProofForSunspot(proof)
+      expect(instruction.data).toEqual(expectedData)
+    })
+  })
+
+  describe('verifyOnChain with Sunspot', () => {
+    let verifier: SolanaNoirVerifier
+
+    beforeEach(async () => {
+      verifier = new SolanaNoirVerifier()
+      await verifier.initialize()
+    })
+
+    afterEach(async () => {
+      await verifier.destroy()
+    })
+
+    it('should return error for circuits without deployed verifier', async () => {
+      const proof = createMockProof('validity') // validity not deployed yet
+
+      const mockWallet = {
+        publicKey: { toBase58: () => 'mockPublicKey' },
+        signTransaction: async <T>(tx: T) => tx,
+      }
+
+      const result = await verifier.verifyOnChain(proof, mockWallet)
+
+      expect(result.valid).toBe(false)
+      expect(result.error).toContain('No Sunspot verifier deployed')
+    })
+  })
+
+  describe('getConnection', () => {
+    it('should return Solana connection', () => {
+      const verifier = new SolanaNoirVerifier()
+
+      const connection = verifier.getConnection()
+
+      expect(connection).toBeDefined()
+      expect(connection.rpcEndpoint).toBe(DEFAULT_RPC_URLS.devnet)
+    })
+
+    it('should use custom RPC URL', () => {
+      const customUrl = 'https://custom-rpc.example.com'
+      const verifier = new SolanaNoirVerifier({ rpcUrl: customUrl })
+
+      const connection = verifier.getConnection()
+
+      expect(connection.rpcEndpoint).toBe(customUrl)
+    })
   })
 })

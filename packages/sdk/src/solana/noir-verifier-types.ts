@@ -245,6 +245,54 @@ export const SOLANA_ZK_PROGRAM_IDS = {
   SIP_NOIR_VERIFIER: 'SIPNoirVerifier1111111111111111111111111',
 } as const
 
+/**
+ * Sunspot-deployed verifier program IDs for each circuit type
+ *
+ * These are Groth16 verifiers built with Sunspot and deployed to Solana.
+ * Each circuit type has its own dedicated verifier program.
+ */
+export const SUNSPOT_VERIFIER_PROGRAM_IDS = {
+  /** Funding proof verifier (devnet) - proves sufficient balance */
+  FUNDING_PROOF_DEVNET: '3nqQEuio4AVJo8H9pZJoERNFERWD5JNSqYan4UnsHhim',
+  /** Validity proof verifier (devnet) - proves intent authorization */
+  VALIDITY_PROOF_DEVNET: '', // TBD
+  /** Fulfillment proof verifier (devnet) - proves correct execution */
+  FULFILLMENT_PROOF_DEVNET: '', // TBD
+  /** Funding proof verifier (mainnet) */
+  FUNDING_PROOF_MAINNET: '', // TBD
+  /** Validity proof verifier (mainnet) */
+  VALIDITY_PROOF_MAINNET: '', // TBD
+  /** Fulfillment proof verifier (mainnet) */
+  FULFILLMENT_PROOF_MAINNET: '', // TBD
+} as const
+
+/**
+ * Get the verifier program ID for a circuit type and network
+ */
+export function getSunspotVerifierProgramId(
+  circuitType: NoirCircuitType,
+  network: SolanaNetwork
+): string | null {
+  const isMainnet = network === 'mainnet-beta'
+
+  switch (circuitType) {
+    case 'funding':
+      return isMainnet
+        ? SUNSPOT_VERIFIER_PROGRAM_IDS.FUNDING_PROOF_MAINNET || null
+        : SUNSPOT_VERIFIER_PROGRAM_IDS.FUNDING_PROOF_DEVNET || null
+    case 'validity':
+      return isMainnet
+        ? SUNSPOT_VERIFIER_PROGRAM_IDS.VALIDITY_PROOF_MAINNET || null
+        : SUNSPOT_VERIFIER_PROGRAM_IDS.VALIDITY_PROOF_DEVNET || null
+    case 'fulfillment':
+      return isMainnet
+        ? SUNSPOT_VERIFIER_PROGRAM_IDS.FULFILLMENT_PROOF_MAINNET || null
+        : SUNSPOT_VERIFIER_PROGRAM_IDS.FULFILLMENT_PROOF_DEVNET || null
+    default:
+      return null
+  }
+}
+
 // ─── Error Types ─────────────────────────────────────────────────────────────
 
 /**

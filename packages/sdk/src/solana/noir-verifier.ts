@@ -63,6 +63,13 @@
 
 import type { ZKProof } from '@sip-protocol/types'
 import {
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  ComputeBudgetProgram,
+} from '@solana/web3.js'
+import {
   type NoirCircuitType,
   type SolanaNoirVerifierConfig,
   type SolanaVerificationKey,
@@ -80,6 +87,7 @@ import {
   isNoirCircuitType,
   isValidSolanaProof,
   estimateComputeUnits,
+  getSunspotVerifierProgramId,
 } from './noir-verifier-types'
 
 // Re-export types for convenience
@@ -110,6 +118,7 @@ export class SolanaNoirVerifier {
   private config: Required<SolanaNoirVerifierConfig>
   private _isReady = false
   private verificationKeys: Map<NoirCircuitType, SolanaVerificationKey> = new Map()
+  private connection: Connection
 
   constructor(config: SolanaNoirVerifierConfig = {}) {
     const network = config.network ?? 'devnet'
@@ -122,6 +131,15 @@ export class SolanaNoirVerifier {
       commitment: config.commitment ?? 'confirmed',
       maxComputeUnits: config.maxComputeUnits ?? 400000,
     }
+
+    this.connection = new Connection(this.config.rpcUrl, this.config.commitment)
+  }
+
+  /**
+   * Get the Solana connection
+   */
+  getConnection(): Connection {
+    return this.connection
   }
 
   /**
@@ -391,7 +409,7 @@ export class SolanaNoirVerifier {
   /**
    * Verify a proof on-chain
    *
-   * Submits a transaction to Solana to verify the proof.
+   * Submits a transaction to Solana to verify the proof using the Sunspot verifier.
    *
    * @param proof - The proof to verify
    * @param wallet - Wallet interface with signTransaction method
@@ -399,7 +417,10 @@ export class SolanaNoirVerifier {
    */
   async verifyOnChain(
     proof: ZKProof,
-    _wallet: { publicKey: { toBase58(): string }; signTransaction: (tx: unknown) => Promise<unknown> }
+    wallet: {
+      publicKey: { toBase58(): string }
+      signTransaction: <T extends Transaction>(tx: T) => Promise<T>
+    }
   ): Promise<SolanaVerificationResult> {
     this.ensureReady()
 
@@ -412,6 +433,15 @@ export class SolanaNoirVerifier {
 
     const circuitType = proof.type as NoirCircuitType
 
+    // Get the Sunspot verifier program ID for this circuit type
+    const verifierProgramId = getSunspotVerifierProgramId(circuitType, this.config.network)
+    if (!verifierProgramId) {
+      return {
+        valid: false,
+        error: `No Sunspot verifier deployed for circuit type: ${circuitType} on ${this.config.network}`,
+      }
+    }
+
     try {
       // First verify off-chain (fast fail for invalid proofs)
       const offChainValid = await this.verifyOffChain(proof)
@@ -422,8 +452,8 @@ export class SolanaNoirVerifier {
         }
       }
 
-      // Create verify instruction (will be used when on-chain program is deployed)
-      const _instruction = this.createVerifyInstruction(proof)
+      // Create Sunspot verify instruction
+      const instruction = this.createSunspotVerifyInstruction(proof, verifierProgramId)
 
       // Estimate compute units
       const computeUnits = estimateComputeUnits(circuitType)
@@ -435,24 +465,57 @@ export class SolanaNoirVerifier {
         }
       }
 
-      // In a real implementation, we would:
-      // 1. Create a Solana transaction with the instruction
-      // 2. Add compute budget instruction
-      // 3. Sign and send the transaction
-      // 4. Wait for confirmation
+      // Create transaction with compute budget
+      const transaction = new Transaction()
 
-      // For now, return simulated success based on off-chain verification
-      const simulatedSignature = this.generateSimulatedSignature()
+      // Add compute budget instruction
+      transaction.add(
+        ComputeBudgetProgram.setComputeUnitLimit({ units: this.config.maxComputeUnits })
+      )
+
+      // Add verify instruction
+      transaction.add(instruction)
+
+      // Get recent blockhash
+      const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash(
+        this.config.commitment
+      )
+      transaction.recentBlockhash = blockhash
+      transaction.feePayer = new PublicKey(wallet.publicKey.toBase58())
+
+      // Sign transaction
+      const signedTransaction = await wallet.signTransaction(transaction)
+
+      // Send transaction
+      const signature = await this.connection.sendRawTransaction(signedTransaction.serialize())
+
+      // Wait for confirmation
+      const confirmation = await this.connection.confirmTransaction(
+        {
+          signature,
+          blockhash,
+          lastValidBlockHeight,
+        },
+        this.config.commitment
+      )
+
+      if (confirmation.value.err) {
+        return {
+          valid: false,
+          error: `Transaction failed: ${JSON.stringify(confirmation.value.err)}`,
+          signature,
+        }
+      }
 
       if (this.config.verbose) {
         console.log(`[SolanaNoirVerifier] On-chain verification: VALID`)
-        console.log(`[SolanaNoirVerifier] Signature: ${simulatedSignature}`)
+        console.log(`[SolanaNoirVerifier] Signature: ${signature}`)
         console.log(`[SolanaNoirVerifier] Compute units: ${computeUnits}`)
       }
 
       return {
         valid: true,
-        signature: simulatedSignature,
+        signature,
         computeUnits,
       }
     } catch (error) {
@@ -461,6 +524,52 @@ export class SolanaNoirVerifier {
         error: error instanceof Error ? error.message : String(error),
       }
     }
+  }
+
+  /**
+   * Create a Sunspot verifier instruction
+   *
+   * Sunspot verifiers expect instruction data in format: proof_bytes || public_witness_bytes
+   */
+  createSunspotVerifyInstruction(proof: ZKProof, programId: string): TransactionInstruction {
+    const serialized = this.serializeProofForSunspot(proof)
+
+    return new TransactionInstruction({
+      programId: new PublicKey(programId),
+      keys: [], // Sunspot verifiers don't require any accounts
+      data: serialized,
+    })
+  }
+
+  /**
+   * Serialize proof for Sunspot verifier
+   *
+   * Sunspot expects: proof_bytes || public_witness_bytes
+   * where public_witness contains the number of public inputs followed by the values
+   */
+  serializeProofForSunspot(proof: ZKProof): Buffer {
+    // Convert hex proof to bytes
+    const proofHex = proof.proof.startsWith('0x') ? proof.proof.slice(2) : proof.proof
+    const proofBytes = Buffer.from(proofHex, 'hex')
+
+    // Convert public inputs to public witness format
+    // Format: [num_inputs (4 bytes LE)] [input_1 (32 bytes)] [input_2 (32 bytes)] ...
+    const numInputs = proof.publicInputs.length
+    const publicWitnessSize = 4 + numInputs * 32
+
+    const publicWitness = Buffer.alloc(publicWitnessSize)
+    publicWitness.writeUInt32LE(numInputs, 0)
+
+    for (let i = 0; i < numInputs; i++) {
+      const inputHex = proof.publicInputs[i].startsWith('0x')
+        ? proof.publicInputs[i].slice(2)
+        : proof.publicInputs[i]
+      const inputBytes = Buffer.from(inputHex.padStart(64, '0'), 'hex')
+      inputBytes.copy(publicWitness, 4 + i * 32)
+    }
+
+    // Concatenate proof and public witness
+    return Buffer.concat([proofBytes, publicWitness])
   }
 
   /**
@@ -677,16 +786,6 @@ export class SolanaNoirVerifier {
     }
   }
 
-  private generateSimulatedSignature(): string {
-    // Generate a realistic-looking signature for simulation
-    const bytes = new Uint8Array(64)
-    for (let i = 0; i < 64; i++) {
-      bytes[i] = Math.floor(Math.random() * 256)
-    }
-    return Array.from(bytes)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('')
-  }
 }
 
 /**

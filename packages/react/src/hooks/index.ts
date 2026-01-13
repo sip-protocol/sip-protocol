@@ -27,3 +27,10 @@ export {
   type ClaimParams,
   type ClaimAllParams,
 } from './use-scan-payments'
+
+// Privacy Advisor hook (LangChain-powered)
+export {
+  usePrivacyAdvisor,
+  type UsePrivacyAdvisorParams,
+  type UsePrivacyAdvisorReturn,
+} from './use-privacy-advisor'
