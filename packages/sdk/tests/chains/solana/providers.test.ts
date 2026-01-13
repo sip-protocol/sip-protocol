@@ -54,7 +54,7 @@ describe('Solana RPC Providers', () => {
     it('should throw for unknown provider type', () => {
       expect(() =>
         createProvider('unknown' as ProviderType, {})
-      ).toThrow('Unknown provider type: unknown')
+      ).toThrow('unknown provider type: unknown')
     })
 
     it('should create QuickNodeProvider with quicknode type', () => {
@@ -496,7 +496,7 @@ describe('Solana RPC Providers', () => {
 
       await expect(
         provider.getAssetsByOwner('invalid-address')
-      ).rejects.toThrow('Invalid Solana address for owner')
+      ).rejects.toThrow('invalid Solana address format')
     })
 
     it('should validate addresses in getTokenBalance', async () => {
@@ -506,11 +506,11 @@ describe('Solana RPC Providers', () => {
 
       await expect(
         provider.getTokenBalance('invalid-owner', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
-      ).rejects.toThrow('Invalid Solana address for owner')
+      ).rejects.toThrow('invalid Solana address format')
 
       await expect(
         provider.getTokenBalance('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'invalid-mint')
-      ).rejects.toThrow('Invalid Solana address for mint')
+      ).rejects.toThrow('invalid Solana address format')
     })
   })
 
@@ -518,13 +518,13 @@ describe('Solana RPC Providers', () => {
     it('should require endpoint', () => {
       expect(
         () => new QuickNodeProvider({ endpoint: '' })
-      ).toThrow('QuickNode endpoint is required')
+      ).toThrow('endpoint is required')
     })
 
     it('should validate endpoint URL format', () => {
       expect(
         () => new QuickNodeProvider({ endpoint: 'not-a-url' })
-      ).toThrow('Invalid QuickNode endpoint URL')
+      ).toThrow('invalid endpoint URL format')
     })
 
     it('should accept valid endpoint', () => {
@@ -564,7 +564,7 @@ describe('Solana RPC Providers', () => {
 
       await expect(
         provider.getAssetsByOwner('invalid-address')
-      ).rejects.toThrow('Invalid Solana address for owner')
+      ).rejects.toThrow('invalid Solana address format')
     })
 
     it('should validate addresses in getTokenBalance', async () => {
@@ -574,11 +574,11 @@ describe('Solana RPC Providers', () => {
 
       await expect(
         provider.getTokenBalance('invalid-owner', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
-      ).rejects.toThrow('Invalid Solana address for owner')
+      ).rejects.toThrow('invalid Solana address format')
 
       await expect(
         provider.getTokenBalance('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'invalid-mint')
-      ).rejects.toThrow('Invalid Solana address for mint')
+      ).rejects.toThrow('invalid Solana address format')
     })
 
     it('should validate address in subscribeToTransfers', async () => {
@@ -588,7 +588,7 @@ describe('Solana RPC Providers', () => {
 
       await expect(
         provider.subscribeToTransfers('invalid-address', () => {})
-      ).rejects.toThrow('Invalid Solana address for address')
+      ).rejects.toThrow('invalid Solana address format')
     })
 
     it('should throw when subscribing with gRPC disabled', async () => {
@@ -616,7 +616,7 @@ describe('Solana RPC Providers', () => {
     it('should require xToken', () => {
       expect(
         () => new TritonProvider({ xToken: '' })
-      ).toThrow('Triton x-token is required')
+      ).toThrow('x-token is required')
     })
 
     it('should accept valid xToken', () => {
@@ -680,7 +680,7 @@ describe('Solana RPC Providers', () => {
 
       await expect(
         provider.getAssetsByOwner('invalid-address')
-      ).rejects.toThrow('Invalid Solana address for owner')
+      ).rejects.toThrow('invalid Solana address format')
     })
 
     it('should validate addresses in getTokenBalance', async () => {
@@ -690,11 +690,11 @@ describe('Solana RPC Providers', () => {
 
       await expect(
         provider.getTokenBalance('invalid-owner', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
-      ).rejects.toThrow('Invalid Solana address for owner')
+      ).rejects.toThrow('invalid Solana address format')
 
       await expect(
         provider.getTokenBalance('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 'invalid-mint')
-      ).rejects.toThrow('Invalid Solana address for mint')
+      ).rejects.toThrow('invalid Solana address format')
     })
 
     it('should validate address in subscribeToTransfers', async () => {
@@ -704,7 +704,7 @@ describe('Solana RPC Providers', () => {
 
       await expect(
         provider.subscribeToTransfers('invalid-address', () => {})
-      ).rejects.toThrow('Invalid Solana address for address')
+      ).rejects.toThrow('invalid Solana address format')
     })
 
     it('should throw when subscribing with gRPC disabled', async () => {

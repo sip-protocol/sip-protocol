@@ -34,7 +34,7 @@ import {
   TokenInvalidAccountOwnerError,
 } from '@solana/spl-token'
 import type { SolanaRPCProvider, TokenAsset, GenericProviderConfig } from './interface'
-import { NetworkError } from '../../../errors'
+import { NetworkError, ValidationError, ErrorCode } from '../../../errors'
 import { sanitizeUrl } from '../constants'
 
 /**
@@ -61,7 +61,7 @@ function validateSolanaAddress(address: string, paramName: string): PublicKey {
   try {
     return new PublicKey(address)
   } catch {
-    throw new Error(`Invalid Solana address for ${paramName}: ${address}`)
+    throw new ValidationError('invalid Solana address format', paramName, undefined, ErrorCode.INVALID_ADDRESS)
   }
 }
 
