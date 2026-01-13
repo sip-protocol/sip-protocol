@@ -21,6 +21,7 @@ import type {
   TokenAsset,
   ProviderType,
 } from '../../../src/chains/solana/providers/interface'
+import { sanitizeUrl } from '../../../src/chains/solana/constants'
 
 // Valid Solana addresses for testing (32-44 chars, base58)
 const TEST_OWNER = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU'
@@ -825,5 +826,114 @@ describe('Provider Integration with scanForPayments', () => {
 
     // Verify provider is accepted in type
     expect(params.provider).toBeInstanceOf(HeliusProvider)
+  })
+})
+
+describe('sanitizeUrl - H2 API Key Leak Prevention', () => {
+  describe('query parameter sanitization', () => {
+    it('should mask api-key query parameter', () => {
+      const url = 'https://api.helius.xyz/v0/tokens?api-key=secret123abc'
+      expect(sanitizeUrl(url)).toBe('https://api.helius.xyz/v0/tokens?api-key=***')
+    })
+
+    it('should mask apiKey query parameter (camelCase)', () => {
+      const url = 'https://api.example.com?apiKey=mySecretKey123'
+      expect(sanitizeUrl(url)).toBe('https://api.example.com/?apiKey=***')
+    })
+
+    it('should mask token query parameter', () => {
+      const url = 'https://api.example.com?token=bearer123'
+      expect(sanitizeUrl(url)).toBe('https://api.example.com/?token=***')
+    })
+
+    it('should mask x-token query parameter', () => {
+      const url = 'https://api.triton.com?x-token=triton-secret'
+      expect(sanitizeUrl(url)).toBe('https://api.triton.com/?x-token=***')
+    })
+
+    it('should preserve non-sensitive query parameters', () => {
+      const url = 'https://api.example.com?cluster=devnet&format=json&api-key=secret'
+      const sanitized = sanitizeUrl(url)
+      expect(sanitized).toContain('cluster=devnet')
+      expect(sanitized).toContain('format=json')
+      expect(sanitized).toContain('api-key=***')
+      expect(sanitized).not.toContain('secret')
+    })
+  })
+
+  describe('path segment sanitization', () => {
+    it('should mask QuickNode-style API keys in path', () => {
+      const url = 'https://example.solana-mainnet.quiknode.pro/abc123def456789012345678901234'
+      const sanitized = sanitizeUrl(url)
+      expect(sanitized).toContain('quiknode.pro/***')
+      expect(sanitized).not.toContain('abc123def456')
+    })
+
+    it('should mask Triton-style tokens in path', () => {
+      const url = 'https://mainnet.rpcpool.com/abcdefghij1234567890'
+      const sanitized = sanitizeUrl(url)
+      expect(sanitized).toContain('rpcpool.com/***')
+      expect(sanitized).not.toContain('abcdefghij1234567890')
+    })
+
+    it('should preserve short path segments', () => {
+      const url = 'https://api.example.com/v0/tokens/addresses'
+      expect(sanitizeUrl(url)).toBe('https://api.example.com/v0/tokens/addresses')
+    })
+  })
+
+  describe('basic auth sanitization', () => {
+    it('should mask basic auth credentials', () => {
+      const url = 'https://user:password@api.example.com/endpoint'
+      const sanitized = sanitizeUrl(url)
+      expect(sanitized).toContain('***@api.example.com')
+      expect(sanitized).not.toContain('user')
+      expect(sanitized).not.toContain('password')
+    })
+  })
+
+  describe('edge cases', () => {
+    it('should handle URLs without credentials', () => {
+      const url = 'https://api.devnet.solana.com'
+      expect(sanitizeUrl(url)).toBe('https://api.devnet.solana.com/')
+    })
+
+    it('should handle malformed URLs gracefully', () => {
+      const url = 'not-a-valid-url-with-api-key=secret'
+      const sanitized = sanitizeUrl(url)
+      // Should use fallback regex sanitization
+      expect(sanitized).not.toContain('secret')
+    })
+
+    it('should preserve URL structure', () => {
+      const url = 'https://api.helius.xyz:443/v0/tokens?api-key=secret#section'
+      const sanitized = sanitizeUrl(url)
+      expect(sanitized).toContain('api.helius.xyz')
+      expect(sanitized).toContain('/v0/tokens')
+      expect(sanitized).toContain('api-key=***')
+    })
+  })
+
+  describe('real provider URL patterns', () => {
+    it('should sanitize Helius REST API URL', () => {
+      const url = 'https://api.helius.xyz/v0/addresses/owner123/balances?api-key=abc123-uuid-here'
+      const sanitized = sanitizeUrl(url)
+      expect(sanitized).toContain('api-key=***')
+      expect(sanitized).not.toContain('abc123-uuid-here')
+    })
+
+    it('should sanitize QuickNode endpoint', () => {
+      const url = 'https://proud-spring-firefly.solana-mainnet.quiknode.pro/a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/'
+      const sanitized = sanitizeUrl(url)
+      expect(sanitized).toContain('quiknode.pro/***')
+      expect(sanitized).not.toContain('a1b2c3d4e5f6')
+    })
+
+    it('should sanitize Triton endpoint with x-token', () => {
+      const url = 'https://mainnet.rpcpool.com/my-super-secret-triton-token-12345'
+      const sanitized = sanitizeUrl(url)
+      expect(sanitized).toContain('rpcpool.com/***')
+      expect(sanitized).not.toContain('my-super-secret')
+    })
   })
 })

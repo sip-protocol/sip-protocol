@@ -46,7 +46,8 @@ import {
 import type { StealthAddress } from '@sip-protocol/types'
 import { parseAnnouncement } from '../types'
 import type { SolanaScanResult } from '../types'
-import { SIP_MEMO_PREFIX, SOLANA_TOKEN_MINTS } from '../constants'
+import { SIP_MEMO_PREFIX } from '../constants'
+import { getTokenSymbol, parseTokenTransferFromBalances } from '../utils'
 import { ValidationError, SecurityError } from '../../../errors'
 import { hmac } from '@noble/hashes/hmac'
 import { sha256 } from '@noble/hashes/sha256'
@@ -656,8 +657,11 @@ async function processRawTransaction(
     }
 
     if (isOurs) {
-      // Parse token transfer info
-      const transferInfo = parseTokenTransferFromWebhook(tx)
+      // Parse token transfer info using shared utility
+      const transferInfo = parseTokenTransferFromBalances(
+        tx.meta.preTokenBalances,
+        tx.meta.postTokenBalances
+      )
 
       const payment: SolanaScanResult = {
         stealthAddress: announcement.stealthAddress || '',
@@ -684,61 +688,7 @@ async function processRawTransaction(
   return { found: false, signature }
 }
 
-/**
- * Parse token transfer info from webhook transaction
- *
- * Analyzes pre/post token balances to determine the transferred token and amount.
- *
- * @param tx - Raw Helius webhook transaction
- * @returns Token mint and amount transferred, or null if no transfer found
- * @internal
- */
-function parseTokenTransferFromWebhook(
-  tx: HeliusWebhookTransaction
-): { mint: string; amount: bigint } | null {
-  const { preTokenBalances, postTokenBalances } = tx.meta
-
-  if (!postTokenBalances || !preTokenBalances) {
-    return null
-  }
-
-  // Find token balance changes
-  for (const post of postTokenBalances) {
-    const pre = preTokenBalances.find(
-      (p) => p.accountIndex === post.accountIndex
-    )
-
-    const postAmount = BigInt(post.uiTokenAmount.amount)
-    const preAmount = pre ? BigInt(pre.uiTokenAmount.amount) : 0n
-
-    if (postAmount > preAmount) {
-      return {
-        mint: post.mint,
-        amount: postAmount - preAmount,
-      }
-    }
-  }
-
-  return null
-}
-
-/**
- * Get token symbol from mint address
- *
- * Looks up the token symbol for a known mint address.
- *
- * @param mint - SPL token mint address (base58)
- * @returns Token symbol (e.g., 'USDC') or undefined if not found
- * @internal
- */
-function getTokenSymbol(mint: string): string | undefined {
-  for (const [symbol, address] of Object.entries(SOLANA_TOKEN_MINTS)) {
-    if (address === mint) {
-      return symbol
-    }
-  }
-  return undefined
-}
+// Token transfer parsing and symbol lookup moved to ../utils.ts (L3 fix)
 
 /**
  * Type guard for raw Helius webhook transaction

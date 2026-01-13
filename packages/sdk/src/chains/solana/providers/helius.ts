@@ -28,6 +28,7 @@ import {
   HELIUS_API_KEY_MIN_LENGTH,
   HELIUS_DAS_PAGE_LIMIT,
   HELIUS_MAX_PAGES,
+  sanitizeUrl,
 } from '../constants'
 
 /** Default fetch timeout in milliseconds */
@@ -75,10 +76,11 @@ async function fetchWithTimeout(
     return response
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
+      // H-2 FIX: Sanitize URL to prevent credential exposure
       throw new NetworkError(
         `Request timeout after ${timeoutMs}ms`,
         undefined,
-        { endpoint: url }
+        { endpoint: sanitizeUrl(url) }
       )
     }
     throw error
@@ -251,11 +253,11 @@ export class HeliusProvider implements SolanaRPCProvider {
       })
 
       if (!response.ok) {
-        // H-2 FIX: Never include API key in error messages
+        // H-2 FIX: Never include API key in error messages, sanitize URLs
         throw new NetworkError(
           `Helius API error: ${response.status} ${response.statusText} (key: ${maskApiKey(this.apiKey)})`,
           undefined,
-          { endpoint: this.rpcUrl, statusCode: response.status }
+          { endpoint: sanitizeUrl(this.rpcUrl), statusCode: response.status }
         )
       }
 
@@ -266,7 +268,7 @@ export class HeliusProvider implements SolanaRPCProvider {
         throw new NetworkError(
           `Helius RPC error: ${data.error.message} (code: ${data.error.code})`,
           undefined,
-          { endpoint: this.rpcUrl }
+          { endpoint: sanitizeUrl(this.rpcUrl) }
         )
       }
 
@@ -352,10 +354,11 @@ export class HeliusProvider implements SolanaRPCProvider {
           return this.getTokenBalanceFallback(owner, mint)
         }
         // For other errors, throw rather than silently fallback
+        // H-2 FIX: Sanitize URL to prevent credential exposure
         throw new NetworkError(
           `Helius Balances API error: ${response.status}`,
           undefined,
-          { endpoint: url, statusCode: response.status }
+          { endpoint: sanitizeUrl(url), statusCode: response.status }
         )
       }
 
