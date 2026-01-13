@@ -617,7 +617,7 @@ Multi-wallet support and hardware wallet integration.
 
 ### Solana Privacy Hack Sprint (Jan 12 - Feb 1, 2026) 🎯
 
-**Hackathon:** [solana.com/privacyhack](https://solana.com/privacyhack) — $100K+ prize pool
+**Hackathon:** [solana.com/privacyhack](https://solana.com/privacyhack) — **$150K+ prize pool** (updated Jan 13)
 
 **Epic Issue:** [#443 - HACK-EPIC: Solana Privacy Hack](../../issues/443)
 
@@ -625,30 +625,43 @@ Multi-wallet support and hardware wallet integration.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                     SOLANA PRIVACY HACK STRATEGY                             │
+│                 SOLANA PRIVACY HACK STRATEGY (Updated Jan 13)                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   TRACKS (3):                                                               │
+│   TRACKS (3) — $48K:                                                        │
 │   • Private Payments ($15K) — Devnet deploy + app.sip-protocol.org/payments │
 │   • Privacy Tooling ($15K) — SDK + React hooks (STRONGEST)                  │
 │   • Open Track ($18K) — Privacy Aggregator narrative                        │
 │                                                                             │
-│   SPONSOR BOUNTIES (8):                                                     │
+│   SPONSOR BOUNTIES (12) — $101.5K+:                                         │
+│   • ShadowWire ($15K) — PARTNER! Same crypto, add viewing keys [NEW]        │
+│   • PrivacyCash ($15K) — Pool mixing backend integration [TRIPLED]          │
 │   • Arcium ($10K) — MPC + C-SPL token standard                              │
 │   • Aztec/Noir ($10K) — Already using Noir! Just showcase                   │
 │   • Inco ($6K) — FHE compute privacy adapter                                │
-│   • PrivacyCash ($6K) — Pool mixing backend integration                     │
 │   • Helius ($5K) — DAS API + Webhooks for stealth scanning                  │
+│   • MagicBlock ($5K) — TEE-based privacy (INTEGRATE) [NEW]                  │
+│   • QuickNode ($3K) — Open-source tooling                                   │
+│   • Hacken ($2K voucher) — Security audit [NEW]                             │
 │   • Range ($1.5K+) — Viewing keys = selective disclosure (SWEET SPOT)       │
 │   • Encrypt.trade ($1K) — Surveillance tool + privacy explainer             │
-│   • QuickNode (TBD) — Details pending                                       │
+│   • Starpay — ❌ SKIPPED (no public API)                                    │
 │                                                                             │
-│   TOTAL POTENTIAL: $88K+ (all tracks + all bounties)                        │
-│   REALISTIC TARGET: $36.5K (Tooling + Noir + Range + Helius + Encrypt)      │
-│   STRETCH GOAL: $88K+ (everything)                                          │
+│   PHILOSOPHY: "No competitors, only integration partners"                   │
+│                                                                             │
+│   TOTAL AVAILABLE: $111.5K cash + $2K voucher                               │
+│   REALISTIC TARGET: $55-75K                                                 │
+│   STRETCH GOAL: $100K+                                                      │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**ShadowWire Partner Strategy (NEW - $15K):**
+
+ShadowWire uses **Pedersen Commitments + Bulletproofs** (same crypto as SIP!) but has **NO viewing keys**.
+
+**Integration:** Build `ShadowWireAdapter`, add viewing keys, support USD1 stablecoin ($2.5K bonus).
+**Value Prop:** "ShadowWire hides amounts. SIP adds compliance = privacy institutions can use."
 
 **Hackathon Sprint Issues:**
 
@@ -679,24 +692,36 @@ Multi-wallet support and hardware wallet integration.
 | Week 2 (Jan 19-25) | Video, React examples, Range integration, Surveillance + D3.js | #444, #449, #448, #485, #488 | All tracks, Range, Encrypt |
 | Week 3 (Jan 26-Feb 1) | Adapters (PrivacyCash/Arcium/Inco), Polish, Submissions | #480, #481, #482, #484, #450 | Sponsor bounties |
 
-**Bounty Coverage Matrix:**
+**Bounty Coverage Matrix (Updated Jan 13):**
 
-| Bounty | Prize | Key Requirement | Our Solution | Issue |
-|--------|-------|-----------------|--------------|-------|
-| **Tooling Track** | $15K | Dev tools for privacy | SDK + React hooks + CLI | #449 |
-| **Aztec/Noir** | $10K | ZK apps with Noir | Already using Noir! | #486 |
-| **Arcium** | $10K | MPC + C-SPL tokens | Arcium Adapter + C-SPL | #481, #484 |
-| **Inco** | $6K | FHE compute privacy | Inco Adapter | #482 |
-| **PrivacyCash** | $6K | SDK integration | PrivacyCash Adapter | #480 |
-| **Helius** | $5K | DAS + Webhooks | Stealth scanning | #446, #447 |
-| **Range** | $1.5K+ | Selective disclosure | Viewing keys (core!) | #448 |
-| **Encrypt.trade** | $1K | Surveillance tool + explainer | Privacy score + blog | #485, blog#80 |
+| Bounty | Prize | Key Requirement | Our Solution | Issue | Priority |
+|--------|-------|-----------------|--------------|-------|----------|
+| **Tooling Track** | $15K | Dev tools for privacy | SDK + React hooks + CLI | #449 | 🔴 P0 |
+| **Aztec/Noir** | $10K | ZK apps with Noir | Already using Noir! | #486 | 🔴 P0 |
+| **ShadowWire** | $15K | SDK integration | ShadowWire + viewing keys | TBD | 🔴 P0 |
+| **Range** | $1.5K+ | Selective disclosure | Viewing keys (core!) | #448 | 🔴 P0 |
+| **QuickNode** | $3K | Open-source tooling | SDK is open-source | - | 🟡 P1 |
+| **Helius** | $5K | DAS + Webhooks | Stealth scanning | #446, #447 | 🟡 P1 |
+| **PrivacyCash** | $15K | SDK integration | PrivacyCash Adapter | #480 | 🟢 P2 |
+| **Arcium** | $10K | MPC + C-SPL tokens | Arcium Adapter + C-SPL | #481, #484 | 🟢 P2 |
+| **Inco** | $6K | FHE compute privacy | Inco Adapter | #482 | 🟢 P2 |
+| **MagicBlock** | $5K | TEE-based privacy | MagicBlockAdapter + viewing keys | TBD | 🟡 P1 |
+| **Encrypt.trade** | $1K | Surveillance tool + explainer | Privacy score + blog | #485, blog#80 | 🟢 P2 |
+| ~~**Starpay**~~ | ~~$3.5K~~ | ~~Privacy payments~~ | ~~-~~ | - | ❌ No API |
 
-**Competitor Context:**
-- **PrivacyCash:** Pool mixing — we INTEGRATE them as backend option
-- **Arcium:** MPC compute — we INTEGRATE them for compute privacy
-- **Inco:** FHE state — we INTEGRATE them for encrypted state
-- **Light Protocol:** Pivoted to compression — we fill the privacy gap
+**Integration Partner Philosophy:**
+
+> "No competitors, only integration partners" — We integrate ALL privacy tech and add viewing keys.
+
+| Partner | Tech | SIP Adds | Bounty |
+|---------|------|----------|--------|
+| **ShadowWire** | Pedersen + Bulletproofs | Viewing keys | $15K |
+| **PrivacyCash** | Pool mixing + ZK | Viewing keys + stealth | $15K |
+| **MagicBlock** | TEE (Intel TDX) | Viewing keys | $5K |
+| **Arcium** | MPC | Viewing keys | $10K |
+| **Inco** | FHE | Viewing keys | $6K |
+| **Light Protocol** | ZK Compression | Privacy layer | Open Track |
+| ~~**Starpay**~~ | ~~Cards~~ | ~~-~~ | ❌ No API |
 
 **Critical Path (Blockers):**
 1. **Showcase video (#444)** — Required for ALL submissions
