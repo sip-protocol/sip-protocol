@@ -136,3 +136,70 @@ export function getTokenMint(symbol: string): string | undefined {
 export function getTokenDecimals(symbol: string): number {
   return SOLANA_TOKEN_DECIMALS[symbol] ?? 9 // Default to 9 (SOL decimals)
 }
+
+/**
+ * Sanitize a URL by masking potential credentials
+ *
+ * Removes or masks:
+ * - API keys in query parameters (api-key, apiKey, key, token, x-token)
+ * - Credentials in URL path (common for QuickNode, Triton)
+ * - Basic auth credentials (user:pass@host)
+ *
+ * @param url - URL string to sanitize
+ * @returns Sanitized URL safe for logging/error messages
+ *
+ * @example
+ * sanitizeUrl('https://api.helius.xyz?api-key=secret123')
+ * // => 'https://api.helius.xyz?api-key=***'
+ *
+ * sanitizeUrl('https://example.quiknode.pro/abc123def456')
+ * // => 'https://example.quiknode.pro/***'
+ */
+export function sanitizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url)
+
+    // Remove basic auth credentials
+    if (parsed.username || parsed.password) {
+      parsed.username = '***'
+      parsed.password = ''
+    }
+
+    // Mask sensitive query parameters (case-insensitive)
+    const sensitivePatterns = ['api-key', 'apikey', 'api_key', 'key', 'token', 'x-token', 'xtoken', 'secret', 'auth']
+    const keysToMask: string[] = []
+    for (const [key] of parsed.searchParams) {
+      const keyLower = key.toLowerCase()
+      if (sensitivePatterns.some((pattern) => keyLower === pattern || keyLower.includes(pattern))) {
+        keysToMask.push(key)
+      }
+    }
+    for (const key of keysToMask) {
+      parsed.searchParams.set(key, '***')
+    }
+
+    // Mask path segments that look like API keys/tokens
+    // QuickNode: /abc123def456 (32+ char alphanumeric)
+    // Triton: /x-token-value
+    const pathParts = parsed.pathname.split('/')
+    const maskedParts = pathParts.map((part) => {
+      // Skip empty parts and common path segments
+      if (!part || part.length < 16) return part
+      // If part looks like a token (long alphanumeric string), mask it
+      if (/^[a-zA-Z0-9_-]{16,}$/.test(part)) {
+        return '***'
+      }
+      return part
+    })
+    parsed.pathname = maskedParts.join('/')
+
+    return parsed.toString()
+  } catch {
+    // If URL parsing fails, do basic string sanitization
+    return url
+      .replace(/api-key=[^&]+/gi, 'api-key=***')
+      .replace(/apikey=[^&]+/gi, 'apikey=***')
+      .replace(/token=[^&]+/gi, 'token=***')
+      .replace(/\/[a-zA-Z0-9_-]{16,}(\/|$)/g, '/***$1')
+  }
+}

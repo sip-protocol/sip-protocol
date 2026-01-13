@@ -42,6 +42,7 @@ import Client, {
 } from '@triton-one/yellowstone-grpc'
 import { base58 } from '@scure/base'
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
+import { sanitizeUrl } from '../constants'
 
 /**
  * QuickNode provider configuration
@@ -116,7 +117,8 @@ export class QuickNodeProvider implements SolanaRPCProvider {
     try {
       new URL(config.endpoint)
     } catch {
-      throw new Error(`Invalid QuickNode endpoint URL: ${config.endpoint}`)
+      // H-2 FIX: Sanitize URL to prevent credential exposure in error messages
+      throw new Error(`Invalid QuickNode endpoint URL: ${sanitizeUrl(config.endpoint)}`)
     }
 
     this.connection = new Connection(config.endpoint, 'confirmed')

@@ -46,6 +46,7 @@ import Client, {
 } from '@triton-one/yellowstone-grpc'
 import { base58 } from '@scure/base'
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
+// Note: sanitizeUrl available from '../constants' if needed for error messages
 
 /**
  * Triton provider configuration
