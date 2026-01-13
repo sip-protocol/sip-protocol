@@ -43,6 +43,9 @@
  * - **ArciumBackend** — MPC (Multi-Party Computation)
  * - **IncoBackend** — FHE (Fully Homomorphic Encryption)
  *
+ * ### TEE Privacy (hardware-based)
+ * - **MagicBlockBackend** — Intel TDX TEE (Ephemeral Rollups)
+ *
  * ### Confidential Tokens
  * - **CSPLClient** — C-SPL (Confidential SPL) token operations
  * - **PrivateSwap** — Full privacy swaps (SIP + C-SPL + Arcium)
@@ -113,6 +116,15 @@ export { MockBackend, createMockFactory, type MockBackendConfig } from './mock'
 // Compute Backends
 export { ArciumBackend, type ArciumBackendConfig } from './arcium'
 export { IncoBackend, type IncoBackendConfig } from './inco'
+
+// TEE Backend (Hardware-based Privacy)
+export {
+  MagicBlockBackend,
+  createMagicBlockBackend,
+  MAGICBLOCK_ENDPOINTS,
+  type MagicBlockBackendConfig,
+  type MagicBlockNetwork,
+} from './magicblock'
 
 // PrivacyCash types (for advanced usage)
 export {

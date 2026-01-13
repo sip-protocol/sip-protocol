@@ -242,6 +242,9 @@ importers:
       '@ethereumjs/rlp':
         specifier: ^10.1.0
         version: 10.1.0
+      '@magicblock-labs/ephemeral-rollups-sdk':
+        specifier: ^0.7.2
+        version: 0.7.2(fastestsmallesttextencoderdecoder@1.0.22)
       '@noble/ciphers':
         specifier: ^2.1.1
         version: 2.1.1
@@ -1085,6 +1088,22 @@ packages:
     resolution: {integrity: sha512-4+qRW2Pc8V+btL0QEmdB2X+uyx0kOWMWE1/LWsq5sZy3Q5tpi4eItJS6mB0XL3wGW59RQ+8bchNQQ1OW/va8Og==}
     dev: true
 
+  /@magicblock-labs/ephemeral-rollups-sdk@0.7.2(fastestsmallesttextencoderdecoder@1.0.22):
+    resolution: {integrity: sha512-sMz/R2n+m5m15d2J+IshBrIV7062bfSyZG2QYzT7gqcZZhZWSu6W3IQHjGjAjLN01we0iYHPn3Zjv5nLBCP9iA==}
+    dependencies:
+      '@phala/dcap-qvl-web': 0.2.7
+      '@solana/spl-token': 0.4.14(@solana/web3.js@1.98.4)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)
+      '@solana/web3.js': 1.98.4(typescript@5.9.3)
+      bs58: 6.0.0
+      rpc-websockets: 9.3.2
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - fastestsmallesttextencoderdecoder
+      - utf-8-validate
+    dev: false
+
   /@manypkg/find-root@1.1.0:
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
     dependencies:
@@ -1601,6 +1620,10 @@ packages:
     dependencies:
       '@noble/hashes': 1.8.0
     dev: true
+
+  /@phala/dcap-qvl-web@0.2.7:
+    resolution: {integrity: sha512-OgDIN8ZRsLg0dJgUAk0HCXMjkAmrif7p0C+P74YrtxgE/8fNSFpqNDjVW3mCVB2Q/V7X6mUhbEQWa5wJmM9OSQ==}
+    dev: false
 
   /@pinojs/redact@0.4.0:
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
@@ -2862,6 +2885,10 @@ packages:
     resolution: {integrity: sha512-uAZ8x6r6S3aUM9rbHGVOIsR15U/ZSc82b3ymnCPsT45Gk1DDvhDPdIgB5MrhirZWt+5K0EEPQH985kNqZgNPFw==}
     dev: false
 
+  /base-x@5.0.1:
+    resolution: {integrity: sha512-M7uio8Zt++eg3jPj+rHMfCC+IuygQHHCOU+IYsVtik6FWjuYpVt/+MRKcgsAMHh8mMFAwnB+Bs+mTrFiXjMzKg==}
+    dev: false
+
   /base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
     dev: false
@@ -2966,6 +2993,12 @@ packages:
     resolution: {integrity: sha512-r+ihvQJvahgYT50JD05dyJNKlmmSlMoOGwn1lCcEzanPglg7TxYjioQUYehQ9mAR/+hOSd2jRc/Z2y5UxBymvQ==}
     dependencies:
       base-x: 4.0.1
+    dev: false
+
+  /bs58@6.0.0:
+    resolution: {integrity: sha512-PD0wEnEYg6ijszw/u8s+iI3H17cTymlrwkKhDhPZq+Sokl3AU4htyBFTjAeNAlCCmg0f53g6ih3jATyCKftTfw==}
+    dependencies:
+      base-x: 5.0.1
     dev: false
 
   /buffer@6.0.3:
