@@ -31,11 +31,11 @@ import {
   SIP_MEMO_PREFIX,
   MEMO_PROGRAM_ID,
   getExplorerUrl,
-  SOLANA_TOKEN_MINTS,
   DEFAULT_SCAN_LIMIT,
   VIEW_TAG_MAX,
   type SolanaCluster,
 } from './constants'
+import { getTokenSymbol, parseTokenTransferFromBalances } from './utils'
 import type { SolanaRPCProvider } from './providers/interface'
 import { hexToBytes } from '@noble/hashes/utils'
 import { ed25519 } from '@noble/curves/ed25519'
@@ -171,8 +171,11 @@ export async function scanForPayments(
           }
 
           if (isOurs) {
-            // Parse token transfer from transaction
-            const transferInfo = parseTokenTransfer(tx)
+            // Parse token transfer from transaction using shared utility
+            const transferInfo = parseTokenTransferFromBalances(
+              tx?.meta?.preTokenBalances as Parameters<typeof parseTokenTransferFromBalances>[0],
+              tx?.meta?.postTokenBalances as Parameters<typeof parseTokenTransferFromBalances>[1]
+            )
             if (transferInfo) {
               // If provider is available, use it for more accurate current balance
               let amount = transferInfo.amount
@@ -434,60 +437,7 @@ export async function getStealthBalance(
   }
 }
 
-/**
- * Parse token transfer info from a transaction
- *
- * Analyzes pre/post token balances to determine the transferred token and amount.
- *
- * @param tx - Transaction with metadata from getTransaction
- * @returns Token mint and amount transferred, or null if no transfer found
- * @internal
- */
-function parseTokenTransfer(
-  tx: Awaited<ReturnType<typeof import('@solana/web3.js').Connection.prototype.getTransaction>>
-): { mint: string; amount: bigint } | null {
-  if (!tx?.meta?.postTokenBalances || !tx.meta.preTokenBalances) {
-    return null
-  }
-
-  // Find token balance changes
-  for (let i = 0; i < tx.meta.postTokenBalances.length; i++) {
-    const post = tx.meta.postTokenBalances[i]
-    const pre = tx.meta.preTokenBalances.find(
-      (p) => p.accountIndex === post.accountIndex
-    )
-
-    const postAmount = BigInt(post.uiTokenAmount.amount)
-    const preAmount = pre ? BigInt(pre.uiTokenAmount.amount) : 0n
-
-    if (postAmount > preAmount) {
-      return {
-        mint: post.mint,
-        amount: postAmount - preAmount,
-      }
-    }
-  }
-
-  return null
-}
-
-/**
- * Get token symbol from mint address
- *
- * Looks up the token symbol for a known mint address.
- *
- * @param mint - SPL token mint address (base58)
- * @returns Token symbol (e.g., 'USDC') or undefined if not found
- * @internal
- */
-function getTokenSymbol(mint: string): string | undefined {
-  for (const [symbol, address] of Object.entries(SOLANA_TOKEN_MINTS)) {
-    if (address === mint) {
-      return symbol
-    }
-  }
-  return undefined
-}
+// Token transfer parsing and symbol lookup moved to ./utils.ts (L3 fix)
 
 /**
  * Detect Solana cluster from RPC endpoint URL
