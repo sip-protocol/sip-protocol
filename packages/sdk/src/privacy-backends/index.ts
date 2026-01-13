@@ -37,6 +37,7 @@
  * ### Transaction Privacy (hide sender/amount/recipient)
  * - **SIPNativeBackend** — Stealth addresses + Pedersen commitments
  * - **PrivacyCashBackend** — Pool mixing (Tornado Cash-style anonymity sets)
+ * - **ShadowWireBackend** — Pedersen Commitments + Bulletproofs (Radr Labs)
  *
  * ### Compute Privacy (hide contract execution)
  * - **ArciumBackend** — MPC (Multi-Party Computation)
@@ -99,6 +100,12 @@ export {
 // Transaction Backends
 export { SIPNativeBackend, type SIPNativeBackendConfig } from './sip-native'
 export { PrivacyCashBackend, type PrivacyCashBackendConfig } from './privacycash'
+export {
+  ShadowWireBackend,
+  createShadowWireBackend,
+  SHADOWWIRE_TOKEN_MINTS,
+  type ShadowWireBackendConfig,
+} from './shadowwire'
 
 // Compute Backends
 export { ArciumBackend, type ArciumBackendConfig } from './arcium'
