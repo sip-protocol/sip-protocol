@@ -2,6 +2,7 @@
  * Privacy Backend Registry
  *
  * Manages registration and discovery of privacy backends.
+ * Optionally integrates with BackendHealthTracker for circuit breaker support.
  *
  * @example
  * ```typescript
@@ -16,6 +17,10 @@
  * const byName = registry.get('sip-native')
  * const forChain = registry.getByChain('solana')
  * const forType = registry.getByType('transaction')
+ *
+ * // Health-aware operations (when health tracker is attached)
+ * const healthy = registry.getHealthy()
+ * const health = registry.getHealthState('sip-native')
  * ```
  */
 
@@ -27,7 +32,11 @@ import type {
   RegisteredBackend,
   TransferParams,
   AvailabilityResult,
+  BackendHealthState,
+  BackendMetrics,
+  CircuitBreakerConfig,
 } from './interface'
+import { BackendHealthTracker } from './health'
 
 /**
  * Default priority for registered backends
@@ -35,13 +44,64 @@ import type {
 const DEFAULT_PRIORITY = 50
 
 /**
+ * Registry configuration options
+ */
+export interface PrivacyBackendRegistryConfig {
+  /**
+   * Enable health tracking with circuit breaker
+   * @default true
+   */
+  enableHealthTracking?: boolean
+  /**
+   * Circuit breaker configuration (when health tracking is enabled)
+   */
+  circuitBreakerConfig?: Partial<CircuitBreakerConfig>
+}
+
+/**
  * Registry for managing privacy backends
  *
  * Provides a centralized way to register, discover, and manage
- * different privacy backend implementations.
+ * different privacy backend implementations. Optionally integrates
+ * with BackendHealthTracker for circuit breaker support.
  */
 export class PrivacyBackendRegistry {
   private backends: Map<string, RegisteredBackend> = new Map()
+  private healthTracker: BackendHealthTracker | null = null
+
+  /**
+   * Create a new registry
+   *
+   * @param config - Registry configuration
+   */
+  constructor(config: PrivacyBackendRegistryConfig = {}) {
+    const { enableHealthTracking = true, circuitBreakerConfig } = config
+
+    if (enableHealthTracking) {
+      this.healthTracker = new BackendHealthTracker(circuitBreakerConfig)
+    }
+  }
+
+  /**
+   * Get the health tracker instance
+   *
+   * @returns Health tracker or null if not enabled
+   */
+  getHealthTracker(): BackendHealthTracker | null {
+    return this.healthTracker
+  }
+
+  /**
+   * Attach an external health tracker
+   *
+   * Useful for sharing a health tracker between multiple registries
+   * or for testing.
+   *
+   * @param tracker - Health tracker to attach
+   */
+  setHealthTracker(tracker: BackendHealthTracker | null): void {
+    this.healthTracker = tracker
+  }
 
   /**
    * Register a privacy backend
@@ -75,6 +135,11 @@ export class PrivacyBackendRegistry {
       enabled,
       registeredAt: Date.now(),
     })
+
+    // Register with health tracker if enabled
+    if (this.healthTracker) {
+      this.healthTracker.register(backend.name)
+    }
   }
 
   /**
@@ -84,7 +149,11 @@ export class PrivacyBackendRegistry {
    * @returns true if backend was removed, false if not found
    */
   unregister(name: string): boolean {
-    return this.backends.delete(name)
+    const removed = this.backends.delete(name)
+    if (removed && this.healthTracker) {
+      this.healthTracker.unregister(name)
+    }
+    return removed
   }
 
   /**
@@ -251,6 +320,9 @@ export class PrivacyBackendRegistry {
    */
   clear(): void {
     this.backends.clear()
+    if (this.healthTracker) {
+      this.healthTracker.clear()
+    }
   }
 
   /**
@@ -266,6 +338,165 @@ export class PrivacyBackendRegistry {
         .map(([name]) => name)
     }
     return Array.from(this.backends.keys())
+  }
+
+  // ─── Health-Aware Methods ───────────────────────────────────────────────────
+
+  /**
+   * Get all healthy backends (circuit not open)
+   *
+   * Filters out backends where the circuit breaker is open.
+   * Falls back to getAll() if health tracking is disabled.
+   *
+   * @returns Array of healthy backends
+   */
+  getHealthy(): PrivacyBackend[] {
+    const all = this.getAll()
+    if (!this.healthTracker) {
+      return all
+    }
+    return all.filter(backend => this.healthTracker!.isHealthy(backend.name))
+  }
+
+  /**
+   * Get healthy backends supporting a specific chain
+   *
+   * @param chain - Chain type to filter by
+   * @returns Array of healthy backends supporting the chain
+   */
+  getHealthyByChain(chain: ChainType): PrivacyBackend[] {
+    return this.getHealthy().filter(backend => backend.chains.includes(chain))
+  }
+
+  /**
+   * Get health state for a backend
+   *
+   * @param name - Backend name
+   * @returns Health state or undefined if not tracked
+   */
+  getHealthState(name: string): BackendHealthState | undefined {
+    return this.healthTracker?.getHealth(name)
+  }
+
+  /**
+   * Get metrics for a backend
+   *
+   * @param name - Backend name
+   * @returns Metrics or undefined if not tracked
+   */
+  getMetrics(name: string): BackendMetrics | undefined {
+    return this.healthTracker?.getMetrics(name)
+  }
+
+  /**
+   * Get summary of all backend health
+   *
+   * @returns Object with backend names as keys and health info as values
+   */
+  getHealthSummary(): Record<string, {
+    healthy: boolean
+    state: string
+    failures: number
+    lastError?: string
+  }> {
+    if (!this.healthTracker) {
+      // Return all backends as healthy when tracking is disabled
+      const summary: Record<string, {
+        healthy: boolean
+        state: string
+        failures: number
+      }> = {}
+      for (const name of this.getNames()) {
+        summary[name] = { healthy: true, state: 'closed', failures: 0 }
+      }
+      return summary
+    }
+    return this.healthTracker.getHealthSummary()
+  }
+
+  /**
+   * Check if a backend is healthy
+   *
+   * @param name - Backend name
+   * @returns true if healthy or health tracking is disabled
+   */
+  isHealthy(name: string): boolean {
+    if (!this.healthTracker) {
+      return true
+    }
+    return this.healthTracker.isHealthy(name)
+  }
+
+  /**
+   * Manually open circuit for a backend
+   *
+   * Useful for maintenance or known issues.
+   *
+   * @param name - Backend name
+   * @returns true if circuit was opened, false if not found or tracking disabled
+   */
+  openCircuit(name: string): boolean {
+    if (!this.healthTracker || !this.backends.has(name)) {
+      return false
+    }
+    this.healthTracker.forceOpen(name)
+    return true
+  }
+
+  /**
+   * Manually close circuit for a backend
+   *
+   * Use with caution - may route requests to failing backend.
+   *
+   * @param name - Backend name
+   * @returns true if circuit was closed, false if not found or tracking disabled
+   */
+  closeCircuit(name: string): boolean {
+    if (!this.healthTracker || !this.backends.has(name)) {
+      return false
+    }
+    this.healthTracker.forceClose(name)
+    return true
+  }
+
+  /**
+   * Reset health state for a backend
+   *
+   * Clears failure count and closes circuit.
+   *
+   * @param name - Backend name
+   * @returns true if reset, false if not found or tracking disabled
+   */
+  resetHealth(name: string): boolean {
+    if (!this.healthTracker || !this.backends.has(name)) {
+      return false
+    }
+    this.healthTracker.reset(name)
+    return true
+  }
+
+  /**
+   * Record a successful execution for a backend
+   *
+   * @param name - Backend name
+   * @param latencyMs - Request latency in milliseconds
+   */
+  recordSuccess(name: string, latencyMs: number): void {
+    if (this.healthTracker) {
+      this.healthTracker.recordSuccess(name, latencyMs)
+    }
+  }
+
+  /**
+   * Record a failed execution for a backend
+   *
+   * @param name - Backend name
+   * @param reason - Failure reason
+   */
+  recordFailure(name: string, reason: string): void {
+    if (this.healthTracker) {
+      this.healthTracker.recordFailure(name, reason)
+    }
   }
 }
 

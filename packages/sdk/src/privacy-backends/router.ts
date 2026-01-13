@@ -5,6 +5,13 @@
  * - User preferences (privacy, speed, cost, compliance)
  * - Backend capabilities and availability
  * - Transfer parameters
+ * - Backend health status (circuit breaker)
+ *
+ * ## Features
+ *
+ * - **Health-aware selection**: Skips backends with open circuit breakers
+ * - **Automatic fallback**: Tries alternatives when primary backend fails
+ * - **Metrics tracking**: Records success/failure for health monitoring
  *
  * @example
  * ```typescript
@@ -15,10 +22,11 @@
  *
  * const router = new SmartRouter(registry)
  *
- * // Auto-select best backend
+ * // Auto-select best backend with fallback
  * const result = await router.execute(params, {
  *   prioritize: 'compliance',
  *   requireViewingKeys: true,
+ *   enableFallback: true,
  * })
  *
  * // Or just select without executing
@@ -37,6 +45,7 @@ import type {
   BackendSelectionResult,
   AvailabilityResult,
 } from './interface'
+import { AllBackendsFailedError } from './interface'
 import { PrivacyBackendRegistry } from './registry'
 
 /**
@@ -46,6 +55,9 @@ const DEFAULT_CONFIG: SmartRouterConfig = {
   prioritize: 'privacy',
   requireViewingKeys: false,
   allowComputePrivacy: true,
+  enableFallback: true,
+  includeUnhealthy: false,
+  maxFallbackAttempts: 3,
 }
 
 /**
@@ -130,6 +142,11 @@ export class SmartRouter {
     for (const backend of chainBackends) {
       // Check exclusions
       if (fullConfig.excludeBackends?.includes(backend.name)) {
+        continue
+      }
+
+      // Check health status (circuit breaker)
+      if (!fullConfig.includeUnhealthy && !this.registry.isHealthy(backend.name)) {
         continue
       }
 
@@ -235,19 +252,122 @@ export class SmartRouter {
   /**
    * Execute a transfer using the best available backend
    *
+   * Includes automatic fallback to alternatives if the primary backend fails
+   * (when enableFallback is true). Records success/failure for health tracking.
+   *
    * @param params - Transfer parameters
    * @param config - Router configuration
    * @returns Transaction result
+   * @throws AllBackendsFailedError if all backends fail
    */
   async execute(
     params: TransferParams,
     config: Partial<SmartRouterConfig> = {}
   ): Promise<TransactionResult> {
-    const selection = await this.selectBackend(params, {
+    const fullConfig = {
+      ...DEFAULT_CONFIG,
       ...config,
       allowComputePrivacy: false, // Only transaction backends for execute()
-    })
-    return selection.backend.execute(params)
+    }
+    const selection = await this.selectBackend(params, fullConfig)
+
+    // Try primary backend
+    const result = await this.executeOnBackend(selection.backend, params)
+
+    if (result.success) {
+      return result
+    }
+
+    // Primary failed, try fallback if enabled
+    if (!fullConfig.enableFallback || selection.alternatives.length === 0) {
+      return result
+    }
+
+    // Try alternatives
+    const attemptedBackends = [selection.backend.name]
+    const errors = new Map<string, string>()
+    errors.set(selection.backend.name, result.error || 'Unknown error')
+
+    const maxFallbackAttempts = fullConfig.maxFallbackAttempts ?? 3
+
+    // Iterate over all alternatives, but limit actual attempts
+    // Skipped backends (unhealthy/already attempted) don't count against the limit
+    let actualAttempts = 0
+    for (
+      let i = 0;
+      i < selection.alternatives.length && actualAttempts < maxFallbackAttempts;
+      i++
+    ) {
+      const alternative = selection.alternatives[i]
+
+      // Skip if already attempted (defensive - shouldn't happen with unique names)
+      if (attemptedBackends.includes(alternative.backend.name)) {
+        continue
+      }
+
+      // Skip unhealthy backends unless explicitly included
+      if (!fullConfig.includeUnhealthy && !this.registry.isHealthy(alternative.backend.name)) {
+        continue
+      }
+
+      // This counts as an actual attempt
+      actualAttempts++
+      attemptedBackends.push(alternative.backend.name)
+      const fallbackResult = await this.executeOnBackend(alternative.backend, params)
+
+      if (fallbackResult.success) {
+        // Add metadata about fallback
+        return {
+          ...fallbackResult,
+          metadata: {
+            ...fallbackResult.metadata,
+            fallbackFrom: selection.backend.name,
+            attemptedBackends,
+          },
+        }
+      }
+
+      errors.set(alternative.backend.name, fallbackResult.error || 'Unknown error')
+    }
+
+    // All attempts failed
+    throw new AllBackendsFailedError(attemptedBackends, errors, params)
+  }
+
+  /**
+   * Execute on a specific backend with health tracking
+   *
+   * @param backend - Backend to execute on
+   * @param params - Transfer parameters
+   * @returns Transaction result (never throws, returns error in result)
+   */
+  private async executeOnBackend(
+    backend: PrivacyBackend,
+    params: TransferParams
+  ): Promise<TransactionResult> {
+    const startTime = Date.now()
+
+    try {
+      const result = await backend.execute(params)
+      const latency = Date.now() - startTime
+
+      if (result.success) {
+        this.registry.recordSuccess(backend.name, latency)
+      } else {
+        this.registry.recordFailure(backend.name, result.error || 'Execution returned failure')
+      }
+
+      return result
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      this.registry.recordFailure(backend.name, errorMessage)
+
+      return {
+        success: false,
+        error: errorMessage,
+        backend: backend.name,
+      }
+    }
   }
 
   /**
