@@ -29,7 +29,7 @@ import { HeliusProvider, type HeliusProviderConfig } from './helius'
 import { GenericProvider } from './generic'
 import { QuickNodeProvider, type QuickNodeProviderConfig } from './quicknode'
 import { TritonProvider, type TritonProviderConfig } from './triton'
-import { ValidationError } from '../../../errors'
+import { ValidationError, ErrorCode } from '../../../errors'
 
 /**
  * Token asset information returned by providers
@@ -216,6 +216,6 @@ export function createProvider(
       return new GenericProvider(genericConfig)
     }
     default:
-      throw new Error(`Unknown provider type: ${type}`)
+      throw new ValidationError(`unknown provider type: ${type}`, 'type', undefined, ErrorCode.INVALID_INPUT)
   }
 }

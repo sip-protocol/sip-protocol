@@ -46,7 +46,7 @@ import Client, {
 } from '@triton-one/yellowstone-grpc'
 import { base58 } from '@scure/base'
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
-// Note: sanitizeUrl available from '../constants' if needed for error messages
+import { ValidationError, ErrorCode } from '../../../errors'
 
 /**
  * Triton provider configuration
@@ -101,7 +101,7 @@ function validateSolanaAddress(address: string, paramName: string): PublicKey {
   try {
     return new PublicKey(address)
   } catch {
-    throw new Error(`Invalid Solana address for ${paramName}: ${address}`)
+    throw new ValidationError('invalid Solana address format', paramName, undefined, ErrorCode.INVALID_ADDRESS)
   }
 }
 
@@ -124,9 +124,11 @@ export class TritonProvider implements SolanaRPCProvider {
 
   constructor(config: TritonProviderConfig) {
     if (!config.xToken) {
-      throw new Error(
-        'Triton x-token is required. ' +
-        'Get one at https://triton.one/'
+      throw new ValidationError(
+        'x-token is required. Get one at https://triton.one/',
+        'xToken',
+        undefined,
+        ErrorCode.MISSING_REQUIRED
       )
     }
 
@@ -223,9 +225,11 @@ export class TritonProvider implements SolanaRPCProvider {
    */
   private async getGrpcClient(): Promise<Client> {
     if (!this.grpcEnabled) {
-      throw new Error(
-        'gRPC subscriptions are disabled. ' +
-        'Set enableGrpc: true in config.'
+      throw new ValidationError(
+        'gRPC subscriptions are disabled. Set enableGrpc: true in config',
+        'enableGrpc',
+        undefined,
+        ErrorCode.INVALID_INPUT
       )
     }
 
