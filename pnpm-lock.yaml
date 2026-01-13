@@ -242,6 +242,9 @@ importers:
       '@ethereumjs/rlp':
         specifier: ^10.1.0
         version: 10.1.0
+      '@jup-ag/api':
+        specifier: ^6.0.48
+        version: 6.0.48
       '@langchain/core':
         specifier: ^0.3.30
         version: 0.3.80
@@ -1065,6 +1068,10 @@ packages:
 
   /@js-sdsl/ordered-map@4.4.2:
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
+
+  /@jup-ag/api@6.0.48:
+    resolution: {integrity: sha512-H66m/cIqdVIA0qLI2X76UOhuMXkS/+uI6e4KQuU3fn6FSBhCX/9fwt/4IdwES4KWXwGtvqhsg2ExkB9tRtNhyA==}
+    dev: false
 
   /@langchain/core@0.3.80:
     resolution: {integrity: sha512-vcJDV2vk1AlCwSh3aBm/urQ1ZrlXFFBocv11bz/NBUfLWD5/UDNMzwPdaAd2dKvNmTWa9FM2lirLU3+JCf4cRA==}
