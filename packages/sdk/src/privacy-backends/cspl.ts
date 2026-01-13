@@ -66,6 +66,9 @@ import {
   CSPL_OPERATION_TIMES,
 } from './cspl-types'
 
+import { sha256 } from '@noble/hashes/sha256'
+import { bytesToHex, randomBytes } from '@noble/hashes/utils'
+
 /**
  * Configuration for CSPLClient
  */
@@ -227,17 +230,14 @@ export class CSPLClient implements ICSPLClient {
    * @returns Wrap result
    */
   async wrapToken(params: WrapTokenParams): Promise<WrapTokenResult> {
-    // Validate inputs
-    if (!params.mint || params.mint.trim() === '') {
+    // Validate Solana addresses with base58 validation
+    try {
+      validateSolanaAddress(params.mint, 'Token mint')
+      validateSolanaAddress(params.owner, 'Owner')
+    } catch (error) {
       return {
         success: false,
-        error: 'Token mint address is required',
-      }
-    }
-    if (!params.owner || params.owner.trim() === '') {
-      return {
-        success: false,
-        error: 'Owner address is required',
+        error: error instanceof Error ? error.message : 'Invalid address',
       }
     }
     if (params.amount <= BigInt(0)) {
@@ -649,22 +649,22 @@ export class CSPLClient implements ICSPLClient {
 
   /**
    * Generate a simulated transaction signature
+   *
+   * Uses cryptographically secure random bytes for unique signatures.
    */
   private generateSignature(): string {
     const timestamp = Date.now().toString(36)
-    const random = Math.random().toString(36).slice(2, 10)
+    const random = bytesToHex(randomBytes(8))
     return `cspl_tx_${timestamp}_${random}`
   }
 
   /**
    * Generate a nonce for encryption
+   *
+   * Uses cryptographically secure random bytes.
    */
   private generateNonce(): Uint8Array {
-    const nonce = new Uint8Array(12)
-    for (let i = 0; i < 12; i++) {
-      nonce[i] = Math.floor(Math.random() * 256)
-    }
-    return nonce
+    return randomBytes(12)
   }
 
   /**
@@ -689,16 +689,14 @@ export class CSPLClient implements ICSPLClient {
   }
 
   /**
-   * Simple hash for deterministic addresses
+   * Secure hash for deterministic addresses
+   *
+   * Uses SHA-256 for collision-resistant hashing.
    */
   private simpleHash(input: string): string {
-    let hash = 0
-    for (let i = 0; i < input.length; i++) {
-      const char = input.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash = hash & hash
-    }
-    return Math.abs(hash).toString(36)
+    const encoder = new TextEncoder()
+    const hash = sha256(encoder.encode(input))
+    return bytesToHex(hash).slice(0, 16)
   }
 
   /**

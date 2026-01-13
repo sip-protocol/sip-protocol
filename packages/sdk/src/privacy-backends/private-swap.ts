@@ -63,6 +63,9 @@ import type {
   EncryptedAmount,
 } from './cspl-types'
 
+import { sha256 } from '@noble/hashes/sha256'
+import { bytesToHex } from '@noble/hashes/utils'
+
 // ─── Configuration ────────────────────────────────────────────────────────────
 
 /**
@@ -525,16 +528,14 @@ export class PrivateSwap {
   }
 
   /**
-   * Simple hash for simulation
+   * Secure hash for simulation
+   *
+   * Uses SHA-256 for collision-resistant hashing.
    */
   private simpleHash(input: string): string {
-    let hash = 0
-    for (let i = 0; i < input.length; i++) {
-      const char = input.charCodeAt(i)
-      hash = ((hash << 5) - hash) + char
-      hash = hash & hash
-    }
-    return Math.abs(hash).toString(36)
+    const encoder = new TextEncoder()
+    const hash = sha256(encoder.encode(input))
+    return bytesToHex(hash).slice(0, 16)
   }
 
   // ─── Getters ────────────────────────────────────────────────────────────────
