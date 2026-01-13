@@ -474,6 +474,177 @@ describe('Helius Webhook Handler', () => {
       expect(results).toHaveLength(3)
     })
   })
+
+  // L1 FIX: Edge case tests for improved coverage (#561)
+  describe('edge cases', () => {
+    it('should handle max batch size (100 transactions)', async () => {
+      const handler = createWebhookHandler({
+        viewingPrivateKey: recipientKeys.viewingPrivateKey,
+        spendingPublicKey: spendingPublicKey,
+        onPaymentFound: vi.fn(),
+      })
+
+      // Create 100 transactions to test batch processing
+      const txs = Array.from({ length: 100 }, (_, i) =>
+        ({
+          blockTime: 1700000000,
+          slot: 250000000 + i,
+          meta: {
+            err: null,
+            fee: 5000,
+            innerInstructions: [],
+            logMessages: ['Program log: Not SIP'],
+            postBalances: [],
+            preBalances: [],
+            postTokenBalances: [],
+            preTokenBalances: [],
+            rewards: [],
+          },
+          transaction: {
+            message: { accountKeys: [], instructions: [], recentBlockhash: 'hash' },
+            signatures: [`batch-sig-${i}`],
+          },
+        } as unknown as HeliusWebhookTransaction)
+      )
+
+      const results = await handler(txs)
+      expect(results).toHaveLength(100)
+      expect(results[0].signature).toBe('batch-sig-0')
+      expect(results[99].signature).toBe('batch-sig-99')
+    })
+
+    it('should handle malformed SIP memo format gracefully', async () => {
+      const onPaymentFound = vi.fn()
+      const onError = vi.fn()
+
+      const handler = createWebhookHandler({
+        viewingPrivateKey: recipientKeys.viewingPrivateKey,
+        spendingPublicKey: spendingPublicKey,
+        onPaymentFound,
+        onError,
+      })
+
+      const malformedTx: HeliusWebhookTransaction = {
+        blockTime: 1700000000,
+        slot: 250000000,
+        meta: {
+          err: null,
+          fee: 5000,
+          innerInstructions: [],
+          logMessages: [
+            'Program log: SIP:1:',  // Missing ephemeral key
+            'Program log: SIP:1:invalidbase58!!!:aa',  // Invalid base58
+            'Program log: SIP:1:validkey:zz:extrafield:more',  // Too many fields
+          ],
+          postBalances: [],
+          preBalances: [],
+          postTokenBalances: [],
+          preTokenBalances: [],
+          rewards: [],
+        },
+        transaction: {
+          message: { accountKeys: [], instructions: [], recentBlockhash: 'hash' },
+          signatures: ['malformed-sig'],
+        },
+      }
+
+      const results = await handler(malformedTx)
+      expect(results).toHaveLength(1)
+      expect(results[0].found).toBe(false)
+    })
+
+    it('should handle null meta gracefully', async () => {
+      const handler = createWebhookHandler({
+        viewingPrivateKey: recipientKeys.viewingPrivateKey,
+        spendingPublicKey: spendingPublicKey,
+        onPaymentFound: vi.fn(),
+      })
+
+      const txWithNullMeta = {
+        blockTime: 1700000000,
+        slot: 250000000,
+        meta: null,
+        transaction: {
+          message: { accountKeys: [], instructions: [], recentBlockhash: 'hash' },
+          signatures: ['null-meta-sig'],
+        },
+      } as unknown as HeliusWebhookTransaction
+
+      const results = await handler(txWithNullMeta)
+      expect(results).toHaveLength(1)
+      expect(results[0].found).toBe(false)
+    })
+
+    it('should handle concurrent webhook calls correctly', async () => {
+      const onPaymentFound = vi.fn()
+      const handler = createWebhookHandler({
+        viewingPrivateKey: recipientKeys.viewingPrivateKey,
+        spendingPublicKey: spendingPublicKey,
+        onPaymentFound,
+      })
+
+      const tx1 = {
+        blockTime: 1700000000,
+        slot: 250000001,
+        meta: { err: null, logMessages: ['Program log: Not SIP'], postTokenBalances: [], preTokenBalances: [], postBalances: [], preBalances: [], rewards: [], fee: 5000, innerInstructions: [] },
+        transaction: { message: { accountKeys: [], instructions: [], recentBlockhash: 'h' }, signatures: ['concurrent-1'] },
+      } as unknown as HeliusWebhookTransaction
+
+      const tx2 = {
+        blockTime: 1700000001,
+        slot: 250000002,
+        meta: { err: null, logMessages: ['Program log: Not SIP'], postTokenBalances: [], preTokenBalances: [], postBalances: [], preBalances: [], rewards: [], fee: 5000, innerInstructions: [] },
+        transaction: { message: { accountKeys: [], instructions: [], recentBlockhash: 'h' }, signatures: ['concurrent-2'] },
+      } as unknown as HeliusWebhookTransaction
+
+      // Process concurrently
+      const [results1, results2] = await Promise.all([
+        handler(tx1),
+        handler(tx2),
+      ])
+
+      expect(results1).toHaveLength(1)
+      expect(results2).toHaveLength(1)
+      expect(results1[0].signature).toBe('concurrent-1')
+      expect(results2[0].signature).toBe('concurrent-2')
+    })
+
+    it('should handle very long memo strings gracefully', async () => {
+      const handler = createWebhookHandler({
+        viewingPrivateKey: recipientKeys.viewingPrivateKey,
+        spendingPublicKey: spendingPublicKey,
+        onPaymentFound: vi.fn(),
+      })
+
+      // Create a very long memo (1000+ chars)
+      const longMemo = 'SIP:1:' + 'A'.repeat(1000) + ':ff'
+
+      const txWithLongMemo: HeliusWebhookTransaction = {
+        blockTime: 1700000000,
+        slot: 250000000,
+        meta: {
+          err: null,
+          fee: 5000,
+          innerInstructions: [],
+          logMessages: [`Program log: ${longMemo}`],
+          postBalances: [],
+          preBalances: [],
+          postTokenBalances: [],
+          preTokenBalances: [],
+          rewards: [],
+        },
+        transaction: {
+          message: { accountKeys: [], instructions: [], recentBlockhash: 'hash' },
+          signatures: ['long-memo-sig'],
+        },
+      }
+
+      const results = await handler(txWithLongMemo)
+      expect(results).toHaveLength(1)
+      // Should not crash, just not match
+      expect(results[0].found).toBe(false)
+    })
+  })
 })
 
 describe('Webhook Handler Integration', () => {
