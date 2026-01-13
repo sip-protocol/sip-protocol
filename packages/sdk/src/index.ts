@@ -954,6 +954,12 @@ export type {
 export {
   PrivacyAdvisorAgent,
   createPrivacyAdvisor,
+  // LangChain tools
+  createPrivacyAdvisorTools,
+  createAnalyzeWalletTool,
+  createQuickScoreTool,
+  createSIPComparisonTool,
+  createExplainTool,
 } from './advisor'
 
 export type {
@@ -971,4 +977,6 @@ export type {
   // Utilities
   ToolResult,
   StreamCallback,
+  // Tools config
+  ToolsConfig,
 } from './advisor'
