@@ -581,6 +581,74 @@ export class CircuitOpenError extends Error {
   }
 }
 
+/**
+ * Error thrown when a computation times out
+ */
+export class ComputationTimeoutError extends Error {
+  readonly name = 'ComputationTimeoutError'
+
+  constructor(
+    /** Computation identifier */
+    public readonly computationId: string,
+    /** Timeout duration in milliseconds */
+    public readonly timeoutMs: number,
+    /** Backend name where timeout occurred */
+    public readonly backendName: string
+  ) {
+    super(
+      `Computation '${computationId}' timed out after ${timeoutMs}ms ` +
+      `on backend '${backendName}'`
+    )
+    // Fix prototype chain for instanceof in transpiled code
+    Object.setPrototypeOf(this, ComputationTimeoutError.prototype)
+  }
+}
+
+// ─── Timeout Utilities ────────────────────────────────────────────────────────
+
+/**
+ * Wrap a promise with a timeout
+ *
+ * @param promise - The promise to wrap
+ * @param timeoutMs - Timeout in milliseconds
+ * @param onTimeout - Function to call when timeout occurs, should throw an error
+ * @returns The promise result or throws the timeout error
+ *
+ * @example
+ * ```typescript
+ * const result = await withTimeout(
+ *   fetchData(),
+ *   5000,
+ *   () => { throw new Error('Request timed out') }
+ * )
+ * ```
+ */
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  onTimeout: () => never
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      try {
+        onTimeout()
+      } catch (error) {
+        reject(error)
+      }
+    }, timeoutMs)
+  })
+
+  try {
+    return await Promise.race([promise, timeoutPromise])
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId)
+    }
+  }
+}
+
 // ─── Utility Functions ────────────────────────────────────────────────────────
 
 /**

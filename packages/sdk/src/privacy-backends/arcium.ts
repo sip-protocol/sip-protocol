@@ -70,7 +70,11 @@ import type {
   CipherType,
 } from './interface'
 
-import { isComputationParams } from './interface'
+import {
+  isComputationParams,
+  withTimeout,
+  ComputationTimeoutError,
+} from './interface'
 
 import {
   ARCIUM_CLUSTERS,
@@ -84,6 +88,7 @@ import {
   MAX_INPUT_SIZE_BYTES,
   MAX_TOTAL_INPUT_SIZE_BYTES,
   MAX_COMPUTATION_COST_LAMPORTS,
+  ArciumError,
   type ArciumNetwork,
   type IArciumClient,
   type ComputationInfo,
@@ -105,6 +110,8 @@ export interface ArciumBackendConfig {
   timeout?: number
   /** Custom SDK client (for testing) */
   client?: IArciumClient
+  /** Enable debug mode (includes stack traces in error responses) */
+  debug?: boolean
 }
 
 /**
@@ -142,16 +149,22 @@ export class ArciumBackend implements PrivacyBackend {
    * Create a new Arcium backend
    *
    * @param config - Backend configuration
-   * @throws {Error} If network is invalid
+   * @throws {ArciumError} If network is invalid
    */
   constructor(config: ArciumBackendConfig = {}) {
     // Validate network parameter if provided
     if (config.network !== undefined) {
       const validNetworks: ArciumNetwork[] = ['devnet', 'testnet', 'mainnet-beta']
       if (!validNetworks.includes(config.network)) {
-        throw new Error(
-          `Invalid Arcium network '${config.network}'. ` +
-            `Valid networks: ${validNetworks.join(', ')}`
+        throw new ArciumError(
+          `Invalid Arcium network '${config.network}'. Valid networks: ${validNetworks.join(', ')}`,
+          'ARCIUM_INVALID_NETWORK',
+          {
+            context: {
+              receivedNetwork: config.network,
+              validNetworks,
+            },
+          }
         )
       }
     }
@@ -163,6 +176,7 @@ export class ArciumBackend implements PrivacyBackend {
       defaultCipher: config.defaultCipher ?? 'aes256',
       timeout: config.timeout ?? DEFAULT_COMPUTATION_TIMEOUT_MS,
       client: config.client,
+      debug: config.debug ?? false,
     }
   }
 
@@ -365,9 +379,10 @@ export class ArciumBackend implements PrivacyBackend {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: this.formatErrorMessage(error),
         backend: this.name,
         status: 'failed',
+        metadata: this.config.debug ? this.getErrorMetadata(error) : undefined,
       }
     }
   }
@@ -429,20 +444,17 @@ export class ArciumBackend implements PrivacyBackend {
    * Wait for computation to complete
    *
    * @param computationId - Computation to wait for
-   * @param timeout - Optional timeout override
+   * @param timeout - Optional timeout override (defaults to config.timeout)
    * @returns Computation result
+   * @throws {ComputationTimeoutError} If computation exceeds timeout
    */
   async awaitComputation(
     computationId: string,
     timeout?: number
   ): Promise<ComputationResult> {
-    // In production, would use the SDK with timeout:
-    // const timeoutMs = timeout ?? this.config.timeout
-    void timeout // Mark as intentionally unused (for future SDK integration)
-    // const client = await this.getClient()
-    // const output = await client.awaitFinalization(computationId, timeoutMs)
+    const timeoutMs = timeout ?? this.config.timeout
 
-    // Simulated: Just return the cached info as completed
+    // Check if computation exists before waiting
     const info = this.computationCache.get(computationId)
     if (!info) {
       return {
@@ -453,7 +465,31 @@ export class ArciumBackend implements PrivacyBackend {
       }
     }
 
-    // Simulate completion
+    // Wrap the polling/waiting logic with timeout
+    return withTimeout(
+      this.pollComputationResult(computationId, info),
+      timeoutMs,
+      () => {
+        throw new ComputationTimeoutError(computationId, timeoutMs, this.name)
+      }
+    )
+  }
+
+  /**
+   * Poll for computation result (simulation)
+   *
+   * In production, this would poll the Arcium network for completion.
+   * Currently simulates immediate completion for testing.
+   */
+  private async pollComputationResult(
+    computationId: string,
+    info: ComputationInfo
+  ): Promise<ComputationResult> {
+    // In production, would poll the Arcium network:
+    // const client = await this.getClient()
+    // const output = await client.awaitFinalization(computationId)
+
+    // Simulated: Mark as completed immediately
     info.status = 'completed'
     info.completedAt = Date.now()
     this.computationCache.set(computationId, info)
@@ -525,5 +561,62 @@ export class ArciumBackend implements PrivacyBackend {
    */
   getCachedComputationCount(): number {
     return this.computationCache.size
+  }
+
+  // ─── Error Handling Helpers ─────────────────────────────────────────────────
+
+  /**
+   * Format an error message for user-facing output
+   *
+   * Include error type for better debugging while keeping the message clear.
+   */
+  private formatErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      const errorType = error.name !== 'Error' ? `[${error.name}] ` : ''
+      return `${errorType}${error.message}`
+    }
+    return 'Unknown error occurred'
+  }
+
+  /**
+   * Get detailed error metadata for debugging
+   *
+   * Only called when debug mode is enabled. Includes stack trace and
+   * error chain information for troubleshooting.
+   */
+  private getErrorMetadata(error: unknown): Record<string, unknown> {
+    const metadata: Record<string, unknown> = {
+      timestamp: new Date().toISOString(),
+    }
+
+    if (error instanceof Error) {
+      metadata.errorName = error.name
+      metadata.errorMessage = error.message
+      metadata.stack = error.stack
+
+      // Preserve error cause chain
+      if (error.cause) {
+        metadata.cause =
+          error.cause instanceof Error
+            ? {
+                name: error.cause.name,
+                message: error.cause.message,
+                stack: error.cause.stack,
+              }
+            : String(error.cause)
+      }
+
+      // Handle SIPError-specific fields
+      if ('code' in error && typeof (error as Record<string, unknown>).code === 'string') {
+        metadata.errorCode = (error as Record<string, unknown>).code
+      }
+      if ('context' in error) {
+        metadata.errorContext = (error as Record<string, unknown>).context
+      }
+    } else {
+      metadata.rawError = String(error)
+    }
+
+    return metadata
   }
 }

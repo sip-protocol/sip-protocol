@@ -87,8 +87,12 @@ export { isComputationParams, isTransferParams } from './interface'
 export {
   AllBackendsFailedError,
   CircuitOpenError,
+  ComputationTimeoutError,
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
 } from './interface'
+
+// Timeout utilities
+export { withTimeout } from './interface'
 
 // Utilities
 export { deepFreeze } from './interface'
@@ -161,6 +165,9 @@ export {
   MAX_INPUT_SIZE_BYTES,
   MAX_TOTAL_INPUT_SIZE_BYTES,
   MAX_COMPUTATION_COST_LAMPORTS,
+  ArciumError,
+  isArciumError,
+  type ArciumErrorCode,
   type ArciumNetwork,
   type ArciumConfig,
   type ArciumCluster,
