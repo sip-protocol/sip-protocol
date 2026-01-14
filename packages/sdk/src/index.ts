@@ -980,3 +980,20 @@ export type {
   // Tools config
   ToolsConfig,
 } from './advisor'
+
+// Privacy-Aware Logging (prevents sensitive data in logs)
+export {
+  PrivacyLogger,
+  createPrivacyLogger,
+  privacyLogger,
+  redactAddress,
+  redactSignature,
+  maskAmount,
+  redactSensitiveData,
+} from './privacy-logger'
+
+export type {
+  LogLevel,
+  PrivacyLoggerConfig,
+  SensitiveData,
+} from './privacy-logger'

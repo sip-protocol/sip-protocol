@@ -60,6 +60,10 @@ import type {
 import { isTransferParams } from './interface'
 import { generateViewingKey, encryptForViewing } from '../privacy'
 import { bytesToHex } from '@noble/hashes/utils'
+import { createPrivacyLogger } from '../privacy-logger'
+
+/** Privacy-aware logger for MagicBlock backend */
+const magicBlockLogger = createPrivacyLogger('MagicBlock')
 
 /**
  * MagicBlock network type
@@ -280,9 +284,8 @@ export class MagicBlockBackend implements PrivacyBackend {
       delegateTx.sign(wallet)
       const delegateSig = await this.magicRouter.sendTransaction(delegateTx, [wallet])
 
-      if (this.config.debug) {
-        console.log(`[MagicBlock] Delegation tx: ${delegateSig}`)
-      }
+      // Log with privacy-aware logger (redacts full signature)
+      magicBlockLogger.debug('Delegation transaction sent', { signature: delegateSig })
 
       // Step 3: Wait for delegation confirmation
       const latestBlockhash = await this.connection.getLatestBlockhash()
