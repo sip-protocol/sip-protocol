@@ -485,9 +485,35 @@ export class CSPLClient implements ICSPLClient {
    * @returns Encrypted amount
    */
   async encryptAmount(params: CSPLEncryptionParams): Promise<EncryptedAmount> {
-    // Validate
+    // Validate amount
     if (params.amount < BigInt(0)) {
       throw new Error('Amount cannot be negative')
+    }
+
+    // Validate recipient pubkey if provided
+    if (params.recipientPubkey !== undefined && params.recipientPubkey !== '') {
+      if (!isValidSolanaAddressFormat(params.recipientPubkey)) {
+        throw new Error(
+          `Invalid recipient pubkey format: '${params.recipientPubkey}'. ` +
+          'Expected base58-encoded Solana address (32-44 chars)'
+        )
+      }
+    }
+
+    // Validate auditor keys if provided
+    if (params.auditorKeys?.length) {
+      for (let i = 0; i < params.auditorKeys.length; i++) {
+        const auditorKey = params.auditorKeys[i]
+        if (!auditorKey || auditorKey.trim() === '') {
+          throw new Error(`Auditor key at index ${i} is empty`)
+        }
+        if (!isValidSolanaAddressFormat(auditorKey)) {
+          throw new Error(
+            `Invalid auditor key format at index ${i}: '${auditorKey}'. ` +
+            'Expected base58-encoded Solana address (32-44 chars)'
+          )
+        }
+      }
     }
 
     const encryptionType = this.config.defaultEncryption
