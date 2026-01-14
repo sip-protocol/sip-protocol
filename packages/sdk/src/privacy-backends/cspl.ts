@@ -64,6 +64,7 @@ import {
   CSPL_PROGRAM_IDS,
   CSPL_OPERATION_COSTS,
   CSPL_OPERATION_TIMES,
+  CSPL_MAX_MEMO_BYTES,
 } from './cspl-types'
 
 import { isValidSolanaAddressFormat } from '../validation'
@@ -427,6 +428,17 @@ export class CSPLClient implements ICSPLClient {
       return {
         success: false,
         error: 'Encrypted amount is required',
+      }
+    }
+
+    // Validate memo length (if provided)
+    if (params.memo !== undefined) {
+      const memoBytes = new TextEncoder().encode(params.memo)
+      if (memoBytes.length > CSPL_MAX_MEMO_BYTES) {
+        return {
+          success: false,
+          error: `Memo exceeds maximum length (${memoBytes.length} bytes > ${CSPL_MAX_MEMO_BYTES} bytes limit)`,
+        }
       }
     }
 

@@ -13,6 +13,7 @@ import {
   CSPL_OPERATION_TIMES,
   DEFAULT_SWAP_SLIPPAGE_BPS,
   MAX_PENDING_TRANSFERS,
+  CSPL_MAX_MEMO_BYTES,
 } from '../../src/privacy-backends/cspl-types'
 import type {
   CSPLToken,
@@ -393,6 +394,78 @@ describe('CSPLClient', () => {
 
       // Cache is cleared for both parties
     })
+
+    // ─── Memo Validation Tests ────────────────────────────────────────────────────
+
+    it('should transfer successfully with valid memo', async () => {
+      const params = createTransferParams({ memo: 'Payment for services' })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+      expect(result.signature).toBeDefined()
+    })
+
+    it('should transfer successfully with memo at max length', async () => {
+      // Create a memo exactly at the limit (256 bytes)
+      const maxMemo = 'a'.repeat(CSPL_MAX_MEMO_BYTES)
+      const params = createTransferParams({ memo: maxMemo })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+    })
+
+    it('should fail with memo exceeding max length', async () => {
+      // Create a memo that exceeds the limit
+      const longMemo = 'a'.repeat(CSPL_MAX_MEMO_BYTES + 1)
+      const params = createTransferParams({ memo: longMemo })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Memo exceeds maximum length')
+      expect(result.error).toContain(`${CSPL_MAX_MEMO_BYTES}`)
+    })
+
+    it('should handle multi-byte UTF-8 characters in memo length check', async () => {
+      // Emoji and CJK characters are multi-byte in UTF-8
+      // 😀 = 4 bytes, 中 = 3 bytes
+      // 64 emojis = 256 bytes (at the limit)
+      const emojiMemo = '😀'.repeat(64)
+      const params = createTransferParams({ memo: emojiMemo })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+    })
+
+    it('should fail with multi-byte memo exceeding byte limit', async () => {
+      // 65 emojis = 260 bytes (exceeds 256 byte limit)
+      const emojiMemo = '😀'.repeat(65)
+      const params = createTransferParams({ memo: emojiMemo })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Memo exceeds maximum length')
+    })
+
+    it('should transfer successfully without memo', async () => {
+      const params = createTransferParams() // no memo field
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+    })
+
+    it('should transfer successfully with empty memo', async () => {
+      const params = createTransferParams({ memo: '' })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+    })
   })
 
   // ─── Encrypt Amount Tests ─────────────────────────────────────────────────────
@@ -751,6 +824,10 @@ describe('C-SPL Constants', () => {
 
     it('should have MAX_PENDING_TRANSFERS', () => {
       expect(MAX_PENDING_TRANSFERS).toBe(65536)
+    })
+
+    it('should have CSPL_MAX_MEMO_BYTES', () => {
+      expect(CSPL_MAX_MEMO_BYTES).toBe(256)
     })
   })
 })

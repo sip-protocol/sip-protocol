@@ -111,7 +111,7 @@ export interface ConfidentialTransferParams {
   encryptedAmount: Uint8Array
   /** Zero-knowledge proof for valid transfer (proves sender has sufficient balance) */
   proof?: Uint8Array
-  /** Optional memo (public) */
+  /** Optional memo (public, max CSPL_MAX_MEMO_BYTES bytes) */
   memo?: string
 }
 
@@ -470,6 +470,16 @@ export const DEFAULT_SWAP_SLIPPAGE_BPS = 50
  * Maximum pending transfers before apply is required
  */
 export const MAX_PENDING_TRANSFERS = 65536
+
+/**
+ * Maximum memo length in bytes
+ *
+ * Solana memo program limit is 566 bytes, but we use 256 for:
+ * - Better UX (reasonable user-facing memo length)
+ * - Compatibility with other privacy backends
+ * - Room for protocol metadata in the transaction
+ */
+export const CSPL_MAX_MEMO_BYTES = 256
 
 /**
  * Cost estimate for C-SPL operations (in lamports)
