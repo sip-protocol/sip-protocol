@@ -266,6 +266,12 @@ export class CombinedPrivacyService {
   private sipNativeBackend: SIPNativeBackend
   private config: Required<CombinedPrivacyServiceConfig>
   private initialized: boolean = false
+  /**
+   * Promise-based mutex for initialization.
+   * Prevents race conditions when multiple callers invoke initialize() concurrently.
+   * @see https://github.com/sip-protocol/sip-protocol/issues/526
+   */
+  private initPromise: Promise<void> | null = null
 
   /**
    * Create a new Combined Privacy Service
@@ -293,12 +299,28 @@ export class CombinedPrivacyService {
    * Initialize the service
    *
    * Initializes both C-SPL and SIP Native components.
+   * Uses promise-based mutex to prevent race conditions with concurrent calls.
    */
   async initialize(): Promise<void> {
+    // Fast path: already initialized
     if (this.initialized) {
       return
     }
 
+    // Use promise-based mutex to prevent race conditions.
+    // If initialization is in progress, wait for it to complete.
+    // This ensures only one initialization runs even with concurrent calls.
+    if (!this.initPromise) {
+      this.initPromise = this.doInitialize()
+    }
+
+    return this.initPromise
+  }
+
+  /**
+   * Internal initialization logic (called only once via mutex)
+   */
+  private async doInitialize(): Promise<void> {
     await this.csplService.initialize()
     this.initialized = true
   }
@@ -651,6 +673,7 @@ export class CombinedPrivacyService {
   async disconnect(): Promise<void> {
     await this.csplService.disconnect()
     this.initialized = false
+    this.initPromise = null // Reset mutex for potential re-initialization
   }
 
   // ─── Private Methods ─────────────────────────────────────────────────────────

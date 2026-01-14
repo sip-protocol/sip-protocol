@@ -174,6 +174,12 @@ export class CSPLTokenService {
   private config: CSPLTokenServiceConfig
   private registeredTokens: Map<string, CSPLToken> = new Map()
   private initialized: boolean = false
+  /**
+   * Promise-based mutex for initialization.
+   * Prevents race conditions when multiple callers invoke initialize() concurrently.
+   * @see https://github.com/sip-protocol/sip-protocol/issues/526
+   */
+  private initPromise: Promise<void> | null = null
 
   /**
    * Create a new C-SPL Token Service
@@ -189,12 +195,28 @@ export class CSPLTokenService {
    * Initialize the service
    *
    * Connects to Solana RPC and registers initial tokens.
+   * Uses promise-based mutex to prevent race conditions with concurrent calls.
    */
   async initialize(): Promise<void> {
+    // Fast path: already initialized
     if (this.initialized) {
       return
     }
 
+    // Use promise-based mutex to prevent race conditions.
+    // If initialization is in progress, wait for it to complete.
+    // This ensures only one initialization runs even with concurrent calls.
+    if (!this.initPromise) {
+      this.initPromise = this.doInitialize()
+    }
+
+    return this.initPromise
+  }
+
+  /**
+   * Internal initialization logic (called only once via mutex)
+   */
+  private async doInitialize(): Promise<void> {
     await this.client.connect(this.config.rpcUrl)
 
     // Register initial tokens if provided
@@ -584,5 +606,6 @@ export class CSPLTokenService {
   async disconnect(): Promise<void> {
     await this.client.disconnect()
     this.initialized = false
+    this.initPromise = null // Reset mutex for potential re-initialization
   }
 }

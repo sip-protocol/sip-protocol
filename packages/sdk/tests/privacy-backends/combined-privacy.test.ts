@@ -429,6 +429,140 @@ describe('CombinedPrivacyService', () => {
 
 // ─── CSPLTokenService Tests (Related to #527) ─────────────────────────────────
 
+// ─── Issue #526: Concurrent Initialization Tests ────────────────────────────────
+
+describe('Issue #526: Concurrent Initialization (CombinedPrivacyService)', () => {
+  it('should handle concurrent initialize calls without double initialization', async () => {
+    const service = new CombinedPrivacyService()
+
+    // Call initialize 10 times concurrently
+    const initPromises = Array(10)
+      .fill(null)
+      .map(() => service.initialize())
+
+    // All should resolve successfully
+    await Promise.all(initPromises)
+
+    // Service should be initialized
+    const status = service.getStatus()
+    expect(status.initialized).toBe(true)
+
+    await service.disconnect()
+  })
+
+  it('should return same promise for concurrent calls', async () => {
+    const service = new CombinedPrivacyService()
+
+    // Get the initialization promise twice immediately
+    const promise1 = service.initialize()
+    const promise2 = service.initialize()
+
+    // Both should resolve to the same result
+    await Promise.all([promise1, promise2])
+
+    expect(service.getStatus().initialized).toBe(true)
+    await service.disconnect()
+  })
+
+  it('should handle rapid init/disconnect/init cycles', async () => {
+    const service = new CombinedPrivacyService()
+
+    for (let i = 0; i < 3; i++) {
+      await service.initialize()
+      expect(service.getStatus().initialized).toBe(true)
+      await service.disconnect()
+      expect(service.getStatus().initialized).toBe(false)
+    }
+  })
+
+  it('should skip initialization if already initialized', async () => {
+    const service = new CombinedPrivacyService()
+
+    // First init
+    await service.initialize()
+    const status1 = service.getStatus()
+
+    // Second init should be a no-op
+    await service.initialize()
+    const status2 = service.getStatus()
+
+    expect(status1.initialized).toBe(true)
+    expect(status2.initialized).toBe(true)
+
+    await service.disconnect()
+  })
+})
+
+describe('Issue #526: Concurrent Initialization (CSPLTokenService)', () => {
+  it('should handle concurrent initialize calls without double initialization', async () => {
+    const service = new CSPLTokenService({
+      rpcUrl: 'https://api.devnet.solana.com',
+    })
+
+    // Call initialize 10 times concurrently
+    const initPromises = Array(10)
+      .fill(null)
+      .map(() => service.initialize())
+
+    // All should resolve successfully
+    await Promise.all(initPromises)
+
+    // Service should be initialized
+    const status = service.getStatus()
+    expect(status.initialized).toBe(true)
+
+    await service.disconnect()
+  })
+
+  it('should return same promise for concurrent calls', async () => {
+    const service = new CSPLTokenService({
+      rpcUrl: 'https://api.devnet.solana.com',
+    })
+
+    // Get the initialization promise twice immediately
+    const promise1 = service.initialize()
+    const promise2 = service.initialize()
+
+    // Both should resolve successfully
+    await Promise.all([promise1, promise2])
+
+    expect(service.getStatus().initialized).toBe(true)
+    await service.disconnect()
+  })
+
+  it('should handle rapid init/disconnect/init cycles', async () => {
+    const service = new CSPLTokenService({
+      rpcUrl: 'https://api.devnet.solana.com',
+    })
+
+    for (let i = 0; i < 3; i++) {
+      await service.initialize()
+      expect(service.getStatus().initialized).toBe(true)
+      await service.disconnect()
+      expect(service.getStatus().initialized).toBe(false)
+    }
+  })
+
+  it('should skip initialization if already initialized', async () => {
+    const service = new CSPLTokenService({
+      rpcUrl: 'https://api.devnet.solana.com',
+    })
+
+    // First init
+    await service.initialize()
+    const status1 = service.getStatus()
+
+    // Second init should be a no-op
+    await service.initialize()
+    const status2 = service.getStatus()
+
+    expect(status1.initialized).toBe(true)
+    expect(status2.initialized).toBe(true)
+
+    await service.disconnect()
+  })
+})
+
 describe('CSPLTokenService (Issue #527)', () => {
   let csplService: CSPLTokenService
 
