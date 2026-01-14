@@ -141,6 +141,17 @@ export class MagicBlockBackend implements PrivacyBackend {
   private wallet?: Keypair
 
   constructor(config: MagicBlockBackendConfig = {}) {
+    // Validate network parameter if provided
+    if (config.network !== undefined) {
+      const validNetworks: MagicBlockNetwork[] = ['devnet', 'mainnet-beta']
+      if (!validNetworks.includes(config.network)) {
+        throw new Error(
+          `Invalid MagicBlock network '${config.network}'. ` +
+            `Valid networks: ${validNetworks.join(', ')}`
+        )
+      }
+    }
+
     this.config = {
       network: config.network ?? 'devnet',
       region: config.region ?? 'us',
@@ -399,6 +410,10 @@ export class MagicBlockBackend implements PrivacyBackend {
 
   /**
    * Estimate transfer cost in lamports
+   *
+   * TODO(#536): _params is reserved for dynamic cost calculation based on
+   * amount, token type, or other factors when TEE pricing becomes variable.
+   * Currently using fixed costs for simplicity.
    */
   private estimateTransferCost(_params: TransferParams): bigint {
     // Base transaction fee

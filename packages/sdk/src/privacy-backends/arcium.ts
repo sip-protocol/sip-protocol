@@ -77,6 +77,13 @@ import {
   DEFAULT_COMPUTATION_TIMEOUT_MS,
   ESTIMATED_COMPUTATION_TIME_MS,
   BASE_COMPUTATION_COST_LAMPORTS,
+  COST_PER_ENCRYPTED_INPUT_LAMPORTS,
+  COST_PER_INPUT_KB_LAMPORTS,
+  BYTES_PER_KB,
+  MAX_ENCRYPTED_INPUTS,
+  MAX_INPUT_SIZE_BYTES,
+  MAX_TOTAL_INPUT_SIZE_BYTES,
+  MAX_COMPUTATION_COST_LAMPORTS,
   type ArciumNetwork,
   type IArciumClient,
   type ComputationInfo,
@@ -135,8 +142,20 @@ export class ArciumBackend implements PrivacyBackend {
    * Create a new Arcium backend
    *
    * @param config - Backend configuration
+   * @throws {Error} If network is invalid
    */
   constructor(config: ArciumBackendConfig = {}) {
+    // Validate network parameter if provided
+    if (config.network !== undefined) {
+      const validNetworks: ArciumNetwork[] = ['devnet', 'testnet', 'mainnet-beta']
+      if (!validNetworks.includes(config.network)) {
+        throw new Error(
+          `Invalid Arcium network '${config.network}'. ` +
+            `Valid networks: ${validNetworks.join(', ')}`
+        )
+      }
+    }
+
     this.config = {
       rpcUrl: config.rpcUrl ?? 'https://api.devnet.solana.com',
       network: config.network ?? 'devnet',
@@ -193,7 +212,16 @@ export class ArciumBackend implements PrivacyBackend {
       }
     }
 
-    // Validate each input is a valid Uint8Array
+    // Validate number of inputs doesn't exceed maximum
+    if (params.encryptedInputs.length > MAX_ENCRYPTED_INPUTS) {
+      return {
+        available: false,
+        reason: `Too many encrypted inputs: ${params.encryptedInputs.length} exceeds maximum of ${MAX_ENCRYPTED_INPUTS}`,
+      }
+    }
+
+    // Validate each input is a valid Uint8Array with size bounds
+    let totalInputSize = 0
     for (let i = 0; i < params.encryptedInputs.length; i++) {
       const input = params.encryptedInputs[i]
       if (!(input instanceof Uint8Array) || input.length === 0) {
@@ -201,6 +229,21 @@ export class ArciumBackend implements PrivacyBackend {
           available: false,
           reason: `encryptedInputs[${i}] must be a non-empty Uint8Array`,
         }
+      }
+      if (input.length > MAX_INPUT_SIZE_BYTES) {
+        return {
+          available: false,
+          reason: `encryptedInputs[${i}] size ${input.length} bytes exceeds maximum of ${MAX_INPUT_SIZE_BYTES} bytes (1 MB)`,
+        }
+      }
+      totalInputSize += input.length
+    }
+
+    // Validate total input size
+    if (totalInputSize > MAX_TOTAL_INPUT_SIZE_BYTES) {
+      return {
+        available: false,
+        reason: `Total input size ${totalInputSize} bytes exceeds maximum of ${MAX_TOTAL_INPUT_SIZE_BYTES} bytes (10 MB)`,
       }
     }
 
@@ -440,7 +483,8 @@ export class ArciumBackend implements PrivacyBackend {
     let cost = BASE_COMPUTATION_COST_LAMPORTS
 
     // More inputs = higher cost
-    const inputCost = BigInt(params.encryptedInputs.length) * BigInt(1_000_000)
+    const inputCost =
+      BigInt(params.encryptedInputs.length) * COST_PER_ENCRYPTED_INPUT_LAMPORTS
     cost += inputCost
 
     // Larger inputs = higher cost
@@ -448,8 +492,14 @@ export class ArciumBackend implements PrivacyBackend {
       (sum, input) => sum + input.length,
       0
     )
-    const sizeCost = BigInt(Math.ceil(totalInputSize / 1000)) * BigInt(500_000)
+    const sizeCost =
+      BigInt(Math.ceil(totalInputSize / BYTES_PER_KB)) * COST_PER_INPUT_KB_LAMPORTS
     cost += sizeCost
+
+    // Cap at maximum reasonable cost to prevent unexpected charges
+    if (cost > MAX_COMPUTATION_COST_LAMPORTS) {
+      return MAX_COMPUTATION_COST_LAMPORTS
+    }
 
     return cost
   }

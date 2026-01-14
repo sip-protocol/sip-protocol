@@ -487,7 +487,15 @@ export class CSPLTokenService {
    * @param owner - Token owner address
    * @returns Revoke result
    */
-  async revoke(csplMint: string, _delegate: string, _owner: string): Promise<ApproveResult> {
+  async revoke(
+    csplMint: string,
+    _delegate: string,
+    _owner: string
+  ): Promise<ApproveResult> {
+    // TODO(#536): _delegate and _owner are reserved for production implementation.
+    // They will be used in createRevokeTransaction() when C-SPL SDK is integrated.
+    // See: https://github.com/sip-protocol/sip-protocol/issues/536
+
     if (!this.initialized) {
       return {
         success: false,
@@ -505,7 +513,7 @@ export class CSPLTokenService {
 
     try {
       // In production: Create and submit revoke transaction
-      // const tx = await createRevokeTransaction(token, delegate, owner)
+      // const tx = await createRevokeTransaction(token, _delegate, _owner)
       // const signature = await sendTransaction(tx)
 
       // Simulated success

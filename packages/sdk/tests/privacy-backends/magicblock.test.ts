@@ -42,6 +42,34 @@ describe('MagicBlockBackend', () => {
 
       expect(backend.name).toBe('magicblock')
     })
+
+    // ─── Network Validation Tests ─────────────────────────────────────────────
+
+    it('should throw on invalid network', () => {
+      expect(() => {
+        new MagicBlockBackend({
+          // @ts-expect-error - Testing invalid network value
+          network: 'invalid-network',
+        })
+      }).toThrow("Invalid MagicBlock network 'invalid-network'")
+    })
+
+    it('should include valid networks in error message', () => {
+      expect(() => {
+        new MagicBlockBackend({
+          // @ts-expect-error - Testing invalid network value
+          network: 'testnet',
+        })
+      }).toThrow('Valid networks: devnet, mainnet-beta')
+    })
+
+    it('should accept all valid networks', () => {
+      const validNetworks = ['devnet', 'mainnet-beta'] as const
+      for (const network of validNetworks) {
+        const backend = new MagicBlockBackend({ network })
+        expect(backend.name).toBe('magicblock')
+      }
+    })
   })
 
   describe('getCapabilities', () => {
