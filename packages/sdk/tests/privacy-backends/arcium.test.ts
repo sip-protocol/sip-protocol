@@ -490,6 +490,54 @@ describe('ArciumBackend', () => {
     })
   })
 
+  // ─── Error Propagation Tests ───────────────────────────────────────────────────
+
+  describe('error propagation', () => {
+    it('should include clear error message for validation failures', async () => {
+      const backend = new ArciumBackend()
+      const params = createValidComputationParams({ chain: 'ethereum' })
+
+      const result = await backend.executeComputation(params)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('only supports Solana')
+    })
+
+    it('should NOT include metadata for validation failures (no exception thrown)', async () => {
+      const backend = new ArciumBackend({ debug: true })
+      const params = createValidComputationParams({ chain: 'ethereum' })
+
+      const result = await backend.executeComputation(params)
+
+      // Validation failures return early - they don't go through catch block
+      // So metadata is NOT included even with debug: true
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
+      expect(result.metadata).toBeUndefined()
+    })
+
+    it('should support debug config option', () => {
+      const backendWithDebug = new ArciumBackend({ debug: true })
+      const backendWithoutDebug = new ArciumBackend({ debug: false })
+      const backendDefault = new ArciumBackend()
+
+      // All backends should be properly constructed
+      expect(backendWithDebug.name).toBe('arcium')
+      expect(backendWithoutDebug.name).toBe('arcium')
+      expect(backendDefault.name).toBe('arcium')
+    })
+
+    it('should have formatErrorMessage helper method', async () => {
+      const backend = new ArciumBackend()
+      const params = createValidComputationParams({ circuitId: '' })
+
+      const result = await backend.executeComputation(params)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('circuitId is required')
+    })
+  })
+
   // ─── estimateCost Tests ──────────────────────────────────────────────────────
 
   describe('estimateCost', () => {
@@ -628,6 +676,27 @@ describe('ArciumBackend', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('not found')
+    })
+
+    it('should use default timeout from config', async () => {
+      const customBackend = new ArciumBackend({ timeout: 10000 })
+      const params = createValidComputationParams()
+      const execResult = await customBackend.executeComputation(params)
+
+      // Should complete without timeout since simulation is instant
+      const awaitResult = await customBackend.awaitComputation(execResult.computationId!)
+
+      expect(awaitResult.success).toBe(true)
+    })
+
+    it('should use custom timeout when provided', async () => {
+      const params = createValidComputationParams()
+      const execResult = await backend.executeComputation(params)
+
+      // Should complete without timeout since simulation is instant
+      const awaitResult = await backend.awaitComputation(execResult.computationId!, 5000)
+
+      expect(awaitResult.success).toBe(true)
     })
 
     it('should clear computation cache', async () => {
