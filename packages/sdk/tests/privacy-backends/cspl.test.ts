@@ -30,6 +30,8 @@ const TEST_ADDRESSES = {
   recipient: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
   alice: 'FzPuPPFpqNbnTLqVfVv7fqK8LtYGbYsf7Y9p6P9N9oSp',
   bob: 'HN7cABqLq46Es1jh92dQQisAi5YqXg1RoycZjv8AwJbW',
+  auditor1: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+  auditor2: 'BPFLoaderUpgradeab1e11111111111111111111111',
 }
 
 function createTestToken(overrides: Partial<CSPLToken> = {}): CSPLToken {
@@ -522,11 +524,98 @@ describe('CSPLClient', () => {
       const complianceClient = new CSPLClient({ enableCompliance: true })
       const result = await complianceClient.encryptAmount({
         amount: BigInt(1000000),
-        auditorKeys: ['auditor1', 'auditor2'],
+        auditorKeys: [TEST_ADDRESSES.auditor1, TEST_ADDRESSES.auditor2],
       })
 
       expect(result.auditorCiphertexts).toBeDefined()
       expect(result.auditorCiphertexts?.size).toBe(2)
+    })
+
+    // ─── Auditor Key Validation Tests ───────────────────────────────────────────
+
+    it('should reject invalid auditor key format', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: ['invalid-key'],
+        })
+      ).rejects.toThrow('Invalid auditor key format')
+    })
+
+    it('should reject empty auditor key', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: [''],
+        })
+      ).rejects.toThrow('Auditor key at index 0 is empty')
+    })
+
+    it('should reject auditor key with only whitespace', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: ['   '],
+        })
+      ).rejects.toThrow('Auditor key at index 0 is empty')
+    })
+
+    it('should reject short auditor key', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: ['abc123'],
+        })
+      ).rejects.toThrow('Invalid auditor key format')
+    })
+
+    it('should report correct index for invalid auditor key', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: [TEST_ADDRESSES.auditor1, 'invalid-key'],
+        })
+      ).rejects.toThrow('Invalid auditor key format at index 1')
+    })
+
+    it('should accept valid auditor keys', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      const result = await complianceClient.encryptAmount({
+        amount: BigInt(1000000),
+        auditorKeys: [TEST_ADDRESSES.auditor1],
+      })
+
+      expect(result.auditorCiphertexts).toBeDefined()
+      expect(result.auditorCiphertexts?.has(TEST_ADDRESSES.auditor1)).toBe(true)
+    })
+
+    it('should validate recipient pubkey format', async () => {
+      await expect(
+        client.encryptAmount({
+          amount: BigInt(1000000),
+          recipientPubkey: 'invalid-pubkey',
+        })
+      ).rejects.toThrow('Invalid recipient pubkey format')
+    })
+
+    it('should accept valid recipient pubkey', async () => {
+      const result = await client.encryptAmount({
+        amount: BigInt(1000000),
+        recipientPubkey: TEST_ADDRESSES.recipient,
+      })
+
+      expect(result.ciphertext).toBeDefined()
     })
   })
 

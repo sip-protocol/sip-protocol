@@ -109,6 +109,8 @@ export interface ArciumBackendConfig {
   timeout?: number
   /** Custom SDK client (for testing) */
   client?: IArciumClient
+  /** Enable debug mode (includes stack traces in error responses) */
+  debug?: boolean
 }
 
 /**
@@ -167,6 +169,7 @@ export class ArciumBackend implements PrivacyBackend {
       defaultCipher: config.defaultCipher ?? 'aes256',
       timeout: config.timeout ?? DEFAULT_COMPUTATION_TIMEOUT_MS,
       client: config.client,
+      debug: config.debug ?? false,
     }
   }
 
@@ -369,9 +372,10 @@ export class ArciumBackend implements PrivacyBackend {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: this.formatErrorMessage(error),
         backend: this.name,
         status: 'failed',
+        metadata: this.config.debug ? this.getErrorMetadata(error) : undefined,
       }
     }
   }
@@ -550,5 +554,62 @@ export class ArciumBackend implements PrivacyBackend {
    */
   getCachedComputationCount(): number {
     return this.computationCache.size
+  }
+
+  // ─── Error Handling Helpers ─────────────────────────────────────────────────
+
+  /**
+   * Format an error message for user-facing output
+   *
+   * Include error type for better debugging while keeping the message clear.
+   */
+  private formatErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      const errorType = error.name !== 'Error' ? `[${error.name}] ` : ''
+      return `${errorType}${error.message}`
+    }
+    return 'Unknown error occurred'
+  }
+
+  /**
+   * Get detailed error metadata for debugging
+   *
+   * Only called when debug mode is enabled. Includes stack trace and
+   * error chain information for troubleshooting.
+   */
+  private getErrorMetadata(error: unknown): Record<string, unknown> {
+    const metadata: Record<string, unknown> = {
+      timestamp: new Date().toISOString(),
+    }
+
+    if (error instanceof Error) {
+      metadata.errorName = error.name
+      metadata.errorMessage = error.message
+      metadata.stack = error.stack
+
+      // Preserve error cause chain
+      if (error.cause) {
+        metadata.cause =
+          error.cause instanceof Error
+            ? {
+                name: error.cause.name,
+                message: error.cause.message,
+                stack: error.cause.stack,
+              }
+            : String(error.cause)
+      }
+
+      // Handle SIPError-specific fields
+      if ('code' in error && typeof (error as Record<string, unknown>).code === 'string') {
+        metadata.errorCode = (error as Record<string, unknown>).code
+      }
+      if ('context' in error) {
+        metadata.errorContext = (error as Record<string, unknown>).context
+      }
+    } else {
+      metadata.rawError = String(error)
+    }
+
+    return metadata
   }
 }
