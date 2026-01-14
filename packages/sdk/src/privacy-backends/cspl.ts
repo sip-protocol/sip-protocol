@@ -68,6 +68,7 @@ import {
 } from './cspl-types'
 
 import { isValidSolanaAddressFormat } from '../validation'
+import { deepFreeze } from './interface'
 
 /**
  * Configuration for CSPLClient
@@ -670,28 +671,34 @@ export class CSPLClient implements ICSPLClient {
   /**
    * Estimate cost for an operation
    *
+   * Returns the estimated cost in lamports. Made async for consistency
+   * with other privacy backend cost estimation methods.
+   *
    * @param operation - Operation type
    * @returns Estimated cost in lamports
    */
-  estimateCost(operation: keyof typeof CSPL_OPERATION_COSTS): bigint {
+  async estimateCost(operation: keyof typeof CSPL_OPERATION_COSTS): Promise<bigint> {
     return CSPL_OPERATION_COSTS[operation]
   }
 
   /**
    * Estimate time for an operation
    *
+   * Returns the estimated time in milliseconds. Made async for consistency
+   * with other privacy backend estimation methods.
+   *
    * @param operation - Operation type
    * @returns Estimated time in milliseconds
    */
-  estimateTime(operation: keyof typeof CSPL_OPERATION_TIMES): number {
+  async estimateTime(operation: keyof typeof CSPL_OPERATION_TIMES): Promise<number> {
     return CSPL_OPERATION_TIMES[operation]
   }
 
   /**
-   * Get current configuration
+   * Get current configuration (deeply frozen copy)
    */
-  getConfig(): CSPLClientConfig {
-    return { ...this.config }
+  getConfig(): Readonly<CSPLClientConfig> {
+    return deepFreeze({ ...this.config })
   }
 
   /**

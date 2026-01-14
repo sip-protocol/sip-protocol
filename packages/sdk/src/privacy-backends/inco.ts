@@ -73,6 +73,7 @@ import {
   isComputationParams,
   withTimeout,
   ComputationTimeoutError,
+  deepFreeze,
 } from './interface'
 
 import type {
@@ -601,15 +602,15 @@ export class IncoBackend implements PrivacyBackend {
   }
 
   /**
-   * Get current configuration (for testing)
+   * Get current configuration (deeply frozen copy)
    */
-  getConfig(): Omit<IncoBackendConfig, 'client'> {
-    return {
+  getConfig(): Readonly<Omit<IncoBackendConfig, 'client'>> {
+    return deepFreeze({
       rpcUrl: this.config.rpcUrl,
       network: this.config.network,
       chainId: this.config.chainId,
       product: this.config.product,
       timeout: this.config.timeout,
-    }
+    })
   }
 }

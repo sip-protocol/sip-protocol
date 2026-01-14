@@ -15,6 +15,7 @@
  */
 
 import type { CipherType, ComputationStatus } from './interface'
+import { SIPError, ErrorCode } from '../errors'
 
 // ─── Re-export from interface ────────────────────────────────────────────────
 
@@ -431,4 +432,115 @@ export interface ArciumLimitsResolved {
   maxInputSizeBytes: number
   maxTotalInputSizeBytes: number
   maxComputationCostLamports: bigint
+}
+
+// ─── Error Types ──────────────────────────────────────────────────────────────
+
+/**
+ * Arcium-specific error codes
+ */
+export type ArciumErrorCode =
+  | 'ARCIUM_ERROR'
+  | 'ARCIUM_INVALID_NETWORK'
+  | 'ARCIUM_COMPUTATION_FAILED'
+  | 'ARCIUM_COMPUTATION_TIMEOUT'
+  | 'ARCIUM_CLUSTER_UNAVAILABLE'
+  | 'ARCIUM_CIRCUIT_NOT_FOUND'
+
+/**
+ * Error thrown by Arcium backend operations
+ *
+ * Extends SIPError with Arcium-specific context and error codes.
+ *
+ * @example
+ * ```typescript
+ * throw new ArciumError('Invalid network', 'ARCIUM_INVALID_NETWORK', {
+ *   context: { network: 'invalid', validNetworks: ['devnet', 'testnet', 'mainnet-beta'] }
+ * })
+ * ```
+ */
+export class ArciumError extends SIPError {
+  /** Arcium-specific error code */
+  readonly arciumCode: ArciumErrorCode
+
+  /** Network where error occurred */
+  readonly network?: ArciumNetwork
+
+  /** Computation ID if applicable */
+  readonly computationId?: string
+
+  /** Cluster involved if applicable */
+  readonly cluster?: string
+
+  constructor(
+    message: string,
+    arciumCode: ArciumErrorCode = 'ARCIUM_ERROR',
+    options?: {
+      cause?: Error
+      context?: Record<string, unknown>
+      network?: ArciumNetwork
+      computationId?: string
+      cluster?: string
+    }
+  ) {
+    // Map Arcium code to SIP error code
+    let sipCode: ErrorCode
+    switch (arciumCode) {
+      case 'ARCIUM_INVALID_NETWORK':
+        sipCode = ErrorCode.ARCIUM_INVALID_NETWORK
+        break
+      case 'ARCIUM_COMPUTATION_FAILED':
+        sipCode = ErrorCode.ARCIUM_COMPUTATION_FAILED
+        break
+      case 'ARCIUM_COMPUTATION_TIMEOUT':
+        sipCode = ErrorCode.ARCIUM_COMPUTATION_TIMEOUT
+        break
+      case 'ARCIUM_CLUSTER_UNAVAILABLE':
+        sipCode = ErrorCode.ARCIUM_CLUSTER_UNAVAILABLE
+        break
+      case 'ARCIUM_CIRCUIT_NOT_FOUND':
+        sipCode = ErrorCode.ARCIUM_CIRCUIT_NOT_FOUND
+        break
+      default:
+        sipCode = ErrorCode.ARCIUM_ERROR
+    }
+
+    super(message, sipCode, options)
+    this.name = 'ArciumError'
+    this.arciumCode = arciumCode
+    this.network = options?.network
+    this.computationId = options?.computationId
+    this.cluster = options?.cluster
+  }
+
+  /**
+   * Check if this is a network configuration error
+   */
+  isNetworkError(): boolean {
+    return this.arciumCode === 'ARCIUM_INVALID_NETWORK'
+  }
+
+  /**
+   * Check if this is a computation-related error
+   */
+  isComputationError(): boolean {
+    return (
+      this.arciumCode === 'ARCIUM_COMPUTATION_FAILED' ||
+      this.arciumCode === 'ARCIUM_COMPUTATION_TIMEOUT'
+    )
+  }
+
+  /**
+   * Check if this is a cluster-related error
+   */
+  isClusterError(): boolean {
+    return this.arciumCode === 'ARCIUM_CLUSTER_UNAVAILABLE'
+  }
+}
+
+/**
+ * Check if an error is an ArciumError
+ */
+export function isArciumError(error: unknown): error is ArciumError {
+  return error instanceof ArciumError
 }
