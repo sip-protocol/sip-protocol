@@ -674,7 +674,9 @@ export class CSPLClient implements ICSPLClient {
    * @param operation - Operation type
    * @returns Estimated cost in lamports
    */
-  estimateCost(operation: keyof typeof CSPL_OPERATION_COSTS): bigint {
+  async estimateCost(
+    operation: keyof typeof CSPL_OPERATION_COSTS
+  ): Promise<bigint> {
     return CSPL_OPERATION_COSTS[operation]
   }
 
