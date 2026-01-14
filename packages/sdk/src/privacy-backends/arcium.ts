@@ -77,6 +77,9 @@ import {
   DEFAULT_COMPUTATION_TIMEOUT_MS,
   ESTIMATED_COMPUTATION_TIME_MS,
   BASE_COMPUTATION_COST_LAMPORTS,
+  COST_PER_ENCRYPTED_INPUT_LAMPORTS,
+  COST_PER_INPUT_KB_LAMPORTS,
+  BYTES_PER_KB,
   MAX_ENCRYPTED_INPUTS,
   MAX_INPUT_SIZE_BYTES,
   MAX_TOTAL_INPUT_SIZE_BYTES,
@@ -468,7 +471,8 @@ export class ArciumBackend implements PrivacyBackend {
     let cost = BASE_COMPUTATION_COST_LAMPORTS
 
     // More inputs = higher cost
-    const inputCost = BigInt(params.encryptedInputs.length) * BigInt(1_000_000)
+    const inputCost =
+      BigInt(params.encryptedInputs.length) * COST_PER_ENCRYPTED_INPUT_LAMPORTS
     cost += inputCost
 
     // Larger inputs = higher cost
@@ -476,7 +480,8 @@ export class ArciumBackend implements PrivacyBackend {
       (sum, input) => sum + input.length,
       0
     )
-    const sizeCost = BigInt(Math.ceil(totalInputSize / 1000)) * BigInt(500_000)
+    const sizeCost =
+      BigInt(Math.ceil(totalInputSize / BYTES_PER_KB)) * COST_PER_INPUT_KB_LAMPORTS
     cost += sizeCost
 
     // Cap at maximum reasonable cost to prevent unexpected charges
