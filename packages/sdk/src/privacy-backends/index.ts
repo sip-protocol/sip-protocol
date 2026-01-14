@@ -107,6 +107,19 @@ export {
 // Health tracking
 export { BackendHealthTracker } from './health'
 
+// Rate limiting
+export {
+  RateLimiter,
+  DEFAULT_RATE_LIMIT_CONFIG,
+  RateLimitExceededError,
+  QueueFullError,
+  AcquireTimeoutError,
+  type RateLimitConfig,
+  type RateLimiterConfig,
+  type AcquireOptions,
+  type RateLimitStats,
+} from './rate-limiter'
+
 // Registry
 export {
   PrivacyBackendRegistry,

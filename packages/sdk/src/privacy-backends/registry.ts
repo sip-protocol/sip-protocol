@@ -37,6 +37,7 @@ import type {
   CircuitBreakerConfig,
 } from './interface'
 import { BackendHealthTracker } from './health'
+import { RateLimiter, type RateLimiterConfig, type RateLimitStats, type AcquireOptions } from './rate-limiter'
 
 /**
  * Default priority for registered backends
@@ -56,6 +57,15 @@ export interface PrivacyBackendRegistryConfig {
    * Circuit breaker configuration (when health tracking is enabled)
    */
   circuitBreakerConfig?: Partial<CircuitBreakerConfig>
+  /**
+   * Enable rate limiting for backends
+   * @default false
+   */
+  enableRateLimiting?: boolean
+  /**
+   * Rate limiter configuration (when rate limiting is enabled)
+   */
+  rateLimiterConfig?: RateLimiterConfig
 }
 
 /**
@@ -68,6 +78,7 @@ export interface PrivacyBackendRegistryConfig {
 export class PrivacyBackendRegistry {
   private backends: Map<string, RegisteredBackend> = new Map()
   private healthTracker: BackendHealthTracker | null = null
+  private rateLimiter: RateLimiter | null = null
 
   /**
    * Create a new registry
@@ -75,10 +86,19 @@ export class PrivacyBackendRegistry {
    * @param config - Registry configuration
    */
   constructor(config: PrivacyBackendRegistryConfig = {}) {
-    const { enableHealthTracking = true, circuitBreakerConfig } = config
+    const {
+      enableHealthTracking = true,
+      circuitBreakerConfig,
+      enableRateLimiting = false,
+      rateLimiterConfig,
+    } = config
 
     if (enableHealthTracking) {
       this.healthTracker = new BackendHealthTracker(circuitBreakerConfig)
+    }
+
+    if (enableRateLimiting) {
+      this.rateLimiter = new RateLimiter(rateLimiterConfig)
     }
   }
 
@@ -101,6 +121,27 @@ export class PrivacyBackendRegistry {
    */
   setHealthTracker(tracker: BackendHealthTracker | null): void {
     this.healthTracker = tracker
+  }
+
+  /**
+   * Get the rate limiter instance
+   *
+   * @returns Rate limiter or null if not enabled
+   */
+  getRateLimiter(): RateLimiter | null {
+    return this.rateLimiter
+  }
+
+  /**
+   * Attach an external rate limiter
+   *
+   * Useful for sharing a rate limiter between multiple registries
+   * or for testing.
+   *
+   * @param limiter - Rate limiter to attach
+   */
+  setRateLimiter(limiter: RateLimiter | null): void {
+    this.rateLimiter = limiter
   }
 
   /**
@@ -497,6 +538,142 @@ export class PrivacyBackendRegistry {
     if (this.healthTracker) {
       this.healthTracker.recordFailure(name, reason)
     }
+  }
+
+  // ─── Rate Limiting Methods ─────────────────────────────────────────────────
+
+  /**
+   * Try to acquire rate limit tokens for a backend (non-blocking)
+   *
+   * @param name - Backend name
+   * @param tokens - Number of tokens to acquire (default: 1)
+   * @returns true if tokens were acquired, false if rate limited or limiter disabled
+   */
+  tryAcquire(name: string, tokens: number = 1): boolean {
+    if (!this.rateLimiter) {
+      return true // No rate limiting enabled
+    }
+    return this.rateLimiter.tryAcquire(name, tokens)
+  }
+
+  /**
+   * Acquire rate limit tokens for a backend (async with queueing)
+   *
+   * @param name - Backend name
+   * @param options - Acquire options (tokens, timeout)
+   * @returns Promise resolving when tokens are acquired
+   * @throws RateLimitExceededError, QueueFullError, or AcquireTimeoutError
+   */
+  async acquire(name: string, options?: AcquireOptions): Promise<void> {
+    if (!this.rateLimiter) {
+      return // No rate limiting enabled
+    }
+    await this.rateLimiter.acquire(name, options)
+  }
+
+  /**
+   * Check if tokens can be acquired without consuming them
+   *
+   * @param name - Backend name
+   * @param tokens - Number of tokens to check (default: 1)
+   * @returns true if tokens are available
+   */
+  canAcquire(name: string, tokens: number = 1): boolean {
+    if (!this.rateLimiter) {
+      return true // No rate limiting enabled
+    }
+    return this.rateLimiter.canAcquire(name, tokens)
+  }
+
+  /**
+   * Get rate limit statistics for a backend
+   *
+   * @param name - Backend name
+   * @returns Rate limit stats or undefined if limiter disabled
+   */
+  getRateLimitStats(name: string): RateLimitStats | undefined {
+    return this.rateLimiter?.getStats(name)
+  }
+
+  /**
+   * Check if a backend is rate limited (no tokens available)
+   *
+   * @param name - Backend name
+   * @returns true if rate limited, false if available or limiter disabled
+   */
+  isRateLimited(name: string): boolean {
+    if (!this.rateLimiter) {
+      return false
+    }
+    return !this.rateLimiter.canAcquire(name)
+  }
+
+  /**
+   * Get all backends that are NOT rate limited
+   *
+   * @returns Array of backends with available rate limit tokens
+   */
+  getAvailable(): PrivacyBackend[] {
+    const all = this.getAll()
+    if (!this.rateLimiter) {
+      return all
+    }
+    return all.filter(backend => this.rateLimiter!.canAcquire(backend.name))
+  }
+
+  /**
+   * Get available backends for a specific chain
+   *
+   * Filters by both chain support and rate limit availability.
+   *
+   * @param chain - Chain type to filter by
+   * @returns Array of available backends supporting the chain
+   */
+  getAvailableByChain(chain: ChainType): PrivacyBackend[] {
+    return this.getAvailable().filter(backend => backend.chains.includes(chain))
+  }
+
+  /**
+   * Get backends that are both healthy AND not rate limited
+   *
+   * @returns Array of backends ready for use
+   */
+  getReady(): PrivacyBackend[] {
+    const healthy = this.getHealthy()
+    if (!this.rateLimiter) {
+      return healthy
+    }
+    return healthy.filter(backend => this.rateLimiter!.canAcquire(backend.name))
+  }
+
+  /**
+   * Get ready backends for a specific chain
+   *
+   * @param chain - Chain type to filter by
+   * @returns Array of ready backends supporting the chain
+   */
+  getReadyByChain(chain: ChainType): PrivacyBackend[] {
+    return this.getReady().filter(backend => backend.chains.includes(chain))
+  }
+
+  /**
+   * Reset rate limit state for a backend
+   *
+   * Refills bucket to max tokens and clears stats.
+   *
+   * @param name - Backend name
+   */
+  resetRateLimit(name: string): void {
+    this.rateLimiter?.reset(name)
+  }
+
+  /**
+   * Dispose rate limiter resources
+   *
+   * Call when shutting down to clean up queue processing intervals.
+   */
+  disposeRateLimiter(): void {
+    this.rateLimiter?.dispose()
   }
 }
 
