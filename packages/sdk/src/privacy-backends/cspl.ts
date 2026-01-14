@@ -69,6 +69,26 @@ import {
 
 import { isValidSolanaAddressFormat } from '../validation'
 import { deepFreeze } from './interface'
+import {
+  LRUCache,
+  DEFAULT_CACHE_SIZES,
+  DEFAULT_CACHE_TTL,
+  type LRUCacheStats,
+} from './lru-cache'
+
+/**
+ * Cache configuration for CSPLClient
+ */
+export interface CSPLCacheConfig {
+  /** Maximum entries in account cache (default: 1000) */
+  accountCacheSize?: number
+  /** Maximum entries in balance cache (default: 500) */
+  balanceCacheSize?: number
+  /** Account cache TTL in ms (default: 5 minutes) */
+  accountCacheTTL?: number
+  /** Balance cache TTL in ms (default: 30 seconds) */
+  balanceCacheTTL?: number
+}
 
 /**
  * Configuration for CSPLClient
@@ -82,6 +102,8 @@ export interface CSPLClientConfig {
   enableCompliance?: boolean
   /** Request timeout in milliseconds */
   timeout?: number
+  /** Cache configuration */
+  cache?: CSPLCacheConfig
 }
 
 /**
@@ -89,11 +111,22 @@ export interface CSPLClientConfig {
  *
  * Handles all operations for Confidential SPL tokens.
  */
+/**
+ * Extended cache stats including LRU metrics
+ */
+export interface CSPLCacheStats {
+  /** Account cache statistics */
+  accounts: LRUCacheStats
+  /** Balance cache statistics */
+  balances: LRUCacheStats
+}
+
 export class CSPLClient implements ICSPLClient {
-  private config: Required<CSPLClientConfig>
+  private config: Required<Omit<CSPLClientConfig, 'cache'>>
+  private cacheConfig: Required<CSPLCacheConfig>
   private connected: boolean = false
-  private accountCache: Map<string, ConfidentialTokenAccount> = new Map()
-  private balanceCache: Map<string, ConfidentialBalance> = new Map()
+  private accountCache: LRUCache<string, ConfidentialTokenAccount>
+  private balanceCache: LRUCache<string, ConfidentialBalance>
 
   /**
    * Create a new C-SPL client
@@ -107,6 +140,25 @@ export class CSPLClient implements ICSPLClient {
       enableCompliance: config.enableCompliance ?? false,
       timeout: config.timeout ?? 30_000,
     }
+
+    // Initialize cache configuration with defaults
+    this.cacheConfig = {
+      accountCacheSize: config.cache?.accountCacheSize ?? DEFAULT_CACHE_SIZES.TOKEN_ACCOUNTS,
+      balanceCacheSize: config.cache?.balanceCacheSize ?? DEFAULT_CACHE_SIZES.BALANCES,
+      accountCacheTTL: config.cache?.accountCacheTTL ?? DEFAULT_CACHE_TTL.TOKEN_ACCOUNTS,
+      balanceCacheTTL: config.cache?.balanceCacheTTL ?? DEFAULT_CACHE_TTL.BALANCES,
+    }
+
+    // Initialize LRU caches
+    this.accountCache = new LRUCache<string, ConfidentialTokenAccount>({
+      maxSize: this.cacheConfig.accountCacheSize,
+      ttl: this.cacheConfig.accountCacheTTL,
+    })
+
+    this.balanceCache = new LRUCache<string, ConfidentialBalance>({
+      maxSize: this.cacheConfig.balanceCacheSize,
+      ttl: this.cacheConfig.balanceCacheTTL,
+    })
   }
 
   /**
@@ -809,12 +861,47 @@ export class CSPLClient implements ICSPLClient {
   }
 
   /**
-   * Get cache stats
+   * Get cache entry counts (backward compatible)
+   *
+   * @returns Number of entries in each cache
    */
   getCacheStats(): { accounts: number; balances: number } {
     return {
       accounts: this.accountCache.size,
       balances: this.balanceCache.size,
+    }
+  }
+
+  /**
+   * Get detailed cache statistics including LRU metrics
+   *
+   * @returns Detailed cache stats with hit rates and eviction counts
+   */
+  getDetailedCacheStats(): CSPLCacheStats {
+    return {
+      accounts: this.accountCache.getStats(),
+      balances: this.balanceCache.getStats(),
+    }
+  }
+
+  /**
+   * Get cache configuration
+   *
+   * @returns Current cache configuration
+   */
+  getCacheConfig(): Readonly<CSPLCacheConfig> {
+    return deepFreeze({ ...this.cacheConfig })
+  }
+
+  /**
+   * Prune expired entries from all caches
+   *
+   * @returns Number of entries pruned from each cache
+   */
+  pruneExpiredCache(): { accounts: number; balances: number } {
+    return {
+      accounts: this.accountCache.prune(),
+      balances: this.balanceCache.prune(),
     }
   }
 }

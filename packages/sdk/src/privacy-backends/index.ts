@@ -96,6 +96,13 @@ export { withTimeout } from './interface'
 
 // Utilities
 export { deepFreeze } from './interface'
+export {
+  LRUCache,
+  DEFAULT_CACHE_SIZES,
+  DEFAULT_CACHE_TTL,
+  type LRUCacheConfig,
+  type LRUCacheStats,
+} from './lru-cache'
 
 // Health tracking
 export { BackendHealthTracker } from './health'
@@ -215,7 +222,12 @@ export {
 } from './inco-types'
 
 // C-SPL (Confidential SPL) types and client
-export { CSPLClient, type CSPLClientConfig } from './cspl'
+export {
+  CSPLClient,
+  type CSPLClientConfig,
+  type CSPLCacheConfig,
+  type CSPLCacheStats,
+} from './cspl'
 export {
   CSPL_TOKENS,
   CSPL_PROGRAM_IDS,
