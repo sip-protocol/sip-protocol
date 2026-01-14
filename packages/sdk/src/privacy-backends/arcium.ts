@@ -139,8 +139,20 @@ export class ArciumBackend implements PrivacyBackend {
    * Create a new Arcium backend
    *
    * @param config - Backend configuration
+   * @throws {Error} If network is invalid
    */
   constructor(config: ArciumBackendConfig = {}) {
+    // Validate network parameter if provided
+    if (config.network !== undefined) {
+      const validNetworks: ArciumNetwork[] = ['devnet', 'testnet', 'mainnet-beta']
+      if (!validNetworks.includes(config.network)) {
+        throw new Error(
+          `Invalid Arcium network '${config.network}'. ` +
+            `Valid networks: ${validNetworks.join(', ')}`
+        )
+      }
+    }
+
     this.config = {
       rpcUrl: config.rpcUrl ?? 'https://api.devnet.solana.com',
       network: config.network ?? 'devnet',
