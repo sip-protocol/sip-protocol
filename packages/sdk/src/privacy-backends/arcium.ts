@@ -80,6 +80,10 @@ import {
   COST_PER_ENCRYPTED_INPUT_LAMPORTS,
   COST_PER_INPUT_KB_LAMPORTS,
   BYTES_PER_KB,
+  MAX_ENCRYPTED_INPUTS,
+  MAX_INPUT_SIZE_BYTES,
+  MAX_TOTAL_INPUT_SIZE_BYTES,
+  MAX_COMPUTATION_COST_LAMPORTS,
   type ArciumNetwork,
   type IArciumClient,
   type ComputationInfo,
@@ -196,7 +200,16 @@ export class ArciumBackend implements PrivacyBackend {
       }
     }
 
-    // Validate each input is a valid Uint8Array
+    // Validate number of inputs doesn't exceed maximum
+    if (params.encryptedInputs.length > MAX_ENCRYPTED_INPUTS) {
+      return {
+        available: false,
+        reason: `Too many encrypted inputs: ${params.encryptedInputs.length} exceeds maximum of ${MAX_ENCRYPTED_INPUTS}`,
+      }
+    }
+
+    // Validate each input is a valid Uint8Array with size bounds
+    let totalInputSize = 0
     for (let i = 0; i < params.encryptedInputs.length; i++) {
       const input = params.encryptedInputs[i]
       if (!(input instanceof Uint8Array) || input.length === 0) {
@@ -204,6 +217,21 @@ export class ArciumBackend implements PrivacyBackend {
           available: false,
           reason: `encryptedInputs[${i}] must be a non-empty Uint8Array`,
         }
+      }
+      if (input.length > MAX_INPUT_SIZE_BYTES) {
+        return {
+          available: false,
+          reason: `encryptedInputs[${i}] size ${input.length} bytes exceeds maximum of ${MAX_INPUT_SIZE_BYTES} bytes (1 MB)`,
+        }
+      }
+      totalInputSize += input.length
+    }
+
+    // Validate total input size
+    if (totalInputSize > MAX_TOTAL_INPUT_SIZE_BYTES) {
+      return {
+        available: false,
+        reason: `Total input size ${totalInputSize} bytes exceeds maximum of ${MAX_TOTAL_INPUT_SIZE_BYTES} bytes (10 MB)`,
       }
     }
 
@@ -455,6 +483,11 @@ export class ArciumBackend implements PrivacyBackend {
     const sizeCost =
       BigInt(Math.ceil(totalInputSize / BYTES_PER_KB)) * COST_PER_INPUT_KB_LAMPORTS
     cost += sizeCost
+
+    // Cap at maximum reasonable cost to prevent unexpected charges
+    if (cost > MAX_COMPUTATION_COST_LAMPORTS) {
+      return MAX_COMPUTATION_COST_LAMPORTS
+    }
 
     return cost
   }
