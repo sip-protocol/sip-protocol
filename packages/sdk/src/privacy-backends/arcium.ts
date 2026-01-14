@@ -89,6 +89,11 @@ import {
   DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES,
   DEFAULT_MAX_COMPUTATION_COST_LAMPORTS,
   ArciumError,
+  // Environment variable configuration
+  resolveRpcUrl,
+  resolveNetwork,
+  resolveTimeout,
+  resolveCluster,
   type ArciumNetwork,
   type IArciumClient,
   type ComputationInfo,
@@ -157,12 +162,38 @@ export class ArciumBackend implements PrivacyBackend {
   /**
    * Create a new Arcium backend
    *
+   * Configuration is resolved with the following priority:
+   * 1. Environment variables (highest priority)
+   * 2. Config parameters
+   * 3. Default values
+   *
    * @param config - Backend configuration
    * @throws {ArciumError} If network is invalid
    * @throws {Error} If limits are invalid (non-positive values)
+   *
+   * @example
+   * ```bash
+   * # Configure via environment variables
+   * export ARCIUM_RPC_URL_DEVNET=https://my-rpc.example.com
+   * export ARCIUM_NETWORK=devnet
+   * export ARCIUM_TIMEOUT_MS=600000
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // Or configure via constructor
+   * const backend = new ArciumBackend({
+   *   rpcUrl: 'https://my-rpc.example.com',
+   *   network: 'devnet',
+   *   timeout: 600_000,
+   * })
+   * ```
    */
   constructor(config: ArciumBackendConfig = {}) {
-    // Validate network parameter if provided
+    // Resolve network first (needed for other resolvers)
+    const network = resolveNetwork(config.network)
+
+    // Validate network parameter if explicitly provided
     if (config.network !== undefined) {
       const validNetworks: ArciumNetwork[] = ['devnet', 'testnet', 'mainnet-beta']
       if (!validNetworks.includes(config.network)) {
@@ -180,11 +211,11 @@ export class ArciumBackend implements PrivacyBackend {
     }
 
     this.config = {
-      rpcUrl: config.rpcUrl ?? 'https://api.devnet.solana.com',
-      network: config.network ?? 'devnet',
-      cluster: config.cluster ?? ARCIUM_CLUSTERS[config.network ?? 'devnet'],
+      rpcUrl: resolveRpcUrl(network, config.rpcUrl),
+      network,
+      cluster: resolveCluster(network, config.cluster),
       defaultCipher: config.defaultCipher ?? 'aes256',
-      timeout: config.timeout ?? DEFAULT_COMPUTATION_TIMEOUT_MS,
+      timeout: resolveTimeout(config.timeout),
       client: config.client,
       debug: config.debug ?? false,
     }

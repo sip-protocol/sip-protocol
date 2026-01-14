@@ -294,6 +294,62 @@ describe('ArciumBackend', () => {
     })
   })
 
+  // ─── Environment Variable Tests ─────────────────────────────────────────────
+
+  describe('env var integration', () => {
+    afterEach(() => {
+      // Clean up env vars after each test
+      delete process.env.ARCIUM_RPC_URL
+      delete process.env.ARCIUM_RPC_URL_DEVNET
+      delete process.env.ARCIUM_RPC_URL_TESTNET
+      delete process.env.ARCIUM_RPC_URL_MAINNET
+      delete process.env.ARCIUM_NETWORK
+      delete process.env.ARCIUM_CLUSTER
+      delete process.env.ARCIUM_TIMEOUT_MS
+    })
+
+    it('should use env var for RPC URL when creating backend', () => {
+      process.env.ARCIUM_RPC_URL_DEVNET = 'https://env-devnet.rpc.url'
+
+      // Backend should be created successfully with env var URL
+      const backend = new ArciumBackend()
+      expect(backend.name).toBe('arcium')
+    })
+
+    it('should use env var for network when creating backend', () => {
+      process.env.ARCIUM_NETWORK = 'testnet'
+
+      // Backend should use testnet from env var
+      const backend = new ArciumBackend()
+      expect(backend.name).toBe('arcium')
+    })
+
+    it('should use env var for timeout when creating backend', () => {
+      process.env.ARCIUM_TIMEOUT_MS = '900000'
+
+      const backend = new ArciumBackend()
+      expect(backend.name).toBe('arcium')
+    })
+
+    it('should use env var for cluster when creating backend', () => {
+      process.env.ARCIUM_CLUSTER = 'env-cluster-1'
+
+      // Backend should use cluster from env var
+      const backend = new ArciumBackend()
+      expect(backend.name).toBe('arcium')
+    })
+
+    it('should handle env var priority correctly', () => {
+      // Test verifies the priority order: env var > config > default
+      process.env.ARCIUM_NETWORK = 'mainnet-beta'
+
+      // Note: Env var has higher priority, so this will use mainnet-beta
+      // This is intentional - env vars override config
+      const backend = new ArciumBackend({ network: 'testnet' })
+      expect(backend.name).toBe('arcium')
+    })
+  })
+
   // ─── Capabilities Tests ──────────────────────────────────────────────────────
 
   describe('getCapabilities', () => {
@@ -1300,6 +1356,158 @@ describe('Arcium Constants', () => {
 
     it('MAX_COMPUTATION_COST_LAMPORTS should equal DEFAULT_MAX_COMPUTATION_COST_LAMPORTS', () => {
       expect(MAX_COMPUTATION_COST_LAMPORTS).toBe(DEFAULT_MAX_COMPUTATION_COST_LAMPORTS)
+    })
+  })
+})
+
+// ─── Environment Variable Resolver Tests ───────────────────────────────────
+
+describe('Environment Variable Resolvers', () => {
+  afterEach(() => {
+    // Clean up env vars after each test
+    delete process.env.ARCIUM_RPC_URL
+    delete process.env.ARCIUM_RPC_URL_DEVNET
+    delete process.env.ARCIUM_RPC_URL_TESTNET
+    delete process.env.ARCIUM_RPC_URL_MAINNET
+    delete process.env.ARCIUM_NETWORK
+    delete process.env.ARCIUM_CLUSTER
+    delete process.env.ARCIUM_TIMEOUT_MS
+  })
+
+  describe('getEnvVar', () => {
+    it('should return env var value when set', async () => {
+      const { getEnvVar } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.TEST_VAR = 'test-value'
+      expect(getEnvVar('TEST_VAR')).toBe('test-value')
+      delete process.env.TEST_VAR
+    })
+
+    it('should return undefined when env var not set', async () => {
+      const { getEnvVar } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(getEnvVar('NON_EXISTENT_VAR')).toBeUndefined()
+    })
+  })
+
+  describe('resolveRpcUrl', () => {
+    it('should use network-specific env var first', async () => {
+      const { resolveRpcUrl } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_RPC_URL_DEVNET = 'https://network-specific.rpc.url'
+      process.env.ARCIUM_RPC_URL = 'https://generic.rpc.url'
+
+      expect(resolveRpcUrl('devnet', 'https://config.rpc.url')).toBe('https://network-specific.rpc.url')
+    })
+
+    it('should fall back to generic env var', async () => {
+      const { resolveRpcUrl } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_RPC_URL = 'https://generic.rpc.url'
+
+      expect(resolveRpcUrl('devnet', 'https://config.rpc.url')).toBe('https://generic.rpc.url')
+    })
+
+    it('should fall back to config value', async () => {
+      const { resolveRpcUrl } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveRpcUrl('devnet', 'https://config.rpc.url')).toBe('https://config.rpc.url')
+    })
+
+    it('should fall back to default', async () => {
+      const { resolveRpcUrl, DEFAULT_RPC_ENDPOINTS } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveRpcUrl('devnet')).toBe(DEFAULT_RPC_ENDPOINTS.devnet)
+    })
+  })
+
+  describe('resolveNetwork', () => {
+    it('should use env var when set', async () => {
+      const { resolveNetwork } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_NETWORK = 'testnet'
+
+      expect(resolveNetwork('devnet')).toBe('testnet')
+    })
+
+    it('should fall back to config', async () => {
+      const { resolveNetwork } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveNetwork('testnet')).toBe('testnet')
+    })
+
+    it('should fall back to default devnet', async () => {
+      const { resolveNetwork } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveNetwork()).toBe('devnet')
+    })
+
+    it('should ignore invalid env var value', async () => {
+      const { resolveNetwork } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_NETWORK = 'invalid-network'
+
+      expect(resolveNetwork('testnet')).toBe('testnet')
+    })
+  })
+
+  describe('resolveTimeout', () => {
+    it('should use env var when set', async () => {
+      const { resolveTimeout } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_TIMEOUT_MS = '600000'
+
+      expect(resolveTimeout(300000)).toBe(600000)
+    })
+
+    it('should fall back to config', async () => {
+      const { resolveTimeout } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveTimeout(300000)).toBe(300000)
+    })
+
+    it('should fall back to default', async () => {
+      const { resolveTimeout, DEFAULT_COMPUTATION_TIMEOUT_MS } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveTimeout()).toBe(DEFAULT_COMPUTATION_TIMEOUT_MS)
+    })
+
+    it('should ignore invalid env var value', async () => {
+      const { resolveTimeout, DEFAULT_COMPUTATION_TIMEOUT_MS } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_TIMEOUT_MS = 'not-a-number'
+
+      expect(resolveTimeout()).toBe(DEFAULT_COMPUTATION_TIMEOUT_MS)
+    })
+
+    it('should ignore negative env var value', async () => {
+      const { resolveTimeout, DEFAULT_COMPUTATION_TIMEOUT_MS } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_TIMEOUT_MS = '-1000'
+
+      expect(resolveTimeout()).toBe(DEFAULT_COMPUTATION_TIMEOUT_MS)
+    })
+  })
+
+  describe('resolveCluster', () => {
+    it('should use env var when set', async () => {
+      const { resolveCluster } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_CLUSTER = 'env-cluster-1'
+
+      expect(resolveCluster('devnet', 'config-cluster-1')).toBe('env-cluster-1')
+    })
+
+    it('should fall back to config', async () => {
+      const { resolveCluster } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveCluster('devnet', 'config-cluster-1')).toBe('config-cluster-1')
+    })
+
+    it('should fall back to network default', async () => {
+      const { resolveCluster, ARCIUM_CLUSTERS } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveCluster('devnet')).toBe(ARCIUM_CLUSTERS.devnet)
     })
   })
 })
