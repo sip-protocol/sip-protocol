@@ -228,5 +228,34 @@ export {
   type PrivateSwapStep,
 } from './private-swap'
 
+// C-SPL Token Service (higher-level wrapper)
+export {
+  CSPLTokenService,
+  type CSPLTokenServiceConfig,
+  type WrapParams,
+  type WrapResult,
+  type UnwrapParams,
+  type UnwrapResult,
+  type ApproveParams,
+  type ApproveResult,
+  type CSPLServiceStatus,
+} from './cspl-token'
+
+// Combined Privacy Service (SIP Native + C-SPL integration)
+export {
+  CombinedPrivacyService,
+  createCombinedPrivacyServiceDevnet,
+  createCombinedPrivacyServiceMainnet,
+  type CombinedPrivacyServiceConfig,
+  type CombinedTransferParams,
+  type CombinedTransferResult,
+  type StealthAddressResult,
+  type ClaimParams,
+  type ClaimResult,
+  type CostBreakdown,
+  type PrivacyComparison,
+  type ServiceStatus,
+} from './combined-privacy'
+
 // Router
 export { SmartRouter } from './router'
