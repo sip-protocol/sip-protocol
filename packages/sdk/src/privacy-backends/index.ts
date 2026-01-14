@@ -90,6 +90,9 @@ export {
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
 } from './interface'
 
+// Utilities
+export { deepFreeze } from './interface'
+
 // Health tracking
 export { BackendHealthTracker } from './health'
 

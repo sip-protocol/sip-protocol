@@ -68,6 +68,7 @@ import {
 } from './cspl-types'
 
 import { isValidSolanaAddressFormat } from '../validation'
+import { deepFreeze } from './interface'
 
 /**
  * Configuration for CSPLClient
@@ -688,10 +689,10 @@ export class CSPLClient implements ICSPLClient {
   }
 
   /**
-   * Get current configuration
+   * Get current configuration (deeply frozen copy)
    */
-  getConfig(): CSPLClientConfig {
-    return { ...this.config }
+  getConfig(): Readonly<CSPLClientConfig> {
+    return deepFreeze({ ...this.config })
   }
 
   /**

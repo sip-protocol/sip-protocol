@@ -339,3 +339,83 @@ describe('TransactionResult type', () => {
     expect(result.signature).toBeUndefined()
   })
 })
+
+// ─── Deep Freeze Utility Tests ────────────────────────────────────────────────
+
+import { deepFreeze } from '../../src/privacy-backends/interface'
+
+describe('deepFreeze', () => {
+  it('should freeze top-level object', () => {
+    const obj = { name: 'test', value: 42 }
+    const frozen = deepFreeze(obj)
+
+    expect(Object.isFrozen(frozen)).toBe(true)
+  })
+
+  it('should freeze nested objects', () => {
+    const obj = {
+      config: {
+        network: 'devnet',
+        options: {
+          timeout: 5000,
+        },
+      },
+    }
+    const frozen = deepFreeze(obj)
+
+    expect(Object.isFrozen(frozen)).toBe(true)
+    expect(Object.isFrozen(frozen.config)).toBe(true)
+    expect(Object.isFrozen(frozen.config.options)).toBe(true)
+  })
+
+  it('should freeze arrays', () => {
+    const obj = {
+      items: [1, 2, 3],
+      nested: [{ id: 1 }, { id: 2 }],
+    }
+    const frozen = deepFreeze(obj)
+
+    expect(Object.isFrozen(frozen.items)).toBe(true)
+    expect(Object.isFrozen(frozen.nested)).toBe(true)
+    expect(Object.isFrozen(frozen.nested[0])).toBe(true)
+  })
+
+  it('should handle null values', () => {
+    const obj = { value: null, name: 'test' }
+    const frozen = deepFreeze(obj)
+
+    expect(Object.isFrozen(frozen)).toBe(true)
+    expect(frozen.value).toBe(null)
+  })
+
+  it('should handle empty objects', () => {
+    const obj = {}
+    const frozen = deepFreeze(obj)
+
+    expect(Object.isFrozen(frozen)).toBe(true)
+  })
+
+  it('should return same object reference', () => {
+    const obj = { test: true }
+    const frozen = deepFreeze(obj)
+
+    expect(frozen).toBe(obj)
+  })
+
+  it('should prevent modification in strict mode', () => {
+    const obj = { network: 'devnet', options: { timeout: 5000 } }
+    const frozen = deepFreeze(obj)
+
+    // In strict mode, this would throw
+    // In non-strict mode, modifications are silently ignored
+    expect(() => {
+      // @ts-expect-error - testing frozen object
+      frozen.network = 'mainnet'
+    }).toThrow()
+
+    expect(() => {
+      // @ts-expect-error - testing frozen object
+      frozen.options.timeout = 10000
+    }).toThrow()
+  })
+})

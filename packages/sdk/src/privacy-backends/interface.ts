@@ -580,3 +580,36 @@ export class CircuitOpenError extends Error {
     Object.setPrototypeOf(this, CircuitOpenError.prototype)
   }
 }
+
+// ─── Utility Functions ────────────────────────────────────────────────────────
+
+/**
+ * Deep freeze an object to make it truly immutable
+ *
+ * Unlike Object.freeze() which only freezes the top level,
+ * this recursively freezes all nested objects and arrays.
+ *
+ * @param obj - Object to freeze
+ * @returns The same object, deeply frozen
+ *
+ * @example
+ * ```typescript
+ * const config = deepFreeze({ network: 'devnet', options: { timeout: 5000 } })
+ * config.options.timeout = 10000 // Error in strict mode, silently ignored otherwise
+ * ```
+ */
+export function deepFreeze<T extends object>(obj: T): Readonly<T> {
+  // Get all properties including non-enumerable
+  const propNames = Object.getOwnPropertyNames(obj) as (keyof T)[]
+
+  // Freeze nested objects first (depth-first)
+  for (const name of propNames) {
+    const value = obj[name]
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+      deepFreeze(value as object)
+    }
+  }
+
+  // Freeze the object itself
+  return Object.freeze(obj)
+}
