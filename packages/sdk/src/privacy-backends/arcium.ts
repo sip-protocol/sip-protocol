@@ -84,15 +84,21 @@ import {
   COST_PER_ENCRYPTED_INPUT_LAMPORTS,
   COST_PER_INPUT_KB_LAMPORTS,
   BYTES_PER_KB,
-  MAX_ENCRYPTED_INPUTS,
-  MAX_INPUT_SIZE_BYTES,
-  MAX_TOTAL_INPUT_SIZE_BYTES,
-  MAX_COMPUTATION_COST_LAMPORTS,
+  DEFAULT_MAX_ENCRYPTED_INPUTS,
+  DEFAULT_MAX_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_COMPUTATION_COST_LAMPORTS,
   ArciumError,
   type ArciumNetwork,
   type IArciumClient,
   type ComputationInfo,
+  type ArciumLimitsConfig,
+  type ArciumLimitsResolved,
 } from './arcium-types'
+
+import { createPrivacyLogger } from '../privacy-logger'
+
+const arciumLogger = createPrivacyLogger('Arcium')
 
 /**
  * Configuration options for Arcium backend
@@ -112,6 +118,8 @@ export interface ArciumBackendConfig {
   client?: IArciumClient
   /** Enable debug mode (includes stack traces in error responses) */
   debug?: boolean
+  /** Configurable validation limits */
+  limits?: ArciumLimitsConfig
 }
 
 /**
@@ -140,16 +148,18 @@ export class ArciumBackend implements PrivacyBackend {
   readonly type: BackendType = 'compute'
   readonly chains: string[] = ['solana']
 
-  private config: Required<Omit<ArciumBackendConfig, 'client'>> & {
+  private config: Required<Omit<ArciumBackendConfig, 'client' | 'limits'>> & {
     client?: IArciumClient
   }
   private computationCache: Map<string, ComputationInfo> = new Map()
+  private limits: ArciumLimitsResolved
 
   /**
    * Create a new Arcium backend
    *
    * @param config - Backend configuration
    * @throws {ArciumError} If network is invalid
+   * @throws {Error} If limits are invalid (non-positive values)
    */
   constructor(config: ArciumBackendConfig = {}) {
     // Validate network parameter if provided
@@ -178,6 +188,40 @@ export class ArciumBackend implements PrivacyBackend {
       client: config.client,
       debug: config.debug ?? false,
     }
+
+    // Resolve limits with defaults
+    this.limits = {
+      maxEncryptedInputs:
+        config.limits?.maxEncryptedInputs ?? DEFAULT_MAX_ENCRYPTED_INPUTS,
+      maxInputSizeBytes:
+        config.limits?.maxInputSizeBytes ?? DEFAULT_MAX_INPUT_SIZE_BYTES,
+      maxTotalInputSizeBytes:
+        config.limits?.maxTotalInputSizeBytes ?? DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES,
+      maxComputationCostLamports:
+        config.limits?.maxComputationCostLamports ?? DEFAULT_MAX_COMPUTATION_COST_LAMPORTS,
+    }
+
+    // Validate configured limits are positive
+    if (this.limits.maxEncryptedInputs <= 0) {
+      throw new Error('maxEncryptedInputs must be positive')
+    }
+    if (this.limits.maxInputSizeBytes <= 0) {
+      throw new Error('maxInputSizeBytes must be positive')
+    }
+    if (this.limits.maxTotalInputSizeBytes <= 0) {
+      throw new Error('maxTotalInputSizeBytes must be positive')
+    }
+    if (this.limits.maxComputationCostLamports <= BigInt(0)) {
+      throw new Error('maxComputationCostLamports must be positive')
+    }
+  }
+
+  /**
+   * Get the current resolved limits configuration
+   * @returns A copy of the resolved limits
+   */
+  getLimits(): ArciumLimitsResolved {
+    return { ...this.limits }
   }
 
   /**
@@ -199,6 +243,19 @@ export class ArciumBackend implements PrivacyBackend {
   /**
    * Check availability for computation params
    */
+  /**
+   * Format bytes into human-readable string
+   */
+  private formatBytes(bytes: number): string {
+    if (bytes >= 1_048_576) {
+      return `${Math.round(bytes / 1_048_576)} MB`
+    }
+    if (bytes >= 1024) {
+      return `${Math.round(bytes / 1024)} KB`
+    }
+    return `${bytes} bytes`
+  }
+
   private async checkComputeAvailability(
     params: ComputationParams
   ): Promise<AvailabilityResult> {
@@ -227,10 +284,13 @@ export class ArciumBackend implements PrivacyBackend {
     }
 
     // Validate number of inputs doesn't exceed maximum
-    if (params.encryptedInputs.length > MAX_ENCRYPTED_INPUTS) {
+    if (params.encryptedInputs.length > this.limits.maxEncryptedInputs) {
+      arciumLogger.warn('Validation failed: too many inputs', {
+        amount: params.encryptedInputs.length,
+      })
       return {
         available: false,
-        reason: `Too many encrypted inputs: ${params.encryptedInputs.length} exceeds maximum of ${MAX_ENCRYPTED_INPUTS}`,
+        reason: `Too many encrypted inputs: ${params.encryptedInputs.length} exceeds maximum of ${this.limits.maxEncryptedInputs}`,
       }
     }
 
@@ -244,20 +304,26 @@ export class ArciumBackend implements PrivacyBackend {
           reason: `encryptedInputs[${i}] must be a non-empty Uint8Array`,
         }
       }
-      if (input.length > MAX_INPUT_SIZE_BYTES) {
+      if (input.length > this.limits.maxInputSizeBytes) {
+        arciumLogger.warn('Validation failed: input too large', {
+          amount: input.length,
+        })
         return {
           available: false,
-          reason: `encryptedInputs[${i}] size ${input.length} bytes exceeds maximum of ${MAX_INPUT_SIZE_BYTES} bytes (1 MB)`,
+          reason: `encryptedInputs[${i}] size ${input.length} bytes exceeds maximum of ${this.formatBytes(this.limits.maxInputSizeBytes)}`,
         }
       }
       totalInputSize += input.length
     }
 
     // Validate total input size
-    if (totalInputSize > MAX_TOTAL_INPUT_SIZE_BYTES) {
+    if (totalInputSize > this.limits.maxTotalInputSizeBytes) {
+      arciumLogger.warn('Validation failed: total input size exceeded', {
+        amount: totalInputSize,
+      })
       return {
         available: false,
-        reason: `Total input size ${totalInputSize} bytes exceeds maximum of ${MAX_TOTAL_INPUT_SIZE_BYTES} bytes (10 MB)`,
+        reason: `Total input size ${this.formatBytes(totalInputSize)} exceeds maximum of ${this.formatBytes(this.limits.maxTotalInputSizeBytes)}`,
       }
     }
 
@@ -533,8 +599,8 @@ export class ArciumBackend implements PrivacyBackend {
     cost += sizeCost
 
     // Cap at maximum reasonable cost to prevent unexpected charges
-    if (cost > MAX_COMPUTATION_COST_LAMPORTS) {
-      return MAX_COMPUTATION_COST_LAMPORTS
+    if (cost > this.limits.maxComputationCostLamports) {
+      return this.limits.maxComputationCostLamports
     }
 
     return cost

@@ -161,6 +161,12 @@ export {
   COST_PER_INPUT_KB_LAMPORTS,
   BYTES_PER_KB,
   SOLANA_SLOT_TIME_MS,
+  // New DEFAULT_* constants (preferred)
+  DEFAULT_MAX_ENCRYPTED_INPUTS,
+  DEFAULT_MAX_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_COMPUTATION_COST_LAMPORTS,
+  // Deprecated aliases (backward compatibility)
   MAX_ENCRYPTED_INPUTS,
   MAX_INPUT_SIZE_BYTES,
   MAX_TOTAL_INPUT_SIZE_BYTES,
@@ -179,6 +185,8 @@ export {
   type DecryptionResult,
   type IArciumClient,
   type IArciumReader,
+  type ArciumLimitsConfig,
+  type ArciumLimitsResolved,
 } from './arcium-types'
 
 // Inco types (for advanced usage)
