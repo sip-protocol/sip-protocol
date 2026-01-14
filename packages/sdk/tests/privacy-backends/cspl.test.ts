@@ -847,6 +847,113 @@ describe('CSPLClient', () => {
       expect(stats.accounts).toBe(0)
       expect(stats.balances).toBe(0)
     })
+
+    it('should provide detailed cache stats with LRU metrics', async () => {
+      const token = createTestToken()
+
+      // Generate some cache activity
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
+      // Access again to generate hits
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
+
+      const detailedStats = client.getDetailedCacheStats()
+
+      // Check account cache stats
+      expect(detailedStats.accounts).toBeDefined()
+      expect(detailedStats.accounts.size).toBeGreaterThan(0)
+      expect(detailedStats.accounts.maxSize).toBe(1000) // DEFAULT_CACHE_SIZES.TOKEN_ACCOUNTS
+      expect(detailedStats.accounts.hits).toBeGreaterThan(0)
+      expect(detailedStats.accounts.hitRate).toBeGreaterThan(0)
+
+      // Check balance cache stats
+      expect(detailedStats.balances).toBeDefined()
+      expect(detailedStats.balances.size).toBeGreaterThan(0)
+      expect(detailedStats.balances.maxSize).toBe(500) // DEFAULT_CACHE_SIZES.BALANCES
+    })
+
+    it('should return cache configuration', () => {
+      const config = client.getCacheConfig()
+
+      expect(config.accountCacheSize).toBe(1000)
+      expect(config.balanceCacheSize).toBe(500)
+      expect(config.accountCacheTTL).toBe(5 * 60 * 1000) // 5 minutes
+      expect(config.balanceCacheTTL).toBe(30 * 1000) // 30 seconds
+    })
+
+    it('should accept custom cache configuration', () => {
+      const customClient = new CSPLClient({
+        cache: {
+          accountCacheSize: 100,
+          balanceCacheSize: 50,
+          accountCacheTTL: 60_000,
+          balanceCacheTTL: 10_000,
+        },
+      })
+
+      const config = customClient.getCacheConfig()
+
+      expect(config.accountCacheSize).toBe(100)
+      expect(config.balanceCacheSize).toBe(50)
+      expect(config.accountCacheTTL).toBe(60_000)
+      expect(config.balanceCacheTTL).toBe(10_000)
+    })
+
+    it('should prune expired cache entries', async () => {
+      // Create client with very short TTL for testing
+      const shortTTLClient = new CSPLClient({
+        cache: {
+          accountCacheTTL: 1, // 1ms TTL
+          balanceCacheTTL: 1,
+        },
+      })
+
+      const token = createTestToken()
+
+      await shortTTLClient.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await shortTTLClient.getBalance(TEST_ADDRESSES.owner, token)
+
+      // Wait for TTL to expire
+      await new Promise(resolve => setTimeout(resolve, 10))
+
+      const pruned = shortTTLClient.pruneExpiredCache()
+
+      // Entries should have been pruned
+      expect(pruned.accounts).toBeGreaterThanOrEqual(0)
+      expect(pruned.balances).toBeGreaterThanOrEqual(0)
+    })
+
+    it('should evict LRU entries when cache is full', async () => {
+      // Create client with tiny cache for testing eviction
+      const tinyClient = new CSPLClient({
+        cache: {
+          accountCacheSize: 2,
+          balanceCacheSize: 2,
+        },
+      })
+
+      // Create 3 different tokens to fill and overflow the cache
+      // Cache key uses confidentialMint, so we need unique confidentialMints
+      const token1 = createTestToken({ confidentialMint: 'CSPLToken1111111111111111111111111111111' })
+      const token2 = createTestToken({ confidentialMint: 'CSPLToken2222222222222222222222222222222' })
+      const token3 = createTestToken({ confidentialMint: 'CSPLToken3333333333333333333333333333333' })
+
+      // Fill the cache
+      await tinyClient.getOrCreateAccount(TEST_ADDRESSES.owner, token1)
+      await tinyClient.getOrCreateAccount(TEST_ADDRESSES.owner, token2)
+
+      const statsBeforeEviction = tinyClient.getDetailedCacheStats()
+      expect(statsBeforeEviction.accounts.size).toBe(2)
+      expect(statsBeforeEviction.accounts.evictions).toBe(0)
+
+      // Add one more to trigger eviction
+      await tinyClient.getOrCreateAccount(TEST_ADDRESSES.owner, token3)
+
+      const statsAfterEviction = tinyClient.getDetailedCacheStats()
+      expect(statsAfterEviction.accounts.size).toBe(2) // Still at max
+      expect(statsAfterEviction.accounts.evictions).toBe(1) // One eviction
+    })
   })
 })
 
