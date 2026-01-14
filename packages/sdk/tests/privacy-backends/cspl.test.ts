@@ -795,14 +795,14 @@ describe('CSPLClient', () => {
       expect(tokens).toContain('C-USDT')
     })
 
-    it('should estimate cost', () => {
-      const cost = client.estimateCost('transfer')
+    it('should estimate cost', async () => {
+      const cost = await client.estimateCost('transfer')
 
       expect(cost).toBe(CSPL_OPERATION_COSTS.transfer)
     })
 
-    it('should estimate time', () => {
-      const time = client.estimateTime('swap')
+    it('should estimate time', async () => {
+      const time = await client.estimateTime('swap')
 
       expect(time).toBe(CSPL_OPERATION_TIMES.swap)
     })
