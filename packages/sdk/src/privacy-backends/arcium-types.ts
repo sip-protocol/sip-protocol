@@ -544,3 +544,184 @@ export class ArciumError extends SIPError {
 export function isArciumError(error: unknown): error is ArciumError {
   return error instanceof ArciumError
 }
+
+// ─── Environment Variable Configuration ──────────────────────────────────────
+
+/**
+ * Environment variable names for Arcium configuration
+ *
+ * Allows runtime override of SDK settings without code changes.
+ * Priority: network-specific env → generic env → config → default
+ *
+ * @example
+ * ```bash
+ * # Generic RPC URL (used if network-specific not set)
+ * export ARCIUM_RPC_URL=https://my-rpc.example.com
+ *
+ * # Network-specific RPC URLs (highest priority)
+ * export ARCIUM_RPC_URL_DEVNET=https://devnet.my-rpc.example.com
+ * export ARCIUM_RPC_URL_MAINNET=https://mainnet.my-rpc.example.com
+ *
+ * # Other settings
+ * export ARCIUM_NETWORK=devnet
+ * export ARCIUM_TIMEOUT_MS=600000
+ * ```
+ */
+export const ARCIUM_ENV_VARS = {
+  /** Generic RPC URL (fallback if network-specific not set) */
+  RPC_URL: 'ARCIUM_RPC_URL',
+  /** Devnet-specific RPC URL */
+  RPC_URL_DEVNET: 'ARCIUM_RPC_URL_DEVNET',
+  /** Testnet-specific RPC URL */
+  RPC_URL_TESTNET: 'ARCIUM_RPC_URL_TESTNET',
+  /** Mainnet-specific RPC URL */
+  RPC_URL_MAINNET: 'ARCIUM_RPC_URL_MAINNET',
+  /** Default network */
+  NETWORK: 'ARCIUM_NETWORK',
+  /** Default MPC cluster */
+  CLUSTER: 'ARCIUM_CLUSTER',
+  /** Default cipher type */
+  CIPHER: 'ARCIUM_CIPHER',
+  /** Computation timeout in milliseconds */
+  TIMEOUT_MS: 'ARCIUM_TIMEOUT_MS',
+} as const
+
+/**
+ * Default Solana RPC endpoints per network
+ *
+ * Used as fallback when no env var or config is provided.
+ */
+export const DEFAULT_RPC_ENDPOINTS: Record<ArciumNetwork, string> = {
+  devnet: 'https://api.devnet.solana.com',
+  testnet: 'https://api.testnet.solana.com',
+  'mainnet-beta': 'https://api.mainnet-beta.solana.com',
+}
+
+/**
+ * Get environment variable value (cross-platform)
+ *
+ * Works in both Node.js and browser environments.
+ *
+ * @param name - Environment variable name
+ * @returns Value if set, undefined otherwise
+ */
+export function getEnvVar(name: string): string | undefined {
+  // Node.js environment
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[name]
+  }
+  // Browser environment (globalThis fallback)
+  if (typeof globalThis !== 'undefined') {
+    const global = globalThis as Record<string, unknown>
+    if (global[name] !== undefined) {
+      return String(global[name])
+    }
+  }
+  return undefined
+}
+
+/**
+ * Resolve RPC URL with fallback chain
+ *
+ * Priority: network-specific env → generic env → config → default
+ *
+ * @param network - Target network
+ * @param configUrl - URL from config (optional)
+ * @returns Resolved RPC URL
+ *
+ * @example
+ * ```typescript
+ * // Uses ARCIUM_RPC_URL_DEVNET if set, else ARCIUM_RPC_URL, else config, else default
+ * const rpcUrl = resolveRpcUrl('devnet', config.rpcUrl)
+ * ```
+ */
+export function resolveRpcUrl(
+  network: ArciumNetwork,
+  configUrl?: string
+): string {
+  // Map network to its specific env var
+  const networkEnvMap: Record<ArciumNetwork, string> = {
+    devnet: ARCIUM_ENV_VARS.RPC_URL_DEVNET,
+    testnet: ARCIUM_ENV_VARS.RPC_URL_TESTNET,
+    'mainnet-beta': ARCIUM_ENV_VARS.RPC_URL_MAINNET,
+  }
+
+  // 1. Check network-specific env var (highest priority)
+  const networkEnvUrl = getEnvVar(networkEnvMap[network])
+  if (networkEnvUrl) {
+    return networkEnvUrl
+  }
+
+  // 2. Check generic env var
+  const genericEnvUrl = getEnvVar(ARCIUM_ENV_VARS.RPC_URL)
+  if (genericEnvUrl) {
+    return genericEnvUrl
+  }
+
+  // 3. Use config value if provided
+  if (configUrl) {
+    return configUrl
+  }
+
+  // 4. Fall back to default
+  return DEFAULT_RPC_ENDPOINTS[network]
+}
+
+/**
+ * Resolve network from env or config
+ *
+ * @param configNetwork - Network from config (optional)
+ * @returns Resolved network, defaults to 'devnet'
+ */
+export function resolveNetwork(configNetwork?: ArciumNetwork): ArciumNetwork {
+  const envNetwork = getEnvVar(ARCIUM_ENV_VARS.NETWORK)
+  if (envNetwork && isValidNetwork(envNetwork)) {
+    return envNetwork as ArciumNetwork
+  }
+  return configNetwork ?? 'devnet'
+}
+
+/**
+ * Resolve computation timeout from env or config
+ *
+ * @param configTimeout - Timeout from config in ms (optional)
+ * @returns Resolved timeout in ms
+ */
+export function resolveTimeout(configTimeout?: number): number {
+  const envTimeout = getEnvVar(ARCIUM_ENV_VARS.TIMEOUT_MS)
+  if (envTimeout) {
+    const parsed = parseInt(envTimeout, 10)
+    if (!isNaN(parsed) && parsed > 0) {
+      return parsed
+    }
+  }
+  return configTimeout ?? DEFAULT_COMPUTATION_TIMEOUT_MS
+}
+
+/**
+ * Resolve cluster from env or config
+ *
+ * @param network - Target network (for default cluster selection)
+ * @param configCluster - Cluster from config (optional)
+ * @returns Resolved cluster ID
+ */
+export function resolveCluster(
+  network: ArciumNetwork,
+  configCluster?: string
+): string {
+  const envCluster = getEnvVar(ARCIUM_ENV_VARS.CLUSTER)
+  if (envCluster) {
+    return envCluster
+  }
+  return configCluster ?? ARCIUM_CLUSTERS[network]
+}
+
+/**
+ * Check if a string is a valid ArciumNetwork value
+ *
+ * @param value - String to validate
+ * @returns True if valid network
+ */
+function isValidNetwork(value: string): value is ArciumNetwork {
+  return value === 'devnet' || value === 'testnet' || value === 'mainnet-beta'
+}

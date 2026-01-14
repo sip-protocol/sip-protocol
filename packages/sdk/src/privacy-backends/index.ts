@@ -191,9 +191,18 @@ export {
   MAX_INPUT_SIZE_BYTES,
   MAX_TOTAL_INPUT_SIZE_BYTES,
   MAX_COMPUTATION_COST_LAMPORTS,
+  // Error handling
   ArciumError,
   isArciumError,
   type ArciumErrorCode,
+  // Environment variable configuration
+  ARCIUM_ENV_VARS,
+  DEFAULT_RPC_ENDPOINTS,
+  getEnvVar,
+  resolveRpcUrl,
+  resolveNetwork,
+  resolveTimeout,
+  resolveCluster,
   type ArciumNetwork,
   type ArciumConfig,
   type ArciumCluster,
