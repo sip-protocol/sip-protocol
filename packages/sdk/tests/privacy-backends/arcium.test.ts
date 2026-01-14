@@ -10,6 +10,10 @@ import {
   ARCIUM_CLUSTERS,
   BASE_COMPUTATION_COST_LAMPORTS,
   ESTIMATED_COMPUTATION_TIME_MS,
+  MAX_ENCRYPTED_INPUTS,
+  MAX_INPUT_SIZE_BYTES,
+  MAX_TOTAL_INPUT_SIZE_BYTES,
+  MAX_COMPUTATION_COST_LAMPORTS,
 } from '../../src/privacy-backends/arcium-types'
 import type {
   ComputationParams,
@@ -245,6 +249,86 @@ describe('ArciumBackend', () => {
 
         expect(result.available).toBe(true)
       })
+
+      // ─── Upper Bound Validation Tests ─────────────────────────────────────────
+
+      it('should reject too many encrypted inputs', async () => {
+        const tooManyInputs = Array.from(
+          { length: MAX_ENCRYPTED_INPUTS + 1 },
+          () => new Uint8Array([1, 2, 3])
+        )
+        const params = createValidComputationParams({
+          encryptedInputs: tooManyInputs,
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(false)
+        expect(result.reason).toContain('Too many encrypted inputs')
+        expect(result.reason).toContain(`${MAX_ENCRYPTED_INPUTS + 1}`)
+        expect(result.reason).toContain(`${MAX_ENCRYPTED_INPUTS}`)
+      })
+
+      it('should accept exactly MAX_ENCRYPTED_INPUTS', async () => {
+        const maxInputs = Array.from(
+          { length: MAX_ENCRYPTED_INPUTS },
+          () => new Uint8Array([1, 2, 3])
+        )
+        const params = createValidComputationParams({
+          encryptedInputs: maxInputs,
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(true)
+      })
+
+      it('should reject oversized individual input', async () => {
+        const oversizedInput = new Uint8Array(MAX_INPUT_SIZE_BYTES + 1)
+        const params = createValidComputationParams({
+          encryptedInputs: [oversizedInput],
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(false)
+        expect(result.reason).toContain('size')
+        expect(result.reason).toContain('exceeds maximum')
+        expect(result.reason).toContain('1 MB')
+      })
+
+      it('should accept exactly MAX_INPUT_SIZE_BYTES', async () => {
+        const maxSizeInput = new Uint8Array(MAX_INPUT_SIZE_BYTES)
+        maxSizeInput[0] = 1 // Ensure non-empty
+        const params = createValidComputationParams({
+          encryptedInputs: [maxSizeInput],
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(true)
+      })
+
+      it('should reject when total input size exceeds maximum', async () => {
+        // Create multiple inputs that individually fit but together exceed MAX_TOTAL_INPUT_SIZE_BYTES
+        const inputSize = Math.floor(MAX_INPUT_SIZE_BYTES / 2) // Half of max individual
+        const numInputs = Math.ceil((MAX_TOTAL_INPUT_SIZE_BYTES + 1) / inputSize)
+        const inputs = Array.from({ length: numInputs }, () => {
+          const arr = new Uint8Array(inputSize)
+          arr[0] = 1 // Ensure non-empty
+          return arr
+        })
+        const params = createValidComputationParams({
+          encryptedInputs: inputs,
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(false)
+        expect(result.reason).toContain('Total input size')
+        expect(result.reason).toContain('exceeds maximum')
+        expect(result.reason).toContain('10 MB')
+      })
     })
 
     describe('with TransferParams', () => {
@@ -442,6 +526,26 @@ describe('ArciumBackend', () => {
       const cost = await backend.estimateCost(params)
 
       expect(cost).toBe(BigInt(0))
+    })
+
+    it('should cap cost at MAX_COMPUTATION_COST_LAMPORTS', async () => {
+      // Create params that would generate a very high cost
+      // Note: This test uses max allowed inputs to push cost high
+      const largeInputs = Array.from(
+        { length: MAX_ENCRYPTED_INPUTS },
+        () => {
+          const arr = new Uint8Array(100_000) // 100KB each
+          arr[0] = 1
+          return arr
+        }
+      )
+      const params = createValidComputationParams({
+        encryptedInputs: largeInputs,
+      })
+
+      const cost = await backend.estimateCost(params)
+
+      expect(cost).toBeLessThanOrEqual(MAX_COMPUTATION_COST_LAMPORTS)
     })
   })
 
@@ -694,6 +798,28 @@ describe('Arcium Constants', () => {
     it('should have reasonable estimated time', () => {
       // 60 seconds
       expect(ESTIMATED_COMPUTATION_TIME_MS).toBe(60_000)
+    })
+  })
+
+  describe('upper bound constants', () => {
+    it('should have MAX_ENCRYPTED_INPUTS = 100', () => {
+      expect(MAX_ENCRYPTED_INPUTS).toBe(100)
+    })
+
+    it('should have MAX_INPUT_SIZE_BYTES = 1 MB', () => {
+      expect(MAX_INPUT_SIZE_BYTES).toBe(1_048_576)
+    })
+
+    it('should have MAX_TOTAL_INPUT_SIZE_BYTES = 10 MB', () => {
+      expect(MAX_TOTAL_INPUT_SIZE_BYTES).toBe(10_485_760)
+    })
+
+    it('should have MAX_COMPUTATION_COST_LAMPORTS = ~1 SOL', () => {
+      expect(MAX_COMPUTATION_COST_LAMPORTS).toBe(BigInt(1_000_000_000))
+    })
+
+    it('should ensure max cost is greater than base cost', () => {
+      expect(MAX_COMPUTATION_COST_LAMPORTS).toBeGreaterThan(BASE_COMPUTATION_COST_LAMPORTS)
     })
   })
 })
