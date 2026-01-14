@@ -141,6 +141,17 @@ export class MagicBlockBackend implements PrivacyBackend {
   private wallet?: Keypair
 
   constructor(config: MagicBlockBackendConfig = {}) {
+    // Validate network parameter if provided
+    if (config.network !== undefined) {
+      const validNetworks: MagicBlockNetwork[] = ['devnet', 'mainnet-beta']
+      if (!validNetworks.includes(config.network)) {
+        throw new Error(
+          `Invalid MagicBlock network '${config.network}'. ` +
+            `Valid networks: ${validNetworks.join(', ')}`
+        )
+      }
+    }
+
     this.config = {
       network: config.network ?? 'devnet',
       region: config.region ?? 'us',

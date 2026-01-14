@@ -71,6 +71,14 @@ import type {
 
 import { isComputationParams } from './interface'
 
+import type {
+  IncoProduct,
+  EncryptedType,
+  EncryptedValue,
+  FHEComputationInfo,
+  IIncoClient,
+} from './inco-types'
+
 import {
   INCO_RPC_URLS,
   INCO_SUPPORTED_CHAINS,
@@ -79,11 +87,6 @@ import {
   BASE_FHE_COST_WEI,
   COST_PER_ENCRYPTED_INPUT_WEI,
   type IncoNetwork,
-  type IncoProduct,
-  type EncryptedType,
-  type EncryptedValue,
-  type FHEComputationInfo,
-  type IIncoClient,
 } from './inco-types'
 
 /**
@@ -141,8 +144,20 @@ export class IncoBackend implements PrivacyBackend {
    * Create a new Inco backend
    *
    * @param config - Backend configuration
+   * @throws {Error} If network is invalid
    */
   constructor(config: IncoBackendConfig = {}) {
+    // Validate network parameter if provided
+    if (config.network !== undefined) {
+      const validNetworks: IncoNetwork[] = ['testnet', 'mainnet']
+      if (!validNetworks.includes(config.network)) {
+        throw new Error(
+          `Invalid Inco network '${config.network}'. ` +
+            `Valid networks: ${validNetworks.join(', ')}`
+        )
+      }
+    }
+
     this.config = {
       rpcUrl: config.rpcUrl ?? INCO_RPC_URLS[config.network ?? 'testnet'],
       network: config.network ?? 'testnet',
