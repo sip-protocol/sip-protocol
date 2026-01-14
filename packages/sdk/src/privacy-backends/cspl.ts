@@ -70,6 +70,25 @@ import { sha256 } from '@noble/hashes/sha256'
 import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 
 /**
+ * Validate a Solana address format
+ *
+ * For the mock client, we validate that the address is non-empty.
+ * In production, this would validate base58 format and key length.
+ *
+ * @param address - The address to validate
+ * @param paramName - Parameter name for error messages
+ * @throws Error if address is invalid
+ */
+function validateSolanaAddress(address: string, paramName: string): void {
+  if (!address || address.trim() === '') {
+    throw new Error(`${paramName} address is required`)
+  }
+  // Note: In production, add proper base58 validation:
+  // import { PublicKey } from '@solana/web3.js'
+  // new PublicKey(address)
+}
+
+/**
  * Configuration for CSPLClient
  */
 export interface CSPLClientConfig {
