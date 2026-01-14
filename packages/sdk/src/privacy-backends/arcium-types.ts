@@ -326,3 +326,28 @@ export const ESTIMATED_COMPUTATION_TIME_MS = 60_000
  * Actual cost depends on circuit complexity and cluster fees
  */
 export const BASE_COMPUTATION_COST_LAMPORTS = BigInt(50_000_000) // ~0.05 SOL
+
+/**
+ * Cost per encrypted input in lamports (~0.001 SOL)
+ * Used in computation cost estimation
+ */
+export const COST_PER_ENCRYPTED_INPUT_LAMPORTS = BigInt(1_000_000)
+
+/**
+ * Cost per kilobyte of input data in lamports (~0.0005 SOL)
+ * Used in computation cost estimation for larger payloads
+ */
+export const COST_PER_INPUT_KB_LAMPORTS = BigInt(500_000)
+
+/**
+ * Bytes per kilobyte for size calculations
+ * Using 1000 (SI standard) rather than 1024 (binary)
+ */
+export const BYTES_PER_KB = 1000
+
+/**
+ * Solana slot time in milliseconds
+ * Average time between Solana slots (~400ms)
+ * @see https://docs.solana.com/cluster/synchronization
+ */
+export const SOLANA_SLOT_TIME_MS = 400
