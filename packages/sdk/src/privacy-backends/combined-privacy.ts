@@ -451,8 +451,55 @@ export class CombinedPrivacyService {
   /**
    * Derive a stealth address from a meta-address
    *
-   * @param metaAddress - SIP meta-address (sip:chain:spending:viewing format)
-   * @returns Stealth address derivation result
+   * Creates a one-time stealth address for the recipient that cannot be linked
+   * to their public identity. The sender generates an ephemeral keypair and uses
+   * the recipient's viewing key to compute a shared secret, which is then used
+   * to derive a unique address from their spending key.
+   *
+   * ## Meta-Address Format
+   *
+   * The metaAddress must follow the SIP meta-address format:
+   * ```
+   * sip:<chain>:<spendingKey>:<viewingKey>
+   * ```
+   *
+   * Where:
+   * - `chain`: The blockchain network (e.g., 'solana', 'ethereum')
+   * - `spendingKey`: Recipient's spending public key (hex-encoded)
+   * - `viewingKey`: Recipient's viewing public key (hex-encoded)
+   *
+   * ## Return Value
+   *
+   * Returns a `StealthAddressResult` object:
+   * - `success`: Whether derivation succeeded
+   * - `stealthAddress`: The derived one-time stealth address (only if success)
+   * - `ephemeralPubkey`: The ephemeral public key to share with recipient (only if success)
+   * - `viewTag`: A view tag for efficient scanning (0-255) (only if success)
+   * - `error`: Error message (only if !success)
+   *
+   * **IMPORTANT:** Always check `success` before accessing other fields!
+   *
+   * @param metaAddress - SIP meta-address in format `sip:<chain>:<spendingKey>:<viewingKey>`
+   * @returns Stealth address derivation result with ephemeral public key
+   *
+   * @example
+   * ```typescript
+   * const result = await service.deriveStealthAddress(
+   *   'sip:solana:0x02abc...123:0x03def...456'
+   * )
+   *
+   * if (!result.success) {
+   *   console.error('Failed:', result.error)
+   *   return
+   * }
+   *
+   * // Share ephemeralPubkey with recipient for claiming
+   * console.log('Stealth address:', result.stealthAddress)
+   * console.log('Ephemeral key:', result.ephemeralPubkey)
+   * console.log('View tag:', result.viewTag)
+   * ```
+   *
+   * @see https://eips.ethereum.org/EIPS/eip-5564 for stealth address standard
    */
   async deriveStealthAddress(metaAddress: string): Promise<StealthAddressResult> {
     // Parse meta-address
@@ -501,8 +548,52 @@ export class CombinedPrivacyService {
   /**
    * Claim tokens from a stealth address
    *
-   * @param params - Claim parameters
-   * @returns Claim result
+   * Allows the recipient to claim tokens sent to their stealth address.
+   * The recipient uses the ephemeral public key (provided by the sender)
+   * along with their private keys to derive the stealth private key and
+   * sign the claim transaction.
+   *
+   * ## Process
+   *
+   * 1. Compute shared secret from `ephemeralPubkey` + `viewingPrivateKey`
+   * 2. Derive stealth private key from `spendingPrivateKey` + shared secret
+   * 3. Create and sign claim transaction
+   * 4. Unwrap C-SPL back to SPL tokens
+   *
+   * ## Security Considerations
+   *
+   * - Private keys are used locally and never transmitted
+   * - The viewing key allows scanning for incoming payments
+   * - The spending key is required to actually claim tokens
+   *
+   * **IMPORTANT:** Always check `success` before accessing other fields!
+   *
+   * @param params - Claim parameters including:
+   *   - `stealthAddress`: The stealth address to claim from
+   *   - `ephemeralPubkey`: The ephemeral public key from sender
+   *   - `spendingPrivateKey`: Recipient's spending private key
+   *   - `viewingPrivateKey`: Recipient's viewing private key
+   *   - `csplMint`: The C-SPL token mint to claim
+   * @returns Claim result with amount and signature
+   *
+   * @example
+   * ```typescript
+   * const result = await service.claimFromStealth({
+   *   stealthAddress: 'stealth_solana_...',
+   *   ephemeralPubkey: 'eph_...',
+   *   spendingPrivateKey: '0x...',
+   *   viewingPrivateKey: '0x...',
+   *   csplMint: 'CSPLToken...',
+   * })
+   *
+   * if (!result.success) {
+   *   console.error('Claim failed:', result.error)
+   *   return
+   * }
+   *
+   * console.log('Claimed:', result.amount, 'tokens')
+   * console.log('Signature:', result.signature)
+   * ```
    */
   async claimFromStealth(params: ClaimParams): Promise<ClaimResult> {
     if (!this.initialized) {
@@ -554,8 +645,34 @@ export class CombinedPrivacyService {
   /**
    * Estimate cost for a combined transfer
    *
-   * @param params - Transfer parameters
-   * @returns Cost breakdown
+   * Calculates the total cost breakdown for executing a privacy-preserving
+   * transfer, including C-SPL wrapping, stealth address derivation, and
+   * the actual transfer.
+   *
+   * ## Cost Components
+   *
+   * - `wrapCost`: Cost to wrap SPL tokens to C-SPL (rent + transaction)
+   * - `stealthCost`: Stealth address derivation (client-side, negligible)
+   * - `transferCost`: SIP Native transfer cost
+   * - `totalCost`: Sum of all costs
+   *
+   * @param params - Transfer parameters (same as executePrivateTransfer)
+   * @returns Cost breakdown in lamports
+   *
+   * @example
+   * ```typescript
+   * const cost = await service.estimateCost({
+   *   sender: wallet.publicKey,
+   *   recipientMetaAddress: 'sip:solana:0x...',
+   *   amount: 1_000_000_000n,
+   *   token: 'So11...',
+   * })
+   *
+   * console.log('Wrap:', cost.wrapCost, 'lamports')
+   * console.log('Transfer:', cost.transferCost, 'lamports')
+   * console.log('Total:', cost.totalCost, 'lamports')
+   * // => Total: 10000 lamports (~0.00001 SOL)
+   * ```
    */
   async estimateCost(params: CombinedTransferParams): Promise<CostBreakdown> {
     // Wrap cost
@@ -647,6 +764,16 @@ export class CombinedPrivacyService {
 
   /**
    * Disconnect and cleanup
+   *
+   * Gracefully disconnects from all underlying services and resets
+   * the initialization state. Call this when done using the service
+   * to release resources.
+   *
+   * @example
+   * ```typescript
+   * // Cleanup when done
+   * await service.disconnect()
+   * ```
    */
   async disconnect(): Promise<void> {
     await this.csplService.disconnect()
