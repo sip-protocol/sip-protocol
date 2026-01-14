@@ -445,14 +445,19 @@ export const CSPL_TOKENS: Record<string, Partial<CSPLToken>> = {
 /**
  * C-SPL program IDs
  *
- * Note: These are placeholder values. Real values TBD when C-SPL launches.
+ * NOTE: TOKEN_PROGRAM and ATA_PROGRAM are PLACEHOLDER addresses.
+ * Real values TBD when C-SPL launches on Solana.
+ * The PLACEHOLDR prefix makes them obviously invalid to prevent
+ * accidental use in production.
+ *
+ * CONFIDENTIAL_TRANSFER is the real Solana Token-2022 program ID.
  */
 export const CSPL_PROGRAM_IDS = {
-  /** C-SPL token program */
-  TOKEN_PROGRAM: 'CSPL1111111111111111111111111111111111111111',
-  /** C-SPL associated token account program */
-  ATA_PROGRAM: 'CSPLAta11111111111111111111111111111111111111',
-  /** Confidential transfer extension */
+  /** C-SPL token program (PLACEHOLDER - TBD) */
+  TOKEN_PROGRAM: 'PLACEHLDRCSPLTokenProgram111111111111111111',
+  /** C-SPL associated token account program (PLACEHOLDER - TBD) */
+  ATA_PROGRAM: 'PLACEHLDRCSPLAtaProgram1111111111111111111',
+  /** Confidential transfer extension (REAL Solana Token-2022 program) */
   CONFIDENTIAL_TRANSFER: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
 } as const
 

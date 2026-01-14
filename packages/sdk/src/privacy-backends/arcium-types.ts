@@ -304,11 +304,16 @@ export const ARCIUM_CLUSTERS: Record<ArciumNetwork, string> = {
 
 /**
  * Arcium program addresses on Solana
+ *
+ * NOTE: These are PLACEHOLDER addresses for type safety only.
+ * Real program IDs come from @arcium-hq/client SDK at runtime.
+ * The PLACEHOLDER prefix makes them obviously invalid to prevent
+ * accidental use in production or devnet testing.
  */
 export const ARCIUM_PROGRAM_IDS: Record<ArciumNetwork, string> = {
-  devnet: 'ArcmDevnetProgramAddress111111111111111111111',
-  testnet: 'ArcmTestnetProgramAddress11111111111111111111',
-  'mainnet-beta': 'ArcmMainnetProgramAddress11111111111111111111',
+  devnet: 'PLACEHLDRArciumDevnet11111111111111111111111',
+  testnet: 'PLACEHLDRArciumTestnet1111111111111111111111',
+  'mainnet-beta': 'PLACEHLDRArciumMainnet1111111111111111111111',
 }
 
 /**
