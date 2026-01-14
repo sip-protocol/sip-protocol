@@ -118,7 +118,7 @@ export {
 export { MockBackend, createMockFactory, type MockBackendConfig } from './mock'
 
 // Compute Backends
-export { ArciumBackend, type ArciumBackendConfig } from './arcium'
+export { ArciumBackend, type ArciumBackendConfig, type ArciumLimits } from './arcium'
 export { IncoBackend, type IncoBackendConfig } from './inco'
 
 // TEE Backend (Hardware-based Privacy)

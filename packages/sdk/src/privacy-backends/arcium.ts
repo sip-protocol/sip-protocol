@@ -94,6 +94,23 @@ import {
 } from './arcium-types'
 
 /**
+ * Configurable limits for Arcium computations
+ *
+ * These limits can be customized per-instance to accommodate different use cases.
+ * The defaults are conservative to prevent abuse while allowing typical operations.
+ */
+export interface ArciumLimits {
+  /** Maximum number of encrypted inputs per computation (default: 100) */
+  maxEncryptedInputs?: number
+  /** Maximum size of a single encrypted input in bytes (default: 1MB) */
+  maxInputSizeBytes?: number
+  /** Maximum total size of all inputs combined in bytes (default: 10MB) */
+  maxTotalInputSizeBytes?: number
+  /** Maximum computation cost in lamports (default: ~1 SOL) */
+  maxComputationCostLamports?: bigint
+}
+
+/**
  * Configuration options for Arcium backend
  */
 export interface ArciumBackendConfig {
@@ -111,6 +128,22 @@ export interface ArciumBackendConfig {
   client?: IArciumClient
   /** Enable debug mode (includes stack traces in error responses) */
   debug?: boolean
+  /**
+   * Configurable limits for validation
+   *
+   * Use to customize input size/count limits and cost caps for specific use cases.
+   *
+   * @example
+   * ```typescript
+   * const backend = new ArciumBackend({
+   *   limits: {
+   *     maxEncryptedInputs: 50,
+   *     maxTotalInputSizeBytes: 5 * 1024 * 1024, // 5 MB
+   *   },
+   * })
+   * ```
+   */
+  limits?: ArciumLimits
 }
 
 /**
@@ -129,6 +162,11 @@ const ARCIUM_CAPABILITIES: BackendCapabilities = {
 }
 
 /**
+ * Resolved limits with all values set (no optionals)
+ */
+type ResolvedLimits = Required<ArciumLimits>
+
+/**
  * Arcium MPC Compute Privacy Backend
  *
  * Provides compute privacy through Multi-Party Computation.
@@ -139,9 +177,10 @@ export class ArciumBackend implements PrivacyBackend {
   readonly type: BackendType = 'compute'
   readonly chains: string[] = ['solana']
 
-  private config: Required<Omit<ArciumBackendConfig, 'client'>> & {
+  private config: Required<Omit<ArciumBackendConfig, 'client' | 'limits'>> & {
     client?: IArciumClient
   }
+  private limits: ResolvedLimits
   private computationCache: Map<string, ComputationInfo> = new Map()
 
   /**
@@ -170,6 +209,14 @@ export class ArciumBackend implements PrivacyBackend {
       timeout: config.timeout ?? DEFAULT_COMPUTATION_TIMEOUT_MS,
       client: config.client,
       debug: config.debug ?? false,
+    }
+
+    // Resolve limits with defaults from constants
+    this.limits = {
+      maxEncryptedInputs: config.limits?.maxEncryptedInputs ?? MAX_ENCRYPTED_INPUTS,
+      maxInputSizeBytes: config.limits?.maxInputSizeBytes ?? MAX_INPUT_SIZE_BYTES,
+      maxTotalInputSizeBytes: config.limits?.maxTotalInputSizeBytes ?? MAX_TOTAL_INPUT_SIZE_BYTES,
+      maxComputationCostLamports: config.limits?.maxComputationCostLamports ?? MAX_COMPUTATION_COST_LAMPORTS,
     }
   }
 
@@ -220,10 +267,10 @@ export class ArciumBackend implements PrivacyBackend {
     }
 
     // Validate number of inputs doesn't exceed maximum
-    if (params.encryptedInputs.length > MAX_ENCRYPTED_INPUTS) {
+    if (params.encryptedInputs.length > this.limits.maxEncryptedInputs) {
       return {
         available: false,
-        reason: `Too many encrypted inputs: ${params.encryptedInputs.length} exceeds maximum of ${MAX_ENCRYPTED_INPUTS}`,
+        reason: `Too many encrypted inputs: ${params.encryptedInputs.length} exceeds maximum of ${this.limits.maxEncryptedInputs}`,
       }
     }
 
@@ -237,20 +284,20 @@ export class ArciumBackend implements PrivacyBackend {
           reason: `encryptedInputs[${i}] must be a non-empty Uint8Array`,
         }
       }
-      if (input.length > MAX_INPUT_SIZE_BYTES) {
+      if (input.length > this.limits.maxInputSizeBytes) {
         return {
           available: false,
-          reason: `encryptedInputs[${i}] size ${input.length} bytes exceeds maximum of ${MAX_INPUT_SIZE_BYTES} bytes (1 MB)`,
+          reason: `encryptedInputs[${i}] size ${input.length} bytes exceeds maximum of ${this.limits.maxInputSizeBytes} bytes`,
         }
       }
       totalInputSize += input.length
     }
 
     // Validate total input size
-    if (totalInputSize > MAX_TOTAL_INPUT_SIZE_BYTES) {
+    if (totalInputSize > this.limits.maxTotalInputSizeBytes) {
       return {
         available: false,
-        reason: `Total input size ${totalInputSize} bytes exceeds maximum of ${MAX_TOTAL_INPUT_SIZE_BYTES} bytes (10 MB)`,
+        reason: `Total input size ${totalInputSize} bytes exceeds maximum of ${this.limits.maxTotalInputSizeBytes} bytes`,
       }
     }
 
@@ -526,8 +573,8 @@ export class ArciumBackend implements PrivacyBackend {
     cost += sizeCost
 
     // Cap at maximum reasonable cost to prevent unexpected charges
-    if (cost > MAX_COMPUTATION_COST_LAMPORTS) {
-      return MAX_COMPUTATION_COST_LAMPORTS
+    if (cost > this.limits.maxComputationCostLamports) {
+      return this.limits.maxComputationCostLamports
     }
 
     return cost
@@ -554,6 +601,24 @@ export class ArciumBackend implements PrivacyBackend {
    */
   getCachedComputationCount(): number {
     return this.computationCache.size
+  }
+
+  /**
+   * Get the current limits configuration
+   *
+   * Returns a copy of the resolved limits, including any custom values
+   * passed via config and defaults from constants.
+   *
+   * @example
+   * ```typescript
+   * const backend = new ArciumBackend({ limits: { maxEncryptedInputs: 50 } })
+   * const limits = backend.getLimits()
+   * console.log(limits.maxEncryptedInputs) // 50
+   * console.log(limits.maxInputSizeBytes)  // 1048576 (default)
+   * ```
+   */
+  getLimits(): Readonly<ResolvedLimits> {
+    return { ...this.limits }
   }
 
   // ─── Error Handling Helpers ─────────────────────────────────────────────────
