@@ -920,3 +920,88 @@ describe('Arcium Constants', () => {
     })
   })
 })
+
+// ─── ArciumError Tests ──────────────────────────────────────────────────────
+
+describe('ArciumError', () => {
+  it('should be thrown on invalid network', async () => {
+    const { ArciumError, isArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    try {
+      new ArciumBackend({
+        // @ts-expect-error - Testing invalid network
+        network: 'invalid',
+      })
+      expect.fail('Should have thrown ArciumError')
+    } catch (error) {
+      expect(isArciumError(error)).toBe(true)
+      if (isArciumError(error)) {
+        expect(error.arciumCode).toBe('ARCIUM_INVALID_NETWORK')
+        expect(error.name).toBe('ArciumError')
+        expect(error.message).toContain('Invalid Arcium network')
+      }
+    }
+  })
+
+  it('should include context in error', async () => {
+    const { isArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    try {
+      new ArciumBackend({
+        // @ts-expect-error - Testing invalid network
+        network: 'badnet',
+      })
+      expect.fail('Should have thrown ArciumError')
+    } catch (error) {
+      if (isArciumError(error)) {
+        expect(error.context?.receivedNetwork).toBe('badnet')
+        expect(error.context?.validNetworks).toContain('devnet')
+        expect(error.context?.validNetworks).toContain('testnet')
+        expect(error.context?.validNetworks).toContain('mainnet-beta')
+      }
+    }
+  })
+
+  it('should have isNetworkError helper', async () => {
+    const { ArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    const networkError = new ArciumError('test', 'ARCIUM_INVALID_NETWORK')
+    const computeError = new ArciumError('test', 'ARCIUM_COMPUTATION_FAILED')
+
+    expect(networkError.isNetworkError()).toBe(true)
+    expect(computeError.isNetworkError()).toBe(false)
+  })
+
+  it('should have isComputationError helper', async () => {
+    const { ArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    const computeError = new ArciumError('test', 'ARCIUM_COMPUTATION_FAILED')
+    const timeoutError = new ArciumError('test', 'ARCIUM_COMPUTATION_TIMEOUT')
+    const networkError = new ArciumError('test', 'ARCIUM_INVALID_NETWORK')
+
+    expect(computeError.isComputationError()).toBe(true)
+    expect(timeoutError.isComputationError()).toBe(true)
+    expect(networkError.isComputationError()).toBe(false)
+  })
+
+  it('should have isClusterError helper', async () => {
+    const { ArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    const clusterError = new ArciumError('test', 'ARCIUM_CLUSTER_UNAVAILABLE')
+    const networkError = new ArciumError('test', 'ARCIUM_INVALID_NETWORK')
+
+    expect(clusterError.isClusterError()).toBe(true)
+    expect(networkError.isClusterError()).toBe(false)
+  })
+
+  it('should extend SIPError', async () => {
+    const { ArciumError } = await import('../../src/privacy-backends/arcium-types')
+    const { SIPError, ErrorCode } = await import('../../src/errors')
+
+    const error = new ArciumError('test error', 'ARCIUM_ERROR')
+
+    // Should be an instance of SIPError
+    expect(error).toBeInstanceOf(SIPError)
+    expect(error.code).toBe(ErrorCode.ARCIUM_ERROR)
+  })
+})

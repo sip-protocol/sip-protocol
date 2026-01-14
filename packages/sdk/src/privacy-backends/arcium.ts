@@ -88,6 +88,7 @@ import {
   MAX_INPUT_SIZE_BYTES,
   MAX_TOTAL_INPUT_SIZE_BYTES,
   MAX_COMPUTATION_COST_LAMPORTS,
+  ArciumError,
   type ArciumNetwork,
   type IArciumClient,
   type ComputationInfo,
@@ -148,16 +149,22 @@ export class ArciumBackend implements PrivacyBackend {
    * Create a new Arcium backend
    *
    * @param config - Backend configuration
-   * @throws {Error} If network is invalid
+   * @throws {ArciumError} If network is invalid
    */
   constructor(config: ArciumBackendConfig = {}) {
     // Validate network parameter if provided
     if (config.network !== undefined) {
       const validNetworks: ArciumNetwork[] = ['devnet', 'testnet', 'mainnet-beta']
       if (!validNetworks.includes(config.network)) {
-        throw new Error(
-          `Invalid Arcium network '${config.network}'. ` +
-            `Valid networks: ${validNetworks.join(', ')}`
+        throw new ArciumError(
+          `Invalid Arcium network '${config.network}'. Valid networks: ${validNetworks.join(', ')}`,
+          'ARCIUM_INVALID_NETWORK',
+          {
+            context: {
+              receivedNetwork: config.network,
+              validNetworks,
+            },
+          }
         )
       }
     }
