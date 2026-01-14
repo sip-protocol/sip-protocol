@@ -362,25 +362,73 @@ export const SOLANA_SLOT_TIME_MS = 400
 // ─── Upper Bound Validation Constants ─────────────────────────────────────────
 
 /**
- * Maximum number of encrypted inputs per computation
+ * Default maximum number of encrypted inputs per computation
  * Prevents excessive MPC coordination overhead
  */
-export const MAX_ENCRYPTED_INPUTS = 100
+export const DEFAULT_MAX_ENCRYPTED_INPUTS = 100
 
 /**
- * Maximum size of a single encrypted input (1 MB)
+ * @deprecated Use DEFAULT_MAX_ENCRYPTED_INPUTS instead
+ */
+export const MAX_ENCRYPTED_INPUTS = DEFAULT_MAX_ENCRYPTED_INPUTS
+
+/**
+ * Default maximum size of a single encrypted input (1 MB)
  * Prevents memory exhaustion during encryption/decryption
  */
-export const MAX_INPUT_SIZE_BYTES = 1_048_576
+export const DEFAULT_MAX_INPUT_SIZE_BYTES = 1_048_576
 
 /**
- * Maximum total size of all inputs combined (10 MB)
+ * @deprecated Use DEFAULT_MAX_INPUT_SIZE_BYTES instead
+ */
+export const MAX_INPUT_SIZE_BYTES = DEFAULT_MAX_INPUT_SIZE_BYTES
+
+/**
+ * Default maximum total size of all inputs combined (10 MB)
  * Prevents excessive network/computation load
  */
-export const MAX_TOTAL_INPUT_SIZE_BYTES = 10_485_760
+export const DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES = 10_485_760
 
 /**
- * Maximum reasonable computation cost (~1 SOL)
+ * @deprecated Use DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES instead
+ */
+export const MAX_TOTAL_INPUT_SIZE_BYTES = DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES
+
+/**
+ * Default maximum reasonable computation cost (~1 SOL)
  * Prevents overflow and unreasonable cost estimates
  */
-export const MAX_COMPUTATION_COST_LAMPORTS = BigInt(1_000_000_000)
+export const DEFAULT_MAX_COMPUTATION_COST_LAMPORTS = BigInt(1_000_000_000)
+
+/**
+ * @deprecated Use DEFAULT_MAX_COMPUTATION_COST_LAMPORTS instead
+ */
+export const MAX_COMPUTATION_COST_LAMPORTS = DEFAULT_MAX_COMPUTATION_COST_LAMPORTS
+
+// ─── Configurable Limits Types ────────────────────────────────────────────────
+
+/**
+ * Configuration for Arcium validation limits.
+ * All fields are optional - defaults from DEFAULT_* constants are used if not specified.
+ */
+export interface ArciumLimitsConfig {
+  /** Maximum number of encrypted inputs per computation */
+  maxEncryptedInputs?: number
+  /** Maximum size of a single encrypted input in bytes */
+  maxInputSizeBytes?: number
+  /** Maximum total size of all inputs combined in bytes */
+  maxTotalInputSizeBytes?: number
+  /** Maximum computation cost in lamports */
+  maxComputationCostLamports?: bigint
+}
+
+/**
+ * Resolved limits configuration with all values set.
+ * Used internally after merging user config with defaults.
+ */
+export interface ArciumLimitsResolved {
+  maxEncryptedInputs: number
+  maxInputSizeBytes: number
+  maxTotalInputSizeBytes: number
+  maxComputationCostLamports: bigint
+}

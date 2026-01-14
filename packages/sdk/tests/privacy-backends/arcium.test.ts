@@ -4,7 +4,7 @@
  * Comprehensive test suite for the Arcium MPC compute privacy backend.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { ArciumBackend } from '../../src/privacy-backends/arcium'
 import {
   ARCIUM_CLUSTERS,
@@ -14,6 +14,10 @@ import {
   MAX_INPUT_SIZE_BYTES,
   MAX_TOTAL_INPUT_SIZE_BYTES,
   MAX_COMPUTATION_COST_LAMPORTS,
+  DEFAULT_MAX_ENCRYPTED_INPUTS,
+  DEFAULT_MAX_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_COMPUTATION_COST_LAMPORTS,
 } from '../../src/privacy-backends/arcium-types'
 import type {
   ComputationParams,
@@ -135,6 +139,158 @@ describe('ArciumBackend', () => {
       // Both should create successfully with their network's default cluster
       expect(devnetBackend.name).toBe('arcium')
       expect(testnetBackend.name).toBe('arcium')
+    })
+
+    // ─── Configurable Limits Tests ────────────────────────────────────────────
+
+    describe('configurable limits', () => {
+      it('should use default limits when not configured', () => {
+        const backend = new ArciumBackend()
+        const limits = backend.getLimits()
+
+        expect(limits.maxEncryptedInputs).toBe(DEFAULT_MAX_ENCRYPTED_INPUTS)
+        expect(limits.maxInputSizeBytes).toBe(DEFAULT_MAX_INPUT_SIZE_BYTES)
+        expect(limits.maxTotalInputSizeBytes).toBe(DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES)
+        expect(limits.maxComputationCostLamports).toBe(DEFAULT_MAX_COMPUTATION_COST_LAMPORTS)
+      })
+
+      it('should accept custom maxEncryptedInputs', () => {
+        const backend = new ArciumBackend({
+          limits: { maxEncryptedInputs: 50 },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxEncryptedInputs).toBe(50)
+        // Others should use defaults
+        expect(limits.maxInputSizeBytes).toBe(DEFAULT_MAX_INPUT_SIZE_BYTES)
+      })
+
+      it('should accept custom maxInputSizeBytes', () => {
+        const backend = new ArciumBackend({
+          limits: { maxInputSizeBytes: 512_000 },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxInputSizeBytes).toBe(512_000)
+      })
+
+      it('should accept custom maxTotalInputSizeBytes', () => {
+        const backend = new ArciumBackend({
+          limits: { maxTotalInputSizeBytes: 5_000_000 },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxTotalInputSizeBytes).toBe(5_000_000)
+      })
+
+      it('should accept custom maxComputationCostLamports', () => {
+        const backend = new ArciumBackend({
+          limits: { maxComputationCostLamports: BigInt(500_000_000) },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxComputationCostLamports).toBe(BigInt(500_000_000))
+      })
+
+      it('should accept all custom limits together', () => {
+        const backend = new ArciumBackend({
+          limits: {
+            maxEncryptedInputs: 25,
+            maxInputSizeBytes: 256_000,
+            maxTotalInputSizeBytes: 2_000_000,
+            maxComputationCostLamports: BigInt(250_000_000),
+          },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxEncryptedInputs).toBe(25)
+        expect(limits.maxInputSizeBytes).toBe(256_000)
+        expect(limits.maxTotalInputSizeBytes).toBe(2_000_000)
+        expect(limits.maxComputationCostLamports).toBe(BigInt(250_000_000))
+      })
+
+      it('should return copy of limits (immutable)', () => {
+        const backend = new ArciumBackend()
+        const limits1 = backend.getLimits()
+        const limits2 = backend.getLimits()
+
+        expect(limits1).not.toBe(limits2) // Different objects
+        expect(limits1).toEqual(limits2) // Same values
+      })
+
+      // ─── Limit Validation Tests ─────────────────────────────────────────────
+
+      it('should throw on zero maxEncryptedInputs', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxEncryptedInputs: 0 },
+          })
+        }).toThrow('maxEncryptedInputs must be positive')
+      })
+
+      it('should throw on negative maxEncryptedInputs', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxEncryptedInputs: -1 },
+          })
+        }).toThrow('maxEncryptedInputs must be positive')
+      })
+
+      it('should throw on zero maxInputSizeBytes', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxInputSizeBytes: 0 },
+          })
+        }).toThrow('maxInputSizeBytes must be positive')
+      })
+
+      it('should throw on negative maxInputSizeBytes', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxInputSizeBytes: -1 },
+          })
+        }).toThrow('maxInputSizeBytes must be positive')
+      })
+
+      it('should throw on zero maxTotalInputSizeBytes', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxTotalInputSizeBytes: 0 },
+          })
+        }).toThrow('maxTotalInputSizeBytes must be positive')
+      })
+
+      it('should throw on negative maxTotalInputSizeBytes', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxTotalInputSizeBytes: -1 },
+          })
+        }).toThrow('maxTotalInputSizeBytes must be positive')
+      })
+
+      it('should throw on zero maxComputationCostLamports', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxComputationCostLamports: BigInt(0) },
+          })
+        }).toThrow('maxComputationCostLamports must be positive')
+      })
+
+      it('should throw on negative maxComputationCostLamports', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxComputationCostLamports: BigInt(-1) },
+          })
+        }).toThrow('maxComputationCostLamports must be positive')
+      })
+
+      it('should accept minimum valid limit (1)', () => {
+        const backend = new ArciumBackend({
+          limits: { maxEncryptedInputs: 1 },
+        })
+
+        expect(backend.getLimits().maxEncryptedInputs).toBe(1)
+      })
     })
   })
 
@@ -356,6 +512,197 @@ describe('ArciumBackend', () => {
         expect(result.reason).toContain('Total input size')
         expect(result.reason).toContain('exceeds maximum')
         expect(result.reason).toContain('10 MB')
+      })
+
+      // ─── Boundary Tests with Custom Limits (MAX-1, MAX, MAX+1) ──────────────
+
+      describe('boundary tests with custom limits', () => {
+        it('should accept MAX-1 encrypted inputs with custom limit', async () => {
+          const customLimit = 10
+          const backend = new ArciumBackend({
+            limits: { maxEncryptedInputs: customLimit },
+          })
+          const inputs = Array.from(
+            { length: customLimit - 1 },
+            () => new Uint8Array([1, 2, 3])
+          )
+          const params = createValidComputationParams({
+            encryptedInputs: inputs,
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should accept exactly MAX encrypted inputs with custom limit', async () => {
+          const customLimit = 10
+          const backend = new ArciumBackend({
+            limits: { maxEncryptedInputs: customLimit },
+          })
+          const inputs = Array.from(
+            { length: customLimit },
+            () => new Uint8Array([1, 2, 3])
+          )
+          const params = createValidComputationParams({
+            encryptedInputs: inputs,
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should reject MAX+1 encrypted inputs with custom limit', async () => {
+          const customLimit = 10
+          const backend = new ArciumBackend({
+            limits: { maxEncryptedInputs: customLimit },
+          })
+          const inputs = Array.from(
+            { length: customLimit + 1 },
+            () => new Uint8Array([1, 2, 3])
+          )
+          const params = createValidComputationParams({
+            encryptedInputs: inputs,
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(false)
+          expect(result.reason).toContain('Too many encrypted inputs')
+          expect(result.reason).toContain(`${customLimit + 1}`)
+          expect(result.reason).toContain(`${customLimit}`)
+        })
+
+        it('should accept input size at MAX-1 with custom limit', async () => {
+          const customLimit = 1000 // 1000 bytes
+          const backend = new ArciumBackend({
+            limits: { maxInputSizeBytes: customLimit },
+          })
+          const input = new Uint8Array(customLimit - 1)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should accept input size at exactly MAX with custom limit', async () => {
+          const customLimit = 1000 // 1000 bytes
+          const backend = new ArciumBackend({
+            limits: { maxInputSizeBytes: customLimit },
+          })
+          const input = new Uint8Array(customLimit)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should reject input size at MAX+1 with custom limit', async () => {
+          const customLimit = 1000 // 1000 bytes
+          const backend = new ArciumBackend({
+            limits: { maxInputSizeBytes: customLimit },
+          })
+          const input = new Uint8Array(customLimit + 1)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(false)
+          expect(result.reason).toContain('exceeds maximum')
+          expect(result.reason).toContain('1000 bytes')
+        })
+
+        it('should accept total size at MAX-1 with custom limit', async () => {
+          const customLimit = 2000 // 2000 bytes total
+          const backend = new ArciumBackend({
+            limits: {
+              maxTotalInputSizeBytes: customLimit,
+              maxInputSizeBytes: customLimit, // Allow individual inputs up to total
+            },
+          })
+          const input = new Uint8Array(customLimit - 1)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should accept total size at exactly MAX with custom limit', async () => {
+          const customLimit = 2000 // 2000 bytes total
+          const backend = new ArciumBackend({
+            limits: {
+              maxTotalInputSizeBytes: customLimit,
+              maxInputSizeBytes: customLimit,
+            },
+          })
+          const input = new Uint8Array(customLimit)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should reject total size at MAX+1 with custom limit', async () => {
+          const customLimit = 2000 // 2000 bytes total
+          const backend = new ArciumBackend({
+            limits: {
+              maxTotalInputSizeBytes: customLimit,
+              maxInputSizeBytes: customLimit + 1, // Allow individual but not total
+            },
+          })
+          const input = new Uint8Array(customLimit + 1)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(false)
+          expect(result.reason).toContain('Total input size')
+          expect(result.reason).toContain('exceeds maximum')
+          expect(result.reason).toContain('2 KB') // 2000 bytes rounds to 2 KB
+        })
+
+        it('should cap cost at custom maxComputationCostLamports', async () => {
+          const customLimit = BigInt(100_000_000) // 0.1 SOL
+          const backend = new ArciumBackend({
+            limits: { maxComputationCostLamports: customLimit },
+          })
+          // Create inputs that would normally generate high cost
+          const largeInputs = Array.from({ length: 50 }, () => {
+            const arr = new Uint8Array(50_000) // 50KB each
+            arr[0] = 1
+            return arr
+          })
+          const params = createValidComputationParams({
+            encryptedInputs: largeInputs,
+          })
+
+          const cost = await backend.estimateCost(params)
+
+          expect(cost).toBeLessThanOrEqual(customLimit)
+        })
       })
     })
 
@@ -917,6 +1264,42 @@ describe('Arcium Constants', () => {
 
     it('should ensure max cost is greater than base cost', () => {
       expect(MAX_COMPUTATION_COST_LAMPORTS).toBeGreaterThan(BASE_COMPUTATION_COST_LAMPORTS)
+    })
+  })
+
+  describe('DEFAULT_* constants (new preferred API)', () => {
+    it('should have DEFAULT_MAX_ENCRYPTED_INPUTS = 100', () => {
+      expect(DEFAULT_MAX_ENCRYPTED_INPUTS).toBe(100)
+    })
+
+    it('should have DEFAULT_MAX_INPUT_SIZE_BYTES = 1 MB', () => {
+      expect(DEFAULT_MAX_INPUT_SIZE_BYTES).toBe(1_048_576)
+    })
+
+    it('should have DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES = 10 MB', () => {
+      expect(DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES).toBe(10_485_760)
+    })
+
+    it('should have DEFAULT_MAX_COMPUTATION_COST_LAMPORTS = ~1 SOL', () => {
+      expect(DEFAULT_MAX_COMPUTATION_COST_LAMPORTS).toBe(BigInt(1_000_000_000))
+    })
+  })
+
+  describe('backward compatibility (deprecated MAX_* = DEFAULT_*)', () => {
+    it('MAX_ENCRYPTED_INPUTS should equal DEFAULT_MAX_ENCRYPTED_INPUTS', () => {
+      expect(MAX_ENCRYPTED_INPUTS).toBe(DEFAULT_MAX_ENCRYPTED_INPUTS)
+    })
+
+    it('MAX_INPUT_SIZE_BYTES should equal DEFAULT_MAX_INPUT_SIZE_BYTES', () => {
+      expect(MAX_INPUT_SIZE_BYTES).toBe(DEFAULT_MAX_INPUT_SIZE_BYTES)
+    })
+
+    it('MAX_TOTAL_INPUT_SIZE_BYTES should equal DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES', () => {
+      expect(MAX_TOTAL_INPUT_SIZE_BYTES).toBe(DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES)
+    })
+
+    it('MAX_COMPUTATION_COST_LAMPORTS should equal DEFAULT_MAX_COMPUTATION_COST_LAMPORTS', () => {
+      expect(MAX_COMPUTATION_COST_LAMPORTS).toBe(DEFAULT_MAX_COMPUTATION_COST_LAMPORTS)
     })
   })
 })
