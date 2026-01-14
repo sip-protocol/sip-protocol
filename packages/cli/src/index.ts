@@ -13,6 +13,7 @@ import {
   createSetupCommand,
   createStealthCommand,
   createViewingKeyCommand,
+  createBackendsCommand,
 } from './commands'
 
 const program = new Command()
@@ -34,6 +35,7 @@ program.addCommand(createVerifyCommand())
 program.addCommand(createQuoteCommand())
 program.addCommand(createSwapCommand())
 program.addCommand(createScanCommand())
+program.addCommand(createBackendsCommand())  // Privacy backends management
 
 // Parse arguments
 program.parse()

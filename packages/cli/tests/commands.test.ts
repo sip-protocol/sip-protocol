@@ -15,6 +15,7 @@ import {
   createQuoteCommand,
   createSwapCommand,
   createScanCommand,
+  createBackendsCommand,
 } from '../src/commands'
 
 // Suppress console output during tests
@@ -77,6 +78,12 @@ describe('CLI Commands', () => {
       expect(cmd).toBeInstanceOf(Command)
       expect(cmd.name()).toBe('scan')
     })
+
+    it('should create backends command', () => {
+      const cmd = createBackendsCommand()
+      expect(cmd).toBeInstanceOf(Command)
+      expect(cmd.name()).toBe('backends')
+    })
   })
 
   describe('Command Options', () => {
@@ -110,6 +117,55 @@ describe('CLI Commands', () => {
     })
   })
 
+  describe('Backends Command', () => {
+    it('should have list subcommand', () => {
+      const cmd = createBackendsCommand()
+      const subcommands = cmd.commands.map(c => c.name())
+      expect(subcommands).toContain('list')
+    })
+
+    it('should have info subcommand', () => {
+      const cmd = createBackendsCommand()
+      const subcommands = cmd.commands.map(c => c.name())
+      expect(subcommands).toContain('info')
+    })
+
+    it('list should have --health option', () => {
+      const cmd = createBackendsCommand()
+      const listCmd = cmd.commands.find(c => c.name() === 'list')
+      const options = listCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--health')
+    })
+
+    it('list should have --json option', () => {
+      const cmd = createBackendsCommand()
+      const listCmd = cmd.commands.find(c => c.name() === 'list')
+      const options = listCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--json')
+    })
+
+    it('list should have --type filter option', () => {
+      const cmd = createBackendsCommand()
+      const listCmd = cmd.commands.find(c => c.name() === 'list')
+      const options = listCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--type')
+    })
+
+    it('list should have --chain filter option', () => {
+      const cmd = createBackendsCommand()
+      const listCmd = cmd.commands.find(c => c.name() === 'list')
+      const options = listCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--chain')
+    })
+
+    it('info should have --json option', () => {
+      const cmd = createBackendsCommand()
+      const infoCmd = cmd.commands.find(c => c.name() === 'info')
+      const options = infoCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--json')
+    })
+  })
+
   describe('Command Descriptions', () => {
     it('all commands should have descriptions', () => {
       const commands = [
@@ -121,6 +177,7 @@ describe('CLI Commands', () => {
         createQuoteCommand(),
         createSwapCommand(),
         createScanCommand(),
+        createBackendsCommand(),
       ]
 
       commands.forEach(cmd => {
