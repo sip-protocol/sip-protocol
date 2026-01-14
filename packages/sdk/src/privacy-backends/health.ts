@@ -41,7 +41,7 @@ import type {
   CircuitBreakerConfig,
   CircuitState,
 } from './interface'
-import { DEFAULT_CIRCUIT_BREAKER_CONFIG } from './interface'
+import { DEFAULT_CIRCUIT_BREAKER_CONFIG, deepFreeze } from './interface'
 
 /**
  * Create initial health state for a backend
@@ -430,10 +430,10 @@ export class BackendHealthTracker {
   }
 
   /**
-   * Get current configuration
+   * Get current configuration (deeply frozen copy)
    */
-  getConfig(): CircuitBreakerConfig {
-    return { ...this.config }
+  getConfig(): Readonly<CircuitBreakerConfig> {
+    return deepFreeze({ ...this.config })
   }
 
   /**

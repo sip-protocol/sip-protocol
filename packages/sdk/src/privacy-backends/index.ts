@@ -94,6 +94,9 @@ export {
 // Timeout utilities
 export { withTimeout } from './interface'
 
+// Utilities
+export { deepFreeze } from './interface'
+
 // Health tracking
 export { BackendHealthTracker } from './health'
 
