@@ -202,6 +202,7 @@ describe('Main Program', () => {
     program.addCommand(createQuoteCommand())
     program.addCommand(createSwapCommand())
     program.addCommand(createScanCommand())
+    program.addCommand(createBackendsCommand())
 
     const commandNames = program.commands.map(c => c.name())
     expect(commandNames).toContain('init')
@@ -212,5 +213,6 @@ describe('Main Program', () => {
     expect(commandNames).toContain('quote')
     expect(commandNames).toContain('swap')
     expect(commandNames).toContain('scan')
+    expect(commandNames).toContain('backends')
   })
 })

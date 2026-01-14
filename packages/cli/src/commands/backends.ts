@@ -2,12 +2,7 @@ import { Command } from 'commander'
 import {
   PrivacyBackendRegistry,
   SIPNativeBackend,
-  PrivacyCashBackend,
-  ArciumBackend,
-  IncoBackend,
-  MagicBlockBackend,
-  ShadowWireBackend,
-  type BackendType,
+  type PrivacyBackendType,
 } from '@sip-protocol/sdk'
 import { success, info, warning, heading, table, json as jsonOutput } from '../utils/output'
 import chalk from 'chalk'
@@ -17,7 +12,7 @@ import chalk from 'chalk'
  */
 interface BackendInfo {
   name: string
-  type: BackendType
+  type: PrivacyBackendType
   chains: string[]
   healthy: boolean
   failures: number
@@ -26,22 +21,17 @@ interface BackendInfo {
 }
 
 /**
- * Create a registry with all available privacy backends registered
+ * Create a registry with available privacy backends
+ *
+ * Note: Currently only SIPNativeBackend is exported from the main SDK.
+ * Other backends (PrivacyCash, Arcium, Inco, etc.) can be registered
+ * when they are added to the main SDK exports.
  */
 function createDefaultRegistry(): PrivacyBackendRegistry {
   const registry = new PrivacyBackendRegistry({ enableHealthTracking: true })
 
-  // Transaction privacy backends
+  // Register SIP Native backend (stealth addresses + Pedersen commitments)
   registry.register(new SIPNativeBackend())
-  registry.register(new PrivacyCashBackend())
-  registry.register(new ShadowWireBackend())
-
-  // Compute privacy backends (MPC/FHE)
-  registry.register(new ArciumBackend())
-  registry.register(new IncoBackend())
-
-  // TEE backend (hardware-based privacy)
-  registry.register(new MagicBlockBackend())
 
   return registry
 }
