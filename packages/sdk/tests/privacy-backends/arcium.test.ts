@@ -100,6 +100,34 @@ describe('ArciumBackend', () => {
       expect(backend.name).toBe('arcium')
     })
 
+    // ─── Network Validation Tests ─────────────────────────────────────────────
+
+    it('should throw on invalid network', () => {
+      expect(() => {
+        new ArciumBackend({
+          // @ts-expect-error - Testing invalid network value
+          network: 'invalid-network',
+        })
+      }).toThrow("Invalid Arcium network 'invalid-network'")
+    })
+
+    it('should include valid networks in error message', () => {
+      expect(() => {
+        new ArciumBackend({
+          // @ts-expect-error - Testing invalid network value
+          network: 'mainnet',
+        })
+      }).toThrow('Valid networks: devnet, testnet, mainnet-beta')
+    })
+
+    it('should accept all valid networks', () => {
+      const validNetworks = ['devnet', 'testnet', 'mainnet-beta'] as const
+      for (const network of validNetworks) {
+        const backend = new ArciumBackend({ network })
+        expect(backend.name).toBe('arcium')
+      }
+    })
+
     it('should use default cluster for network', () => {
       const devnetBackend = new ArciumBackend({ network: 'devnet' })
       const testnetBackend = new ArciumBackend({ network: 'testnet' })
