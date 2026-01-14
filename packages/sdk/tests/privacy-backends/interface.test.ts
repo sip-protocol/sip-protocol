@@ -495,3 +495,201 @@ describe('deepFreeze', () => {
     }).toThrow()
   })
 })
+
+// ─── LRU Cache Tests ─────────────────────────────────────────────────────────
+
+import { LRUCache } from '../../src/privacy-backends/interface'
+
+describe('LRUCache', () => {
+  describe('basic operations', () => {
+    it('should set and get values', () => {
+      const cache = new LRUCache<string>()
+
+      cache.set('key1', 'value1')
+      cache.set('key2', 'value2')
+
+      expect(cache.get('key1')).toBe('value1')
+      expect(cache.get('key2')).toBe('value2')
+    })
+
+    it('should return undefined for missing keys', () => {
+      const cache = new LRUCache<string>()
+
+      expect(cache.get('missing')).toBeUndefined()
+    })
+
+    it('should delete values', () => {
+      const cache = new LRUCache<string>()
+
+      cache.set('key1', 'value1')
+      expect(cache.delete('key1')).toBe(true)
+      expect(cache.get('key1')).toBeUndefined()
+    })
+
+    it('should report correct size', () => {
+      const cache = new LRUCache<string>()
+
+      expect(cache.size).toBe(0)
+      cache.set('key1', 'value1')
+      expect(cache.size).toBe(1)
+      cache.set('key2', 'value2')
+      expect(cache.size).toBe(2)
+    })
+
+    it('should clear all values', () => {
+      const cache = new LRUCache<string>()
+
+      cache.set('key1', 'value1')
+      cache.set('key2', 'value2')
+      cache.clear()
+
+      expect(cache.size).toBe(0)
+      expect(cache.get('key1')).toBeUndefined()
+    })
+
+    it('should check if key exists', () => {
+      const cache = new LRUCache<string>()
+
+      cache.set('key1', 'value1')
+
+      expect(cache.has('key1')).toBe(true)
+      expect(cache.has('missing')).toBe(false)
+    })
+  })
+
+  describe('LRU eviction', () => {
+    it('should evict oldest entry when maxSize exceeded', () => {
+      const cache = new LRUCache<string>({ maxSize: 3 })
+
+      cache.set('a', '1')
+      cache.set('b', '2')
+      cache.set('c', '3')
+      cache.set('d', '4') // Should evict 'a'
+
+      expect(cache.get('a')).toBeUndefined()
+      expect(cache.get('b')).toBe('2')
+      expect(cache.get('c')).toBe('3')
+      expect(cache.get('d')).toBe('4')
+      expect(cache.size).toBe(3)
+    })
+
+    it('should move accessed entries to end (most recent)', () => {
+      const cache = new LRUCache<string>({ maxSize: 3 })
+
+      cache.set('a', '1')
+      cache.set('b', '2')
+      cache.set('c', '3')
+
+      // Access 'a' to make it most recently used
+      cache.get('a')
+
+      cache.set('d', '4') // Should evict 'b' (now oldest)
+
+      expect(cache.get('a')).toBe('1')
+      expect(cache.get('b')).toBeUndefined()
+      expect(cache.get('c')).toBe('3')
+      expect(cache.get('d')).toBe('4')
+    })
+
+    it('should update existing key without eviction', () => {
+      const cache = new LRUCache<string>({ maxSize: 2 })
+
+      cache.set('a', '1')
+      cache.set('b', '2')
+      cache.set('a', 'updated') // Update, not insert
+
+      expect(cache.get('a')).toBe('updated')
+      expect(cache.get('b')).toBe('2')
+      expect(cache.size).toBe(2)
+    })
+  })
+
+  describe('TTL expiration', () => {
+    it('should expire entries after TTL', async () => {
+      const cache = new LRUCache<string>({ ttlMs: 50 })
+
+      cache.set('key', 'value')
+      expect(cache.get('key')).toBe('value')
+
+      await new Promise((resolve) => setTimeout(resolve, 60))
+
+      expect(cache.get('key')).toBeUndefined()
+    })
+
+    it('should not expire entries before TTL', async () => {
+      const cache = new LRUCache<string>({ ttlMs: 100 })
+
+      cache.set('key', 'value')
+      await new Promise((resolve) => setTimeout(resolve, 20))
+
+      expect(cache.get('key')).toBe('value')
+    })
+  })
+
+  describe('statistics', () => {
+    it('should track hits and misses', () => {
+      const cache = new LRUCache<string>()
+
+      cache.set('key', 'value')
+      cache.get('key') // hit
+      cache.get('key') // hit
+      cache.get('missing') // miss
+
+      const stats = cache.stats()
+      expect(stats.hits).toBe(2)
+      expect(stats.misses).toBe(1)
+      expect(stats.hitRate).toBeCloseTo(0.667, 2)
+    })
+
+    it('should track evictions', () => {
+      const cache = new LRUCache<string>({ maxSize: 2 })
+
+      cache.set('a', '1')
+      cache.set('b', '2')
+      cache.set('c', '3') // evict 'a'
+      cache.set('d', '4') // evict 'b'
+
+      const stats = cache.stats()
+      expect(stats.evictions).toBe(2)
+    })
+
+    it('should reset statistics', () => {
+      const cache = new LRUCache<string>()
+
+      cache.set('key', 'value')
+      cache.get('key')
+      cache.get('missing')
+
+      cache.resetStats()
+      const stats = cache.stats()
+
+      expect(stats.hits).toBe(0)
+      expect(stats.misses).toBe(0)
+      expect(stats.evictions).toBe(0)
+      expect(stats.size).toBe(1) // size is not reset
+    })
+
+    it('should handle zero access hit rate', () => {
+      const cache = new LRUCache<string>()
+      const stats = cache.stats()
+
+      expect(stats.hitRate).toBe(0)
+    })
+  })
+
+  describe('default configuration', () => {
+    it('should use default maxSize of 100', () => {
+      const cache = new LRUCache<number>()
+
+      for (let i = 0; i < 150; i++) {
+        cache.set(`key${i}`, i)
+      }
+
+      expect(cache.size).toBe(100)
+      // First 50 should be evicted
+      expect(cache.get('key0')).toBeUndefined()
+      expect(cache.get('key49')).toBeUndefined()
+      expect(cache.get('key50')).toBe(50)
+    })
+  })
+})

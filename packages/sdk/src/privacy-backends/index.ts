@@ -95,7 +95,7 @@ export {
 export { withTimeout } from './interface'
 
 // Utilities
-export { deepFreeze } from './interface'
+export { deepFreeze, LRUCache, type LRUCacheConfig } from './interface'
 
 // Health tracking
 export { BackendHealthTracker } from './health'

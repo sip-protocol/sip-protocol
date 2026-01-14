@@ -148,12 +148,12 @@ describe('CSPLClient', () => {
     it('should clear cache on disconnect', async () => {
       await client.connect()
       await client.wrapToken(createWrapParams())
-      expect(client.getCacheStats().balances).toBeGreaterThan(0)
+      expect(client.getCacheStats().balances.size).toBeGreaterThan(0)
 
       await client.disconnect()
 
-      expect(client.getCacheStats().accounts).toBe(0)
-      expect(client.getCacheStats().balances).toBe(0)
+      expect(client.getCacheStats().accounts.size).toBe(0)
+      expect(client.getCacheStats().balances.size).toBe(0)
     })
   })
 
@@ -229,17 +229,17 @@ describe('CSPLClient', () => {
       const result = await client.wrapToken(params)
 
       expect(result.success).toBe(true)
-      expect(client.getCacheStats().accounts).toBeGreaterThan(0)
+      expect(client.getCacheStats().accounts.size).toBeGreaterThan(0)
     })
 
     it('should skip account creation when disabled', async () => {
       const params = createWrapParams({ createAccount: false })
-      const initialAccounts = client.getCacheStats().accounts
+      const initialAccounts = client.getCacheStats().accounts.size
 
       await client.wrapToken(params)
 
       // Account still gets created in our simulation
-      expect(client.getCacheStats().accounts).toBeGreaterThanOrEqual(initialAccounts)
+      expect(client.getCacheStats().accounts.size).toBeGreaterThanOrEqual(initialAccounts)
     })
   })
 
@@ -389,7 +389,7 @@ describe('CSPLClient', () => {
 
       // Populate cache
       await client.getBalance(params.from, token)
-      expect(client.getCacheStats().balances).toBeGreaterThan(0)
+      expect(client.getCacheStats().balances.size).toBeGreaterThan(0)
 
       // Transfer should clear cache
       await client.transfer(params)
@@ -684,7 +684,10 @@ describe('CSPLClient', () => {
       await client.getBalance(TEST_ADDRESSES.owner, token)
       const stats2 = client.getCacheStats()
 
-      expect(stats2.balances).toBe(stats1.balances)
+      // Size stays same (cached hit, no new entry)
+      expect(stats2.balances.size).toBe(stats1.balances.size)
+      // Hits should increase
+      expect(stats2.balances.hits).toBeGreaterThan(stats1.balances.hits)
     })
   })
 
@@ -831,8 +834,8 @@ describe('CSPLClient', () => {
 
       const stats = client.getCacheStats()
 
-      expect(stats.accounts).toBeGreaterThan(0)
-      expect(stats.balances).toBeGreaterThan(0)
+      expect(stats.accounts.size).toBeGreaterThan(0)
+      expect(stats.balances.size).toBeGreaterThan(0)
     })
 
     it('should clear cache', async () => {
@@ -844,8 +847,37 @@ describe('CSPLClient', () => {
       client.clearCache()
       const stats = client.getCacheStats()
 
-      expect(stats.accounts).toBe(0)
-      expect(stats.balances).toBe(0)
+      expect(stats.accounts.size).toBe(0)
+      expect(stats.balances.size).toBe(0)
+    })
+
+    it('should provide detailed cache statistics', async () => {
+      const token = createTestToken()
+
+      // First access - miss
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+
+      // Second access - hit
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+
+      const stats = client.getCacheStats()
+
+      expect(stats.accounts.size).toBe(1)
+      expect(stats.accounts.hits).toBe(1)
+      expect(stats.accounts.misses).toBe(1)
+      expect(stats.accounts.hitRate).toBeCloseTo(0.5)
+    })
+
+    it('should expose cache configuration', () => {
+      const customClient = new CSPLClient({
+        cacheMaxSize: 50,
+        cacheTtlMs: 60_000,
+      })
+
+      const config = customClient.getCacheConfig()
+
+      expect(config.maxSize).toBe(50)
+      expect(config.ttlMs).toBe(60_000)
     })
   })
 })

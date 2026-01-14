@@ -68,7 +68,7 @@ import {
 } from './cspl-types'
 
 import { isValidSolanaAddressFormat } from '../validation'
-import { deepFreeze } from './interface'
+import { deepFreeze, LRUCache } from './interface'
 
 /**
  * Configuration for CSPLClient
@@ -82,6 +82,10 @@ export interface CSPLClientConfig {
   enableCompliance?: boolean
   /** Request timeout in milliseconds */
   timeout?: number
+  /** Maximum cache size for token accounts (default: 100) */
+  cacheMaxSize?: number
+  /** Cache TTL in milliseconds (default: 5 minutes) */
+  cacheTtlMs?: number
 }
 
 /**
@@ -89,11 +93,20 @@ export interface CSPLClientConfig {
  *
  * Handles all operations for Confidential SPL tokens.
  */
+/** Default cache max size */
+const DEFAULT_CACHE_MAX_SIZE = 100
+
+/** Default cache TTL (5 minutes) */
+const DEFAULT_CACHE_TTL_MS = 5 * 60 * 1000
+
 export class CSPLClient implements ICSPLClient {
-  private config: Required<CSPLClientConfig>
+  private config: Required<Omit<CSPLClientConfig, 'cacheMaxSize' | 'cacheTtlMs'>> & {
+    cacheMaxSize: number
+    cacheTtlMs: number
+  }
   private connected: boolean = false
-  private accountCache: Map<string, ConfidentialTokenAccount> = new Map()
-  private balanceCache: Map<string, ConfidentialBalance> = new Map()
+  private accountCache: LRUCache<ConfidentialTokenAccount>
+  private balanceCache: LRUCache<ConfidentialBalance>
 
   /**
    * Create a new C-SPL client
@@ -101,12 +114,27 @@ export class CSPLClient implements ICSPLClient {
    * @param config - Client configuration
    */
   constructor(config: CSPLClientConfig = {}) {
+    const cacheMaxSize = config.cacheMaxSize ?? DEFAULT_CACHE_MAX_SIZE
+    const cacheTtlMs = config.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS
+
     this.config = {
       rpcUrl: config.rpcUrl ?? 'https://api.devnet.solana.com',
       defaultEncryption: config.defaultEncryption ?? 'twisted-elgamal',
       enableCompliance: config.enableCompliance ?? false,
       timeout: config.timeout ?? 30_000,
+      cacheMaxSize,
+      cacheTtlMs,
     }
+
+    // Initialize LRU caches with configured limits
+    this.accountCache = new LRUCache<ConfidentialTokenAccount>({
+      maxSize: cacheMaxSize,
+      ttlMs: cacheTtlMs,
+    })
+    this.balanceCache = new LRUCache<ConfidentialBalance>({
+      maxSize: cacheMaxSize,
+      ttlMs: cacheTtlMs,
+    })
   }
 
   /**
@@ -804,11 +832,29 @@ export class CSPLClient implements ICSPLClient {
 
   /**
    * Get cache stats
+   *
+   * Returns detailed statistics for both account and balance caches,
+   * including hit rates and eviction counts.
    */
-  getCacheStats(): { accounts: number; balances: number } {
+  getCacheStats(): {
+    accounts: { size: number; hits: number; misses: number; evictions: number; hitRate: number }
+    balances: { size: number; hits: number; misses: number; evictions: number; hitRate: number }
+  } {
     return {
-      accounts: this.accountCache.size,
-      balances: this.balanceCache.size,
+      accounts: this.accountCache.stats(),
+      balances: this.balanceCache.stats(),
+    }
+  }
+
+  /**
+   * Get cache configuration
+   *
+   * @returns Current cache configuration (maxSize, ttlMs)
+   */
+  getCacheConfig(): { maxSize: number; ttlMs: number } {
+    return {
+      maxSize: this.config.cacheMaxSize,
+      ttlMs: this.config.cacheTtlMs,
     }
   }
 }

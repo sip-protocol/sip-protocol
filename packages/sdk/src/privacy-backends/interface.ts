@@ -681,3 +681,192 @@ export function deepFreeze<T extends object>(obj: T): Readonly<T> {
   // Freeze the object itself
   return Object.freeze(obj)
 }
+
+// ─── LRU Cache ─────────────────────────────────────────────────────────────────
+
+/**
+ * Configuration for LRU cache
+ */
+export interface LRUCacheConfig {
+  /** Maximum number of entries (default: 100) */
+  maxSize?: number
+  /** TTL in milliseconds (default: no expiration) */
+  ttlMs?: number
+}
+
+/**
+ * Entry stored in LRU cache with metadata
+ */
+interface CacheEntry<T> {
+  value: T
+  createdAt: number
+}
+
+/**
+ * LRU (Least Recently Used) cache with optional TTL
+ *
+ * Provides bounded memory usage for caching with automatic eviction
+ * of least recently used entries when max size is exceeded.
+ *
+ * ## Features
+ *
+ * - **Max size limit** — Evicts oldest entries when limit reached
+ * - **TTL expiration** — Optional time-based expiration for entries
+ * - **O(1) operations** — Uses Map for efficient get/set
+ *
+ * @example
+ * ```typescript
+ * // Cache with max 100 entries and 5 minute TTL
+ * const cache = new LRUCache<TokenAccount>({
+ *   maxSize: 100,
+ *   ttlMs: 5 * 60 * 1000,
+ * })
+ *
+ * cache.set('key', account)
+ * const cached = cache.get('key')
+ *
+ * // Check cache stats
+ * console.log(cache.stats()) // { size: 1, hits: 1, misses: 0, evictions: 0 }
+ * ```
+ */
+export class LRUCache<T> {
+  private cache: Map<string, CacheEntry<T>> = new Map()
+  private readonly maxSize: number
+  private readonly ttlMs: number | undefined
+  private hits = 0
+  private misses = 0
+  private evictions = 0
+
+  constructor(config: LRUCacheConfig = {}) {
+    this.maxSize = config.maxSize ?? 100
+    this.ttlMs = config.ttlMs
+  }
+
+  /**
+   * Get a value from cache
+   *
+   * Returns undefined if not found or expired.
+   * Moves accessed entry to end (most recently used).
+   *
+   * @param key - Cache key
+   * @returns Cached value or undefined
+   */
+  get(key: string): T | undefined {
+    const entry = this.cache.get(key)
+
+    if (!entry) {
+      this.misses++
+      return undefined
+    }
+
+    // Check TTL expiration
+    if (this.ttlMs && Date.now() - entry.createdAt > this.ttlMs) {
+      this.cache.delete(key)
+      this.misses++
+      return undefined
+    }
+
+    // Move to end (most recently used)
+    this.cache.delete(key)
+    this.cache.set(key, entry)
+
+    this.hits++
+    return entry.value
+  }
+
+  /**
+   * Set a value in cache
+   *
+   * If cache is at max capacity, evicts the least recently used entry.
+   *
+   * @param key - Cache key
+   * @param value - Value to cache
+   */
+  set(key: string, value: T): void {
+    // Delete existing entry if present (to update position)
+    if (this.cache.has(key)) {
+      this.cache.delete(key)
+    }
+
+    // Evict LRU entry if at capacity
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value
+      if (oldestKey) {
+        this.cache.delete(oldestKey)
+        this.evictions++
+      }
+    }
+
+    this.cache.set(key, {
+      value,
+      createdAt: Date.now(),
+    })
+  }
+
+  /**
+   * Delete an entry from cache
+   *
+   * @param key - Cache key
+   * @returns true if entry was deleted, false if not found
+   */
+  delete(key: string): boolean {
+    return this.cache.delete(key)
+  }
+
+  /**
+   * Check if key exists in cache
+   *
+   * Note: Does not update LRU order or check TTL.
+   *
+   * @param key - Cache key
+   * @returns true if key exists
+   */
+  has(key: string): boolean {
+    return this.cache.has(key)
+  }
+
+  /**
+   * Clear all entries from cache
+   */
+  clear(): void {
+    this.cache.clear()
+  }
+
+  /**
+   * Get current cache size
+   */
+  get size(): number {
+    return this.cache.size
+  }
+
+  /**
+   * Get cache statistics
+   *
+   * @returns Stats including size, hits, misses, evictions, and hit rate
+   */
+  stats(): {
+    size: number
+    hits: number
+    misses: number
+    evictions: number
+    hitRate: number
+  } {
+    const total = this.hits + this.misses
+    return {
+      size: this.cache.size,
+      hits: this.hits,
+      misses: this.misses,
+      evictions: this.evictions,
+      hitRate: total > 0 ? this.hits / total : 0,
+    }
+  }
+
+  /**
+   * Reset statistics counters
+   */
+  resetStats(): void {
+    this.hits = 0
+    this.misses = 0
+    this.evictions = 0
+  }
+}
