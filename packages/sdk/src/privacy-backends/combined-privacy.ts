@@ -449,10 +449,48 @@ export class CombinedPrivacyService {
   }
 
   /**
-   * Derive a stealth address from a meta-address
+   * Derive a one-time stealth address from a recipient's meta-address
    *
-   * @param metaAddress - SIP meta-address (sip:chain:spending:viewing format)
-   * @returns Stealth address derivation result
+   * Stealth addresses provide unlinkable recipients — each payment creates a unique
+   * address that only the recipient can identify and claim. This prevents linking
+   * multiple payments to the same recipient.
+   *
+   * ## Meta-Address Format
+   *
+   * The meta-address must follow the SIP format: `sip:<chain>:<spendingKey>:<viewingKey>`
+   *
+   * - `chain` — The blockchain (e.g., "solana", "ethereum")
+   * - `spendingKey` — Recipient's public spending key (controls funds)
+   * - `viewingKey` — Recipient's public viewing key (for scanning)
+   *
+   * ## Return Value
+   *
+   * On success, returns:
+   * - `stealthAddress` — The derived one-time address to send funds to
+   * - `ephemeralPubkey` — Must be published so recipient can compute private key
+   * - `viewTag` — Optimization for efficient payment scanning (0-255)
+   *
+   * IMPORTANT: Always check `result.success` before accessing other fields.
+   *
+   * @param metaAddress - SIP meta-address in format `sip:<chain>:<spendingKey>:<viewingKey>`
+   * @returns Stealth address result with success status
+   *
+   * @example
+   * ```typescript
+   * const result = await service.deriveStealthAddress(
+   *   'sip:solana:0x02abc...123:0x03def...456'
+   * )
+   *
+   * if (!result.success) {
+   *   console.error('Failed:', result.error)
+   *   return
+   * }
+   *
+   * // Now safe to access fields
+   * console.log('Send to:', result.stealthAddress)
+   * console.log('Publish:', result.ephemeralPubkey)
+   * console.log('View tag:', result.viewTag)
+   * ```
    */
   async deriveStealthAddress(metaAddress: string): Promise<StealthAddressResult> {
     // Parse meta-address
@@ -501,8 +539,46 @@ export class CombinedPrivacyService {
   /**
    * Claim tokens from a stealth address
    *
-   * @param params - Claim parameters
-   * @returns Claim result
+   * Recipients use this method to claim funds sent to their stealth addresses.
+   * The ephemeral public key (published by sender) is combined with the
+   * recipient's private viewing key to derive the stealth private key.
+   *
+   * ## Required Parameters
+   *
+   * - `stealthAddress` — The stealth address containing funds
+   * - `ephemeralPubkey` — The sender's ephemeral public key (from announcement)
+   * - `spendingPrivateKey` — Recipient's private spending key
+   * - `viewingPrivateKey` — Recipient's private viewing key
+   *
+   * ## Process
+   *
+   * 1. Computes shared secret from ephemeralPubkey + viewingPrivateKey
+   * 2. Derives stealth private key from spendingPrivateKey + shared secret
+   * 3. Creates claim transaction signed with stealth private key
+   * 4. Unwraps C-SPL back to regular SPL token
+   *
+   * IMPORTANT: Always check `result.success` before accessing other fields.
+   *
+   * @param params - Claim parameters including keys and addresses
+   * @returns Claim result with amount and transaction signature
+   *
+   * @example
+   * ```typescript
+   * const result = await service.claimFromStealth({
+   *   stealthAddress: 'stealth_solana_...',
+   *   ephemeralPubkey: 'eph_...',
+   *   spendingPrivateKey: 'spending_priv_...',
+   *   viewingPrivateKey: 'viewing_priv_...',
+   * })
+   *
+   * if (!result.success) {
+   *   console.error('Claim failed:', result.error)
+   *   return
+   * }
+   *
+   * console.log('Claimed:', result.amount, 'tokens')
+   * console.log('Transaction:', result.signature)
+   * ```
    */
   async claimFromStealth(params: ClaimParams): Promise<ClaimResult> {
     if (!this.initialized) {
@@ -552,10 +628,32 @@ export class CombinedPrivacyService {
   }
 
   /**
-   * Estimate cost for a combined transfer
+   * Estimate the total cost for a combined privacy transfer
    *
-   * @param params - Transfer parameters
-   * @returns Cost breakdown
+   * Returns a breakdown of costs across all privacy layers:
+   * - `wrapCost` — Cost to wrap SPL into C-SPL (encrypted balance)
+   * - `stealthCost` — Cost for stealth address derivation (client-side, 0)
+   * - `transferCost` — Cost for the SIP Native transfer
+   * - `totalCost` — Sum of all costs
+   *
+   * All costs are in lamports (1 SOL = 1,000,000,000 lamports).
+   *
+   * @param params - Transfer parameters (sender, recipient, amount, token)
+   * @returns Cost breakdown with individual and total costs
+   *
+   * @example
+   * ```typescript
+   * const costs = await service.estimateCost({
+   *   sender: wallet.publicKey,
+   *   recipientMetaAddress: 'sip:solana:0x...',
+   *   amount: 1_000_000_000n,
+   *   token: 'So11...',
+   * })
+   *
+   * console.log('Wrap cost:', costs.wrapCost, 'lamports')
+   * console.log('Transfer cost:', costs.transferCost, 'lamports')
+   * console.log('Total:', costs.totalCost, 'lamports')
+   * ```
    */
   async estimateCost(params: CombinedTransferParams): Promise<CostBreakdown> {
     // Wrap cost
@@ -584,9 +682,29 @@ export class CombinedPrivacyService {
   }
 
   /**
-   * Get privacy comparison between different backends
+   * Get a comparison of privacy features across backends
    *
-   * @returns Privacy comparison table
+   * Compares privacy capabilities between:
+   * - **SIP Native** — Stealth addresses + Pedersen commitments + viewing keys
+   * - **Arcium C-SPL** — Encrypted balances + MPC compute
+   * - **Combined** — Full privacy using both layers
+   *
+   * Privacy dimensions:
+   * - `hiddenSender` — Sender identity is not revealed on-chain
+   * - `hiddenRecipient` — Recipient identity is unlinkable
+   * - `hiddenAmount` — Transfer amount is encrypted/committed
+   * - `hiddenCompute` — Contract execution is private
+   * - `compliance` — Selective disclosure available for auditors
+   *
+   * @returns Privacy comparison for each backend and combined approach
+   *
+   * @example
+   * ```typescript
+   * const comparison = service.getPrivacyComparison()
+   *
+   * console.log('SIP Native hides sender:', comparison.sipNative.hiddenSender)
+   * console.log('Combined full privacy:', comparison.combined)
+   * ```
    */
   getPrivacyComparison(): PrivacyComparison {
     return {
@@ -615,9 +733,28 @@ export class CombinedPrivacyService {
   }
 
   /**
-   * Get service status
+   * Get the current status of the combined privacy service
    *
-   * @returns Service status information
+   * Returns status information for both underlying services:
+   * - `initialized` — Whether the service has been initialized
+   * - `csplStatus` — C-SPL service connection and token count
+   * - `sipNativeStatus` — SIP Native availability and chain support
+   *
+   * @returns Service status for monitoring and debugging
+   *
+   * @example
+   * ```typescript
+   * const status = service.getStatus()
+   *
+   * if (!status.initialized) {
+   *   console.log('Service needs initialization')
+   *   await service.initialize()
+   * }
+   *
+   * console.log('C-SPL connected:', status.csplStatus.connected)
+   * console.log('Registered tokens:', status.csplStatus.tokenCount)
+   * console.log('SIP Native available:', status.sipNativeStatus.available)
+   * ```
    */
   getStatus(): ServiceStatus {
     const csplStatus = this.csplService.getStatus()
