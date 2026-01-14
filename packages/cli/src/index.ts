@@ -35,7 +35,7 @@ program.addCommand(createVerifyCommand())
 program.addCommand(createQuoteCommand())
 program.addCommand(createSwapCommand())
 program.addCommand(createScanCommand())
-program.addCommand(createBackendsCommand())   // Privacy backend management
+program.addCommand(createBackendsCommand())  // Privacy backends management
 
 // Parse arguments
 program.parse()

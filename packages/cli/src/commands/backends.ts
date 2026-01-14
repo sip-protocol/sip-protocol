@@ -21,16 +21,16 @@ interface BackendInfo {
 }
 
 /**
- * Create a registry with the SIP Native backend registered
+ * Create a registry with available privacy backends
  *
  * Note: Currently only SIPNativeBackend is exported from the main SDK.
- * Other backends (PrivacyCash, Arcium, Inco, etc.) can be imported
- * directly from @sip-protocol/sdk/privacy-backends if needed.
+ * Other backends (PrivacyCash, Arcium, Inco, etc.) can be registered
+ * when they are added to the main SDK exports.
  */
 function createDefaultRegistry(): PrivacyBackendRegistry {
   const registry = new PrivacyBackendRegistry({ enableHealthTracking: true })
 
-  // Register available backends
+  // Register SIP Native backend (stealth addresses + Pedersen commitments)
   registry.register(new SIPNativeBackend())
 
   return registry
