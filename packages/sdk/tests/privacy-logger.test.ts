@@ -23,7 +23,7 @@ describe('redactAddress', () => {
 
 describe('redactSignature', () => {
   it('should redact a transaction signature', () => {
-    expect(redactSignature('5UHBqFQ6nFBfMqYD8T2N7YRB7gXqKcvZKTAGLvqCGxqB7QprZR8C3qYvzVNKxGRv8z')).toBe('5UHBqF...GRv8z')
+    expect(redactSignature('5UHBqFQ6nFBfMqYD8T2N7YRB7gXqKcvZKTAGLvqCGxqB7QprZR8C3qYvzVNKxGRv8z')).toBe('5UHBqF...xGRv8z')
   })
   it('should handle empty', () => {
     expect(redactSignature('')).toBe('[invalid]')
