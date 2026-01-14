@@ -69,6 +69,10 @@ import {
   type PoolInfo,
   type IPrivacyCashSDK,
 } from './privacycash-types'
+import { createPrivacyLogger } from '../privacy-logger'
+
+/** Privacy-aware logger for PrivacyCash backend */
+const privacyCashLogger = createPrivacyLogger('PrivacyCash')
 
 import { randomBytes, bytesToHex } from '@noble/hashes/utils'
 
@@ -221,9 +225,8 @@ export class PrivacyCashBackend implements PrivacyBackend {
 
     // Viewing keys are not supported - warn if provided
     if (params.viewingKey) {
-      console.warn(
-        '[PrivacyCash] Viewing keys are not supported. ' +
-        'Use SIP Native backend for compliance features.'
+      privacyCashLogger.warn(
+        'Viewing keys are not supported. Use SIP Native backend for compliance features.'
       )
     }
 

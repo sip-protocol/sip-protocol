@@ -66,27 +66,7 @@ import {
   CSPL_OPERATION_TIMES,
 } from './cspl-types'
 
-import { sha256 } from '@noble/hashes/sha256'
-import { bytesToHex, randomBytes } from '@noble/hashes/utils'
-
-/**
- * Validate a Solana address format
- *
- * For the mock client, we validate that the address is non-empty.
- * In production, this would validate base58 format and key length.
- *
- * @param address - The address to validate
- * @param paramName - Parameter name for error messages
- * @throws Error if address is invalid
- */
-function validateSolanaAddress(address: string, paramName: string): void {
-  if (!address || address.trim() === '') {
-    throw new Error(`${paramName} address is required`)
-  }
-  // Note: In production, add proper base58 validation:
-  // import { PublicKey } from '@solana/web3.js'
-  // new PublicKey(address)
-}
+import { isValidSolanaAddressFormat } from '../validation'
 
 /**
  * Configuration for CSPLClient
@@ -171,6 +151,11 @@ export class CSPLClient implements ICSPLClient {
     owner: string,
     token: CSPLToken
   ): Promise<ConfidentialTokenAccount> {
+    // Validate owner address format
+    if (!owner || !isValidSolanaAddressFormat(owner)) {
+      throw new Error('Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)')
+    }
+
     // Check cache first
     const cacheKey = `${owner}:${token.confidentialMint}`
     const cached = this.accountCache.get(cacheKey)
@@ -217,6 +202,11 @@ export class CSPLClient implements ICSPLClient {
    * @returns Confidential balance
    */
   async getBalance(owner: string, token: CSPLToken): Promise<ConfidentialBalance> {
+    // Validate owner address format
+    if (!owner || !isValidSolanaAddressFormat(owner)) {
+      throw new Error('Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)')
+    }
+
     // Check cache
     const cacheKey = `balance:${owner}:${token.confidentialMint}`
     const cached = this.balanceCache.get(cacheKey)
@@ -249,14 +239,29 @@ export class CSPLClient implements ICSPLClient {
    * @returns Wrap result
    */
   async wrapToken(params: WrapTokenParams): Promise<WrapTokenResult> {
-    // Validate Solana addresses with base58 validation
-    try {
-      validateSolanaAddress(params.mint, 'Token mint')
-      validateSolanaAddress(params.owner, 'Owner')
-    } catch (error) {
+    // Validate inputs
+    if (!params.mint || params.mint.trim() === '') {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Invalid address',
+        error: 'Token mint address is required',
+      }
+    }
+    if (!isValidSolanaAddressFormat(params.mint)) {
+      return {
+        success: false,
+        error: 'Invalid token mint address format. Expected base58-encoded Solana address (32-44 chars)',
+      }
+    }
+    if (!params.owner || params.owner.trim() === '') {
+      return {
+        success: false,
+        error: 'Owner address is required',
+      }
+    }
+    if (!isValidSolanaAddressFormat(params.owner)) {
+      return {
+        success: false,
+        error: 'Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)',
       }
     }
     if (params.amount <= BigInt(0)) {
@@ -331,6 +336,12 @@ export class CSPLClient implements ICSPLClient {
         error: 'Owner address is required',
       }
     }
+    if (!isValidSolanaAddressFormat(params.owner)) {
+      return {
+        success: false,
+        error: 'Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)',
+      }
+    }
     if (!params.encryptedAmount || params.encryptedAmount.length === 0) {
       return {
         success: false,
@@ -388,10 +399,22 @@ export class CSPLClient implements ICSPLClient {
         error: 'Sender address is required',
       }
     }
+    if (!isValidSolanaAddressFormat(params.from)) {
+      return {
+        success: false,
+        error: 'Invalid sender address format. Expected base58-encoded Solana address (32-44 chars)',
+      }
+    }
     if (!params.to || params.to.trim() === '') {
       return {
         success: false,
         error: 'Recipient address is required',
+      }
+    }
+    if (!isValidSolanaAddressFormat(params.to)) {
+      return {
+        success: false,
+        error: 'Invalid recipient address format. Expected base58-encoded Solana address (32-44 chars)',
       }
     }
     if (!params.token || !params.token.confidentialMint) {
@@ -527,10 +550,22 @@ export class CSPLClient implements ICSPLClient {
         error: 'Owner address is required',
       }
     }
+    if (!isValidSolanaAddressFormat(owner)) {
+      return {
+        success: false,
+        error: 'Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)',
+      }
+    }
     if (!token || !token.confidentialMint) {
       return {
         success: false,
         error: 'Token configuration is required',
+      }
+    }
+    if (!isValidSolanaAddressFormat(token.confidentialMint)) {
+      return {
+        success: false,
+        error: 'Invalid token confidentialMint format. Expected base58-encoded Solana address (32-44 chars)',
       }
     }
 
@@ -668,22 +703,22 @@ export class CSPLClient implements ICSPLClient {
 
   /**
    * Generate a simulated transaction signature
-   *
-   * Uses cryptographically secure random bytes for unique signatures.
    */
   private generateSignature(): string {
     const timestamp = Date.now().toString(36)
-    const random = bytesToHex(randomBytes(8))
+    const random = Math.random().toString(36).slice(2, 10)
     return `cspl_tx_${timestamp}_${random}`
   }
 
   /**
    * Generate a nonce for encryption
-   *
-   * Uses cryptographically secure random bytes.
    */
   private generateNonce(): Uint8Array {
-    return randomBytes(12)
+    const nonce = new Uint8Array(12)
+    for (let i = 0; i < 12; i++) {
+      nonce[i] = Math.floor(Math.random() * 256)
+    }
+    return nonce
   }
 
   /**
@@ -708,14 +743,16 @@ export class CSPLClient implements ICSPLClient {
   }
 
   /**
-   * Secure hash for deterministic addresses
-   *
-   * Uses SHA-256 for collision-resistant hashing.
+   * Simple hash for deterministic addresses
    */
   private simpleHash(input: string): string {
-    const encoder = new TextEncoder()
-    const hash = sha256(encoder.encode(input))
-    return bytesToHex(hash).slice(0, 16)
+    let hash = 0
+    for (let i = 0; i < input.length; i++) {
+      const char = input.charCodeAt(i)
+      hash = ((hash << 5) - hash) + char
+      hash = hash & hash
+    }
+    return Math.abs(hash).toString(36)
   }
 
   /**

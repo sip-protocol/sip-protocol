@@ -22,10 +22,19 @@ import type {
 
 // ─── Test Helpers ────────────────────────────────────────────────────────────
 
+// Valid Solana base58 addresses for testing
+const TEST_ADDRESSES = {
+  owner: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
+  sender: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d',
+  recipient: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
+  alice: 'FzPuPPFpqNbnTLqVfVv7fqK8LtYGbYsf7Y9p6P9N9oSp',
+  bob: 'HN7cABqLq46Es1jh92dQQisAi5YqXg1RoycZjv8AwJbW',
+}
+
 function createTestToken(overrides: Partial<CSPLToken> = {}): CSPLToken {
   return {
     mint: 'So11111111111111111111111111111111111111112',
-    confidentialMint: 'cspl_So111111',
+    confidentialMint: 'CSPLWrap1111111111111111111111111111111111',
     decimals: 9,
     symbol: 'C-wSOL',
     name: 'Confidential Wrapped SOL',
@@ -37,7 +46,7 @@ function createWrapParams(overrides: Partial<WrapTokenParams> = {}): WrapTokenPa
   return {
     mint: 'So11111111111111111111111111111111111111112',
     amount: BigInt('1000000000'), // 1 SOL
-    owner: 'owner123',
+    owner: TEST_ADDRESSES.owner,
     ...overrides,
   }
 }
@@ -46,8 +55,8 @@ function createTransferParams(
   overrides: Partial<ConfidentialTransferParams> = {}
 ): ConfidentialTransferParams {
   return {
-    from: 'sender123',
-    to: 'recipient456',
+    from: TEST_ADDRESSES.sender,
+    to: TEST_ADDRESSES.recipient,
     token: createTestToken(),
     encryptedAmount: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]),
     ...overrides,
@@ -245,7 +254,7 @@ describe('CSPLClient', () => {
       const result = await client.unwrapToken({
         token,
         encryptedAmount: new Uint8Array([1, 2, 3, 4]),
-        owner: 'owner123',
+        owner: TEST_ADDRESSES.owner,
       })
 
       expect(result.success).toBe(true)
@@ -258,7 +267,7 @@ describe('CSPLClient', () => {
       const result = await client.unwrapToken({
         token,
         encryptedAmount: new Uint8Array([1, 2, 3, 4]),
-        owner: 'owner123',
+        owner: TEST_ADDRESSES.owner,
       })
 
       expect(typeof result.amount).toBe('bigint')
@@ -268,7 +277,7 @@ describe('CSPLClient', () => {
       const result = await client.unwrapToken({
         token: {} as CSPLToken,
         encryptedAmount: new Uint8Array([1, 2, 3, 4]),
-        owner: 'owner123',
+        owner: TEST_ADDRESSES.owner,
       })
 
       expect(result.success).toBe(false)
@@ -292,7 +301,7 @@ describe('CSPLClient', () => {
       const result = await client.unwrapToken({
         token,
         encryptedAmount: new Uint8Array([]),
-        owner: 'owner123',
+        owner: TEST_ADDRESSES.owner,
       })
 
       expect(result.success).toBe(false)
@@ -497,7 +506,7 @@ describe('CSPLClient', () => {
 
     it('should return balance', async () => {
       const token = createTestToken()
-      const balance = await client.getBalance('owner123', token)
+      const balance = await client.getBalance(TEST_ADDRESSES.owner, token)
 
       expect(balance).toBeDefined()
       expect(balance.token).toEqual(token)
@@ -507,10 +516,10 @@ describe('CSPLClient', () => {
     it('should cache balance', async () => {
       const token = createTestToken()
 
-      await client.getBalance('owner123', token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
       const stats1 = client.getCacheStats()
 
-      await client.getBalance('owner123', token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
       const stats2 = client.getCacheStats()
 
       expect(stats2.balances).toBe(stats1.balances)
@@ -528,10 +537,10 @@ describe('CSPLClient', () => {
 
     it('should create account', async () => {
       const token = createTestToken()
-      const account = await client.getOrCreateAccount('owner123', token)
+      const account = await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
 
       expect(account).toBeDefined()
-      expect(account.owner).toBe('owner123')
+      expect(account.owner).toBe(TEST_ADDRESSES.owner)
       expect(account.token).toEqual(token)
       expect(account.isInitialized).toBe(true)
     })
@@ -539,8 +548,8 @@ describe('CSPLClient', () => {
     it('should return cached account', async () => {
       const token = createTestToken()
 
-      const account1 = await client.getOrCreateAccount('owner123', token)
-      const account2 = await client.getOrCreateAccount('owner123', token)
+      const account1 = await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      const account2 = await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
 
       expect(account1).toEqual(account2)
     })
@@ -550,14 +559,14 @@ describe('CSPLClient', () => {
 
       await expect(
         client.getOrCreateAccount('', token)
-      ).rejects.toThrow('Owner')
+      ).rejects.toThrow('Invalid owner address format')
     })
 
     it('should throw without confidential mint', async () => {
       const token = { ...createTestToken(), confidentialMint: '' }
 
       await expect(
-        client.getOrCreateAccount('owner123', token)
+        client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
       ).rejects.toThrow('confidentialMint')
     })
   })
@@ -573,7 +582,7 @@ describe('CSPLClient', () => {
 
     it('should apply pending balance', async () => {
       const token = createTestToken()
-      const result = await client.applyPendingBalance('owner123', token)
+      const result = await client.applyPendingBalance(TEST_ADDRESSES.owner, token)
 
       expect(result.success).toBe(true)
     })
@@ -587,7 +596,7 @@ describe('CSPLClient', () => {
     })
 
     it('should fail without token', async () => {
-      const result = await client.applyPendingBalance('owner123', {} as CSPLToken)
+      const result = await client.applyPendingBalance(TEST_ADDRESSES.owner, {} as CSPLToken)
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('Token')
@@ -655,8 +664,8 @@ describe('CSPLClient', () => {
     it('should track cache stats', async () => {
       const token = createTestToken()
 
-      await client.getOrCreateAccount('owner1', token)
-      await client.getBalance('owner1', token)
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
 
       const stats = client.getCacheStats()
 
@@ -667,8 +676,8 @@ describe('CSPLClient', () => {
     it('should clear cache', async () => {
       const token = createTestToken()
 
-      await client.getOrCreateAccount('owner1', token)
-      await client.getBalance('owner1', token)
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
 
       client.clearCache()
       const stats = client.getCacheStats()
@@ -778,28 +787,28 @@ describe('C-SPL Integration', () => {
       const wrapResult = await client.wrapToken({
         mint: token.mint,
         amount: BigInt('1000000000'),
-        owner: 'alice',
+        owner: TEST_ADDRESSES.alice,
       })
       expect(wrapResult.success).toBe(true)
 
       // 2. Transfer
       const transferResult = await client.transfer({
-        from: 'alice',
-        to: 'bob',
+        from: TEST_ADDRESSES.alice,
+        to: TEST_ADDRESSES.bob,
         token,
         encryptedAmount: wrapResult.encryptedBalance!,
       })
       expect(transferResult.success).toBe(true)
 
       // 3. Apply pending (bob)
-      const applyResult = await client.applyPendingBalance('bob', token)
+      const applyResult = await client.applyPendingBalance(TEST_ADDRESSES.bob, token)
       expect(applyResult.success).toBe(true)
 
       // 4. Unwrap (bob)
       const unwrapResult = await client.unwrapToken({
         token,
         encryptedAmount: new Uint8Array([1, 2, 3, 4]),
-        owner: 'bob',
+        owner: TEST_ADDRESSES.bob,
       })
       expect(unwrapResult.success).toBe(true)
     })
