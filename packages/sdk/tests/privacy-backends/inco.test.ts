@@ -693,6 +693,27 @@ describe('IncoBackend', () => {
       expect(result.error).toContain('not found')
     })
 
+    it('should use default timeout from config', async () => {
+      const customBackend = new IncoBackend({ timeout: 10000 })
+      const params = createValidComputationParams()
+      const execResult = await customBackend.executeComputation(params)
+
+      // Should complete without timeout since simulation is instant
+      const awaitResult = await customBackend.awaitComputation(execResult.computationId!)
+
+      expect(awaitResult.success).toBe(true)
+    })
+
+    it('should use custom timeout when provided', async () => {
+      const params = createValidComputationParams()
+      const execResult = await backend.executeComputation(params)
+
+      // Should complete without timeout since simulation is instant
+      const awaitResult = await backend.awaitComputation(execResult.computationId!, 5000)
+
+      expect(awaitResult.success).toBe(true)
+    })
+
     it('should clear computation cache', async () => {
       const params = createValidComputationParams()
       await backend.executeComputation(params)

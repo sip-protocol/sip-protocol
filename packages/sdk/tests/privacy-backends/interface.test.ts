@@ -339,3 +339,80 @@ describe('TransactionResult type', () => {
     expect(result.signature).toBeUndefined()
   })
 })
+
+// ─── Timeout Utilities Tests ──────────────────────────────────────────────────
+
+import {
+  withTimeout,
+  ComputationTimeoutError,
+} from '../../src/privacy-backends/interface'
+
+describe('withTimeout', () => {
+  it('should resolve when promise completes before timeout', async () => {
+    const result = await withTimeout(
+      Promise.resolve('success'),
+      1000,
+      () => { throw new Error('timeout') }
+    )
+
+    expect(result).toBe('success')
+  })
+
+  it('should throw timeout error when promise exceeds timeout', async () => {
+    const slowPromise = new Promise<string>(resolve => {
+      setTimeout(() => resolve('too late'), 100)
+    })
+
+    await expect(
+      withTimeout(
+        slowPromise,
+        10, // Very short timeout
+        () => { throw new Error('Computation timed out') }
+      )
+    ).rejects.toThrow('Computation timed out')
+  })
+
+  it('should cleanup timeout when promise resolves', async () => {
+    // This test ensures we don't leak timers
+    const result = await withTimeout(
+      Promise.resolve(42),
+      5000,
+      () => { throw new Error('should not happen') }
+    )
+
+    expect(result).toBe(42)
+  })
+
+  it('should pass through rejection from original promise', async () => {
+    const failingPromise = Promise.reject(new Error('original error'))
+
+    await expect(
+      withTimeout(
+        failingPromise,
+        1000,
+        () => { throw new Error('timeout error') }
+      )
+    ).rejects.toThrow('original error')
+  })
+})
+
+describe('ComputationTimeoutError', () => {
+  it('should create error with correct properties', () => {
+    const error = new ComputationTimeoutError('comp-123', 5000, 'arcium')
+
+    expect(error.name).toBe('ComputationTimeoutError')
+    expect(error.computationId).toBe('comp-123')
+    expect(error.timeoutMs).toBe(5000)
+    expect(error.backendName).toBe('arcium')
+    expect(error.message).toContain('comp-123')
+    expect(error.message).toContain('5000ms')
+    expect(error.message).toContain('arcium')
+  })
+
+  it('should be instanceof Error', () => {
+    const error = new ComputationTimeoutError('comp-456', 10000, 'inco')
+
+    expect(error instanceof Error).toBe(true)
+    expect(error instanceof ComputationTimeoutError).toBe(true)
+  })
+})

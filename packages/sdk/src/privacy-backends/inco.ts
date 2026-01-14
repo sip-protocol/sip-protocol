@@ -69,7 +69,11 @@ import type {
   ComputationStatus,
 } from './interface'
 
-import { isComputationParams } from './interface'
+import {
+  isComputationParams,
+  withTimeout,
+  ComputationTimeoutError,
+} from './interface'
 
 import type {
   IncoProduct,
@@ -467,16 +471,17 @@ export class IncoBackend implements PrivacyBackend {
    * Wait for computation to complete
    *
    * @param computationId - Computation to wait for
-   * @param timeout - Optional timeout override
+   * @param timeout - Optional timeout override (defaults to config.timeout)
    * @returns Computation result
+   * @throws {ComputationTimeoutError} If computation exceeds timeout
    */
   async awaitComputation(
     computationId: string,
     timeout?: number
   ): Promise<ComputationResult> {
-    void timeout // Mark as intentionally unused (for future SDK integration)
+    const timeoutMs = timeout ?? this.config.timeout
 
-    // Simulated: Just return the cached info as completed
+    // Check if computation exists before waiting
     const info = this.computationCache.get(computationId)
     if (!info) {
       return {
@@ -487,7 +492,31 @@ export class IncoBackend implements PrivacyBackend {
       }
     }
 
-    // Simulate completion
+    // Wrap the polling/waiting logic with timeout
+    return withTimeout(
+      this.pollComputationResult(computationId, info),
+      timeoutMs,
+      () => {
+        throw new ComputationTimeoutError(computationId, timeoutMs, this.name)
+      }
+    )
+  }
+
+  /**
+   * Poll for computation result (simulation)
+   *
+   * In production, this would poll the Inco network for completion.
+   * Currently simulates immediate completion for testing.
+   */
+  private async pollComputationResult(
+    computationId: string,
+    info: FHEComputationInfo
+  ): Promise<ComputationResult> {
+    // In production, would poll the Inco network:
+    // const client = await this.getClient()
+    // const output = await client.awaitFinalization(computationId)
+
+    // Simulated: Mark as completed immediately
     info.status = 'completed'
     info.completedAt = Date.now()
     info.outputHandle = `output_${computationId}`
