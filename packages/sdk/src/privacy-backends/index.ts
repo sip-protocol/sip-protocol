@@ -87,8 +87,12 @@ export { isComputationParams, isTransferParams } from './interface'
 export {
   AllBackendsFailedError,
   CircuitOpenError,
+  ComputationTimeoutError,
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
 } from './interface'
+
+// Timeout utilities
+export { withTimeout } from './interface'
 
 // Health tracking
 export { BackendHealthTracker } from './health'
