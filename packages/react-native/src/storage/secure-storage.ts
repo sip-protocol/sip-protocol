@@ -103,7 +103,7 @@ interface KeychainModule {
  */
 let Keychain: KeychainModule | null = null
 try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   Keychain = require('react-native-keychain') as KeychainModule
 } catch {
   // Keychain not available, will use memory fallback

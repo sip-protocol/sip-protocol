@@ -9,6 +9,7 @@
  */
 let Clipboard: { setString: (text: string) => void; getString: () => Promise<string> } | null = null
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   Clipboard = require('@react-native-clipboard/clipboard').default
 } catch {
   // Clipboard not available
