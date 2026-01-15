@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express'
-import { SIP, PrivacyLevel } from '@sip-protocol/sdk'
+import { SIP, PrivacyLevel, getAsset, isKnownToken } from '@sip-protocol/sdk'
 import { validateRequest, schemas } from '../middleware'
 import type {
   GetQuoteRequest,
@@ -82,24 +82,38 @@ router.post(
       slippageTolerance
     } = req.body as GetQuoteRequest
 
+    // Validate tokens are known (fail fast on unknown tokens)
+    if (!isKnownToken(inputToken, inputChain)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'UNKNOWN_TOKEN',
+          message: `Unknown input token: ${inputToken} on ${inputChain}`,
+        },
+      } satisfies ApiResponse<never>)
+    }
+    if (!isKnownToken(outputToken, outputChain)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'UNKNOWN_TOKEN',
+          message: `Unknown output token: ${outputToken} on ${outputChain}`,
+        },
+      } satisfies ApiResponse<never>)
+    }
+
+    // Get asset info with correct decimals from registry
+    const inputAsset = getAsset(inputToken, inputChain)
+    const outputAsset = getAsset(outputToken, outputChain)
+
     // Create intent
     const intent = await sip.createIntent({
       input: {
-        asset: {
-          chain: inputChain,
-          address: null, // Native token
-          symbol: inputToken,
-          decimals: 9,
-        },
+        asset: inputAsset,
         amount: BigInt(inputAmount),
       },
       output: {
-        asset: {
-          chain: outputChain,
-          address: null, // Native token
-          symbol: outputToken,
-          decimals: 9,
-        },
+        asset: outputAsset,
         // Calculate minAmount based on user's slippage tolerance (defaults to 1%)
         minAmount: BigInt(inputAmount) * BigInt(10000 - Math.floor((slippageTolerance || 1) * 100)) / 10000n,
         maxSlippage: (slippageTolerance || 1) / 100,

@@ -31,6 +31,8 @@ export enum ErrorCode {
   INVALID_ADDRESS = 'SIP_2007',
   MISSING_REQUIRED = 'SIP_2008',
   OUT_OF_RANGE = 'SIP_2009',
+  TOKEN_NOT_FOUND = 'SIP_2010',
+  UNSUPPORTED_CHAIN = 'SIP_2011',
 
   // Cryptographic errors (3xxx)
   CRYPTO_FAILED = 'SIP_3000',
