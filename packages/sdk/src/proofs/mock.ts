@@ -25,6 +25,9 @@ import type {
 } from './interface'
 import { ProofGenerationError } from './interface'
 import { ProofError, ErrorCode } from '../errors'
+import { createLogger } from '../logger'
+
+const log = createLogger('proofs/mock')
 
 /**
  * Mock proof marker - all mock proofs start with this prefix
@@ -107,7 +110,10 @@ export class MockProofProvider implements ProofProvider {
    */
   async initialize(): Promise<void> {
     if (!this._warningShown && !this._silent) {
-      console.warn(WARNING_MESSAGE)
+      log.warn(
+        { framework: 'mock' },
+        'MockProofProvider initialized - NOT FOR PRODUCTION USE. Mock proofs provide NO cryptographic security.'
+      )
       this._warningShown = true
     }
     this._isReady = true

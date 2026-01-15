@@ -9,6 +9,10 @@
  * @module utils/deprecation
  */
 
+import { createLogger } from '../logger'
+
+const log = createLogger('deprecation')
+
 /** Set of warning IDs that have already been emitted */
 const warnedIds = new Set<string>()
 
@@ -44,7 +48,7 @@ export function warnOnce(id: string, message: string): void {
   if (warnedIds.has(id)) return
 
   warnedIds.add(id)
-  console.warn(`[SIP-SDK] DEPRECATION: ${message}`)
+  log.warn({ deprecationId: id }, message)
 }
 
 /**

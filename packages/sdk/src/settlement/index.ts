@@ -37,6 +37,15 @@ export {
   type FindBestRouteParams,
 } from './router'
 
+// Circuit Breaker
+export {
+  CircuitBreaker,
+  type CircuitState,
+  type CircuitBreakerStatus,
+  type CircuitBreakerEvents,
+  type CircuitBreakerOptions,
+} from './router'
+
 // Backends
 export {
   NEARIntentsBackend,

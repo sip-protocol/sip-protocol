@@ -44,6 +44,9 @@ import {
   isValidPrivacyLevel,
   isValidStealthMetaAddress,
 } from './validation'
+import { createLogger } from './logger'
+
+const log = createLogger('intent')
 
 /**
  * Options for creating a shielded intent
@@ -606,9 +609,9 @@ export async function createShieldedIntent(
       // Placeholder mode with no senderSecret - use random bytes (won't verify)
       effectiveOwnershipSig = randomBytes(64)
       effectiveAuthSig = randomBytes(64)
-      console.warn(
-        '[createShieldedIntent] WARNING: Using placeholder signatures for proof generation. ' +
-        'These proofs are NOT cryptographically valid. Do NOT use in production!'
+      log.warn(
+        { allowPlaceholders: true, hasSenderSecret: false },
+        'Using placeholder signatures for proof generation - NOT cryptographically valid'
       )
     } else {
       // Generate real ECDSA signatures using senderSecret
