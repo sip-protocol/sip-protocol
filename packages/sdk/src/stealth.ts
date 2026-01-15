@@ -1505,3 +1505,95 @@ export function isValidNearAccountId(accountId: string): boolean {
 
   return true
 }
+
+/**
+ * Parse a stealth address string into its components
+ *
+ * Parses a combined stealth address format into the StealthAddress structure
+ * required by checkStealthAddress and deriveStealthPrivateKey functions.
+ *
+ * **Format:** `<stealthAddress>:<ephemeralPublicKey>:<viewTag>`
+ * - stealthAddress: The one-time stealth address (hex for EVM, base58 for Solana)
+ * - ephemeralPublicKey: Sender's ephemeral public key (hex or base58)
+ * - viewTag: Single byte view tag for efficient scanning (hex, 1-2 chars)
+ *
+ * @param input - Combined stealth address string
+ * @returns Parsed StealthAddress object
+ * @throws {ValidationError} If format is invalid
+ *
+ * @example Parse a stealth address
+ * ```typescript
+ * import { parseStealthAddress, checkStealthAddress } from '@sip-protocol/sdk'
+ *
+ * const combined = '0x1234...abcd:0x02abc...123:7f'
+ * const stealthAddr = parseStealthAddress(combined)
+ *
+ * const isMine = checkStealthAddress(
+ *   stealthAddr,
+ *   spendingPrivateKey,
+ *   viewingPrivateKey
+ * )
+ * ```
+ */
+export function parseStealthAddress(input: string): StealthAddress {
+  if (!input || typeof input !== 'string') {
+    throw new ValidationError(
+      'stealth address input must be a non-empty string',
+      'input'
+    )
+  }
+
+  const parts = input.split(':')
+  if (parts.length !== 3) {
+    throw new ValidationError(
+      'invalid stealth address format. Expected: <address>:<ephemeralPublicKey>:<viewTag>',
+      'input'
+    )
+  }
+
+  const [address, ephemeralPublicKey, viewTagHex] = parts
+
+  // Validate address (basic check - hex or base58)
+  if (!address || address.length < 20) {
+    throw new ValidationError(
+      'invalid stealth address: too short',
+      'address'
+    )
+  }
+
+  // Validate ephemeral public key (hex or base58)
+  if (!ephemeralPublicKey || ephemeralPublicKey.length < 20) {
+    throw new ValidationError(
+      'invalid ephemeral public key: too short',
+      'ephemeralPublicKey'
+    )
+  }
+
+  // Validate view tag (1-2 hex chars, 0-255)
+  if (!viewTagHex || viewTagHex.length > 2 || !/^[0-9a-fA-F]+$/.test(viewTagHex)) {
+    throw new ValidationError(
+      'invalid view tag: must be 1-2 hex characters (0-255)',
+      'viewTag'
+    )
+  }
+
+  const viewTag = parseInt(viewTagHex, 16)
+  if (viewTag < 0 || viewTag > 255) {
+    throw new ValidationError(
+      'view tag must be in range 0-255',
+      'viewTag'
+    )
+  }
+
+  // Normalize address to hex format if needed
+  const normalizedAddress = address.startsWith('0x') ? address : `0x${address}`
+  const normalizedEphemeral = ephemeralPublicKey.startsWith('0x')
+    ? ephemeralPublicKey
+    : `0x${ephemeralPublicKey}`
+
+  return {
+    address: normalizedAddress as HexString,
+    ephemeralPublicKey: normalizedEphemeral as HexString,
+    viewTag,
+  }
+}
