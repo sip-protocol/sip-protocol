@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/react-native",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React Native SDK for Shielded Intents Protocol - privacy on iOS/Android",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",
