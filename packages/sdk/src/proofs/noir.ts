@@ -30,12 +30,15 @@ import { UltraHonkBackend, Barretenberg } from '@aztec/bb.js'
 import { secp256k1 } from '@noble/curves/secp256k1'
 
 // Import compiled circuit artifacts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Circuit JSON files are typed via CompiledCircuit assertion
 import fundingCircuitArtifact from './circuits/funding_proof.json'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import validityCircuitArtifact from './circuits/validity_proof.json'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import fulfillmentCircuitArtifact from './circuits/fulfillment_proof.json'
+
+// Type assertion for circuit artifacts (JSON modules)
+const fundingCircuit = fundingCircuitArtifact as unknown as CompiledCircuit
+const validityCircuit = validityCircuitArtifact as unknown as CompiledCircuit
+const fulfillmentCircuit = fulfillmentCircuitArtifact as unknown as CompiledCircuit
 
 /**
  * Public key coordinates for secp256k1
@@ -205,9 +208,6 @@ export class NoirProofProvider implements ProofProvider {
       }
 
       // Initialize Funding Proof circuit
-      // Cast to CompiledCircuit - the JSON artifact matches the expected structure
-      const fundingCircuit = fundingCircuitArtifact as unknown as CompiledCircuit
-
       // Create backend for proof generation (bb.js 3.x requires Barretenberg instance)
       this.fundingBackend = new UltraHonkBackend(fundingCircuit.bytecode, this.barretenberg)
 
@@ -222,8 +222,6 @@ export class NoirProofProvider implements ProofProvider {
       }
 
       // Initialize Validity Proof circuit
-      const validityCircuit = validityCircuitArtifact as unknown as CompiledCircuit
-
       // Create backend for validity proof generation (bb.js 3.x requires Barretenberg instance)
       this.validityBackend = new UltraHonkBackend(validityCircuit.bytecode, this.barretenberg)
 
@@ -235,8 +233,6 @@ export class NoirProofProvider implements ProofProvider {
       }
 
       // Initialize Fulfillment Proof circuit
-      const fulfillmentCircuit = fulfillmentCircuitArtifact as unknown as CompiledCircuit
-
       // Create backend for fulfillment proof generation (bb.js 3.x requires Barretenberg instance)
       this.fulfillmentBackend = new UltraHonkBackend(fulfillmentCircuit.bytecode, this.barretenberg)
 

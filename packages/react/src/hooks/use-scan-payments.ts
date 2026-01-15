@@ -316,8 +316,7 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
    * 3. Add PublicKey-like interface to SDK types
    */
   const claimAll = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async (claimAllParams: ClaimAllParams): Promise<SolanaClaimResult[]> => {
+    async (_claimAllParams: ClaimAllParams): Promise<SolanaClaimResult[]> => {
       const unclaimed = payments.filter((p) => !p.claimed)
 
       if (unclaimed.length > 0) {

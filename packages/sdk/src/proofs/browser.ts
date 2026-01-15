@@ -48,12 +48,15 @@ import { UltraHonkBackend, Barretenberg } from '@aztec/bb.js'
 import { secp256k1 } from '@noble/curves/secp256k1'
 
 // Import compiled circuit artifacts
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Circuit JSON files are typed via CompiledCircuit assertion
 import fundingCircuitArtifact from './circuits/funding_proof.json'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import validityCircuitArtifact from './circuits/validity_proof.json'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import fulfillmentCircuitArtifact from './circuits/fulfillment_proof.json'
+
+// Type assertion for circuit artifacts (JSON modules)
+const fundingCircuit = fundingCircuitArtifact as unknown as CompiledCircuit
+const validityCircuit = validityCircuitArtifact as unknown as CompiledCircuit
+const fulfillmentCircuit = fulfillmentCircuitArtifact as unknown as CompiledCircuit
 
 /**
  * Public key coordinates for secp256k1
@@ -391,11 +394,7 @@ export class BrowserNoirProvider implements ProofProvider {
         console.log('[BrowserNoirProvider] Browser info:', getBrowserInfo())
       }
 
-      // Initialize circuits in parallel for faster loading
-      const fundingCircuit = fundingCircuitArtifact as unknown as CompiledCircuit
-      const validityCircuit = validityCircuitArtifact as unknown as CompiledCircuit
-      const fulfillmentCircuit = fulfillmentCircuitArtifact as unknown as CompiledCircuit
-
+      // Initialize circuits in parallel for faster loading (using module-level typed constants)
       onProgress?.({
         stage: 'initializing',
         percent: 15,

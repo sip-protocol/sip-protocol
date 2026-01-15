@@ -350,8 +350,11 @@ export class SolanaNoirVerifier {
     const circuit = await this.loadCircuitArtifact(circuitType)
 
     // Create backend and verify
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Backend = bbjs.UltraHonkBackend as any
+    // Cast required: bbjs is dynamically imported with unknown types
+    const Backend = bbjs.UltraHonkBackend as new (bytecode: string) => {
+      verifyProof(args: { proof: Uint8Array; publicInputs: string[] }): Promise<boolean>
+      destroy(): Promise<void>
+    }
     const backend = new Backend(circuit.bytecode)
 
     try {
