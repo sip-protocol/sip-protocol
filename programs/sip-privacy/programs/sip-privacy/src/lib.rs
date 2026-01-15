@@ -38,7 +38,10 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer as SplTransfer};
 
 pub mod commitment;
+pub mod zk_verifier;
+
 use commitment::{verify_commitment_format, SCALAR_SIZE};
+use zk_verifier::{deserialize_proof, verify_proof, ZkVerifyError};
 
 declare_id!("SiPpRiv4cyYhWDqPdBqhUVrBBGhSKzjnV9hQYmzQPLA");
 
@@ -390,6 +393,82 @@ pub mod sip_privacy {
         }
     }
 
+    /// Verify a ZK proof on-chain
+    ///
+    /// Verifies Noir ZK proofs (funding, validity, fulfillment) on Solana.
+    ///
+    /// ## Parameters
+    ///
+    /// - `proof_data`: Serialized proof with public inputs
+    ///   Format: [proof_type(1)] [num_inputs(4)] [inputs(n*32)] [proof_len(4)] [proof]
+    ///
+    /// ## Supported Proof Types
+    ///
+    /// - `0` = Funding: Proves balance >= minimum without revealing balance
+    /// - `1` = Validity: Proves intent authorization without revealing sender
+    /// - `2` = Fulfillment: Proves correct execution without revealing path
+    ///
+    /// ## Compute Units
+    ///
+    /// - Funding proof: ~200,000 CU
+    /// - Validity proof: ~350,000 CU
+    /// - Fulfillment proof: ~250,000 CU
+    ///
+    /// ## Note
+    ///
+    /// Current implementation performs format validation.
+    /// Full cryptographic verification via Sunspot verifiers coming in M17.
+    pub fn verify_zk_proof(
+        _ctx: Context<VerifyZkProof>,
+        proof_data: Vec<u8>,
+    ) -> Result<()> {
+        // Validate proof data size
+        require!(proof_data.len() > 0, SipError::ProofTooLarge);
+        require!(proof_data.len() <= zk_verifier::MAX_PROOF_SIZE + 1024, SipError::ProofTooLarge);
+
+        // Deserialize proof
+        let proof = deserialize_proof(&proof_data).map_err(|e| {
+            msg!("Proof deserialization failed: {:?}", e);
+            match e {
+                ZkVerifyError::ProofTooLarge => SipError::ProofTooLarge,
+                ZkVerifyError::InvalidProofFormat => SipError::InvalidProofFormat,
+                ZkVerifyError::UnsupportedProofType => SipError::UnsupportedProofType,
+                ZkVerifyError::TooManyPublicInputs => SipError::InvalidPublicInputs,
+                ZkVerifyError::MissingPublicInputs => SipError::InvalidPublicInputs,
+                ZkVerifyError::InvalidPublicInput => SipError::InvalidPublicInputs,
+                ZkVerifyError::VerificationFailed => SipError::ProofVerificationFailed,
+            }
+        })?;
+
+        // Log proof details
+        msg!(
+            "Verifying {} proof: {} public inputs, {} proof bytes",
+            proof.proof_type.name(),
+            proof.public_inputs.len(),
+            proof.proof_bytes.len()
+        );
+
+        // Verify proof
+        let result = verify_proof(&proof);
+
+        if result.valid {
+            msg!("ZK proof verification: VALID");
+
+            // Emit verification event
+            emit!(ZkProofVerifiedEvent {
+                proof_type: proof.proof_type as u8,
+                public_input_count: proof.public_inputs.len() as u8,
+                proof_size: proof.proof_bytes.len() as u32,
+                verified: true,
+            });
+
+            Ok(())
+        } else {
+            msg!("ZK proof verification: FAILED - {:?}", result.error);
+            err!(SipError::ProofVerificationFailed)
+        }
+    }
+
     /// Claim a shielded transfer as the recipient
     ///
     /// ## Flow
@@ -734,6 +813,13 @@ pub struct VerifyCommitment<'info> {
 }
 
 #[derive(Accounts)]
+pub struct VerifyZkProof<'info> {
+    /// Anyone can verify a ZK proof (no state changes)
+    /// Pays for compute units
+    pub payer: Signer<'info>,
+}
+
+#[derive(Accounts)]
 #[instruction(nullifier: [u8; 32])]
 pub struct ClaimTokenTransfer<'info> {
     #[account(
@@ -932,6 +1018,22 @@ pub struct CommitmentVerifiedEvent {
     pub verified: bool,
 }
 
+/// Emitted when a ZK proof is verified
+#[event]
+pub struct ZkProofVerifiedEvent {
+    /// Proof type (0=funding, 1=validity, 2=fulfillment)
+    pub proof_type: u8,
+
+    /// Number of public inputs
+    pub public_input_count: u8,
+
+    /// Proof size in bytes
+    pub proof_size: u32,
+
+    /// Whether verification passed
+    pub verified: bool,
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Errors
 // ─────────────────────────────────────────────────────────────────────────────
@@ -967,4 +1069,13 @@ pub enum SipError {
 
     #[msg("Invalid stealth address proof")]
     InvalidStealthProof,
+
+    #[msg("Invalid proof format")]
+    InvalidProofFormat,
+
+    #[msg("Unsupported proof type")]
+    UnsupportedProofType,
+
+    #[msg("Invalid public inputs")]
+    InvalidPublicInputs,
 }
