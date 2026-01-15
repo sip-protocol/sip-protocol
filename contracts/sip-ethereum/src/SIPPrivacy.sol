@@ -170,6 +170,23 @@ contract SIPPrivacy is ReentrancyGuard {
      */
     event FeeUpdated(uint256 newFeeBps);
 
+    /**
+     * @notice EIP-5564 compatible Announcement event
+     * @dev Emitted alongside ShieldedTransfer for EIP-5564 scanner compatibility
+     * @param schemeId The stealth address scheme (1 = secp256k1 with view tags)
+     * @param stealthAddress The generated stealth address
+     * @param caller The address that initiated the transfer
+     * @param ephemeralPubKey The ephemeral public key for shared secret derivation
+     * @param metadata View tag (first byte) + encrypted amount
+     */
+    event Announcement(
+        uint256 indexed schemeId,
+        address indexed stealthAddress,
+        address indexed caller,
+        bytes ephemeralPubKey,
+        bytes metadata
+    );
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Errors
     // ═══════════════════════════════════════════════════════════════════════════
@@ -301,6 +318,17 @@ contract SIPPrivacy is ReentrancyGuard {
             ephemeralPubKey,
             viewingKeyHash
         );
+
+        // Emit EIP-5564 compatible Announcement for scanner compatibility
+        // Scheme 1 = secp256k1 with view tags
+        // Metadata = viewTag (1 byte from viewingKeyHash) + encryptedAmount
+        emit Announcement(
+            1, // SCHEME_SECP256K1_WITH_VIEW_TAGS
+            stealthRecipient,
+            msg.sender,
+            abi.encodePacked(ephemeralPubKey), // Convert bytes32 to bytes
+            abi.encodePacked(uint8(uint256(viewingKeyHash) >> 248), encryptedAmount)
+        );
     }
 
     /**
@@ -376,6 +404,15 @@ contract SIPPrivacy is ReentrancyGuard {
             commitment,
             ephemeralPubKey,
             viewingKeyHash
+        );
+
+        // Emit EIP-5564 compatible Announcement for scanner compatibility
+        emit Announcement(
+            1, // SCHEME_SECP256K1_WITH_VIEW_TAGS
+            stealthRecipient,
+            msg.sender,
+            abi.encodePacked(ephemeralPubKey),
+            abi.encodePacked(uint8(uint256(viewingKeyHash) >> 248), encryptedAmount)
         );
     }
 
