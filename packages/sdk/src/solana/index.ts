@@ -3,6 +3,7 @@
  *
  * Provides Solana-specific functionality for SIP Protocol:
  * - Noir proof verification on Solana
+ * - Jito relayer for gas abstraction
  * - Solana wallet adapters
  * - Transaction building utilities
  *
@@ -15,6 +16,26 @@ export {
   createDevnetVerifier,
   createMainnetVerifier,
 } from './noir-verifier'
+
+// Jito Relayer (Gas Abstraction)
+export {
+  JitoRelayer,
+  createJitoRelayer,
+  createMainnetRelayer,
+  JitoRelayerError,
+  JitoRelayerErrorCode,
+  JITO_BLOCK_ENGINES,
+  JITO_TIP_ACCOUNTS,
+  JITO_DEFAULTS,
+} from './jito-relayer'
+
+export type {
+  JitoRelayerConfig,
+  JitoBundleRequest,
+  JitoBundleResult,
+  RelayedTransactionRequest,
+  RelayedTransactionResult,
+} from './jito-relayer'
 
 // Types
 export type {

@@ -846,6 +846,26 @@ export {
   MAX_PUBLIC_INPUTS,
 } from './solana'
 
+// Jito Relayer (Solana Gas Abstraction)
+export {
+  JitoRelayer,
+  createJitoRelayer,
+  createMainnetRelayer,
+  JitoRelayerError,
+  JitoRelayerErrorCode,
+  JITO_BLOCK_ENGINES,
+  JITO_TIP_ACCOUNTS,
+  JITO_DEFAULTS,
+} from './solana'
+
+export type {
+  JitoRelayerConfig,
+  JitoBundleRequest,
+  JitoBundleResult,
+  RelayedTransactionRequest,
+  RelayedTransactionResult,
+} from './solana'
+
 export type {
   NoirCircuitType,
   SolanaVerificationKey,
