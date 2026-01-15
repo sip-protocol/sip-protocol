@@ -2,7 +2,7 @@
  * Health Endpoint Tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import request from 'supertest'
 import app from '../src/server'
 
@@ -28,6 +28,42 @@ describe('Health Endpoint', () => {
       const timestamp = new Date(response.body.data.timestamp)
       expect(timestamp instanceof Date).toBe(true)
       expect(isNaN(timestamp.getTime())).toBe(false)
+    })
+
+    it('should include proof provider status', async () => {
+      const response = await request(app)
+        .get('/api/v1/health')
+        .expect(200)
+
+      expect(response.body.data.proofProvider).toBeDefined()
+      expect(response.body.data.proofProvider.ready).toBe(true)
+      expect(response.body.data.proofProvider.error).toBeNull()
+      expect(response.body.data.proofProvider.initAttempt).toBeGreaterThanOrEqual(1)
+    })
+  })
+
+  describe('GET /api/v1/health/live', () => {
+    it('should return alive status (Kubernetes liveness probe)', async () => {
+      const response = await request(app)
+        .get('/api/v1/health/live')
+        .expect(200)
+
+      expect(response.body.success).toBe(true)
+      expect(response.body.data.status).toBe('alive')
+      expect(response.body.data.timestamp).toBeDefined()
+    })
+  })
+
+  describe('GET /api/v1/health/ready', () => {
+    it('should return ready status when proof provider initialized (Kubernetes readiness probe)', async () => {
+      const response = await request(app)
+        .get('/api/v1/health/ready')
+        .expect(200)
+
+      expect(response.body.success).toBe(true)
+      expect(response.body.data.status).toBe('ready')
+      expect(response.body.data.proofProvider).toBeDefined()
+      expect(response.body.data.proofProvider.ready).toBe(true)
     })
   })
 
