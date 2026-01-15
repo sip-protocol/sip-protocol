@@ -997,3 +997,24 @@ export type {
   PrivacyLoggerConfig,
   SensitiveData,
 } from './privacy-logger'
+
+// Production Safety Checks
+export {
+  // Environment detection
+  isProductionEnvironment,
+  isLocalhostAllowed,
+  // URL validation
+  isLocalhostUrl,
+  validateProductionConfig,
+  assertNoLocalhost,
+  getProductionUrl,
+  createProductionConfig,
+  // Error class
+  ProductionSafetyError,
+} from './production-safety'
+
+export type {
+  ProductionConfigValidationResult,
+  ProductionConfigError,
+  ProductionConfigWarning,
+} from './production-safety'
