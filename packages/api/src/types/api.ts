@@ -21,6 +21,13 @@ export interface HealthResponse {
   version: string
   timestamp: string
   uptime: number
+  cache?: {
+    swaps: {
+      size: number
+      maxSize: number
+      utilizationPercent: number
+    }
+  }
 }
 
 /**

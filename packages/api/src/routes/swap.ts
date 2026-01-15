@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { SIP, PrivacyLevel } from '@sip-protocol/sdk'
 import { validateRequest, schemas } from '../middleware'
+import { swapStore } from '../stores'
 import type {
   GetQuoteRequest,
   ExecuteSwapRequest,
@@ -14,20 +15,6 @@ const router: Router = Router()
 
 // Initialize SIP client
 const sip = new SIP({ network: 'testnet' })
-
-import type { HexString } from '@sip-protocol/types'
-
-// In-memory swap tracking (in production, use a database)
-const swaps = new Map<string, {
-  id: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  transactionHash?: HexString
-  inputAmount: string
-  outputAmount?: string
-  createdAt: string
-  updatedAt: string
-  error?: string
-}>()
 
 /**
  * POST /quote
@@ -182,7 +169,7 @@ router.post(
     // Generate swap ID
     const swapId = `swap-${Date.now()}`
 
-    // Store swap status
+    // Store swap in LRU cache with TTL
     const swap = {
       id: swapId,
       status: 'pending' as const,
@@ -190,7 +177,7 @@ router.post(
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
-    swaps.set(swapId, swap)
+    swapStore.set(swapId, swap)
 
     // In production, this would:
     // 1. Sign the transaction
@@ -241,7 +228,7 @@ router.get(
     // Express 5 types params as string | string[] - ensure we have a string
     const swapId = Array.isArray(id) ? id[0] : id
 
-    const swap = swaps.get(swapId)
+    const swap = swapStore.get(swapId)
 
     if (!swap) {
       return res.status(404).json({
