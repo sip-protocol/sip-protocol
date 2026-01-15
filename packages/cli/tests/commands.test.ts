@@ -93,6 +93,12 @@ describe('CLI Commands', () => {
       expect(options).toContain('--chain')
     })
 
+    it('scan should have output-file option for secure key export', () => {
+      const cmd = createScanCommand()
+      const options = cmd.options.map(o => o.long || o.short)
+      expect(options).toContain('--output-file')
+    })
+
     it('commit should accept amount argument', () => {
       const cmd = createCommitCommand()
       const args = cmd.registeredArguments || []
