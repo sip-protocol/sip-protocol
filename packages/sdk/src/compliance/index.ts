@@ -101,3 +101,22 @@ export {
   type AttestationVerificationResult,
   type RangeAPIConfig,
 } from './range-sas'
+
+// Fireblocks Institutional Custody Integration
+export {
+  FireblocksViewingKeyClient,
+  FireblocksError,
+  FireblocksErrorCode,
+  createFireblocksClient,
+  type FireblocksConfig,
+  type RegisterViewingKeyParams,
+  type ViewingKeyRegistration,
+  type RegistrationStatus,
+  type ExportTransactionHistoryParams,
+  type TransactionHistoryExport,
+  type GenerateComplianceReportParams,
+  type ComplianceReport,
+  type ComplianceReportType,
+  type ExportFormat,
+  type TransactionType as FireblocksTransactionType,
+} from './fireblocks'
