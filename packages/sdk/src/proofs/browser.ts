@@ -120,6 +120,9 @@ export type ProofProgressCallback = (progress: {
   message: string
 }) => void
 
+/** Default initialization timeout in milliseconds */
+const DEFAULT_INIT_TIMEOUT_MS = 30000
+
 /**
  * Browser-compatible Noir Proof Provider
  *
@@ -145,6 +148,8 @@ export type ProofProgressCallback = (progress: {
 export class BrowserNoirProvider implements ProofProvider {
   readonly framework: ProofFramework = 'noir'
   private _isReady = false
+  private _initPromise: Promise<void> | null = null
+  private _initError: Error | null = null
   private config: Required<BrowserNoirProviderConfig>
 
   // Mobile device info (cached)
@@ -353,10 +358,79 @@ export class BrowserNoirProvider implements ProofProvider {
    * @param onProgress - Optional progress callback
    */
   async initialize(onProgress?: ProofProgressCallback): Promise<void> {
+    // If already ready, return immediately
     if (this._isReady) {
       return
     }
 
+    // If initialization is in progress, wait for it
+    if (this._initPromise) {
+      return this._initPromise
+    }
+
+    // If a previous initialization failed, rethrow the error
+    if (this._initError) {
+      throw this._initError
+    }
+
+    // Start initialization and track the promise
+    this._initPromise = this._doInitialize(onProgress)
+
+    try {
+      await this._initPromise
+    } catch (error) {
+      // Store error for future calls
+      this._initError = error instanceof Error ? error : new Error(String(error))
+      this._initPromise = null
+      throw error
+    }
+  }
+
+  /**
+   * Wait for the provider to be ready, with optional timeout
+   *
+   * This method blocks until initialization is complete or the timeout is reached.
+   * If initialization is already complete, resolves immediately.
+   * If initialization hasn't started, this method will start it.
+   *
+   * @param timeoutMs - Maximum time to wait in milliseconds (default: 30000)
+   * @throws ProofError if timeout is reached before ready
+   * @throws ProofError if initialization fails
+   */
+  async waitUntilReady(timeoutMs: number = DEFAULT_INIT_TIMEOUT_MS): Promise<void> {
+    if (this._isReady) {
+      return
+    }
+
+    // If there was a previous error, throw it
+    if (this._initError) {
+      throw new ProofError(
+        `BrowserNoirProvider initialization failed: ${this._initError.message}`,
+        ErrorCode.PROOF_PROVIDER_NOT_READY,
+        { context: { error: this._initError } }
+      )
+    }
+
+    // Start initialization if not already started
+    const initPromise = this._initPromise ?? this.initialize()
+
+    // Race between initialization and timeout
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new ProofError(
+          `BrowserNoirProvider initialization timed out after ${timeoutMs}ms`,
+          ErrorCode.PROOF_PROVIDER_NOT_READY
+        ))
+      }, timeoutMs)
+    })
+
+    await Promise.race([initPromise, timeoutPromise])
+  }
+
+  /**
+   * Internal initialization logic
+   */
+  private async _doInitialize(onProgress?: ProofProgressCallback): Promise<void> {
     // Check mobile compatibility
     this.wasmCompatibility = checkMobileWASMCompatibility()
 
