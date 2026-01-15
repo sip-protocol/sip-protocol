@@ -48,12 +48,17 @@ import {
 } from '@sip-protocol/types'
 import { NetworkError, ErrorCode } from '../errors'
 import { warnOnce, deprecationMessage } from '../utils'
+import { ZCASH_RPC_CONFIG } from '../config/endpoints'
 
 // ─── Default Configuration ─────────────────────────────────────────────────────
 
+/**
+ * Default configuration for Zcash RPC client
+ * Host and port are configurable via ZCASH_RPC_HOST and ZCASH_RPC_PORT environment variables
+ */
 const DEFAULT_CONFIG: Required<Omit<ZcashConfig, 'username' | 'password'>> = {
-  host: '127.0.0.1',
-  port: 8232,
+  host: ZCASH_RPC_CONFIG.host,
+  port: ZCASH_RPC_CONFIG.port,
   testnet: false,
   timeout: 30000,
   retries: 3,

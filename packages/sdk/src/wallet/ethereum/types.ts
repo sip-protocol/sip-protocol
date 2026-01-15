@@ -6,6 +6,7 @@
  */
 
 import type { HexString } from '@sip-protocol/types'
+import { ETH_RPC_ENDPOINTS } from '../../config/endpoints'
 
 // ============================================================================
 // EIP-1193 Provider Types
@@ -359,6 +360,7 @@ export function getDefaultRpcEndpoint(chainId: number): string {
     case EthereumChainId.BASE:
       return 'https://mainnet.base.org'
     default:
-      return 'http://localhost:8545'
+      // Configurable via ETH_LOCALNET_RPC environment variable
+      return ETH_RPC_ENDPOINTS.localnet
   }
 }
