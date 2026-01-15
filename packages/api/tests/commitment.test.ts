@@ -70,14 +70,14 @@ describe('Commitment Endpoint', () => {
       expect(response1.body.data.commitment).toBe(response2.body.data.commitment)
     })
 
-    it('should handle zero value', async () => {
+    it('should reject zero value', async () => {
       const response = await request(app)
         .post('/api/v1/commitment/create')
         .send({ value: '0' })
-        .expect(200)
+        .expect(400)
 
-      expect(response.body.success).toBe(true)
-      expect(response.body.data.commitment).toBeDefined()
+      expect(response.body.success).toBe(false)
+      expect(response.body.error.code).toBe('VALIDATION_ERROR')
     })
 
     it('should handle large values', async () => {
