@@ -309,7 +309,7 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
    * }
    * ```
    *
-   * @todo Implement proper claimAll when we can resolve mint strings to PublicKey
+   * @todo Implement proper claimAll when we can resolve mint strings to PublicKey (see #662)
    * objects without direct @solana/web3.js dependency. Options:
    * 1. Accept a mintResolver function from user
    * 2. Store mint as PublicKey in SolanaScanResult
@@ -328,7 +328,7 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
         )
       }
 
-      // TODO: Implement when mint resolution is available
+      // TODO(#662): Implement when mint resolution is available
       return []
     },
     [payments]

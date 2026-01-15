@@ -408,7 +408,7 @@ export class CombinedPrivacyService {
         recipient: stealthAddress!,
         mint: csplMint!,
         amount: params.amount,
-        decimals: 9, // TODO: Get from token metadata
+        decimals: 9, // TODO(#645): Get from token metadata
         viewingKey: params.viewingKey,
       })
 

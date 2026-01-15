@@ -549,12 +549,12 @@ export function createMockAttestation(
  * @param attestation - The attestation to verify
  * @returns Whether the signature is valid (currently always true - STUB)
  *
- * @see https://github.com/sip-protocol/sip-protocol/issues/448 for implementation tracking
+ * @see https://github.com/sip-protocol/sip-protocol/issues/661 for implementation tracking
  */
 export async function verifyAttestationSignature(
   _attestation: RangeSASAttestation
 ): Promise<boolean> {
-  // TODO: Implement real signature verification with Range SAS
+  // TODO(#661): Implement real signature verification with Range SAS
   // This would involve:
   // 1. Fetching issuer public key from Range registry
   // 2. Reconstructing the signed message
@@ -576,13 +576,13 @@ export async function verifyAttestationSignature(
  * @param apiEndpoint - Range API endpoint
  * @returns The attestation if found (currently always null - STUB)
  *
- * @see https://github.com/sip-protocol/sip-protocol/issues/448 for implementation tracking
+ * @see https://github.com/sip-protocol/sip-protocol/issues/661 for implementation tracking
  */
 export async function fetchAttestation(
   uid: string,
   apiEndpoint: string = 'https://api.range.org/v1'
 ): Promise<RangeSASAttestation | null> {
-  // TODO: Implement real API call to Range
+  // TODO(#661): Implement real API call to Range
   console.warn(
     `[Range SAS] fetchAttestation is a STUB - returning null for ${uid}. ` +
     `Would fetch from ${apiEndpoint}. Implement Range API integration before production use.`

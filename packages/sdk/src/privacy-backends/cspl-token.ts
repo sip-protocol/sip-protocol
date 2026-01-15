@@ -492,9 +492,8 @@ export class CSPLTokenService {
     _delegate: string,
     _owner: string
   ): Promise<ApproveResult> {
-    // TODO(#536): _delegate and _owner are reserved for production implementation.
+    // Note: _delegate and _owner are reserved for production implementation.
     // They will be used in createRevokeTransaction() when C-SPL SDK is integrated.
-    // See: https://github.com/sip-protocol/sip-protocol/issues/536
 
     if (!this.initialized) {
       return {
