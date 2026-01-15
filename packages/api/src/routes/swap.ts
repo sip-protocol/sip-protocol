@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express'
-import { SIP, PrivacyLevel } from '@sip-protocol/sdk'
-import { validateRequest, schemas } from '../middleware'
+import { SIP, PrivacyLevel, getAsset, isKnownToken } from '@sip-protocol/sdk'
+import { validateRequest, schemas, calculateMinAmount, percentToBps } from '../middleware'
 import { swapStore } from '../stores'
-import { getTokenDecimals } from '../services'
 import { env } from '../config'
 import { logger } from '../logger'
 import type {
@@ -96,43 +95,45 @@ router.post(
       })
     }
 
-    // Get proper decimals from token registry (fail loudly if unknown)
-    let inputDecimals: number
-    let outputDecimals: number
-    try {
-      inputDecimals = getTokenDecimals(inputChain, inputToken)
-      outputDecimals = getTokenDecimals(outputChain, outputToken)
-    } catch (err) {
+    // Validate tokens are known (fail fast on unknown tokens)
+    if (!isKnownToken(inputToken, inputChain)) {
       return res.status(400).json({
         success: false,
         error: {
           code: 'UNKNOWN_TOKEN',
-          message: err instanceof Error ? err.message : 'Unknown token',
+          message: `Unknown input token: ${inputToken} on ${inputChain}`,
         },
-      })
+      } satisfies ApiResponse<never>)
+    }
+    if (!isKnownToken(outputToken, outputChain)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'UNKNOWN_TOKEN',
+          message: `Unknown output token: ${outputToken} on ${outputChain}`,
+        },
+      } satisfies ApiResponse<never>)
     }
 
-    // Create intent with proper decimals
+    // Get asset info with correct decimals from registry
+    const inputAsset = getAsset(inputToken, inputChain)
+    const outputAsset = getAsset(outputToken, outputChain)
+
+    // Parse and validate amount (already validated by schema, safe to parse)
+    const inputAmountBigInt = BigInt(inputAmount)
+    const slippagePercent = slippageTolerance ?? 1
+    const slippageBps = percentToBps(slippagePercent)
+
+    // Create intent with safe slippage calculation
     const intent = await sip.createIntent({
       input: {
-        asset: {
-          chain: inputChain,
-          address: null, // Native token
-          symbol: inputToken,
-          decimals: inputDecimals,
-        },
-        amount: BigInt(inputAmount),
+        asset: inputAsset,
+        amount: inputAmountBigInt,
       },
       output: {
-        asset: {
-          chain: outputChain,
-          address: null, // Native token
-          symbol: outputToken,
-          decimals: outputDecimals,
-        },
-        // Calculate minAmount based on user's slippage tolerance (defaults to 1%)
-        minAmount: BigInt(inputAmount) * BigInt(10000 - Math.floor((slippageTolerance || 1) * 100)) / 10000n,
-        maxSlippage: (slippageTolerance || 1) / 100,
+        asset: outputAsset,
+        minAmount: calculateMinAmount(inputAmountBigInt, slippageBps),
+        maxSlippage: slippagePercent / 100,
       },
       privacy: PrivacyLevel.TRANSPARENT, // Default to transparent for quote
     })

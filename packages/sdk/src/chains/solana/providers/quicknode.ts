@@ -35,15 +35,23 @@ import {
   TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
   getAccount,
+  getMint,
 } from '@solana/spl-token'
 import Client, {
   CommitmentLevel,
   type SubscribeRequest,
+  type SubscribeUpdate,
 } from '@triton-one/yellowstone-grpc'
+import type { ClientDuplexStream } from '@grpc/grpc-js'
 import { base58 } from '@scure/base'
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
 import { sanitizeUrl } from '../constants'
 import { ValidationError, ErrorCode } from '../../../errors'
+
+/**
+ * Type alias for Yellowstone gRPC subscription stream
+ */
+type GrpcSubscriptionStream = ClientDuplexStream<SubscribeRequest, SubscribeUpdate>
 
 /**
  * QuickNode provider configuration
@@ -103,8 +111,10 @@ export class QuickNodeProvider implements SolanaRPCProvider {
   private grpcEndpoint: string
   private grpcEnabled: boolean
   private grpcClient: Client | null = null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private activeStreams: Set<any> = new Set()
+/** Active gRPC subscription streams */
+  private activeStreams: Set<GrpcSubscriptionStream> = new Set()
+  /** Cache for mint decimals to avoid repeated RPC calls */
+  private mintDecimalsCache: Map<string, number> = new Map()
 
   constructor(config: QuickNodeProviderConfig) {
     if (!config.endpoint) {
@@ -208,6 +218,32 @@ export class QuickNodeProvider implements SolanaRPCProvider {
   }
 
   /**
+   * Get token decimals from mint metadata with caching
+   *
+   * @param mint - Token mint address (base58)
+   * @returns Token decimals (0-18), defaults to 9 if fetch fails
+   */
+  private async getMintDecimals(mint: string): Promise<number> {
+    // Check cache first
+    const cached = this.mintDecimalsCache.get(mint)
+    if (cached !== undefined) {
+      return cached
+    }
+
+    try {
+      const mintPubkey = new PublicKey(mint)
+      const mintInfo = await getMint(this.connection, mintPubkey)
+      const decimals = mintInfo.decimals
+      this.mintDecimalsCache.set(mint, decimals)
+      return decimals
+    } catch {
+      // Default to 9 (SOL decimals) if fetch fails
+      // This is a safe fallback since most Solana tokens use 9 decimals
+      return 9
+    }
+  }
+
+  /**
    * Initialize gRPC client lazily
    */
   private async getGrpcClient(): Promise<Client> {
@@ -268,13 +304,26 @@ export class QuickNodeProvider implements SolanaRPCProvider {
               )
 
               if (amount > 0n) {
-                callback({
-                  mint,
-                  amount,
-                  decimals: 0, // Would need metadata lookup for decimals
-                  symbol: undefined,
-                  name: undefined,
-                  logoUri: undefined,
+                // Fetch decimals asynchronously and invoke callback
+                this.getMintDecimals(mint).then((decimals) => {
+                  callback({
+                    mint,
+                    amount,
+                    decimals,
+                    symbol: undefined,
+                    name: undefined,
+                    logoUri: undefined,
+                  })
+                }).catch(() => {
+                  // Still invoke callback with default decimals on error
+                  callback({
+                    mint,
+                    amount,
+                    decimals: 9,
+                    symbol: undefined,
+                    name: undefined,
+                    logoUri: undefined,
+                  })
                 })
               }
             }

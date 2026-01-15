@@ -114,6 +114,24 @@ export class MockProofProvider implements ProofProvider {
   }
 
   /**
+   * Wait for the provider to be ready, with optional timeout
+   *
+   * For MockProofProvider, initialization is instant so this always resolves immediately.
+   *
+   * @param timeoutMs - Maximum time to wait (ignored for mock provider)
+   */
+  async waitUntilReady(timeoutMs?: number): Promise<void> {
+    // Suppress unused variable warning
+    void timeoutMs
+
+    if (this._isReady) {
+      return
+    }
+    // Initialize if not already done
+    await this.initialize()
+  }
+
+  /**
    * Generate a mock funding proof
    *
    * ⚠️ This proof provides NO cryptographic guarantees!

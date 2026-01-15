@@ -131,9 +131,12 @@ export function getTokenMint(symbol: string): string | undefined {
 }
 
 /**
- * Get token decimals from symbol
+ * Get token decimals from symbol (Solana-specific, legacy)
+ *
+ * @deprecated Use `getTokenDecimals(symbol, 'solana')` from the main SDK export
+ * which throws on unknown tokens instead of silently returning 9.
  */
-export function getTokenDecimals(symbol: string): number {
+export function getSolanaTokenDecimals(symbol: string): number {
   return SOLANA_TOKEN_DECIMALS[symbol] ?? 9 // Default to 9 (SOL decimals)
 }
 

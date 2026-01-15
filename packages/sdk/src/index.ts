@@ -97,6 +97,8 @@ export {
   nearAddressToEd25519PublicKey,
   isValidNearImplicitAddress,
   isValidNearAccountId,
+  // Parsing utilities
+  parseStealthAddress,
 } from './stealth'
 
 export type { StealthCurve } from './stealth'
@@ -292,6 +294,18 @@ export type {
   AttestationResult,
   VerificationResult,
 } from './oracle'
+
+// Token registry
+export {
+  getTokenDecimals,
+  getAsset,
+  getNativeToken,
+  getTokenByAddress,
+  isKnownToken,
+  getTokensForChain,
+} from './tokens'
+
+export type { TokenMetadata } from './tokens'
 
 // Re-export types for convenience
 export {
@@ -792,7 +806,7 @@ export {
   SIP_MEMO_PREFIX,
   getExplorerUrl as getSolanaExplorerUrl,
   getTokenMint,
-  getTokenDecimals,
+  getSolanaTokenDecimals,
   // Types helpers
   parseAnnouncement,
   createAnnouncementMemo,

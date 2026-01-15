@@ -411,7 +411,7 @@ export class MagicBlockBackend implements PrivacyBackend {
   /**
    * Estimate transfer cost in lamports
    *
-   * TODO(#536): _params is reserved for dynamic cost calculation based on
+   * Note: _params is reserved for dynamic cost calculation based on
    * amount, token type, or other factors when TEE pricing becomes variable.
    * Currently using fixed costs for simplicity.
    */

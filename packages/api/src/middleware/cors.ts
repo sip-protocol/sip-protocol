@@ -48,6 +48,17 @@ function getAllowedOrigins(): string[] {
 }
 
 /**
+ * Safely parse a URL, returning null if malformed
+ */
+function safeParseUrl(url: string): URL | null {
+  try {
+    return new URL(url)
+  } catch {
+    return null
+  }
+}
+
+/**
  * Check if origin is allowed
  *
  * Security: Handles malformed URLs gracefully (denies instead of crashing)

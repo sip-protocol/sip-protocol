@@ -1,5 +1,14 @@
 export { errorHandler, notFoundHandler } from './error-handler'
-export { validateRequest, schemas } from './validation'
+export {
+  validateRequest,
+  schemas,
+  amountSchema,
+  minAmountSchema,
+  calculateMinAmount,
+  percentToBps,
+  MAX_UINT256
+} from './validation'
 export { rateLimiter, strictRateLimiter } from './rate-limit'
 export { authenticate, isAuthEnabled, getApiKeyCount } from './auth'
 export { secureCors, getCorsConfig } from './cors'
+export { requestIdMiddleware } from './request-id'

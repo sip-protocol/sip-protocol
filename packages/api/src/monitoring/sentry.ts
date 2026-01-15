@@ -54,6 +54,12 @@ export function initSentry(): void {
         return null
       }
 
+      // Add request ID tag for correlation
+      const requestId = event.request?.headers?.['x-request-id']
+      if (requestId && typeof requestId === 'string') {
+        event.tags = { ...event.tags, requestId }
+      }
+
       // Sanitize sensitive data
       if (event.request?.headers) {
         delete event.request.headers['authorization']

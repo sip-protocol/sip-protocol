@@ -1,9 +1,24 @@
 import { Command } from 'commander'
-import { checkStealthAddress, checkEd25519StealthAddress, isEd25519Chain } from '@sip-protocol/sdk'
-import type { ChainId } from '@sip-protocol/types'
+import {
+  checkStealthAddress,
+  checkEd25519StealthAddress,
+  deriveStealthPrivateKey,
+  deriveEd25519StealthPrivateKey,
+  isEd25519Chain,
+  parseStealthAddress
+} from '@sip-protocol/sdk'
+import type { ChainId, HexString } from '@sip-protocol/types'
 import { success, heading, info, warning, table } from '../utils/output'
 import * as fs from 'fs'
 import * as path from 'path'
+
+/**
+ * Result from checking a stealth address
+ */
+interface StealthCheckResult {
+  isMine: boolean
+  stealthPrivateKey?: HexString
+}
 
 export function createScanCommand(): Command {
   return new Command('scan')
@@ -38,28 +53,52 @@ export function createScanCommand(): Command {
         // Check each address
         for (const address of options.addresses) {
           try {
-            let result: any
+            // Parse the stealth address (must include ephemeral public key)
+            const stealthAddr = parseStealthAddress(address)
+            let result: StealthCheckResult
 
             if (useEd25519) {
               // Ed25519 chains (Solana, NEAR)
-              result = checkEd25519StealthAddress(
-                address,
+              const isMine = checkEd25519StealthAddress(
+                stealthAddr,
                 options.spendingKey,
                 options.viewingKey
               )
+
+              if (isMine) {
+                const derivedKey = deriveEd25519StealthPrivateKey(
+                  stealthAddr,
+                  options.spendingKey,
+                  options.viewingKey
+                )
+                result = { isMine: true, stealthPrivateKey: derivedKey.privateKey }
+              } else {
+                result = { isMine: false }
+              }
             } else {
               // secp256k1 chains (EVM)
-              result = checkStealthAddress(
-                address,
+              const isMine = checkStealthAddress(
+                stealthAddr,
                 options.spendingKey,
                 options.viewingKey
               )
+
+              if (isMine) {
+                const derivedKey = deriveStealthPrivateKey(
+                  stealthAddr,
+                  options.spendingKey,
+                  options.viewingKey
+                )
+                result = { isMine: true, stealthPrivateKey: derivedKey.privateKey }
+              } else {
+                result = { isMine: false }
+              }
             }
 
             results.push({
               address,
               isMine: result.isMine,
-              privateKey: result.isMine ? result.stealthPrivateKey : undefined,
+              privateKey: result.stealthPrivateKey,
             })
           } catch (err) {
             results.push({

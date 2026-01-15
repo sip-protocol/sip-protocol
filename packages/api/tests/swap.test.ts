@@ -139,18 +139,21 @@ describe('Quote Endpoint', () => {
 
     it('should support cross-chain quotes with known tokens', async () => {
       // Test cross-chain swaps using tokens in our registry
-      const quotes = [
-        { inputChain: 'ethereum', inputToken: 'ETH', outputChain: 'solana', outputToken: 'SOL' },
-        { inputChain: 'solana', inputToken: 'USDC', outputChain: 'near', outputToken: 'NEAR' },
-        { inputChain: 'solana', inputToken: 'SOL', outputChain: 'ethereum', outputToken: 'USDC' },
+      const chains = [
+        { input: 'ethereum', inputToken: 'ETH', output: 'solana', outputToken: 'SOL' },
+        { input: 'solana', inputToken: 'SOL', output: 'near', outputToken: 'NEAR' },
+        { input: 'polygon', inputToken: 'MATIC', output: 'arbitrum', outputToken: 'ETH' },
       ]
 
-      for (const quote of quotes) {
+      for (const { input, inputToken, output, outputToken } of chains) {
         const response = await request(app)
           .post('/api/v1/quote')
           .send({
-            ...quote,
+            inputChain: input,
+            inputToken,
             inputAmount: '1000000000',
+            outputChain: output,
+            outputToken,
           })
           .expect(200)
 
