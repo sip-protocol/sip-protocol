@@ -48,6 +48,10 @@
     "bench:json": "vitest bench --config vitest.bench.config.ts --outputJson benchmarks/results.json",
     "example:auction": "tsx examples/auction-example.ts"
   },
+  "optionalDependencies": {
+    "socks-proxy-agent": "^8.0.0",
+    "https-proxy-agent": "^7.0.0"
+  },
   "dependencies": {
     "@aztec/bb.js": "3.0.1",
     "@ethereumjs/rlp": "^10.1.0",
@@ -73,6 +77,8 @@
   "devDependencies": {
     "@grpc/grpc-js": "^1.14.3",
     "@types/node": "^20.10.0",
+    "socks-proxy-agent": "^8.0.0",
+    "https-proxy-agent": "^7.0.0",
     "@vitest/coverage-v8": "1.6.1",
     "fast-check": "^4.5.3",
     "tsup": "^8.0.0",

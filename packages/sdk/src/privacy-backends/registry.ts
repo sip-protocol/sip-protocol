@@ -36,6 +36,7 @@ import type {
   BackendMetrics,
   CircuitBreakerConfig,
 } from './interface'
+import { warnIfDeprecatedVersion } from './interface'
 import { BackendHealthTracker } from './health'
 import { RateLimiter, type RateLimiterConfig, type RateLimitStats, type AcquireOptions } from './rate-limiter'
 
@@ -169,6 +170,9 @@ export class PrivacyBackendRegistry {
         `Use { override: true } to replace it.`
       )
     }
+
+    // Warn about deprecated interface versions
+    warnIfDeprecatedVersion(backend)
 
     this.backends.set(backend.name, {
       backend,

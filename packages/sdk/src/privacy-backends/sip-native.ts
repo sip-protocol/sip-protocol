@@ -38,7 +38,9 @@ import type {
   TransferParams,
   TransactionResult,
   AvailabilityResult,
+  PrivacyBackendVersion,
 } from './interface'
+import { CURRENT_BACKEND_VERSION } from './interface'
 
 /**
  * Supported chains for SIP Native backend
@@ -93,6 +95,7 @@ export interface SIPNativeBackendConfig {
  * with viewing key support for regulatory compliance.
  */
 export class SIPNativeBackend implements PrivacyBackend {
+  readonly version: PrivacyBackendVersion = CURRENT_BACKEND_VERSION
   readonly name = 'sip-native'
   readonly type: BackendType = 'transaction'
   readonly chains: ChainType[]

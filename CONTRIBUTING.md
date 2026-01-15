@@ -102,6 +102,32 @@ sip-protocol/
 - No semicolons (Prettier default)
 - Max line length: 100 characters
 
+### Branch Naming
+
+Use the `{type}/issue-{N}-{slug}` format:
+
+```
+feat/issue-490-privacy-advisor
+fix/issue-123-validation-bug
+docs/issue-456-update-guides
+chore/issue-789-cleanup
+```
+
+- `{type}`: feat, fix, docs, chore, refactor, test, perf
+- `{N}`: GitHub issue number
+- `{slug}`: Short descriptive slug (kebab-case)
+
+**For agent-generated branches**, follow the same convention:
+```bash
+# Good
+feat/issue-490-add-privacy-advisor-agent
+fix/issue-123-fix-commitment-validation
+
+# Avoid
+claude/some-random-task-id
+agent/task-12345
+```
+
 ### Commits
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):

@@ -91,9 +91,13 @@ export {
   createMockAttestation,
   verifyAttestationSignature,
   fetchAttestation,
+  fetchWalletAttestations,
+  KNOWN_ISSUERS,
+  DEFAULT_RANGE_API_ENDPOINT,
   type RangeSASAttestation,
   type AttestationGatedConfig,
   type ViewingKeyDerivationResult,
   type ViewingKeyScope,
   type AttestationVerificationResult,
+  type RangeAPIConfig,
 } from './range-sas'
