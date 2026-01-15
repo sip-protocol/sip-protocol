@@ -56,7 +56,7 @@ export {
   ATA_RENT_LAMPORTS,
   getExplorerUrl,
   getTokenMint,
-  getTokenDecimals,
+  getSolanaTokenDecimals,
   type SolanaCluster,
 } from './constants'
 

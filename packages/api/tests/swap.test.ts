@@ -138,21 +138,22 @@ describe('Quote Endpoint', () => {
     })
 
     it('should support cross-chain quotes', async () => {
+      // Use actual native tokens for each chain (prevents hardcoded decimals bug)
       const chains = [
-        { input: 'ethereum', output: 'solana' },
-        { input: 'solana', output: 'near' },
-        { input: 'polygon', output: 'arbitrum' },
+        { input: 'ethereum', inputToken: 'ETH', output: 'solana', outputToken: 'SOL' },
+        { input: 'solana', inputToken: 'SOL', output: 'near', outputToken: 'NEAR' },
+        { input: 'polygon', inputToken: 'MATIC', output: 'arbitrum', outputToken: 'ETH' },
       ]
 
-      for (const { input, output } of chains) {
+      for (const { input, inputToken, output, outputToken } of chains) {
         const response = await request(app)
           .post('/api/v1/quote')
           .send({
             inputChain: input,
-            inputToken: 'TOKEN',
+            inputToken,
             inputAmount: '1000000000',
             outputChain: output,
-            outputToken: 'TOKEN',
+            outputToken,
           })
           .expect(200)
 
