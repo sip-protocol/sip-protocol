@@ -67,7 +67,7 @@ export interface UseScanPaymentsReturn {
   /** Claim a specific payment */
   claim: (payment: SolanaScanResult, params: ClaimParams) => Promise<SolanaClaimResult | null>
   /** Claim all unclaimed payments */
-  claimAll: (params: ClaimAllParams) => Promise<SolanaClaimResult[]>
+  claimAll: (params: ClaimAllParams) => Promise<ClaimAllResult>
   /** Start auto-scanning */
   startAutoScan: (intervalMs?: number) => void
   /** Stop auto-scanning */
@@ -91,6 +91,12 @@ export interface ClaimParams {
 }
 
 /**
+ * Mint resolver function type
+ * Converts a mint address string to a PublicKey-like object for claiming
+ */
+export type MintResolver = (mintAddress: string) => SolanaClaimParams['mint']
+
+/**
  * Parameters for claiming all payments
  */
 export interface ClaimAllParams {
@@ -98,6 +104,33 @@ export interface ClaimAllParams {
   spendingPrivateKey: HexString
   /** Destination address to send claimed funds (base58) */
   destinationAddress: string
+  /**
+   * Function to convert mint address string to PublicKey object
+   *
+   * @example
+   * ```typescript
+   * import { PublicKey } from '@solana/web3.js'
+   *
+   * const mintResolver = (mint: string) => new PublicKey(mint)
+   * await claimAll({ spendingPrivateKey, destinationAddress, mintResolver })
+   * ```
+   */
+  mintResolver: MintResolver
+}
+
+/**
+ * Result from claimAll operation
+ */
+export interface ClaimAllResult {
+  /** Successful claim results */
+  succeeded: SolanaClaimResult[]
+  /** Failed claims with error info */
+  failed: Array<{
+    payment: PaymentWithStatus
+    error: Error
+  }>
+  /** Total number of unclaimed payments attempted */
+  totalAttempted: number
 }
 
 /**
@@ -292,45 +325,92 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
    * Claim all unclaimed payments
    *
    * @remarks
-   * This is a convenience method that iterates through unclaimed payments.
-   * However, it requires mint PublicKey objects which cannot be constructed
-   * from string addresses without @solana/web3.js dependency.
+   * Iterates through all unclaimed payments and attempts to claim each one.
+   * Uses the provided mintResolver to convert mint address strings to PublicKey objects.
+   * Handles partial failures gracefully - continues with remaining payments if one fails.
    *
-   * For now, use `claim()` directly for each payment with the mint PublicKey:
+   * @example
    * ```typescript
    * import { PublicKey } from '@solana/web3.js'
    *
-   * for (const payment of payments.filter(p => !p.claimed)) {
-   *   await claim(payment, {
-   *     spendingPrivateKey: '0x...',
-   *     destinationAddress: 'myWallet...',
-   *     mint: new PublicKey(payment.mint),
-   *   })
+   * const { claimAll } = useScanPayments({ ... })
+   *
+   * const result = await claimAll({
+   *   spendingPrivateKey: '0x...',
+   *   destinationAddress: 'myWallet...',
+   *   mintResolver: (mint) => new PublicKey(mint),
+   * })
+   *
+   * console.log(`Claimed ${result.succeeded.length} of ${result.totalAttempted}`)
+   * if (result.failed.length > 0) {
+   *   console.error('Failed claims:', result.failed)
    * }
    * ```
-   *
-   * @todo Implement proper claimAll when we can resolve mint strings to PublicKey (see #662)
-   * objects without direct @solana/web3.js dependency. Options:
-   * 1. Accept a mintResolver function from user
-   * 2. Store mint as PublicKey in SolanaScanResult
-   * 3. Add PublicKey-like interface to SDK types
    */
   const claimAll = useCallback(
-    async (_claimAllParams: ClaimAllParams): Promise<SolanaClaimResult[]> => {
+    async (claimAllParams: ClaimAllParams): Promise<ClaimAllResult> => {
+      const { spendingPrivateKey, destinationAddress, mintResolver } = claimAllParams
       const unclaimed = payments.filter((p) => !p.claimed)
 
-      if (unclaimed.length > 0) {
-        console.warn(
-          `[useScanPayments] claimAll() is not yet implemented. ` +
-          `Found ${unclaimed.length} unclaimed payment(s). ` +
-          `Use claim() directly with mint PublicKey for each payment.`
-        )
+      if (unclaimed.length === 0) {
+        return { succeeded: [], failed: [], totalAttempted: 0 }
       }
 
-      // TODO(#662): Implement when mint resolution is available
-      return []
+      setStatus('claiming')
+      setError(null)
+
+      const succeeded: SolanaClaimResult[] = []
+      const failed: Array<{ payment: PaymentWithStatus; error: Error }> = []
+
+      // Process claims sequentially to avoid overwhelming the RPC
+      for (const payment of unclaimed) {
+        try {
+          const mint = mintResolver(payment.mint)
+          const result = await claimStealthPayment({
+            connection,
+            stealthAddress: payment.stealthAddress,
+            ephemeralPublicKey: payment.ephemeralPublicKey,
+            viewingPrivateKey,
+            spendingPrivateKey,
+            destinationAddress,
+            mint,
+          })
+
+          // Update payment status immediately
+          setPayments((prev) =>
+            prev.map((p) =>
+              p.txSignature === payment.txSignature
+                ? { ...p, claimed: true, claimResult: result }
+                : p
+            )
+          )
+
+          succeeded.push(result)
+        } catch (err) {
+          const error = err instanceof Error ? err : new Error('Claim failed')
+          failed.push({ payment, error })
+        }
+      }
+
+      // Set final status based on results
+      if (failed.length > 0 && succeeded.length === 0) {
+        setStatus('error')
+        setError(failed[0].error)
+      } else if (failed.length > 0) {
+        // Partial success - still set success but keep error for reference
+        setStatus('success')
+        setError(new Error(`${failed.length} of ${unclaimed.length} claims failed`))
+      } else {
+        setStatus('success')
+      }
+
+      return {
+        succeeded,
+        failed,
+        totalAttempted: unclaimed.length,
+      }
     },
-    [payments]
+    [payments, connection, viewingPrivateKey]
   )
 
   /**
