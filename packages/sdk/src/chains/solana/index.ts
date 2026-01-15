@@ -113,3 +113,24 @@ export {
   type WebhookRequest,
   type WebhookHandler,
 } from './providers'
+
+// Helius Enhanced Transactions (Human-readable TX data)
+export {
+  HeliusEnhanced,
+  createHeliusEnhanced,
+  type HeliusEnhancedConfig,
+  type EnhancedTransactionType,
+  type NativeTransfer,
+  type TokenTransfer,
+  type NftTransfer,
+  type SwapEvent,
+  type EnhancedTransactionEvents,
+  type EnhancedAccountData,
+  type EnhancedTransaction,
+  type ParseTransactionsOptions,
+  type GetTransactionHistoryOptions,
+  type PrivacyDisplayOptions,
+  type SIPTransactionMetadata,
+  type SIPEnhancedTransaction,
+  type TransactionSummary,
+} from './providers'

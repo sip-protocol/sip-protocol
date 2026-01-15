@@ -58,3 +58,28 @@ export {
   type WebhookRequest,
   type WebhookHandler,
 } from './webhook'
+
+// Enhanced Transactions API for human-readable tx data
+export {
+  HeliusEnhanced,
+  createHeliusEnhanced,
+  type HeliusEnhancedConfig,
+} from './helius-enhanced'
+
+// Enhanced Transactions types
+export type {
+  EnhancedTransactionType,
+  NativeTransfer,
+  TokenTransfer,
+  NftTransfer,
+  SwapEvent,
+  EnhancedTransactionEvents,
+  EnhancedAccountData,
+  EnhancedTransaction,
+  ParseTransactionsOptions,
+  GetTransactionHistoryOptions,
+  PrivacyDisplayOptions,
+  SIPTransactionMetadata,
+  SIPEnhancedTransaction,
+  TransactionSummary,
+} from './helius-enhanced-types'

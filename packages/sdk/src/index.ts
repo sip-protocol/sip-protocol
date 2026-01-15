@@ -823,6 +823,9 @@ export {
   processWebhookTransaction,
   verifyWebhookSignature,
   verifyAuthToken,
+  // Helius Enhanced Transactions (Human-readable TX data)
+  HeliusEnhanced,
+  createHeliusEnhanced,
 } from './chains/solana'
 
 // Solana Noir Verification (Aztec/Noir bounty)
@@ -903,6 +906,22 @@ export type {
   WebhookProcessResult,
   WebhookRequest,
   WebhookHandler,
+  // Helius Enhanced Transactions types
+  HeliusEnhancedConfig,
+  EnhancedTransactionType,
+  NativeTransfer,
+  TokenTransfer,
+  NftTransfer,
+  SwapEvent,
+  EnhancedTransactionEvents,
+  EnhancedAccountData,
+  EnhancedTransaction,
+  ParseTransactionsOptions,
+  GetTransactionHistoryOptions,
+  PrivacyDisplayOptions,
+  SIPTransactionMetadata,
+  SIPEnhancedTransaction,
+  TransactionSummary,
 } from './chains/solana'
 
 // Same-Chain Executors
