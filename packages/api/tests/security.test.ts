@@ -52,6 +52,28 @@ describe('CORS Middleware', () => {
       expect(response.headers['access-control-allow-origin']).toBeUndefined()
     })
 
+    it('should reject malformed origins gracefully (not crash)', async () => {
+      // Test various malformed URLs that could crash URL parser
+      const malformedOrigins = [
+        'not-a-url',
+        'ftp://',
+        '://invalid',
+        'http://[::1',  // Malformed IPv6
+        'javascript:alert(1)',
+      ]
+
+      for (const origin of malformedOrigins) {
+        const response = await request(app)
+          .get('/api/v1/health')
+          .set('Origin', origin)
+
+        // Should not crash, should return 200 (CORS just blocks the origin)
+        expect(response.status).toBe(200)
+        // Malformed origin should not be allowed
+        expect(response.headers['access-control-allow-origin']).toBeUndefined()
+      }
+    })
+
     it('should allow requests without origin header', async () => {
       const response = await request(app)
         .get('/api/v1/health')

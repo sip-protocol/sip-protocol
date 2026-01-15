@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { MockProofProvider } from '@sip-protocol/sdk'
 import { hexToBytes } from '@noble/hashes/utils'
 import { validateRequest, schemas } from '../middleware'
+import { logger } from '../logger'
 import type { GenerateFundingProofRequest, FundingProofResponse, ApiResponse } from '../types/api'
 
 const router: Router = Router()
@@ -10,8 +11,57 @@ const router: Router = Router()
 // In production, use NoirProofProvider from '@sip-protocol/sdk/proofs/noir'
 const proofProvider = new MockProofProvider()
 
-// Initialize the provider (fire-and-forget, provider handles internal state)
-proofProvider.initialize().catch(console.error)
+/**
+ * Proof provider initialization state
+ * Implements fail-fast pattern with retry for transient failures
+ */
+let proofProviderReady = false
+let proofInitError: Error | null = null
+
+const MAX_INIT_RETRIES = 3
+const RETRY_DELAY_MS = 2000
+
+async function initializeProofProvider(): Promise<void> {
+  for (let attempt = 1; attempt <= MAX_INIT_RETRIES; attempt++) {
+    try {
+      await proofProvider.initialize()
+      proofProviderReady = true
+      proofInitError = null
+      logger.info({ attempt }, 'Proof provider initialized successfully')
+      return
+    } catch (err) {
+      proofInitError = err instanceof Error ? err : new Error(String(err))
+      logger.warn({ attempt, maxRetries: MAX_INIT_RETRIES, error: proofInitError.message },
+        'Proof provider initialization failed, retrying...')
+
+      if (attempt < MAX_INIT_RETRIES) {
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * attempt))
+      }
+    }
+  }
+
+  // All retries exhausted - log fatal but don't crash (graceful degradation)
+  // The readiness guard will reject proof requests until fixed
+  logger.error({ error: proofInitError?.message },
+    'Proof provider initialization failed after all retries')
+}
+
+// Start initialization immediately (non-blocking)
+initializeProofProvider()
+
+/**
+ * Check if proof provider is ready
+ */
+export function isProofProviderReady(): boolean {
+  return proofProviderReady
+}
+
+/**
+ * Get proof provider initialization error (if any)
+ */
+export function getProofInitError(): Error | null {
+  return proofInitError
+}
 
 /**
  * POST /proof/funding
@@ -55,6 +105,20 @@ router.post(
   '/funding',
   validateRequest({ body: schemas.generateFundingProof }),
   async (req: Request, res: Response) => {
+    // Readiness guard - reject requests if proof provider not initialized
+    if (!proofProviderReady) {
+      const errorMsg = proofInitError?.message || 'Proof provider is initializing'
+      logger.warn({ error: errorMsg }, 'Proof request rejected - provider not ready')
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'PROOF_PROVIDER_NOT_READY',
+          message: 'Proof generation service is not ready',
+          details: { reason: errorMsg },
+        },
+      })
+    }
+
     const { balance, minRequired, balanceBlinding } = req.body as GenerateFundingProofRequest
 
     const balanceBigInt = BigInt(balance)
