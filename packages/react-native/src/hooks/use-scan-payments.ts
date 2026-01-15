@@ -34,7 +34,27 @@
  */
 
 import { useState, useCallback, useRef } from 'react'
-import type { Connection } from '@solana/web3.js'
+
+/**
+ * Solana connection interface (subset of @solana/web3.js Connection)
+ */
+export interface SolanaConnection {
+  getAccountInfo(publicKey: unknown): Promise<unknown>
+  getSignaturesForAddress(address: unknown, options?: unknown): Promise<unknown[]>
+  getTransaction(signature: string, options?: unknown): Promise<unknown>
+}
+
+/**
+ * Scanned payment result from SDK
+ */
+interface SDKPaymentResult {
+  signature: string
+  stealthAddress: string
+  ephemeralPublicKey: string
+  mint: string
+  amount: bigint
+  timestamp?: number
+}
 
 /**
  * Scanned payment info
@@ -66,7 +86,7 @@ export type ScanStatus = 'idle' | 'scanning' | 'claiming' | 'error'
  */
 export interface UseScanPaymentsParams {
   /** Solana connection */
-  connection: Connection
+  connection: SolanaConnection
   /** RPC provider (Helius recommended) */
   provider?: unknown
 }
@@ -113,18 +133,30 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
         setStatus('scanning')
         setError(null)
 
-        // Dynamic import
-        const { scanForPayments } = await import('@sip-protocol/sdk')
+        // Dynamic import with runtime check
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sdk: any = await import('@sip-protocol/sdk')
+
+        if (!sdk.scanForPayments) {
+          throw new Error(
+            'scanForPayments not available. Install @sip-protocol/sdk with Solana support.'
+          )
+        }
+
+        const scanForPayments = sdk.scanForPayments as (params: {
+          connection: unknown
+          viewingPrivateKey: string
+          spendingPublicKey: string
+        }) => Promise<SDKPaymentResult[]>
 
         const result = await scanForPayments({
           connection,
           viewingPrivateKey,
           spendingPublicKey,
-          // provider, // Could use Helius provider for efficiency
         })
 
         // Map to our payment type
-        const scannedPayments: ScannedPayment[] = result.map((p) => ({
+        const scannedPayments: ScannedPayment[] = result.map((p: SDKPaymentResult) => ({
           signature: p.signature,
           stealthAddress: p.stealthAddress,
           ephemeralPublicKey: p.ephemeralPublicKey,
@@ -168,8 +200,25 @@ export function useScanPayments(params: UseScanPaymentsParams): UseScanPaymentsR
           throw new Error('Payment not found')
         }
 
-        const { claimStealthPayment } = await import('@sip-protocol/sdk')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sdk: any = await import('@sip-protocol/sdk')
         const { PublicKey } = await import('@solana/web3.js')
+
+        if (!sdk.claimStealthPayment) {
+          throw new Error(
+            'claimStealthPayment not available. Install @sip-protocol/sdk with Solana support.'
+          )
+        }
+
+        const claimStealthPayment = sdk.claimStealthPayment as (params: {
+          connection: unknown
+          stealthAddress: string
+          ephemeralPublicKey: string
+          viewingPrivateKey: string
+          spendingPrivateKey: string
+          destinationAddress: unknown
+          mint: unknown
+        }) => Promise<{ signature: string }>
 
         const result = await claimStealthPayment({
           connection,

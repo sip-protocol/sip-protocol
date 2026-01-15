@@ -33,17 +33,51 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import {
-  generateStealthMetaAddress,
-  generateStealthAddress,
-  generateEd25519StealthMetaAddress,
-  generateEd25519StealthAddress,
-  encodeStealthMetaAddress,
-  isEd25519Chain,
-} from '@sip-protocol/sdk'
-import type { ChainId } from '@sip-protocol/types'
 import { copyToClipboard as nativeCopyToClipboard } from '../utils/clipboard'
 import { SecureStorage } from '../storage/secure-storage'
+
+/**
+ * Supported chain IDs (matches @sip-protocol/types ChainId)
+ */
+export type SupportedChainId =
+  | 'ethereum'
+  | 'solana'
+  | 'near'
+  | 'bitcoin'
+  | 'polygon'
+  | 'arbitrum'
+  | 'optimism'
+  | 'base'
+  | 'bsc'
+  | 'avalanche'
+  | 'cosmos'
+  | 'aptos'
+  | 'sui'
+  | 'polkadot'
+  | 'tezos'
+
+/**
+ * Stealth meta-address structure from SDK
+ */
+interface StealthMetaAddressResult {
+  metaAddress: {
+    chain: string
+    spendingKey: string
+    viewingKey: string
+  }
+  spendingPrivateKey: string
+  viewingPrivateKey: string
+}
+
+/**
+ * Stealth address generation result from SDK
+ */
+interface StealthAddressResult {
+  stealthAddress: {
+    address: string
+  }
+  ephemeralPublicKey: string
+}
 
 /**
  * Options for useStealthAddress hook
@@ -92,7 +126,7 @@ export interface UseStealthAddressReturn {
  * @param options - Hook options
  */
 export function useStealthAddress(
-  chain: ChainId,
+  chain: SupportedChainId,
   options: UseStealthAddressOptions = {}
 ): UseStealthAddressReturn {
   const { autoSave = false, requireBiometrics = false, walletId = 'default' } = options
@@ -112,14 +146,22 @@ export function useStealthAddress(
       setIsGenerating(true)
 
       try {
-        const isEd25519 = isEd25519Chain(chain)
+        // Dynamic import SDK functions
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sdk: any = await import('@sip-protocol/sdk')
 
-        // Generate meta-address with keys
-        const metaAddressData = isEd25519
-          ? generateEd25519StealthMetaAddress(chain)
-          : generateStealthMetaAddress(chain)
+        // Generate meta-address with keys (handles Ed25519 vs secp256k1 internally)
+        const generateStealthMetaAddress = sdk.generateStealthMetaAddress as (
+          chain: string
+        ) => StealthMetaAddressResult
+
+        const metaAddressData = generateStealthMetaAddress(chain)
 
         if (cancelled) return
+
+        const encodeStealthMetaAddress = sdk.encodeStealthMetaAddress as (
+          metaAddress: { chain: string; spendingKey: string; viewingKey: string }
+        ) => string
 
         const encoded = encodeStealthMetaAddress(metaAddressData.metaAddress)
         setMetaAddress(encoded)
@@ -127,9 +169,11 @@ export function useStealthAddress(
         setViewingPrivateKey(metaAddressData.viewingPrivateKey)
 
         // Generate initial stealth address
-        const stealthData = isEd25519
-          ? generateEd25519StealthAddress(metaAddressData.metaAddress)
-          : generateStealthAddress(metaAddressData.metaAddress)
+        const generateStealthAddress = sdk.generateStealthAddress as (
+          metaAddress: { chain: string; spendingKey: string; viewingKey: string }
+        ) => StealthAddressResult
+
+        const stealthData = generateStealthAddress(metaAddressData.metaAddress)
 
         if (cancelled) return
         setStealthAddress(stealthData.stealthAddress.address)
@@ -174,7 +218,7 @@ export function useStealthAddress(
     setIsGenerating(true)
 
     // Use setTimeout to avoid blocking UI
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
         const parts = metaAddress.split(':')
         if (parts.length < 4) {
@@ -183,15 +227,19 @@ export function useStealthAddress(
 
         const [, chainId, spendingKey, viewingKey] = parts
         const metaAddressObj = {
-          chain: chainId as ChainId,
-          spendingKey: (spendingKey.startsWith('0x') ? spendingKey : `0x${spendingKey}`) as `0x${string}`,
-          viewingKey: (viewingKey.startsWith('0x') ? viewingKey : `0x${viewingKey}`) as `0x${string}`,
+          chain: chainId,
+          spendingKey: spendingKey.startsWith('0x') ? spendingKey : `0x${spendingKey}`,
+          viewingKey: viewingKey.startsWith('0x') ? viewingKey : `0x${viewingKey}`,
         }
 
-        const isEd25519 = isEd25519Chain(chain)
-        const stealthData = isEd25519
-          ? generateEd25519StealthAddress(metaAddressObj)
-          : generateStealthAddress(metaAddressObj)
+        // Dynamic import SDK
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sdk: any = await import('@sip-protocol/sdk')
+        const generateStealthAddress = sdk.generateStealthAddress as (
+          metaAddress: { chain: string; spendingKey: string; viewingKey: string }
+        ) => StealthAddressResult
+
+        const stealthData = generateStealthAddress(metaAddressObj)
 
         setStealthAddress(stealthData.stealthAddress.address)
         setError(null)
@@ -202,7 +250,7 @@ export function useStealthAddress(
         setIsGenerating(false)
       }
     }, 0)
-  }, [metaAddress, chain])
+  }, [metaAddress])
 
   // Copy to clipboard (native)
   const copyToClipboard = useCallback(async (): Promise<boolean> => {

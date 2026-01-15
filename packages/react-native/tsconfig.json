@@ -5,7 +5,8 @@
     "rootDir": "./src",
     "jsx": "react-native",
     "types": ["react-native", "node"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "incremental": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "tests"]

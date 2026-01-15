@@ -34,16 +34,14 @@
  */
 
 import { useState, useCallback } from 'react'
-import type { Connection, PublicKey } from '@solana/web3.js'
-import type { VersionedTransaction } from '@solana/web3.js'
 
 /**
  * Wallet adapter interface for mobile wallets
  */
 export interface MobileWalletAdapter {
-  publicKey: PublicKey | null
-  signTransaction: <T extends VersionedTransaction>(transaction: T) => Promise<T>
-  signAllTransactions?: <T extends VersionedTransaction>(transactions: T[]) => Promise<T[]>
+  publicKey: { toBase58(): string } | null
+  signTransaction: <T>(transaction: T) => Promise<T>
+  signAllTransactions?: <T>(transactions: T[]) => Promise<T[]>
 }
 
 /**
@@ -81,35 +79,49 @@ export interface TransferResult {
 }
 
 /**
- * Hook parameters
+ * Connection interface (subset of @solana/web3.js Connection)
+ */
+export interface SolanaConnection {
+  confirmTransaction(
+    signature: string,
+    commitment?: string
+  ): Promise<{ value: { err: unknown } }>
+}
+
+/**
+ * Parameters for useStealthTransfer hook
  */
 export interface UseStealthTransferParams {
   /** Solana connection */
-  connection: Connection
-  /** Mobile wallet adapter */
+  connection: SolanaConnection
+  /** Wallet adapter */
   wallet: MobileWalletAdapter
 }
 
 /**
- * Hook return type
+ * Return type for useStealthTransfer hook
  */
 export interface UseStealthTransferReturn {
-  /** Execute a stealth transfer */
+  /** Execute a private transfer */
   transfer: (params: TransferParams) => Promise<TransferResult>
   /** Current transfer status */
   status: TransferStatus
-  /** Error if any */
+  /** Error if any occurred */
   error: Error | null
   /** Whether a transfer is in progress */
   isLoading: boolean
-  /** Reset state */
+  /** Reset the hook state */
   reset: () => void
 }
 
 /**
- * Mobile stealth transfer hook
+ * Mobile-optimized stealth transfer hook
+ *
+ * @param params - Hook parameters
  */
-export function useStealthTransfer(params: UseStealthTransferParams): UseStealthTransferReturn {
+export function useStealthTransfer(
+  params: UseStealthTransferParams
+): UseStealthTransferReturn {
   const { connection, wallet } = params
 
   const [status, setStatus] = useState<TransferStatus>('idle')
@@ -131,15 +143,36 @@ export function useStealthTransfer(params: UseStealthTransferParams): UseStealth
         setStatus('preparing')
         setError(null)
 
-        // Dynamic import to avoid bundling issues
-        const { sendPrivateSPLTransfer, getAssociatedTokenAddress } = await import('@sip-protocol/sdk')
-        const { PublicKey: SolanaPublicKey } = await import('@solana/web3.js')
+        // Dynamic import SDK functions to avoid bundling issues
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sdk: any = await import('@sip-protocol/sdk')
+
+        // Check if sendPrivateSPLTransfer is available
+        if (!sdk.sendPrivateSPLTransfer) {
+          throw new Error(
+            'sendPrivateSPLTransfer not available. Install @sip-protocol/sdk with Solana support.'
+          )
+        }
+
+        const sendPrivateSPLTransfer = sdk.sendPrivateSPLTransfer as (params: {
+          connection: unknown
+          sender: unknown
+          senderTokenAccount: unknown
+          recipientMetaAddress: string
+          mint: unknown
+          amount: bigint
+          signTransaction: unknown
+        }) => Promise<{ signature: string; stealthAddress: string }>
+
+        // Dynamic import Solana libraries
+        const { PublicKey } = await import('@solana/web3.js')
+        const { getAssociatedTokenAddress } = await import('@solana/spl-token')
 
         // Get sender's token account
-        const mintPubkey = new SolanaPublicKey(mint)
+        const mintPubkey = new PublicKey(mint)
         const senderTokenAccount = await getAssociatedTokenAddress(
           mintPubkey,
-          wallet.publicKey
+          new PublicKey(wallet.publicKey.toBase58())
         )
 
         setStatus('signing')
@@ -147,7 +180,7 @@ export function useStealthTransfer(params: UseStealthTransferParams): UseStealth
         // Execute private transfer
         const result = await sendPrivateSPLTransfer({
           connection,
-          sender: wallet.publicKey,
+          sender: new PublicKey(wallet.publicKey.toBase58()),
           senderTokenAccount,
           recipientMetaAddress,
           mint: mintPubkey,
@@ -201,12 +234,19 @@ export function useStealthTransfer(params: UseStealthTransferParams): UseStealth
 
 /**
  * Get associated token address helper
- * Re-exported for convenience
+ *
+ * Dynamically imports from @solana/spl-token
+ *
+ * @param mint - Token mint address string
+ * @param owner - Owner address string
+ * @returns Associated token address
  */
 export async function getAssociatedTokenAddress(
-  mint: PublicKey,
-  owner: PublicKey
-): Promise<PublicKey> {
-  const { getAssociatedTokenAddress: getATA } = await import('@sip-protocol/sdk')
-  return getATA(mint, owner)
+  mint: string,
+  owner: string
+): Promise<string> {
+  const { PublicKey } = await import('@solana/web3.js')
+  const { getAssociatedTokenAddress: getATA } = await import('@solana/spl-token')
+  const ata = await getATA(new PublicKey(mint), new PublicKey(owner))
+  return ata.toBase58()
 }

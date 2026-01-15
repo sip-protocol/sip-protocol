@@ -40,7 +40,9 @@
   },
   "peerDependencies": {
     "react": "^18.0.0",
-    "react-native": ">=0.71.0"
+    "react-native": ">=0.71.0",
+    "@solana/web3.js": "^1.87.0",
+    "@solana/spl-token": "^0.4.0"
   },
   "peerDependenciesMeta": {
     "react-native-keychain": {
@@ -48,9 +50,17 @@
     },
     "@react-native-clipboard/clipboard": {
       "optional": true
+    },
+    "@solana/web3.js": {
+      "optional": true
+    },
+    "@solana/spl-token": {
+      "optional": true
     }
   },
   "devDependencies": {
+    "@solana/spl-token": "^0.4.0",
+    "@solana/web3.js": "^1.87.0",
     "@testing-library/react-native": "^12.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",

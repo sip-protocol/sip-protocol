@@ -59,11 +59,52 @@ type KeyType = keyof typeof KEY_PREFIXES
 const memoryStorage = new Map<string, string>()
 
 /**
+ * Keychain module interface (subset of react-native-keychain)
+ * Defined locally to avoid requiring type declarations at build time
+ */
+interface KeychainModule {
+  ACCESSIBLE: {
+    WHEN_UNLOCKED: number
+    AFTER_FIRST_UNLOCK: number
+    ALWAYS: number
+    WHEN_UNLOCKED_THIS_DEVICE_ONLY: number
+  }
+  ACCESS_CONTROL: {
+    BIOMETRY_CURRENT_SET: number
+  }
+  AUTHENTICATION_TYPE: {
+    BIOMETRICS: number
+  }
+  setGenericPassword(
+    username: string,
+    password: string,
+    options?: {
+      service?: string
+      accessible?: number
+      accessControl?: number
+      authenticationType?: number
+    }
+  ): Promise<boolean | { service: string; storage: string }>
+  getGenericPassword(options?: {
+    service?: string
+    authenticationPrompt?: {
+      title: string
+      subtitle?: string
+      description?: string
+      cancel?: string
+    }
+  }): Promise<false | { username: string; password: string; service: string; storage: string }>
+  resetGenericPassword(options?: { service?: string }): Promise<boolean>
+  getSupportedBiometryType(): Promise<string | null>
+}
+
+/**
  * Check if react-native-keychain is available
  */
-let Keychain: typeof import('react-native-keychain') | null = null
+let Keychain: KeychainModule | null = null
 try {
-  Keychain = require('react-native-keychain')
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  Keychain = require('react-native-keychain') as KeychainModule
 } catch {
   // Keychain not available, will use memory fallback
 }
@@ -117,7 +158,12 @@ async function setKey(
   const service = options?.service ?? DEFAULT_SERVICE
 
   // Build keychain options
-  const keychainOptions: Parameters<typeof Keychain.setGenericPassword>[3] = {
+  const keychainOptions: {
+    service?: string
+    accessible?: number
+    accessControl?: number
+    authenticationType?: number
+  } = {
     service,
     accessible: mapAccessible(options?.accessible),
   }
@@ -167,7 +213,15 @@ async function getKey(
 
   const service = options?.service ?? DEFAULT_SERVICE
 
-  const keychainOptions: Parameters<typeof Keychain.getGenericPassword>[0] = {
+  const keychainOptions: {
+    service?: string
+    authenticationPrompt?: {
+      title: string
+      subtitle?: string
+      description?: string
+      cancel?: string
+    }
+  } = {
     service,
   }
 
@@ -250,8 +304,8 @@ async function clearAll(options?: SecureStorageOptions): Promise<boolean> {
  */
 function mapAccessible(
   level?: 'whenUnlocked' | 'afterFirstUnlock' | 'always'
-): typeof Keychain extends null ? undefined : number {
-  if (!Keychain) return undefined as never
+): number | undefined {
+  if (!Keychain) return undefined
 
   switch (level) {
     case 'whenUnlocked':
