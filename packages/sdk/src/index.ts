@@ -1012,6 +1012,23 @@ export type {
   SensitiveData,
 } from './privacy-logger'
 
+// Structured Logging (pino-based)
+export {
+  logger,
+  createLogger,
+  configureLogger,
+  silenceLogger,
+  setLogLevel,
+  getLogLevelName,
+  isLevelEnabled,
+} from './logger'
+
+export type {
+  SIPLogLevel,
+  SIPLoggerConfig,
+  PinoLogger,
+} from './logger'
+
 // Production Safety Checks
 export {
   // Environment detection

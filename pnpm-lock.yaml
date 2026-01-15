@@ -295,6 +295,9 @@ importers:
       langchain:
         specifier: ^0.3.0
         version: 0.3.37(@langchain/core@0.3.80)(ws@7.5.10)
+      pino:
+        specifier: ^10.1.1
+        version: 10.1.1
       zod:
         specifier: ^3.24.1
         version: 3.25.76

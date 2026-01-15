@@ -19,6 +19,9 @@ import type {
 } from './interface'
 import type { SettlementRegistry } from './registry'
 import { ValidationError, NetworkError, ErrorCode } from '../errors'
+import { createLogger } from '../logger'
+
+const log = createLogger('settlement/router')
 
 // ─── Quote Cache ──────────────────────────────────────────────────────────────
 
@@ -255,7 +258,7 @@ export interface SmartRouterOptions {
   circuitBreakerThreshold?: number
   /** Circuit breaker reset time in milliseconds (default: 30000) */
   circuitBreakerResetMs?: number
-  /** Log backend failures (default: console.warn, set to null to disable) */
+  /** Log backend failures (default: uses structured logger, set to null to disable) */
   onBackendFailure?: ((backend: string, error: string) => void) | null
 }
 
@@ -321,7 +324,7 @@ export class SmartRouter {
     this.onBackendFailure = options?.onBackendFailure === null
       ? null
       : options?.onBackendFailure ?? ((backend, error) => {
-          console.warn(`[SmartRouter] Backend ${backend} failed: ${error}`)
+          log.warn({ backend, error }, 'Backend failed')
         })
   }
 

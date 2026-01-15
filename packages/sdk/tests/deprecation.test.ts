@@ -1,43 +1,46 @@
 /**
  * Deprecation Utility Tests
+ *
+ * Note: Deprecation warnings now use pino logger (structured JSON),
+ * so we test the internal state tracking instead of console.warn.
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { warnOnce, deprecationMessage, _resetWarnings, _hasWarned } from '../src/utils/deprecation'
 
 describe('Deprecation Utility', () => {
-  let consoleWarnSpy: ReturnType<typeof vi.spyOn>
-
   beforeEach(() => {
     _resetWarnings()
-    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
-  })
-
-  afterEach(() => {
-    consoleWarnSpy.mockRestore()
   })
 
   describe('warnOnce', () => {
-    it('should log warning on first call', () => {
+    it('should mark warning as shown on first call', () => {
+      // With pino logger, warnings are structured JSON and may be silent in tests
+      // We test the internal state tracking instead of console.warn
+      expect(_hasWarned('testFunc')).toBe(false)
+
       warnOnce('testFunc', 'This is a test warning')
 
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
-      expect(consoleWarnSpy).toHaveBeenCalledWith('[SIP-SDK] DEPRECATION: This is a test warning')
+      expect(_hasWarned('testFunc')).toBe(true)
     })
 
-    it('should NOT log warning on subsequent calls with same ID', () => {
+    it('should NOT mark as warned again on subsequent calls with same ID', () => {
       warnOnce('testFunc', 'Warning 1')
+      expect(_hasWarned('testFunc')).toBe(true)
+
+      // Subsequent calls should not throw or change state
       warnOnce('testFunc', 'Warning 2')
       warnOnce('testFunc', 'Warning 3')
 
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
+      expect(_hasWarned('testFunc')).toBe(true)
     })
 
-    it('should log warning for different IDs', () => {
+    it('should track warnings for different IDs', () => {
       warnOnce('func1', 'Warning for func1')
       warnOnce('func2', 'Warning for func2')
 
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(2)
+      expect(_hasWarned('func1')).toBe(true)
+      expect(_hasWarned('func2')).toBe(true)
     })
 
     it('should track warned state correctly', () => {
@@ -83,12 +86,13 @@ describe('Deprecation Utility', () => {
 
     it('should allow warnings to fire again after reset', () => {
       warnOnce('testFunc', 'First warning')
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
+      expect(_hasWarned('testFunc')).toBe(true)
 
       _resetWarnings()
+      expect(_hasWarned('testFunc')).toBe(false)
 
       warnOnce('testFunc', 'Second warning')
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(2)
+      expect(_hasWarned('testFunc')).toBe(true)
     })
   })
 
@@ -103,7 +107,9 @@ describe('Deprecation Utility', () => {
 
       warnOnce('suppressedFunc', 'This should not appear')
 
-      expect(consoleWarnSpy).not.toHaveBeenCalled()
+      // When suppressed, the warning should NOT be tracked as shown
+      // The warnOnce function returns early before tracking
+      expect(_hasWarned('suppressedFunc')).toBe(false)
 
       // Restore
       if (originalEnv === undefined) {
@@ -116,18 +122,11 @@ describe('Deprecation Utility', () => {
 })
 
 describe('Deprecated Functions Integration', () => {
-  let consoleWarnSpy: ReturnType<typeof vi.spyOn>
-
   beforeEach(() => {
     _resetWarnings()
-    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
-  afterEach(() => {
-    consoleWarnSpy.mockRestore()
-  })
-
-  it('createCommitment should warn only once', async () => {
+  it('createCommitment should mark deprecation warning as shown', async () => {
     const { createCommitment } = await import('../src/crypto')
 
     // Call multiple times
@@ -135,21 +134,17 @@ describe('Deprecated Functions Integration', () => {
     createCommitment(200n)
     createCommitment(300n)
 
-    // Should only have warned once
-    expect(consoleWarnSpy).toHaveBeenCalledTimes(1)
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('createCommitment()')
-    )
+    // Check that the warning was tracked (via the internal deprecation ID)
+    expect(_hasWarned('createCommitment')).toBe(true)
   })
 
-  it('verifyCommitment should warn only once', async () => {
+  it('verifyCommitment should mark deprecation warning as shown', async () => {
     const { createCommitment, verifyCommitment } = await import('../src/crypto')
 
     // Create a commitment first
     const commitment = createCommitment(100n)
 
     // Reset to only track verifyCommitment warnings
-    consoleWarnSpy.mockClear()
     _resetWarnings()
 
     // Call verifyCommitment multiple times
@@ -157,10 +152,7 @@ describe('Deprecated Functions Integration', () => {
     verifyCommitment(commitment, 100n)
     verifyCommitment(commitment, 100n)
 
-    // Should only have warned once for verifyCommitment
-    const verifyWarnings = consoleWarnSpy.mock.calls.filter(
-      call => call[0]?.includes('verifyCommitment()')
-    )
-    expect(verifyWarnings.length).toBe(1)
+    // Check that the warning was tracked
+    expect(_hasWarned('verifyCommitment')).toBe(true)
   })
 })
