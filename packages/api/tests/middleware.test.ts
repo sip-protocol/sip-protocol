@@ -356,3 +356,64 @@ describe('Content-Type Handling', () => {
     expect(response.body.success).toBe(true)
   })
 })
+
+describe('CORS Handling', () => {
+  it('should handle requests without Origin header', async () => {
+    // Requests without Origin (same-origin, curl) should be allowed
+    const response = await request(app)
+      .get('/api/v1/health')
+      .expect(200)
+
+    expect(response.body.success).toBe(true)
+  })
+
+  it('should handle requests with valid localhost Origin in development', async () => {
+    const response = await request(app)
+      .get('/api/v1/health')
+      .set('Origin', 'http://localhost:3000')
+      .expect(200)
+
+    expect(response.headers['access-control-allow-origin']).toBe('http://localhost:3000')
+  })
+
+  it('should handle OPTIONS preflight requests', async () => {
+    const response = await request(app)
+      .options('/api/v1/health')
+      .set('Origin', 'http://localhost:3000')
+      .set('Access-Control-Request-Method', 'GET')
+      .expect(204)
+
+    expect(response.headers['access-control-allow-origin']).toBe('http://localhost:3000')
+    expect(response.headers['access-control-allow-methods']).toContain('GET')
+  })
+
+  it('should handle malformed Origin headers gracefully', async () => {
+    // Malformed URLs should not crash the server
+    const response = await request(app)
+      .get('/api/v1/health')
+      .set('Origin', 'not-a-valid-url')
+      .expect(200)
+
+    // Should still respond but without CORS headers (blocked)
+    expect(response.body.success).toBe(true)
+  })
+
+  it('should handle Origin with invalid protocol', async () => {
+    const response = await request(app)
+      .get('/api/v1/health')
+      .set('Origin', 'javascript:alert(1)')
+      .expect(200)
+
+    // Should still respond but without CORS headers (blocked)
+    expect(response.body.success).toBe(true)
+  })
+
+  it('should handle empty Origin header', async () => {
+    const response = await request(app)
+      .get('/api/v1/health')
+      .set('Origin', '')
+      .expect(200)
+
+    expect(response.body.success).toBe(true)
+  })
+})

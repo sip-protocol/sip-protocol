@@ -48,6 +48,17 @@ function getAllowedOrigins(): string[] {
 }
 
 /**
+ * Safely parse a URL, returning null if malformed
+ */
+function safeParseUrl(url: string): URL | null {
+  try {
+    return new URL(url)
+  } catch {
+    return null
+  }
+}
+
+/**
  * Check if origin is allowed
  */
 function isOriginAllowed(origin: string | undefined): boolean {
@@ -67,7 +78,12 @@ function isOriginAllowed(origin: string | undefined): boolean {
   for (const allowed of allowedOrigins) {
     if (allowed.startsWith('*.')) {
       const domain = allowed.slice(2)
-      const originHost = new URL(origin).host
+      // Safely parse URL - reject malformed origins
+      const parsedOrigin = safeParseUrl(origin)
+      if (!parsedOrigin) {
+        return false
+      }
+      const originHost = parsedOrigin.host
       if (originHost === domain || originHost.endsWith('.' + domain)) {
         return true
       }
