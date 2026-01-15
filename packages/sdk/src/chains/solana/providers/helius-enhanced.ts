@@ -595,13 +595,14 @@ export class HeliusEnhanced {
         }
         return 'Token transfer'
 
-      case 'SWAP':
+      case 'SWAP': {
         const inputs = tokens.filter(t => t.direction === 'out')
         const outputs = tokens.filter(t => t.direction === 'in')
         if (inputs.length > 0 && outputs.length > 0) {
           return `Swapped ${inputs[0].symbol} for ${outputs[0].symbol}`
         }
         return 'Token swap'
+      }
 
       default:
         return `${type.replace(/_/g, ' ').toLowerCase()} transaction`
