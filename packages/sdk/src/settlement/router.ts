@@ -108,77 +108,394 @@ class QuoteCache {
   }
 }
 
-// ─── Backend Status Tracking ──────────────────────────────────────────────────
+// ─── Circuit Breaker ─────────────────────────────────────────────────────────
 
-interface BackendStatus {
+/**
+ * Circuit breaker states following the standard pattern
+ *
+ * @see https://martinfowler.com/bliki/CircuitBreaker.html
+ *
+ * ```
+ * CLOSED  --[failures exceed threshold]--> OPEN
+ *   ^                                        |
+ *   |                                        v
+ *   +------[success]------- HALF_OPEN <--[timeout]--+
+ * ```
+ */
+export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN'
+
+/**
+ * Circuit breaker status for a single backend
+ */
+export interface CircuitBreakerStatus {
+  /** Current circuit state */
+  state: CircuitState
+  /** Number of consecutive failures */
   consecutiveFailures: number
+  /** Total failure count (lifetime) */
+  totalFailures: number
+  /** Total success count (lifetime) */
+  totalSuccesses: number
+  /** Timestamp of last failure */
   lastFailureAt: number | null
-  isCircuitOpen: boolean
+  /** Timestamp of last success */
+  lastSuccessAt: number | null
+  /** Timestamp when circuit opened */
+  openedAt: number | null
+  /** Last error message */
+  lastError: string | null
 }
 
 /**
- * Track backend health for circuit breaker pattern
+ * Event callbacks for circuit breaker state changes
  */
-class BackendTracker {
-  private statuses = new Map<string, BackendStatus>()
+export interface CircuitBreakerEvents {
+  /** Called when circuit transitions to OPEN */
+  onOpen?: (backend: string, status: CircuitBreakerStatus) => void
+  /** Called when circuit transitions to HALF_OPEN */
+  onHalfOpen?: (backend: string, status: CircuitBreakerStatus) => void
+  /** Called when circuit transitions to CLOSED */
+  onClose?: (backend: string, status: CircuitBreakerStatus) => void
+  /** Called on any state change */
+  onStateChange?: (backend: string, from: CircuitState, to: CircuitState, status: CircuitBreakerStatus) => void
+}
+
+/**
+ * Circuit breaker options
+ */
+export interface CircuitBreakerOptions {
+  /** Number of consecutive failures before opening (default: 3) */
+  failureThreshold?: number
+  /** Time in ms before trying to recover from OPEN (default: 30000) */
+  resetTimeMs?: number
+  /** Number of successes needed to close from HALF_OPEN (default: 1) */
+  successThreshold?: number
+  /** Event callbacks */
+  events?: CircuitBreakerEvents
+}
+
+/**
+ * Internal status tracking
+ */
+interface InternalCircuitStatus extends CircuitBreakerStatus {
+  /** Number of successes in HALF_OPEN state */
+  halfOpenSuccesses: number
+}
+
+/**
+ * Circuit Breaker for Settlement Backends
+ *
+ * Implements the circuit breaker pattern to prevent cascading failures:
+ * - CLOSED: Normal operation, requests pass through
+ * - OPEN: Backend is failing, requests are rejected immediately
+ * - HALF_OPEN: Testing if backend recovered, limited requests allowed
+ *
+ * @example
+ * ```typescript
+ * const breaker = new CircuitBreaker({
+ *   failureThreshold: 3,
+ *   resetTimeMs: 30_000,
+ *   events: {
+ *     onOpen: (backend) => console.log(`Circuit OPEN for ${backend}`),
+ *     onClose: (backend) => console.log(`Circuit CLOSED for ${backend}`),
+ *   }
+ * })
+ *
+ * // Check before making request
+ * if (breaker.canRequest('near-intents')) {
+ *   try {
+ *     const result = await backend.getQuote(params)
+ *     breaker.recordSuccess('near-intents')
+ *   } catch (e) {
+ *     breaker.recordFailure('near-intents', e.message)
+ *   }
+ * }
+ * ```
+ */
+export class CircuitBreaker {
+  private statuses = new Map<string, InternalCircuitStatus>()
   private readonly failureThreshold: number
   private readonly resetTimeMs: number
+  private readonly successThreshold: number
+  private readonly events: CircuitBreakerEvents
 
-  constructor(options?: { failureThreshold?: number; resetTimeMs?: number }) {
+  constructor(options?: CircuitBreakerOptions) {
     this.failureThreshold = options?.failureThreshold ?? 3
-    this.resetTimeMs = options?.resetTimeMs ?? 30_000 // 30 seconds
+    this.resetTimeMs = options?.resetTimeMs ?? 30_000
+    this.successThreshold = options?.successThreshold ?? 1
+    this.events = options?.events ?? {}
+  }
+
+  /**
+   * Get or create status for a backend
+   */
+  private getStatus(backend: string): InternalCircuitStatus {
+    let status = this.statuses.get(backend)
+    if (!status) {
+      status = {
+        state: 'CLOSED',
+        consecutiveFailures: 0,
+        totalFailures: 0,
+        totalSuccesses: 0,
+        lastFailureAt: null,
+        lastSuccessAt: null,
+        openedAt: null,
+        lastError: null,
+        halfOpenSuccesses: 0,
+      }
+      this.statuses.set(backend, status)
+    }
+    return status
+  }
+
+  /**
+   * Transition circuit state with event emission
+   */
+  private transition(backend: string, status: InternalCircuitStatus, newState: CircuitState): void {
+    const oldState = status.state
+    if (oldState === newState) return
+
+    status.state = newState
+
+    // Log state transition
+    log.info(
+      { backend, from: oldState, to: newState, failures: status.consecutiveFailures },
+      `Circuit breaker state change: ${oldState} -> ${newState}`
+    )
+
+    // Emit events
+    this.events.onStateChange?.(backend, oldState, newState, status)
+
+    switch (newState) {
+      case 'OPEN':
+        status.openedAt = Date.now()
+        this.events.onOpen?.(backend, status)
+        break
+      case 'HALF_OPEN':
+        status.halfOpenSuccesses = 0
+        this.events.onHalfOpen?.(backend, status)
+        break
+      case 'CLOSED':
+        status.openedAt = null
+        status.consecutiveFailures = 0
+        this.events.onClose?.(backend, status)
+        break
+    }
+  }
+
+  /**
+   * Check if a request can be made to this backend
+   *
+   * Returns true if circuit is CLOSED or HALF_OPEN (testing recovery)
+   */
+  canRequest(backend: string): boolean {
+    const status = this.getStatus(backend)
+
+    switch (status.state) {
+      case 'CLOSED':
+        return true
+
+      case 'OPEN': {
+        // Check if reset time has passed
+        const timeSinceOpen = status.openedAt ? Date.now() - status.openedAt : 0
+        if (timeSinceOpen >= this.resetTimeMs) {
+          // Transition to HALF_OPEN to test recovery
+          this.transition(backend, status, 'HALF_OPEN')
+          return true
+        }
+        return false
+      }
+
+      case 'HALF_OPEN':
+        return true
+
+      default:
+        return false
+    }
+  }
+
+  /**
+   * Check if circuit is open (shorthand for !canRequest)
+   */
+  isOpen(backend: string): boolean {
+    return !this.canRequest(backend)
   }
 
   /**
    * Record a successful request
    */
   recordSuccess(backend: string): void {
-    this.statuses.set(backend, {
-      consecutiveFailures: 0,
-      lastFailureAt: null,
-      isCircuitOpen: false,
-    })
+    const status = this.getStatus(backend)
+    status.totalSuccesses++
+    status.lastSuccessAt = Date.now()
+    status.consecutiveFailures = 0
+    status.lastError = null
+
+    if (status.state === 'HALF_OPEN') {
+      status.halfOpenSuccesses++
+      if (status.halfOpenSuccesses >= this.successThreshold) {
+        // Recovery confirmed, close the circuit
+        this.transition(backend, status, 'CLOSED')
+      }
+    } else if (status.state !== 'CLOSED') {
+      // Any success in non-HALF_OPEN state closes the circuit
+      this.transition(backend, status, 'CLOSED')
+    }
   }
 
   /**
    * Record a failed request
    */
-  recordFailure(backend: string): void {
-    const current = this.statuses.get(backend) ?? {
-      consecutiveFailures: 0,
-      lastFailureAt: null,
-      isCircuitOpen: false,
-    }
+  recordFailure(backend: string, error?: string): void {
+    const status = this.getStatus(backend)
+    status.totalFailures++
+    status.consecutiveFailures++
+    status.lastFailureAt = Date.now()
+    status.lastError = error ?? 'Unknown error'
 
-    const failures = current.consecutiveFailures + 1
-    this.statuses.set(backend, {
-      consecutiveFailures: failures,
-      lastFailureAt: Date.now(),
-      isCircuitOpen: failures >= this.failureThreshold,
-    })
+    if (status.state === 'HALF_OPEN') {
+      // Failure in HALF_OPEN immediately opens the circuit
+      this.transition(backend, status, 'OPEN')
+    } else if (status.state === 'CLOSED') {
+      // Check if threshold exceeded
+      if (status.consecutiveFailures >= this.failureThreshold) {
+        this.transition(backend, status, 'OPEN')
+      }
+    }
   }
 
   /**
-   * Check if backend circuit is open (should be skipped)
+   * Get the current state of a backend's circuit
    */
-  isCircuitOpen(backend: string): boolean {
+  getState(backend: string): CircuitState {
+    return this.getStatusPublic(backend).state
+  }
+
+  /**
+   * Get detailed status for a backend (public API)
+   */
+  getStatusPublic(backend: string): CircuitBreakerStatus {
     const status = this.statuses.get(backend)
-    if (!status?.isCircuitOpen) return false
-
-    // Check if reset time has passed
-    if (status.lastFailureAt && Date.now() - status.lastFailureAt > this.resetTimeMs) {
-      // Half-open: allow one request to test recovery
-      return false
+    if (!status) {
+      return {
+        state: 'CLOSED',
+        consecutiveFailures: 0,
+        totalFailures: 0,
+        totalSuccesses: 0,
+        lastFailureAt: null,
+        lastSuccessAt: null,
+        openedAt: null,
+        lastError: null,
+      }
     }
-
-    return true
+    // Return without internal fields
+    const { halfOpenSuccesses: _, ...publicStatus } = status
+    return publicStatus
   }
 
   /**
-   * Get all backend statuses for monitoring
+   * Get all backend statuses for monitoring/health checks
    */
+  getAllStatuses(): Map<string, CircuitBreakerStatus> {
+    const result = new Map<string, CircuitBreakerStatus>()
+    for (const [backend, status] of this.statuses) {
+      const { halfOpenSuccesses: _, ...publicStatus } = status
+      result.set(backend, publicStatus)
+    }
+    return result
+  }
+
+  /**
+   * Get health summary
+   */
+  getHealthSummary(): {
+    total: number
+    closed: number
+    open: number
+    halfOpen: number
+    backends: Array<{ name: string; state: CircuitState; failures: number }>
+  } {
+    const backends: Array<{ name: string; state: CircuitState; failures: number }> = []
+    let closed = 0
+    let open = 0
+    let halfOpen = 0
+
+    for (const [name, status] of this.statuses) {
+      backends.push({
+        name,
+        state: status.state,
+        failures: status.consecutiveFailures,
+      })
+
+      switch (status.state) {
+        case 'CLOSED':
+          closed++
+          break
+        case 'OPEN':
+          open++
+          break
+        case 'HALF_OPEN':
+          halfOpen++
+          break
+      }
+    }
+
+    return {
+      total: this.statuses.size,
+      closed,
+      open,
+      halfOpen,
+      backends,
+    }
+  }
+
+  /**
+   * Reset a specific backend's circuit to CLOSED
+   */
+  reset(backend: string): void {
+    const status = this.getStatus(backend) as InternalCircuitStatus
+    status.consecutiveFailures = 0
+    status.lastError = null
+    this.transition(backend, status, 'CLOSED')
+  }
+
+  /**
+   * Reset all circuits to CLOSED
+   */
+  resetAll(): void {
+    for (const backend of this.statuses.keys()) {
+      this.reset(backend)
+    }
+  }
+}
+
+// Backwards-compatible type alias
+type BackendStatus = CircuitBreakerStatus
+
+/**
+ * @deprecated Use CircuitBreaker instead. This class is kept for backwards compatibility.
+ */
+class BackendTracker {
+  private breaker: CircuitBreaker
+
+  constructor(options?: { failureThreshold?: number; resetTimeMs?: number }) {
+    this.breaker = new CircuitBreaker(options)
+  }
+
+  recordSuccess(backend: string): void {
+    this.breaker.recordSuccess(backend)
+  }
+
+  recordFailure(backend: string): void {
+    this.breaker.recordFailure(backend)
+  }
+
+  isCircuitOpen(backend: string): boolean {
+    return this.breaker.isOpen(backend)
+  }
+
   getAllStatuses(): Map<string, BackendStatus> {
-    return new Map(this.statuses)
+    return this.breaker.getAllStatuses()
   }
 }
 
