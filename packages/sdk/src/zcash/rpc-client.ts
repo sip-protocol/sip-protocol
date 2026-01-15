@@ -47,6 +47,7 @@ import {
   ZcashErrorCode,
 } from '@sip-protocol/types'
 import { NetworkError, ErrorCode } from '../errors'
+import { warnOnce, deprecationMessage } from '../utils'
 
 // ─── Default Configuration ─────────────────────────────────────────────────────
 
@@ -190,10 +191,11 @@ export class ZcashRPCClient {
    * @returns New shielded address
    */
   async generateShieldedAddress(type: 'sapling' | 'sprout' = 'sapling'): Promise<string> {
-    console.warn(
-      'generateShieldedAddress() is deprecated and will be removed in v0.2.0. ' +
-      'Use createAccount() and getAddressForAccount() instead.'
-    )
+    warnOnce('generateShieldedAddress', deprecationMessage(
+      'generateShieldedAddress()',
+      'createAccount() and getAddressForAccount()',
+      '2026-06-01'
+    ))
     return this.call<string>('z_getnewaddress', [type])
   }
 
