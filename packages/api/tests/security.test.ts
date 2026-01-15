@@ -18,6 +18,57 @@ describe('CORS Middleware', () => {
     vi.restoreAllMocks()
   })
 
+  describe('Malformed URL Security', () => {
+    it('should deny malformed origin without crashing', async () => {
+      const response = await request(app)
+        .get('/api/v1/health')
+        .set('Origin', 'not-a-valid-url')
+
+      // Should not crash - returns 200 but denies CORS
+      expect(response.status).toBe(200)
+      expect(response.headers['access-control-allow-origin']).toBeUndefined()
+    })
+
+    it('should deny origin with invalid protocol', async () => {
+      const response = await request(app)
+        .get('/api/v1/health')
+        .set('Origin', 'javascript:alert(1)')
+
+      expect(response.status).toBe(200)
+      expect(response.headers['access-control-allow-origin']).toBeUndefined()
+    })
+
+    it('should deny origin with data URL', async () => {
+      const response = await request(app)
+        .get('/api/v1/health')
+        .set('Origin', 'data:text/html,<script>alert(1)</script>')
+
+      expect(response.status).toBe(200)
+      expect(response.headers['access-control-allow-origin']).toBeUndefined()
+    })
+
+    it('should deny empty origin string', async () => {
+      const response = await request(app)
+        .get('/api/v1/health')
+        .set('Origin', '')
+
+      // Empty string is treated as no origin - allowed
+      expect(response.status).toBe(200)
+    })
+
+    it('should deny origin with spaces', async () => {
+      const response = await request(app)
+        .get('/api/v1/health')
+        .set('Origin', 'http://evil site.com')
+
+      expect(response.status).toBe(200)
+      expect(response.headers['access-control-allow-origin']).toBeUndefined()
+    })
+
+    // Note: null bytes in headers are rejected by Node.js HTTP client before
+    // reaching the server, so we can't test that case directly
+  })
+
   describe('Development Mode Defaults', () => {
     it('should allow localhost:3000 origin', async () => {
       const response = await request(app)

@@ -48,7 +48,26 @@ function getAllowedOrigins(): string[] {
 }
 
 /**
+ * Safely parse a URL and extract the host
+ * Returns null if the URL is malformed
+ */
+function safeParseOrigin(origin: string): { host: string; protocol: string } | null {
+  try {
+    const url = new URL(origin)
+    return { host: url.host, protocol: url.protocol }
+  } catch {
+    // Invalid URL - deny access
+    return null
+  }
+}
+
+/**
  * Check if origin is allowed
+ *
+ * Security considerations:
+ * - Malformed URLs are denied (prevents crash attacks)
+ * - Production enforces HTTPS (prevents protocol downgrade)
+ * - Wildcard subdomains require valid URL parsing
  */
 function isOriginAllowed(origin: string | undefined): boolean {
   if (!origin) {
@@ -58,17 +77,39 @@ function isOriginAllowed(origin: string | undefined): boolean {
 
   const allowedOrigins = getAllowedOrigins()
 
-  // Check exact match
+  // Check exact match first (fast path)
   if (allowedOrigins.includes(origin)) {
     return true
+  }
+
+  // Check if any allowed origins use wildcard subdomain matching
+  const hasWildcardOrigins = allowedOrigins.some(o => o.startsWith('*.'))
+  if (!hasWildcardOrigins) {
+    return false
+  }
+
+  // Parse origin safely for wildcard matching
+  const parsedOrigin = safeParseOrigin(origin)
+  if (!parsedOrigin) {
+    // Invalid URL = denied
+    console.warn(`[CORS] Denied malformed origin: ${origin}`)
+    return false
+  }
+
+  // In production, enforce HTTPS for security
+  if (NODE_ENV === 'production' && parsedOrigin.protocol !== 'https:') {
+    console.warn(`[CORS] Denied non-HTTPS origin in production: ${origin}`)
+    return false
   }
 
   // Check wildcard subdomains (e.g., *.example.com)
   for (const allowed of allowedOrigins) {
     if (allowed.startsWith('*.')) {
-      const domain = allowed.slice(2)
-      const originHost = new URL(origin).host
-      if (originHost === domain || originHost.endsWith('.' + domain)) {
+      const baseDomain = allowed.slice(2)
+      const originHost = parsedOrigin.host
+
+      // Must match base domain exactly or be a valid subdomain
+      if (originHost === baseDomain || originHost.endsWith('.' + baseDomain)) {
         return true
       }
     }
