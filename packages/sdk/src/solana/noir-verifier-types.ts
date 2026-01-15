@@ -19,6 +19,8 @@
  * @module solana/noir-verifier-types
  */
 
+import { SOLANA_RPC_ENDPOINTS as SOLANA_RPC_CONFIG } from '../config/endpoints'
+
 import type { ZKProof } from '@sip-protocol/types'
 
 // ─── Circuit Types ───────────────────────────────────────────────────────────
@@ -222,12 +224,13 @@ export interface SolanaNoirVerifierConfig {
 
 /**
  * Default RPC URLs for each network
+ * Localnet is configurable via SOLANA_LOCALNET_RPC environment variable
  */
 export const DEFAULT_RPC_URLS: Record<SolanaNetwork, string> = {
-  'mainnet-beta': 'https://api.mainnet-beta.solana.com',
-  devnet: 'https://api.devnet.solana.com',
-  testnet: 'https://api.testnet.solana.com',
-  localnet: 'http://localhost:8899',
+  'mainnet-beta': SOLANA_RPC_CONFIG.mainnet,
+  devnet: SOLANA_RPC_CONFIG.devnet,
+  testnet: SOLANA_RPC_CONFIG.testnet,
+  localnet: SOLANA_RPC_CONFIG.localnet,
 }
 
 /**

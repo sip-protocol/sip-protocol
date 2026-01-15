@@ -550,6 +550,178 @@ describe('useScanPayments', () => {
     })
   })
 
+  describe('claimAll', () => {
+    const mockMintResolver = (mint: string) => ({
+      toBase58: () => mint,
+      toBytes: () => new Uint8Array(32),
+      toString: () => mint,
+    })
+
+    it('should claim all unclaimed payments successfully', async () => {
+      const { result } = renderHook(() =>
+        useScanPayments({
+          connection: mockConnection as any,
+          viewingPrivateKey: '0x1234',
+          spendingPublicKey: '0x5678',
+        })
+      )
+
+      // First scan to get payments
+      await act(async () => {
+        await result.current.scan()
+      })
+
+      expect(result.current.payments).toHaveLength(2)
+      expect(result.current.totalUnclaimed).toBe(15_000_000n)
+
+      // Claim all payments
+      let claimResult: any
+      await act(async () => {
+        claimResult = await result.current.claimAll({
+          spendingPrivateKey: '0xabcd',
+          destinationAddress: 'DestinationWallet123',
+          mintResolver: mockMintResolver as any,
+        })
+      })
+
+      expect(claimResult.succeeded).toHaveLength(2)
+      expect(claimResult.failed).toHaveLength(0)
+      expect(claimResult.totalAttempted).toBe(2)
+      expect(result.current.status).toBe('success')
+      expect(result.current.totalUnclaimed).toBe(0n)
+      expect(claimStealthPayment).toHaveBeenCalledTimes(2)
+    })
+
+    it('should return empty result when no unclaimed payments', async () => {
+      const { result } = renderHook(() =>
+        useScanPayments({
+          connection: mockConnection as any,
+          viewingPrivateKey: '0x1234',
+          spendingPublicKey: '0x5678',
+        })
+      )
+
+      // Don't scan - no payments
+      let claimResult: any
+      await act(async () => {
+        claimResult = await result.current.claimAll({
+          spendingPrivateKey: '0xabcd',
+          destinationAddress: 'DestinationWallet123',
+          mintResolver: mockMintResolver as any,
+        })
+      })
+
+      expect(claimResult.succeeded).toHaveLength(0)
+      expect(claimResult.failed).toHaveLength(0)
+      expect(claimResult.totalAttempted).toBe(0)
+    })
+
+    it('should handle partial failures gracefully', async () => {
+      // Fail on second claim
+      vi.mocked(claimStealthPayment)
+        .mockResolvedValueOnce(mockClaimResult)
+        .mockRejectedValueOnce(new Error('Insufficient SOL'))
+
+      const { result } = renderHook(() =>
+        useScanPayments({
+          connection: mockConnection as any,
+          viewingPrivateKey: '0x1234',
+          spendingPublicKey: '0x5678',
+        })
+      )
+
+      await act(async () => {
+        await result.current.scan()
+      })
+
+      let claimResult: any
+      await act(async () => {
+        claimResult = await result.current.claimAll({
+          spendingPrivateKey: '0xabcd',
+          destinationAddress: 'DestinationWallet123',
+          mintResolver: mockMintResolver as any,
+        })
+      })
+
+      expect(claimResult.succeeded).toHaveLength(1)
+      expect(claimResult.failed).toHaveLength(1)
+      expect(claimResult.failed[0].error.message).toBe('Insufficient SOL')
+      expect(claimResult.totalAttempted).toBe(2)
+      expect(result.current.status).toBe('success')
+      // Only first payment claimed
+      expect(result.current.totalUnclaimed).toBe(10_000_000n)
+    })
+
+    it('should set error status when all claims fail', async () => {
+      vi.mocked(claimStealthPayment).mockRejectedValue(new Error('Network error'))
+
+      const { result } = renderHook(() =>
+        useScanPayments({
+          connection: mockConnection as any,
+          viewingPrivateKey: '0x1234',
+          spendingPublicKey: '0x5678',
+        })
+      )
+
+      await act(async () => {
+        await result.current.scan()
+      })
+
+      let claimResult: any
+      await act(async () => {
+        claimResult = await result.current.claimAll({
+          spendingPrivateKey: '0xabcd',
+          destinationAddress: 'DestinationWallet123',
+          mintResolver: mockMintResolver as any,
+        })
+      })
+
+      expect(claimResult.succeeded).toHaveLength(0)
+      expect(claimResult.failed).toHaveLength(2)
+      expect(result.current.status).toBe('error')
+      expect(result.current.error?.message).toBe('Network error')
+    })
+
+    it('should not claim already claimed payments', async () => {
+      const { result } = renderHook(() =>
+        useScanPayments({
+          connection: mockConnection as any,
+          viewingPrivateKey: '0x1234',
+          spendingPublicKey: '0x5678',
+        })
+      )
+
+      await act(async () => {
+        await result.current.scan()
+      })
+
+      // Claim first payment individually
+      await act(async () => {
+        await result.current.claim(result.current.payments[0], {
+          spendingPrivateKey: '0xabcd',
+          destinationAddress: 'DestinationWallet123',
+          mint: mockMint as any,
+        })
+      })
+
+      vi.clearAllMocks()
+
+      // Now claimAll should only claim the second payment
+      let claimResult: any
+      await act(async () => {
+        claimResult = await result.current.claimAll({
+          spendingPrivateKey: '0xabcd',
+          destinationAddress: 'DestinationWallet123',
+          mintResolver: mockMintResolver as any,
+        })
+      })
+
+      expect(claimResult.totalAttempted).toBe(1)
+      expect(claimResult.succeeded).toHaveLength(1)
+      expect(claimStealthPayment).toHaveBeenCalledTimes(1)
+    })
+  })
+
   describe('status flags', () => {
     it('should have correct isScanning state after scan completes', async () => {
       const { result } = renderHook(() =>

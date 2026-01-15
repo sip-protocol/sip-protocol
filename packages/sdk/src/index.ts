@@ -1049,3 +1049,14 @@ export type {
   ProductionConfigError,
   ProductionConfigWarning,
 } from './production-safety'
+
+// Configurable Endpoint Configuration
+// All localhost defaults are configurable via environment variables
+export {
+  SOLANA_RPC_ENDPOINTS as CONFIGURABLE_SOLANA_RPC,
+  ETH_RPC_ENDPOINTS as CONFIGURABLE_ETH_RPC,
+  SUI_RPC_ENDPOINTS as CONFIGURABLE_SUI_RPC,
+  ZCASH_RPC_CONFIG as CONFIGURABLE_ZCASH_RPC,
+} from './config/endpoints'
+
+export type { ZcashRpcConfig } from './config/endpoints'

@@ -6,6 +6,7 @@
  */
 
 import type { HexString } from '@sip-protocol/types'
+import { SUI_RPC_ENDPOINTS as SUI_RPC_CONFIG } from '../../config/endpoints'
 
 /**
  * Supported Sui wallet names
@@ -229,12 +230,13 @@ export function suiPublicKeyToHex(publicKey: string | Uint8Array): HexString {
 
 /**
  * Default RPC endpoints for Sui networks
+ * Localnet is configurable via SUI_LOCALNET_RPC environment variable
  */
 export const DEFAULT_SUI_RPC_ENDPOINTS: Record<string, string> = {
-  mainnet: 'https://fullnode.mainnet.sui.io:443',
-  testnet: 'https://fullnode.testnet.sui.io:443',
-  devnet: 'https://fullnode.devnet.sui.io:443',
-  localnet: 'http://localhost:9000',
+  mainnet: SUI_RPC_CONFIG.mainnet,
+  testnet: SUI_RPC_CONFIG.testnet,
+  devnet: SUI_RPC_CONFIG.devnet,
+  localnet: SUI_RPC_CONFIG.localnet,
 }
 
 /**

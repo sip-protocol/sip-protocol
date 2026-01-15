@@ -26,6 +26,11 @@ export interface HealthResponse {
       ready: boolean
       error: string | null
     }
+    rateLimiter?: {
+      store: 'redis' | 'memory'
+      redisConfigured: boolean
+      redisConnected: boolean
+    }
   }
   cache?: {
     swaps: {

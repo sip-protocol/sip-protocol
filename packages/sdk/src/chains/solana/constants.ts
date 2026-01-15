@@ -4,6 +4,11 @@
  * Token mints, RPC endpoints, and configuration for Solana same-chain privacy.
  */
 
+import {
+  SOLANA_RPC_ENDPOINTS as SOLANA_RPC_CONFIG,
+  SOLANA_EXPLORER_ENDPOINTS as SOLANA_EXPLORER_CONFIG,
+} from '../../config/endpoints'
+
 /**
  * Common SPL token mint addresses on Solana mainnet
  */
@@ -28,13 +33,14 @@ export const SOLANA_TOKEN_DECIMALS: Record<string, number> = {
 
 /**
  * RPC endpoints for Solana clusters
+ * Localnet is configurable via SOLANA_LOCALNET_RPC environment variable
  */
 export const SOLANA_RPC_ENDPOINTS = {
-  'mainnet-beta': 'https://api.mainnet-beta.solana.com',
-  mainnet: 'https://api.mainnet-beta.solana.com',
-  devnet: 'https://api.devnet.solana.com',
-  testnet: 'https://api.testnet.solana.com',
-  localnet: 'http://localhost:8899',
+  'mainnet-beta': SOLANA_RPC_CONFIG.mainnet,
+  mainnet: SOLANA_RPC_CONFIG.mainnet,
+  devnet: SOLANA_RPC_CONFIG.devnet,
+  testnet: SOLANA_RPC_CONFIG.testnet,
+  localnet: SOLANA_RPC_CONFIG.localnet,
 } as const
 
 /**
@@ -44,13 +50,14 @@ export type SolanaCluster = keyof typeof SOLANA_RPC_ENDPOINTS
 
 /**
  * Explorer URLs for transaction viewing
+ * Localnet is configurable via SOLANA_LOCALNET_EXPLORER environment variable
  */
 export const SOLANA_EXPLORER_URLS = {
-  'mainnet-beta': 'https://solscan.io',
-  mainnet: 'https://solscan.io',
-  devnet: 'https://solscan.io?cluster=devnet',
-  testnet: 'https://solscan.io?cluster=testnet',
-  localnet: 'http://localhost:3000',
+  'mainnet-beta': SOLANA_EXPLORER_CONFIG.mainnet,
+  mainnet: SOLANA_EXPLORER_CONFIG.mainnet,
+  devnet: `${SOLANA_EXPLORER_CONFIG.devnet}?cluster=devnet`,
+  testnet: `${SOLANA_EXPLORER_CONFIG.testnet}?cluster=testnet`,
+  localnet: SOLANA_EXPLORER_CONFIG.localnet,
 } as const
 
 /**

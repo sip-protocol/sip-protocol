@@ -30,15 +30,17 @@ import {
   getSolanaProvider,
   solanaPublicKeyToHex,
 } from './types'
+import { SOLANA_RPC_ENDPOINTS as SOLANA_RPC_CONFIG } from '../../config/endpoints'
 
 /**
  * Default RPC endpoints for Solana clusters
+ * Localnet is configurable via SOLANA_LOCALNET_RPC environment variable
  */
 const DEFAULT_RPC_ENDPOINTS: Record<SolanaCluster, string> = {
-  'mainnet-beta': 'https://api.mainnet-beta.solana.com',
-  'testnet': 'https://api.testnet.solana.com',
-  'devnet': 'https://api.devnet.solana.com',
-  'localnet': 'http://localhost:8899',
+  'mainnet-beta': SOLANA_RPC_CONFIG.mainnet,
+  'testnet': SOLANA_RPC_CONFIG.testnet,
+  'devnet': SOLANA_RPC_CONFIG.devnet,
+  'localnet': SOLANA_RPC_CONFIG.localnet,
 }
 
 /**

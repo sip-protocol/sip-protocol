@@ -3,6 +3,7 @@ import type { HealthResponse, ApiResponse } from '../types/api'
 import { isServerShuttingDown } from '../shutdown'
 import { swapStore } from '../stores'
 import { isProofProviderReady, getProofInitError } from './proof'
+import { getRedisStatus } from '../middleware/rate-limit'
 
 const router: Router = Router()
 
@@ -49,6 +50,7 @@ router.get('/', (req: Request, res: Response) => {
 
   const proofReady = isProofProviderReady()
   const proofError = getProofInitError()
+  const redisStatus = getRedisStatus()
 
   const response: ApiResponse<HealthResponse> = {
     success: !shuttingDown,
@@ -61,6 +63,11 @@ router.get('/', (req: Request, res: Response) => {
         proofProvider: {
           ready: proofReady,
           error: proofError?.message || null,
+        },
+        rateLimiter: {
+          store: redisStatus.storeType,
+          redisConfigured: redisStatus.configured,
+          redisConnected: redisStatus.connected,
         },
       },
       cache: {

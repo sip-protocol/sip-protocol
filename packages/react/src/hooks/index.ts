@@ -26,6 +26,8 @@ export {
   type UseScanPaymentsReturn,
   type ClaimParams,
   type ClaimAllParams,
+  type ClaimAllResult,
+  type MintResolver,
 } from './use-scan-payments'
 
 // Privacy Advisor hook (LangChain-powered)
