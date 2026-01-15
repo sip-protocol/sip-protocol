@@ -78,16 +78,31 @@ export type {
   BackendHealthState,
   BackendMetrics,
   CircuitBreakerConfig,
+  // Versioning types
+  PrivacyBackendVersion,
+  VersionValidationResult,
 } from './interface'
 
 // Type guards
 export { isComputationParams, isTransferParams } from './interface'
+
+// Versioning utilities
+export {
+  CURRENT_BACKEND_VERSION,
+  MIN_SUPPORTED_VERSION,
+  validateBackendVersion,
+  getBackendVersion,
+  backendSupportsVersion,
+  isV2Backend,
+  warnIfDeprecatedVersion,
+} from './interface'
 
 // Error types
 export {
   AllBackendsFailedError,
   CircuitOpenError,
   ComputationTimeoutError,
+  UnsupportedVersionError,
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
 } from './interface'
 

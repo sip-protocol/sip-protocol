@@ -33,7 +33,9 @@ import type {
   TransactionResult,
   AvailabilityResult,
   BackendParams,
+  PrivacyBackendVersion,
 } from './interface'
+import { CURRENT_BACKEND_VERSION } from './interface'
 
 /**
  * Configuration options for MockBackend
@@ -84,6 +86,7 @@ const DEFAULT_CAPABILITIES: BackendCapabilities = {
  * various backend behaviors for testing purposes.
  */
 export class MockBackend implements PrivacyBackend {
+  readonly version: PrivacyBackendVersion = CURRENT_BACKEND_VERSION
   readonly name: string
   readonly type: BackendType
   readonly chains: string[]

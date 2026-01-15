@@ -241,6 +241,55 @@ export function isTransferParams(
   return 'sender' in params && 'recipient' in params && 'amount' in params
 }
 
+// ─── Interface Versioning ────────────────────────────────────────────────────
+
+/**
+ * PrivacyBackend interface version
+ *
+ * ## Version History
+ *
+ * - **v1** (initial): Basic backend interface with execute/checkAvailability
+ * - **v2** (current): Added version field, compute privacy support, circuit breaker integration
+ *
+ * ## Migration Guide
+ *
+ * ### v1 → v2
+ *
+ * 1. Add `version` property (set to 2)
+ * 2. Optional: Implement `executeComputation()` for compute backends
+ * 3. Optional: Add circuit breaker integration via `onHealthChange` callback
+ *
+ * ```typescript
+ * // v1 backend (deprecated)
+ * class MyBackendV1 implements PrivacyBackend {
+ *   name = 'my-backend'
+ *   type = 'transaction'
+ *   chains = ['solana']
+ *   // ... no version field
+ * }
+ *
+ * // v2 backend (current)
+ * class MyBackendV2 implements PrivacyBackend {
+ *   version = 2
+ *   name = 'my-backend'
+ *   type = 'transaction'
+ *   chains = ['solana']
+ *   // ...
+ * }
+ * ```
+ */
+export type PrivacyBackendVersion = 1 | 2
+
+/**
+ * Current interface version
+ */
+export const CURRENT_BACKEND_VERSION: PrivacyBackendVersion = 2
+
+/**
+ * Minimum supported version (backends below this will be rejected)
+ */
+export const MIN_SUPPORTED_VERSION: PrivacyBackendVersion = 1
+
 // ─── Privacy Backend Interface ───────────────────────────────────────────────
 
 /**
@@ -248,6 +297,11 @@ export function isTransferParams(
  *
  * All privacy implementations (SIP Native, PrivacyCash, Arcium, Inco)
  * must implement this interface for unified access.
+ *
+ * ## Interface Version
+ *
+ * The current interface version is **v2**. Backends should set `version: 2`.
+ * v1 backends without a version field are still supported but deprecated.
  *
  * ## Backend Types
  *
@@ -267,6 +321,18 @@ export function isTransferParams(
  * ```
  */
 export interface PrivacyBackend {
+  /**
+   * Interface version implemented by this backend
+   *
+   * - v1: Initial interface (deprecated, no version field)
+   * - v2: Current interface with versioning support
+   *
+   * Backends without a version field are treated as v1 with deprecation warning.
+   *
+   * @default 1 (for backwards compatibility)
+   */
+  readonly version?: PrivacyBackendVersion
+
   /** Unique backend identifier */
   readonly name: string
 
@@ -680,4 +746,161 @@ export function deepFreeze<T extends object>(obj: T): Readonly<T> {
 
   // Freeze the object itself
   return Object.freeze(obj)
+}
+
+// ─── Version Migration Helpers ───────────────────────────────────────────────
+
+/**
+ * Result of version validation
+ */
+export interface VersionValidationResult {
+  /** Whether the backend version is valid */
+  valid: boolean
+  /** Current version of the backend */
+  version: PrivacyBackendVersion
+  /** Whether the backend is using a deprecated version */
+  deprecated: boolean
+  /** Warning message if deprecated */
+  warning?: string
+  /** Error message if invalid */
+  error?: string
+}
+
+/**
+ * Validate a backend's interface version
+ *
+ * @param backend - The backend to validate
+ * @returns Validation result with version info and any warnings/errors
+ *
+ * @example
+ * ```typescript
+ * const result = validateBackendVersion(myBackend)
+ * if (result.deprecated) {
+ *   console.warn(result.warning)
+ * }
+ * if (!result.valid) {
+ *   throw new Error(result.error)
+ * }
+ * ```
+ */
+export function validateBackendVersion(
+  backend: PrivacyBackend
+): VersionValidationResult {
+  const version = backend.version ?? 1
+
+  // Check if version is below minimum supported
+  if (version < MIN_SUPPORTED_VERSION) {
+    return {
+      valid: false,
+      version,
+      deprecated: true,
+      error: `Backend '${backend.name}' uses unsupported version ${version}. ` +
+        `Minimum supported version is ${MIN_SUPPORTED_VERSION}.`,
+    }
+  }
+
+  // Check if version is deprecated (v1 without explicit version field)
+  if (backend.version === undefined) {
+    return {
+      valid: true,
+      version: 1,
+      deprecated: true,
+      warning: `Backend '${backend.name}' does not specify a version field. ` +
+        `It is treated as v1 which is deprecated. ` +
+        `Please update to v${CURRENT_BACKEND_VERSION} by adding 'version: ${CURRENT_BACKEND_VERSION}'.`,
+    }
+  }
+
+  // Check if version is older than current
+  if (version < CURRENT_BACKEND_VERSION) {
+    return {
+      valid: true,
+      version,
+      deprecated: true,
+      warning: `Backend '${backend.name}' uses version ${version}. ` +
+        `Consider upgrading to v${CURRENT_BACKEND_VERSION} for latest features.`,
+    }
+  }
+
+  // Version is current
+  return {
+    valid: true,
+    version,
+    deprecated: false,
+  }
+}
+
+/**
+ * Get the effective version of a backend
+ *
+ * Returns 1 for backends without an explicit version field (v1 legacy).
+ *
+ * @param backend - The backend to check
+ * @returns The backend's interface version
+ */
+export function getBackendVersion(backend: PrivacyBackend): PrivacyBackendVersion {
+  return backend.version ?? 1
+}
+
+/**
+ * Check if a backend supports a specific interface version
+ *
+ * @param backend - The backend to check
+ * @param minVersion - Minimum version required
+ * @returns True if backend version >= minVersion
+ */
+export function backendSupportsVersion(
+  backend: PrivacyBackend,
+  minVersion: PrivacyBackendVersion
+): boolean {
+  return getBackendVersion(backend) >= minVersion
+}
+
+/**
+ * Type guard to check if backend is v2 or higher
+ *
+ * V2 backends have explicit version field and may have additional features.
+ */
+export function isV2Backend(backend: PrivacyBackend): backend is PrivacyBackend & { version: 2 } {
+  return backend.version === 2
+}
+
+/**
+ * Log deprecation warning for v1 backends
+ *
+ * Call this when registering backends to warn about deprecated versions.
+ *
+ * @param backend - The backend to check
+ * @param logger - Optional custom logger (defaults to console.warn)
+ */
+export function warnIfDeprecatedVersion(
+  backend: PrivacyBackend,
+  logger: (message: string) => void = console.warn
+): void {
+  const result = validateBackendVersion(backend)
+  if (result.deprecated && result.warning) {
+    logger(`[SIP-SDK] DEPRECATION WARNING: ${result.warning}`)
+  }
+}
+
+/**
+ * Error thrown when a backend version is not supported
+ */
+export class UnsupportedVersionError extends Error {
+  readonly name = 'UnsupportedVersionError'
+
+  constructor(
+    /** Backend name */
+    public readonly backendName: string,
+    /** Backend version */
+    public readonly backendVersion: PrivacyBackendVersion,
+    /** Minimum supported version */
+    public readonly minSupported: PrivacyBackendVersion
+  ) {
+    super(
+      `Backend '${backendName}' uses version ${backendVersion}, ` +
+      `but minimum supported version is ${minSupported}.`
+    )
+    Object.setPrototypeOf(this, UnsupportedVersionError.prototype)
+  }
 }

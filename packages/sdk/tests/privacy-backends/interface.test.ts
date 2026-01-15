@@ -495,3 +495,290 @@ describe('deepFreeze', () => {
     }).toThrow()
   })
 })
+
+// ─── Interface Versioning Tests ──────────────────────────────────────────────
+
+import {
+  CURRENT_BACKEND_VERSION,
+  MIN_SUPPORTED_VERSION,
+  validateBackendVersion,
+  getBackendVersion,
+  backendSupportsVersion,
+  isV2Backend,
+  warnIfDeprecatedVersion,
+  UnsupportedVersionError,
+  type PrivacyBackendVersion,
+} from '../../src/privacy-backends/interface'
+
+describe('Interface Versioning', () => {
+  describe('constants', () => {
+    it('should have CURRENT_BACKEND_VERSION set to 2', () => {
+      expect(CURRENT_BACKEND_VERSION).toBe(2)
+    })
+
+    it('should have MIN_SUPPORTED_VERSION set to 1', () => {
+      expect(MIN_SUPPORTED_VERSION).toBe(1)
+    })
+  })
+
+  describe('validateBackendVersion', () => {
+    it('should return valid for v2 backend', () => {
+      const backend: PrivacyBackend = {
+        version: 2,
+        name: 'test',
+        type: 'transaction',
+        chains: ['solana'],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'test' }),
+        estimateCost: async () => 0n,
+      }
+
+      const result = validateBackendVersion(backend)
+
+      expect(result.valid).toBe(true)
+      expect(result.version).toBe(2)
+      expect(result.deprecated).toBe(false)
+      expect(result.warning).toBeUndefined()
+      expect(result.error).toBeUndefined()
+    })
+
+    it('should mark v1 backend as deprecated', () => {
+      const backend: PrivacyBackend = {
+        version: 1,
+        name: 'old-backend',
+        type: 'transaction',
+        chains: ['solana'],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'old-backend' }),
+        estimateCost: async () => 0n,
+      }
+
+      const result = validateBackendVersion(backend)
+
+      expect(result.valid).toBe(true)
+      expect(result.version).toBe(1)
+      expect(result.deprecated).toBe(true)
+      expect(result.warning).toContain('uses version 1')
+      expect(result.warning).toContain('upgrading to v2')
+    })
+
+    it('should treat undefined version as v1 with deprecation warning', () => {
+      const backend: PrivacyBackend = {
+        name: 'legacy-backend',
+        type: 'transaction',
+        chains: ['solana'],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'legacy-backend' }),
+        estimateCost: async () => 0n,
+      }
+
+      const result = validateBackendVersion(backend)
+
+      expect(result.valid).toBe(true)
+      expect(result.version).toBe(1)
+      expect(result.deprecated).toBe(true)
+      expect(result.warning).toContain('does not specify a version field')
+      expect(result.warning).toContain('v1 which is deprecated')
+    })
+  })
+
+  describe('getBackendVersion', () => {
+    it('should return version for v2 backend', () => {
+      const backend: PrivacyBackend = {
+        version: 2,
+        name: 'test',
+        type: 'transaction',
+        chains: [],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'test' }),
+        estimateCost: async () => 0n,
+      }
+
+      expect(getBackendVersion(backend)).toBe(2)
+    })
+
+    it('should return 1 for backend without version field', () => {
+      const backend: PrivacyBackend = {
+        name: 'legacy',
+        type: 'transaction',
+        chains: [],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'legacy' }),
+        estimateCost: async () => 0n,
+      }
+
+      expect(getBackendVersion(backend)).toBe(1)
+    })
+  })
+
+  describe('backendSupportsVersion', () => {
+    const v2Backend: PrivacyBackend = {
+      version: 2,
+      name: 'v2',
+      type: 'transaction',
+      chains: [],
+      getCapabilities: () => ({} as any),
+      checkAvailability: async () => ({ available: true }),
+      execute: async () => ({ success: true, backend: 'v2' }),
+      estimateCost: async () => 0n,
+    }
+
+    const v1Backend: PrivacyBackend = {
+      version: 1,
+      name: 'v1',
+      type: 'transaction',
+      chains: [],
+      getCapabilities: () => ({} as any),
+      checkAvailability: async () => ({ available: true }),
+      execute: async () => ({ success: true, backend: 'v1' }),
+      estimateCost: async () => 0n,
+    }
+
+    it('should return true when backend meets minimum version', () => {
+      expect(backendSupportsVersion(v2Backend, 1)).toBe(true)
+      expect(backendSupportsVersion(v2Backend, 2)).toBe(true)
+      expect(backendSupportsVersion(v1Backend, 1)).toBe(true)
+    })
+
+    it('should return false when backend is below minimum version', () => {
+      expect(backendSupportsVersion(v1Backend, 2)).toBe(false)
+    })
+  })
+
+  describe('isV2Backend', () => {
+    it('should return true for v2 backend', () => {
+      const backend: PrivacyBackend = {
+        version: 2,
+        name: 'test',
+        type: 'transaction',
+        chains: [],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'test' }),
+        estimateCost: async () => 0n,
+      }
+
+      expect(isV2Backend(backend)).toBe(true)
+    })
+
+    it('should return false for v1 backend', () => {
+      const backend: PrivacyBackend = {
+        version: 1,
+        name: 'test',
+        type: 'transaction',
+        chains: [],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'test' }),
+        estimateCost: async () => 0n,
+      }
+
+      expect(isV2Backend(backend)).toBe(false)
+    })
+
+    it('should return false for backend without version field', () => {
+      const backend: PrivacyBackend = {
+        name: 'test',
+        type: 'transaction',
+        chains: [],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'test' }),
+        estimateCost: async () => 0n,
+      }
+
+      expect(isV2Backend(backend)).toBe(false)
+    })
+  })
+
+  describe('warnIfDeprecatedVersion', () => {
+    it('should call logger for deprecated backend', () => {
+      const warnings: string[] = []
+      const mockLogger = (msg: string) => warnings.push(msg)
+
+      const backend: PrivacyBackend = {
+        name: 'old-backend',
+        type: 'transaction',
+        chains: [],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'old-backend' }),
+        estimateCost: async () => 0n,
+      }
+
+      warnIfDeprecatedVersion(backend, mockLogger)
+
+      expect(warnings.length).toBe(1)
+      expect(warnings[0]).toContain('DEPRECATION WARNING')
+      expect(warnings[0]).toContain('old-backend')
+    })
+
+    it('should not call logger for v2 backend', () => {
+      const warnings: string[] = []
+      const mockLogger = (msg: string) => warnings.push(msg)
+
+      const backend: PrivacyBackend = {
+        version: 2,
+        name: 'modern-backend',
+        type: 'transaction',
+        chains: [],
+        getCapabilities: () => ({} as any),
+        checkAvailability: async () => ({ available: true }),
+        execute: async () => ({ success: true, backend: 'modern-backend' }),
+        estimateCost: async () => 0n,
+      }
+
+      warnIfDeprecatedVersion(backend, mockLogger)
+
+      expect(warnings.length).toBe(0)
+    })
+  })
+
+  describe('UnsupportedVersionError', () => {
+    it('should create error with correct properties', () => {
+      const error = new UnsupportedVersionError('old-backend', 1 as PrivacyBackendVersion, 2 as PrivacyBackendVersion)
+
+      expect(error.name).toBe('UnsupportedVersionError')
+      expect(error.backendName).toBe('old-backend')
+      expect(error.backendVersion).toBe(1)
+      expect(error.minSupported).toBe(2)
+      expect(error.message).toContain('old-backend')
+      expect(error.message).toContain('version 1')
+      expect(error.message).toContain('minimum supported version is 2')
+    })
+
+    it('should be instanceof Error', () => {
+      const error = new UnsupportedVersionError('test', 1 as PrivacyBackendVersion, 2 as PrivacyBackendVersion)
+
+      expect(error instanceof Error).toBe(true)
+      expect(error instanceof UnsupportedVersionError).toBe(true)
+    })
+  })
+})
+
+describe('SIPNativeBackend versioning', () => {
+  it('should have version 2', () => {
+    const backend = new SIPNativeBackend()
+
+    expect(backend.version).toBe(2)
+  })
+
+  it('should pass v2 version check', () => {
+    const backend = new SIPNativeBackend()
+
+    expect(isV2Backend(backend)).toBe(true)
+    expect(backendSupportsVersion(backend, 2)).toBe(true)
+  })
+
+  it('should not be deprecated', () => {
+    const backend = new SIPNativeBackend()
+    const result = validateBackendVersion(backend)
+
+    expect(result.deprecated).toBe(false)
+  })
+})
