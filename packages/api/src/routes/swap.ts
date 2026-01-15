@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { SIP, PrivacyLevel } from '@sip-protocol/sdk'
-import { validateRequest, schemas } from '../middleware'
+import { validateRequest, schemas, calculateMinAmount, percentToBps } from '../middleware'
 import type {
   GetQuoteRequest,
   ExecuteSwapRequest,
@@ -82,7 +82,12 @@ router.post(
       slippageTolerance
     } = req.body as GetQuoteRequest
 
-    // Create intent
+    // Parse and validate amount (already validated by schema, safe to parse)
+    const inputAmountBigInt = BigInt(inputAmount)
+    const slippagePercent = slippageTolerance ?? 1
+    const slippageBps = percentToBps(slippagePercent)
+
+    // Create intent with safe slippage calculation
     const intent = await sip.createIntent({
       input: {
         asset: {
@@ -91,7 +96,7 @@ router.post(
           symbol: inputToken,
           decimals: 9,
         },
-        amount: BigInt(inputAmount),
+        amount: inputAmountBigInt,
       },
       output: {
         asset: {
@@ -100,9 +105,8 @@ router.post(
           symbol: outputToken,
           decimals: 9,
         },
-        // Calculate minAmount based on user's slippage tolerance (defaults to 1%)
-        minAmount: BigInt(inputAmount) * BigInt(10000 - Math.floor((slippageTolerance || 1) * 100)) / 10000n,
-        maxSlippage: (slippageTolerance || 1) / 100,
+        minAmount: calculateMinAmount(inputAmountBigInt, slippageBps),
+        maxSlippage: slippagePercent / 100,
       },
       privacy: PrivacyLevel.TRANSPARENT, // Default to transparent for quote
     })

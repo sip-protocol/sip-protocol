@@ -173,6 +173,19 @@ export interface ProofProvider {
   initialize(): Promise<void>
 
   /**
+   * Wait for the provider to be ready, with optional timeout
+   *
+   * This method blocks until initialization is complete or the timeout is reached.
+   * If initialization is already complete, resolves immediately.
+   * If initialization hasn't started, this method will start it.
+   *
+   * @param timeoutMs - Maximum time to wait in milliseconds (default: 30000)
+   * @throws ProofError if timeout is reached before ready
+   * @throws ProofError if initialization fails
+   */
+  waitUntilReady(timeoutMs?: number): Promise<void>
+
+  /**
    * Generate a Funding Proof
    *
    * Proves that the user has sufficient balance without revealing the exact amount.

@@ -97,6 +97,8 @@ export {
   nearAddressToEd25519PublicKey,
   isValidNearImplicitAddress,
   isValidNearAccountId,
+  // Parsing utilities
+  parseStealthAddress,
 } from './stealth'
 
 export type { StealthCurve } from './stealth'
