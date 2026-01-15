@@ -101,6 +101,9 @@ importers:
       helmet:
         specifier: ^8.1.0
         version: 8.1.0
+      lru-cache:
+        specifier: ^11.2.4
+        version: 11.2.4
       morgan:
         specifier: ^1.10.1
         version: 1.10.1
@@ -4785,7 +4788,6 @@ packages:
   /lru-cache@11.2.4:
     resolution: {integrity: sha512-B5Y16Jr9LB9dHVkh6ZevG+vAbOsNOYCX+sXvFWFu7B3Iz5mijW3zdbMyhsh8ANd2mSWBYdJgnqi+mL7/LrOPYg==}
     engines: {node: 20 || >=22}
-    dev: true
 
   /lunr@2.3.9:
     resolution: {integrity: sha512-zTU3DaZaF3Rt9rhN3uBMGQD3dD2/vFQqnvZCDv4dl5iOzq2IZQqTxu90r4E5J+nP70J3ilqVCrbho2eWaeW8Ow==}

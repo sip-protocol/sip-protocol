@@ -60,6 +60,9 @@ function safeParseUrl(url: string): URL | null {
 
 /**
  * Check if origin is allowed
+ *
+ * Security: Handles malformed URLs gracefully (denies instead of crashing)
+ * and enforces HTTPS in production mode for wildcard subdomain matches.
  */
 function isOriginAllowed(origin: string | undefined): boolean {
   if (!origin) {
@@ -74,17 +77,32 @@ function isOriginAllowed(origin: string | undefined): boolean {
     return true
   }
 
+  // Parse origin URL for wildcard matching
+  // Security: Wrap in try/catch to handle malformed URLs gracefully
+  let originUrl: URL
+  try {
+    originUrl = new URL(origin)
+  } catch {
+    // Malformed URL = denied (don't crash, just reject)
+    console.warn(`[CORS] Rejected malformed origin: ${origin}`)
+    return false
+  }
+
   // Check wildcard subdomains (e.g., *.example.com)
   for (const allowed of allowedOrigins) {
     if (allowed.startsWith('*.')) {
-      const domain = allowed.slice(2)
-      // Safely parse URL - reject malformed origins
-      const parsedOrigin = safeParseUrl(origin)
-      if (!parsedOrigin) {
-        return false
+      const baseDomain = allowed.slice(2)
+      const originHost = originUrl.host
+
+      // Security: Enforce HTTPS in production for wildcard matches
+      // This prevents attackers from using HTTP to bypass HSTS
+      if (NODE_ENV === 'production' && originUrl.protocol !== 'https:') {
+        console.warn(`[CORS] Rejected non-HTTPS origin in production: ${origin}`)
+        continue
       }
-      const originHost = parsedOrigin.host
-      if (originHost === domain || originHost.endsWith('.' + domain)) {
+
+      // Match base domain or subdomains
+      if (originHost === baseDomain || originHost.endsWith('.' + baseDomain)) {
         return true
       }
     }

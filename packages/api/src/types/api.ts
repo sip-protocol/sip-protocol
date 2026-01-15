@@ -17,10 +17,23 @@ export interface ApiResponse<T = unknown> {
  * Health check response
  */
 export interface HealthResponse {
-  status: 'healthy' | 'unhealthy'
+  status: 'healthy' | 'unhealthy' | 'shutting_down'
   version: string
   timestamp: string
   uptime: number
+  services?: {
+    proofProvider: {
+      ready: boolean
+      error: string | null
+    }
+  }
+  cache?: {
+    swaps: {
+      size: number
+      maxSize: number
+      utilizationPercent: number
+    }
+  }
 }
 
 /**

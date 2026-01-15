@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express'
 import type { HealthResponse, ApiResponse } from '../types/api'
 import { isServerShuttingDown } from '../shutdown'
+import { swapStore } from '../stores'
+import { isProofProviderReady, getProofInitError } from './proof'
 
 const router: Router = Router()
 
@@ -43,6 +45,11 @@ router.get('/', (req: Request, res: Response) => {
   const status = shuttingDown ? 'shutting_down' : 'healthy'
   const statusCode = shuttingDown ? 503 : 200
 
+  const cacheMetrics = swapStore.getMetrics()
+
+  const proofReady = isProofProviderReady()
+  const proofError = getProofInitError()
+
   const response: ApiResponse<HealthResponse> = {
     success: !shuttingDown,
     data: {
@@ -50,6 +57,19 @@ router.get('/', (req: Request, res: Response) => {
       version: process.env.npm_package_version || '0.1.0',
       timestamp: new Date().toISOString(),
       uptime: Math.floor((Date.now() - startTime) / 1000),
+      services: {
+        proofProvider: {
+          ready: proofReady,
+          error: proofError?.message || null,
+        },
+      },
+      cache: {
+        swaps: {
+          size: cacheMetrics.size,
+          maxSize: cacheMetrics.maxSize,
+          utilizationPercent: cacheMetrics.utilizationPercent,
+        },
+      },
     },
   }
 

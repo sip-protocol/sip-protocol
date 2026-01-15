@@ -137,8 +137,8 @@ describe('Quote Endpoint', () => {
       expect(response.body.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should support cross-chain quotes', async () => {
-      // Use actual native tokens for each chain (prevents hardcoded decimals bug)
+    it('should support cross-chain quotes with known tokens', async () => {
+      // Test cross-chain swaps using tokens in our registry
       const chains = [
         { input: 'ethereum', inputToken: 'ETH', output: 'solana', outputToken: 'SOL' },
         { input: 'solana', inputToken: 'SOL', output: 'near', outputToken: 'NEAR' },
@@ -158,7 +158,25 @@ describe('Quote Endpoint', () => {
           .expect(200)
 
         expect(response.body.success).toBe(true)
+        // Dev mode should include warning
+        expect(response.body.data._warning).toContain('MOCK_DATA')
       }
+    })
+
+    it('should reject unknown tokens', async () => {
+      const response = await request(app)
+        .post('/api/v1/quote')
+        .send({
+          inputChain: 'solana',
+          inputToken: 'UNKNOWN_TOKEN',
+          inputAmount: '1000000000',
+          outputChain: 'ethereum',
+          outputToken: 'ETH',
+        })
+        .expect(400)
+
+      expect(response.body.success).toBe(false)
+      expect(response.body.error.code).toBe('UNKNOWN_TOKEN')
     })
   })
 })
@@ -181,6 +199,8 @@ describe('Swap Endpoint', () => {
       expect(response.body.data.swapId).toBeDefined()
       expect(response.body.data.status).toBe('pending')
       expect(response.body.data.timestamp).toBeDefined()
+      // Dev mode should include warning
+      expect(response.body.data._warning).toContain('MOCK_DATA')
     })
 
     it('should accept privacy level', async () => {
