@@ -22,6 +22,7 @@ import { bytesToHex, randomBytes } from '@noble/hashes/utils'
 import type { Commitment, HexString, Hash } from '@sip-protocol/types'
 import { commit, verifyOpening } from './commitment'
 import { ValidationError, ErrorCode } from './errors'
+import { warnOnce, deprecationMessage } from './utils'
 
 /**
  * Create a Pedersen commitment to a value
@@ -37,10 +38,11 @@ export function createCommitment(
   value: bigint,
   blindingFactor?: Uint8Array,
 ): Commitment {
-  console.warn(
-    'createCommitment() is deprecated and will be removed in v0.2.0. ' +
-    'Use commit() from "./commitment" instead.'
-  )
+  warnOnce('createCommitment', deprecationMessage(
+    'createCommitment()',
+    'commit() from "./commitment"',
+    '2026-06-01'
+  ))
 
   const { commitment, blinding } = commit(value, blindingFactor)
 
@@ -59,10 +61,11 @@ export function verifyCommitment(
   commitment: Commitment,
   expectedValue: bigint,
 ): boolean {
-  console.warn(
-    'verifyCommitment() is deprecated and will be removed in v0.2.0. ' +
-    'Use verifyOpening() from "./commitment" instead.'
-  )
+  warnOnce('verifyCommitment', deprecationMessage(
+    'verifyCommitment()',
+    'verifyOpening() from "./commitment"',
+    '2026-06-01'
+  ))
 
   if (!commitment.blindingFactor) {
     throw new ValidationError(

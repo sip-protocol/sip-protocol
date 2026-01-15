@@ -70,17 +70,40 @@ import type {
   CipherType,
 } from './interface'
 
-import { isComputationParams } from './interface'
+import {
+  isComputationParams,
+  withTimeout,
+  ComputationTimeoutError,
+} from './interface'
 
 import {
   ARCIUM_CLUSTERS,
   DEFAULT_COMPUTATION_TIMEOUT_MS,
   ESTIMATED_COMPUTATION_TIME_MS,
   BASE_COMPUTATION_COST_LAMPORTS,
+  COST_PER_ENCRYPTED_INPUT_LAMPORTS,
+  COST_PER_INPUT_KB_LAMPORTS,
+  BYTES_PER_KB,
+  DEFAULT_MAX_ENCRYPTED_INPUTS,
+  DEFAULT_MAX_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_COMPUTATION_COST_LAMPORTS,
+  ArciumError,
+  // Environment variable configuration
+  resolveRpcUrl,
+  resolveNetwork,
+  resolveTimeout,
+  resolveCluster,
   type ArciumNetwork,
   type IArciumClient,
   type ComputationInfo,
+  type ArciumLimitsConfig,
+  type ArciumLimitsResolved,
 } from './arcium-types'
+
+import { createPrivacyLogger } from '../privacy-logger'
+
+const arciumLogger = createPrivacyLogger('Arcium')
 
 /**
  * Configuration options for Arcium backend
@@ -98,6 +121,10 @@ export interface ArciumBackendConfig {
   timeout?: number
   /** Custom SDK client (for testing) */
   client?: IArciumClient
+  /** Enable debug mode (includes stack traces in error responses) */
+  debug?: boolean
+  /** Configurable validation limits */
+  limits?: ArciumLimitsConfig
 }
 
 /**
@@ -126,25 +153,106 @@ export class ArciumBackend implements PrivacyBackend {
   readonly type: BackendType = 'compute'
   readonly chains: string[] = ['solana']
 
-  private config: Required<Omit<ArciumBackendConfig, 'client'>> & {
+  private config: Required<Omit<ArciumBackendConfig, 'client' | 'limits'>> & {
     client?: IArciumClient
   }
   private computationCache: Map<string, ComputationInfo> = new Map()
+  private limits: ArciumLimitsResolved
 
   /**
    * Create a new Arcium backend
    *
+   * Configuration is resolved with the following priority:
+   * 1. Environment variables (highest priority)
+   * 2. Config parameters
+   * 3. Default values
+   *
    * @param config - Backend configuration
+   * @throws {ArciumError} If network is invalid
+   * @throws {Error} If limits are invalid (non-positive values)
+   *
+   * @example
+   * ```bash
+   * # Configure via environment variables
+   * export ARCIUM_RPC_URL_DEVNET=https://my-rpc.example.com
+   * export ARCIUM_NETWORK=devnet
+   * export ARCIUM_TIMEOUT_MS=600000
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // Or configure via constructor
+   * const backend = new ArciumBackend({
+   *   rpcUrl: 'https://my-rpc.example.com',
+   *   network: 'devnet',
+   *   timeout: 600_000,
+   * })
+   * ```
    */
   constructor(config: ArciumBackendConfig = {}) {
-    this.config = {
-      rpcUrl: config.rpcUrl ?? 'https://api.devnet.solana.com',
-      network: config.network ?? 'devnet',
-      cluster: config.cluster ?? ARCIUM_CLUSTERS[config.network ?? 'devnet'],
-      defaultCipher: config.defaultCipher ?? 'aes256',
-      timeout: config.timeout ?? DEFAULT_COMPUTATION_TIMEOUT_MS,
-      client: config.client,
+    // Resolve network first (needed for other resolvers)
+    const network = resolveNetwork(config.network)
+
+    // Validate network parameter if explicitly provided
+    if (config.network !== undefined) {
+      const validNetworks: ArciumNetwork[] = ['devnet', 'testnet', 'mainnet-beta']
+      if (!validNetworks.includes(config.network)) {
+        throw new ArciumError(
+          `Invalid Arcium network '${config.network}'. Valid networks: ${validNetworks.join(', ')}`,
+          'ARCIUM_INVALID_NETWORK',
+          {
+            context: {
+              receivedNetwork: config.network,
+              validNetworks,
+            },
+          }
+        )
+      }
     }
+
+    this.config = {
+      rpcUrl: resolveRpcUrl(network, config.rpcUrl),
+      network,
+      cluster: resolveCluster(network, config.cluster),
+      defaultCipher: config.defaultCipher ?? 'aes256',
+      timeout: resolveTimeout(config.timeout),
+      client: config.client,
+      debug: config.debug ?? false,
+    }
+
+    // Resolve limits with defaults
+    this.limits = {
+      maxEncryptedInputs:
+        config.limits?.maxEncryptedInputs ?? DEFAULT_MAX_ENCRYPTED_INPUTS,
+      maxInputSizeBytes:
+        config.limits?.maxInputSizeBytes ?? DEFAULT_MAX_INPUT_SIZE_BYTES,
+      maxTotalInputSizeBytes:
+        config.limits?.maxTotalInputSizeBytes ?? DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES,
+      maxComputationCostLamports:
+        config.limits?.maxComputationCostLamports ?? DEFAULT_MAX_COMPUTATION_COST_LAMPORTS,
+    }
+
+    // Validate configured limits are positive
+    if (this.limits.maxEncryptedInputs <= 0) {
+      throw new Error('maxEncryptedInputs must be positive')
+    }
+    if (this.limits.maxInputSizeBytes <= 0) {
+      throw new Error('maxInputSizeBytes must be positive')
+    }
+    if (this.limits.maxTotalInputSizeBytes <= 0) {
+      throw new Error('maxTotalInputSizeBytes must be positive')
+    }
+    if (this.limits.maxComputationCostLamports <= BigInt(0)) {
+      throw new Error('maxComputationCostLamports must be positive')
+    }
+  }
+
+  /**
+   * Get the current resolved limits configuration
+   * @returns A copy of the resolved limits
+   */
+  getLimits(): ArciumLimitsResolved {
+    return { ...this.limits }
   }
 
   /**
@@ -166,6 +274,19 @@ export class ArciumBackend implements PrivacyBackend {
   /**
    * Check availability for computation params
    */
+  /**
+   * Format bytes into human-readable string
+   */
+  private formatBytes(bytes: number): string {
+    if (bytes >= 1_048_576) {
+      return `${Math.round(bytes / 1_048_576)} MB`
+    }
+    if (bytes >= 1024) {
+      return `${Math.round(bytes / 1024)} KB`
+    }
+    return `${bytes} bytes`
+  }
+
   private async checkComputeAvailability(
     params: ComputationParams
   ): Promise<AvailabilityResult> {
@@ -193,7 +314,19 @@ export class ArciumBackend implements PrivacyBackend {
       }
     }
 
-    // Validate each input is a valid Uint8Array
+    // Validate number of inputs doesn't exceed maximum
+    if (params.encryptedInputs.length > this.limits.maxEncryptedInputs) {
+      arciumLogger.warn('Validation failed: too many inputs', {
+        amount: params.encryptedInputs.length,
+      })
+      return {
+        available: false,
+        reason: `Too many encrypted inputs: ${params.encryptedInputs.length} exceeds maximum of ${this.limits.maxEncryptedInputs}`,
+      }
+    }
+
+    // Validate each input is a valid Uint8Array with size bounds
+    let totalInputSize = 0
     for (let i = 0; i < params.encryptedInputs.length; i++) {
       const input = params.encryptedInputs[i]
       if (!(input instanceof Uint8Array) || input.length === 0) {
@@ -201,6 +334,27 @@ export class ArciumBackend implements PrivacyBackend {
           available: false,
           reason: `encryptedInputs[${i}] must be a non-empty Uint8Array`,
         }
+      }
+      if (input.length > this.limits.maxInputSizeBytes) {
+        arciumLogger.warn('Validation failed: input too large', {
+          amount: input.length,
+        })
+        return {
+          available: false,
+          reason: `encryptedInputs[${i}] size ${input.length} bytes exceeds maximum of ${this.formatBytes(this.limits.maxInputSizeBytes)}`,
+        }
+      }
+      totalInputSize += input.length
+    }
+
+    // Validate total input size
+    if (totalInputSize > this.limits.maxTotalInputSizeBytes) {
+      arciumLogger.warn('Validation failed: total input size exceeded', {
+        amount: totalInputSize,
+      })
+      return {
+        available: false,
+        reason: `Total input size ${this.formatBytes(totalInputSize)} exceeds maximum of ${this.formatBytes(this.limits.maxTotalInputSizeBytes)}`,
       }
     }
 
@@ -322,9 +476,10 @@ export class ArciumBackend implements PrivacyBackend {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: this.formatErrorMessage(error),
         backend: this.name,
         status: 'failed',
+        metadata: this.config.debug ? this.getErrorMetadata(error) : undefined,
       }
     }
   }
@@ -386,20 +541,17 @@ export class ArciumBackend implements PrivacyBackend {
    * Wait for computation to complete
    *
    * @param computationId - Computation to wait for
-   * @param timeout - Optional timeout override
+   * @param timeout - Optional timeout override (defaults to config.timeout)
    * @returns Computation result
+   * @throws {ComputationTimeoutError} If computation exceeds timeout
    */
   async awaitComputation(
     computationId: string,
     timeout?: number
   ): Promise<ComputationResult> {
-    // In production, would use the SDK with timeout:
-    // const timeoutMs = timeout ?? this.config.timeout
-    void timeout // Mark as intentionally unused (for future SDK integration)
-    // const client = await this.getClient()
-    // const output = await client.awaitFinalization(computationId, timeoutMs)
+    const timeoutMs = timeout ?? this.config.timeout
 
-    // Simulated: Just return the cached info as completed
+    // Check if computation exists before waiting
     const info = this.computationCache.get(computationId)
     if (!info) {
       return {
@@ -410,7 +562,31 @@ export class ArciumBackend implements PrivacyBackend {
       }
     }
 
-    // Simulate completion
+    // Wrap the polling/waiting logic with timeout
+    return withTimeout(
+      this.pollComputationResult(computationId, info),
+      timeoutMs,
+      () => {
+        throw new ComputationTimeoutError(computationId, timeoutMs, this.name)
+      }
+    )
+  }
+
+  /**
+   * Poll for computation result (simulation)
+   *
+   * In production, this would poll the Arcium network for completion.
+   * Currently simulates immediate completion for testing.
+   */
+  private async pollComputationResult(
+    computationId: string,
+    info: ComputationInfo
+  ): Promise<ComputationResult> {
+    // In production, would poll the Arcium network:
+    // const client = await this.getClient()
+    // const output = await client.awaitFinalization(computationId)
+
+    // Simulated: Mark as completed immediately
     info.status = 'completed'
     info.completedAt = Date.now()
     this.computationCache.set(computationId, info)
@@ -440,7 +616,8 @@ export class ArciumBackend implements PrivacyBackend {
     let cost = BASE_COMPUTATION_COST_LAMPORTS
 
     // More inputs = higher cost
-    const inputCost = BigInt(params.encryptedInputs.length) * BigInt(1_000_000)
+    const inputCost =
+      BigInt(params.encryptedInputs.length) * COST_PER_ENCRYPTED_INPUT_LAMPORTS
     cost += inputCost
 
     // Larger inputs = higher cost
@@ -448,8 +625,14 @@ export class ArciumBackend implements PrivacyBackend {
       (sum, input) => sum + input.length,
       0
     )
-    const sizeCost = BigInt(Math.ceil(totalInputSize / 1000)) * BigInt(500_000)
+    const sizeCost =
+      BigInt(Math.ceil(totalInputSize / BYTES_PER_KB)) * COST_PER_INPUT_KB_LAMPORTS
     cost += sizeCost
+
+    // Cap at maximum reasonable cost to prevent unexpected charges
+    if (cost > this.limits.maxComputationCostLamports) {
+      return this.limits.maxComputationCostLamports
+    }
 
     return cost
   }
@@ -475,5 +658,62 @@ export class ArciumBackend implements PrivacyBackend {
    */
   getCachedComputationCount(): number {
     return this.computationCache.size
+  }
+
+  // ─── Error Handling Helpers ─────────────────────────────────────────────────
+
+  /**
+   * Format an error message for user-facing output
+   *
+   * Include error type for better debugging while keeping the message clear.
+   */
+  private formatErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      const errorType = error.name !== 'Error' ? `[${error.name}] ` : ''
+      return `${errorType}${error.message}`
+    }
+    return 'Unknown error occurred'
+  }
+
+  /**
+   * Get detailed error metadata for debugging
+   *
+   * Only called when debug mode is enabled. Includes stack trace and
+   * error chain information for troubleshooting.
+   */
+  private getErrorMetadata(error: unknown): Record<string, unknown> {
+    const metadata: Record<string, unknown> = {
+      timestamp: new Date().toISOString(),
+    }
+
+    if (error instanceof Error) {
+      metadata.errorName = error.name
+      metadata.errorMessage = error.message
+      metadata.stack = error.stack
+
+      // Preserve error cause chain
+      if (error.cause) {
+        metadata.cause =
+          error.cause instanceof Error
+            ? {
+                name: error.cause.name,
+                message: error.cause.message,
+                stack: error.cause.stack,
+              }
+            : String(error.cause)
+      }
+
+      // Handle SIPError-specific fields
+      if ('code' in error && typeof (error as Record<string, unknown>).code === 'string') {
+        metadata.errorCode = (error as Record<string, unknown>).code
+      }
+      if ('context' in error) {
+        metadata.errorContext = (error as Record<string, unknown>).context
+      }
+    } else {
+      metadata.rawError = String(error)
+    }
+
+    return metadata
   }
 }

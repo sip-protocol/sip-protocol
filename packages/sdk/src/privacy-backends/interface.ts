@@ -580,3 +580,104 @@ export class CircuitOpenError extends Error {
     Object.setPrototypeOf(this, CircuitOpenError.prototype)
   }
 }
+
+/**
+ * Error thrown when a computation times out
+ */
+export class ComputationTimeoutError extends Error {
+  readonly name = 'ComputationTimeoutError'
+
+  constructor(
+    /** Computation identifier */
+    public readonly computationId: string,
+    /** Timeout duration in milliseconds */
+    public readonly timeoutMs: number,
+    /** Backend name where timeout occurred */
+    public readonly backendName: string
+  ) {
+    super(
+      `Computation '${computationId}' timed out after ${timeoutMs}ms ` +
+      `on backend '${backendName}'`
+    )
+    // Fix prototype chain for instanceof in transpiled code
+    Object.setPrototypeOf(this, ComputationTimeoutError.prototype)
+  }
+}
+
+// ─── Timeout Utilities ────────────────────────────────────────────────────────
+
+/**
+ * Wrap a promise with a timeout
+ *
+ * @param promise - The promise to wrap
+ * @param timeoutMs - Timeout in milliseconds
+ * @param onTimeout - Function to call when timeout occurs, should throw an error
+ * @returns The promise result or throws the timeout error
+ *
+ * @example
+ * ```typescript
+ * const result = await withTimeout(
+ *   fetchData(),
+ *   5000,
+ *   () => { throw new Error('Request timed out') }
+ * )
+ * ```
+ */
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  onTimeout: () => never
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      try {
+        onTimeout()
+      } catch (error) {
+        reject(error)
+      }
+    }, timeoutMs)
+  })
+
+  try {
+    return await Promise.race([promise, timeoutPromise])
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId)
+    }
+  }
+}
+
+// ─── Utility Functions ────────────────────────────────────────────────────────
+
+/**
+ * Deep freeze an object to make it truly immutable
+ *
+ * Unlike Object.freeze() which only freezes the top level,
+ * this recursively freezes all nested objects and arrays.
+ *
+ * @param obj - Object to freeze
+ * @returns The same object, deeply frozen
+ *
+ * @example
+ * ```typescript
+ * const config = deepFreeze({ network: 'devnet', options: { timeout: 5000 } })
+ * config.options.timeout = 10000 // Error in strict mode, silently ignored otherwise
+ * ```
+ */
+export function deepFreeze<T extends object>(obj: T): Readonly<T> {
+  // Get all properties including non-enumerable
+  const propNames = Object.getOwnPropertyNames(obj) as (keyof T)[]
+
+  // Freeze nested objects first (depth-first)
+  for (const name of propNames) {
+    const value = obj[name]
+    if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+      deepFreeze(value as object)
+    }
+  }
+
+  // Freeze the object itself
+  return Object.freeze(obj)
+}

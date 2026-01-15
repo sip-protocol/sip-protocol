@@ -4,6 +4,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { PrivacyBackendRegistry, defaultRegistry } from '../../src/privacy-backends/registry'
+import { RateLimiter } from '../../src/privacy-backends/rate-limiter'
 import type {
   PrivacyBackend,
   BackendCapabilities,
@@ -332,6 +333,141 @@ describe('PrivacyBackendRegistry', () => {
       expect(names).toContain('a')
       expect(names).not.toContain('b')
     })
+  })
+})
+
+describe('rate limiting integration', () => {
+  let registry: PrivacyBackendRegistry
+
+  beforeEach(() => {
+    registry = new PrivacyBackendRegistry({
+      enableRateLimiting: true,
+      rateLimiterConfig: {
+        defaultConfig: { maxTokens: 3, refillRate: 1, refillIntervalMs: 1000 },
+      },
+    })
+  })
+
+  it('should have rate limiter when enabled', () => {
+    expect(registry.getRateLimiter()).not.toBeNull()
+  })
+
+  it('should not have rate limiter by default', () => {
+    const defaultReg = new PrivacyBackendRegistry()
+    expect(defaultReg.getRateLimiter()).toBeNull()
+  })
+
+  it('should allow acquisition when tokens available', () => {
+    registry.register(createMockBackend('backend'))
+
+    expect(registry.tryAcquire('backend')).toBe(true)
+    expect(registry.tryAcquire('backend')).toBe(true)
+    expect(registry.tryAcquire('backend')).toBe(true)
+  })
+
+  it('should reject when tokens exhausted', () => {
+    registry.register(createMockBackend('backend'))
+
+    registry.tryAcquire('backend')
+    registry.tryAcquire('backend')
+    registry.tryAcquire('backend')
+
+    expect(registry.tryAcquire('backend')).toBe(false)
+  })
+
+  it('should always allow when rate limiting disabled', () => {
+    const regNoLimiting = new PrivacyBackendRegistry({ enableRateLimiting: false })
+    regNoLimiting.register(createMockBackend('backend'))
+
+    // Should always succeed when rate limiting is disabled
+    for (let i = 0; i < 100; i++) {
+      expect(regNoLimiting.tryAcquire('backend')).toBe(true)
+    }
+  })
+
+  it('should check if backend is rate limited', () => {
+    registry.register(createMockBackend('backend'))
+
+    expect(registry.isRateLimited('backend')).toBe(false)
+
+    // Exhaust tokens
+    registry.tryAcquire('backend')
+    registry.tryAcquire('backend')
+    registry.tryAcquire('backend')
+
+    expect(registry.isRateLimited('backend')).toBe(true)
+  })
+
+  it('should return stats for rate limited backend', () => {
+    registry.register(createMockBackend('backend'))
+
+    registry.tryAcquire('backend')
+    registry.tryAcquire('backend')
+
+    const stats = registry.getRateLimitStats('backend')
+    expect(stats?.allowed).toBe(2)
+  })
+
+  it('should filter available backends by rate limit', () => {
+    registry.register(createMockBackend('backend-a'))
+    registry.register(createMockBackend('backend-b'))
+
+    // Exhaust backend-a tokens
+    registry.tryAcquire('backend-a')
+    registry.tryAcquire('backend-a')
+    registry.tryAcquire('backend-a')
+
+    const available = registry.getAvailable()
+    expect(available).toHaveLength(1)
+    expect(available[0].name).toBe('backend-b')
+  })
+
+  it('should get ready backends (healthy AND not rate limited)', () => {
+    registry.register(createMockBackend('backend-a'))
+    registry.register(createMockBackend('backend-b'))
+
+    // Exhaust backend-a tokens
+    registry.tryAcquire('backend-a')
+    registry.tryAcquire('backend-a')
+    registry.tryAcquire('backend-a')
+
+    // Open circuit for backend-b (simulate unhealthy)
+    registry.openCircuit('backend-b')
+
+    // Neither should be ready
+    const ready = registry.getReady()
+    expect(ready).toHaveLength(0)
+  })
+
+  it('should reset rate limit state', () => {
+    registry.register(createMockBackend('backend'))
+
+    // Exhaust tokens
+    registry.tryAcquire('backend')
+    registry.tryAcquire('backend')
+    registry.tryAcquire('backend')
+    expect(registry.isRateLimited('backend')).toBe(true)
+
+    // Reset
+    registry.resetRateLimit('backend')
+
+    expect(registry.isRateLimited('backend')).toBe(false)
+  })
+
+  it('should allow setting external rate limiter', () => {
+    const customLimiter = new RateLimiter({
+      defaultConfig: { maxTokens: 1, refillRate: 1, refillIntervalMs: 1000 },
+    })
+
+    const reg = new PrivacyBackendRegistry()
+    reg.setRateLimiter(customLimiter)
+
+    expect(reg.getRateLimiter()).toBe(customLimiter)
+
+    // Should use custom limiter
+    reg.register(createMockBackend('backend'))
+    expect(reg.tryAcquire('backend')).toBe(true)
+    expect(reg.tryAcquire('backend')).toBe(false)
   })
 })
 

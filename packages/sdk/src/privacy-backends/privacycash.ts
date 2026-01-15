@@ -69,6 +69,12 @@ import {
   type PoolInfo,
   type IPrivacyCashSDK,
 } from './privacycash-types'
+import { createPrivacyLogger } from '../privacy-logger'
+
+/** Privacy-aware logger for PrivacyCash backend */
+const privacyCashLogger = createPrivacyLogger('PrivacyCash')
+
+import { randomBytes, bytesToHex } from '@noble/hashes/utils'
 
 /**
  * Default estimated anonymity set size
@@ -219,9 +225,8 @@ export class PrivacyCashBackend implements PrivacyBackend {
 
     // Viewing keys are not supported - warn if provided
     if (params.viewingKey) {
-      console.warn(
-        '[PrivacyCash] Viewing keys are not supported. ' +
-        'Use SIP Native backend for compliance features.'
+      privacyCashLogger.warn(
+        'Viewing keys are not supported. Use SIP Native backend for compliance features.'
       )
     }
 
@@ -432,22 +437,13 @@ export class PrivacyCashBackend implements PrivacyBackend {
 
   /**
    * Generate a simulated withdrawal note
-   * In production, this comes from the deposit transaction
+   *
+   * Uses cryptographically secure random bytes.
+   * In production, this comes from the deposit transaction.
    */
   private generateSimulatedNote(): string {
-    const randomBytes = new Uint8Array(32)
-    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-      crypto.getRandomValues(randomBytes)
-    } else {
-      for (let i = 0; i < 32; i++) {
-        randomBytes[i] = Math.floor(Math.random() * 256)
-      }
-    }
-    // Convert to hex string (browser-compatible, no Buffer dependency)
-    const hex = Array.from(randomBytes)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
-    return `privacycash:${hex}`
+    const bytes = randomBytes(32)
+    return `privacycash:${bytesToHex(bytes)}`
   }
 
   /**

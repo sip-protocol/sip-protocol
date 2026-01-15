@@ -69,7 +69,20 @@ import type {
   ComputationStatus,
 } from './interface'
 
-import { isComputationParams } from './interface'
+import {
+  isComputationParams,
+  withTimeout,
+  ComputationTimeoutError,
+  deepFreeze,
+} from './interface'
+
+import type {
+  IncoProduct,
+  EncryptedType,
+  EncryptedValue,
+  FHEComputationInfo,
+  IIncoClient,
+} from './inco-types'
 
 import {
   INCO_RPC_URLS,
@@ -79,11 +92,6 @@ import {
   BASE_FHE_COST_WEI,
   COST_PER_ENCRYPTED_INPUT_WEI,
   type IncoNetwork,
-  type IncoProduct,
-  type EncryptedType,
-  type EncryptedValue,
-  type FHEComputationInfo,
-  type IIncoClient,
 } from './inco-types'
 
 /**
@@ -141,8 +149,20 @@ export class IncoBackend implements PrivacyBackend {
    * Create a new Inco backend
    *
    * @param config - Backend configuration
+   * @throws {Error} If network is invalid
    */
   constructor(config: IncoBackendConfig = {}) {
+    // Validate network parameter if provided
+    if (config.network !== undefined) {
+      const validNetworks: IncoNetwork[] = ['testnet', 'mainnet']
+      if (!validNetworks.includes(config.network)) {
+        throw new Error(
+          `Invalid Inco network '${config.network}'. ` +
+            `Valid networks: ${validNetworks.join(', ')}`
+        )
+      }
+    }
+
     this.config = {
       rpcUrl: config.rpcUrl ?? INCO_RPC_URLS[config.network ?? 'testnet'],
       network: config.network ?? 'testnet',
@@ -452,16 +472,17 @@ export class IncoBackend implements PrivacyBackend {
    * Wait for computation to complete
    *
    * @param computationId - Computation to wait for
-   * @param timeout - Optional timeout override
+   * @param timeout - Optional timeout override (defaults to config.timeout)
    * @returns Computation result
+   * @throws {ComputationTimeoutError} If computation exceeds timeout
    */
   async awaitComputation(
     computationId: string,
     timeout?: number
   ): Promise<ComputationResult> {
-    void timeout // Mark as intentionally unused (for future SDK integration)
+    const timeoutMs = timeout ?? this.config.timeout
 
-    // Simulated: Just return the cached info as completed
+    // Check if computation exists before waiting
     const info = this.computationCache.get(computationId)
     if (!info) {
       return {
@@ -472,7 +493,31 @@ export class IncoBackend implements PrivacyBackend {
       }
     }
 
-    // Simulate completion
+    // Wrap the polling/waiting logic with timeout
+    return withTimeout(
+      this.pollComputationResult(computationId, info),
+      timeoutMs,
+      () => {
+        throw new ComputationTimeoutError(computationId, timeoutMs, this.name)
+      }
+    )
+  }
+
+  /**
+   * Poll for computation result (simulation)
+   *
+   * In production, this would poll the Inco network for completion.
+   * Currently simulates immediate completion for testing.
+   */
+  private async pollComputationResult(
+    computationId: string,
+    info: FHEComputationInfo
+  ): Promise<ComputationResult> {
+    // In production, would poll the Inco network:
+    // const client = await this.getClient()
+    // const output = await client.awaitFinalization(computationId)
+
+    // Simulated: Mark as completed immediately
     info.status = 'completed'
     info.completedAt = Date.now()
     info.outputHandle = `output_${computationId}`
@@ -557,15 +602,15 @@ export class IncoBackend implements PrivacyBackend {
   }
 
   /**
-   * Get current configuration (for testing)
+   * Get current configuration (deeply frozen copy)
    */
-  getConfig(): Omit<IncoBackendConfig, 'client'> {
-    return {
+  getConfig(): Readonly<Omit<IncoBackendConfig, 'client'>> {
+    return deepFreeze({
       rpcUrl: this.config.rpcUrl,
       network: this.config.network,
       chainId: this.config.chainId,
       product: this.config.product,
       timeout: this.config.timeout,
-    }
+    })
   }
 }

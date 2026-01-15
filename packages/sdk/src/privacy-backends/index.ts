@@ -87,11 +87,38 @@ export { isComputationParams, isTransferParams } from './interface'
 export {
   AllBackendsFailedError,
   CircuitOpenError,
+  ComputationTimeoutError,
   DEFAULT_CIRCUIT_BREAKER_CONFIG,
 } from './interface'
 
+// Timeout utilities
+export { withTimeout } from './interface'
+
+// Utilities
+export { deepFreeze } from './interface'
+export {
+  LRUCache,
+  DEFAULT_CACHE_SIZES,
+  DEFAULT_CACHE_TTL,
+  type LRUCacheConfig,
+  type LRUCacheStats,
+} from './lru-cache'
+
 // Health tracking
 export { BackendHealthTracker } from './health'
+
+// Rate limiting
+export {
+  RateLimiter,
+  DEFAULT_RATE_LIMIT_CONFIG,
+  RateLimitExceededError,
+  QueueFullError,
+  AcquireTimeoutError,
+  type RateLimitConfig,
+  type RateLimiterConfig,
+  type AcquireOptions,
+  type RateLimitStats,
+} from './rate-limiter'
 
 // Registry
 export {
@@ -150,6 +177,32 @@ export {
   DEFAULT_COMPUTATION_TIMEOUT_MS,
   ESTIMATED_COMPUTATION_TIME_MS,
   BASE_COMPUTATION_COST_LAMPORTS,
+  COST_PER_ENCRYPTED_INPUT_LAMPORTS,
+  COST_PER_INPUT_KB_LAMPORTS,
+  BYTES_PER_KB,
+  SOLANA_SLOT_TIME_MS,
+  // New DEFAULT_* constants (preferred)
+  DEFAULT_MAX_ENCRYPTED_INPUTS,
+  DEFAULT_MAX_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_COMPUTATION_COST_LAMPORTS,
+  // Deprecated aliases (backward compatibility)
+  MAX_ENCRYPTED_INPUTS,
+  MAX_INPUT_SIZE_BYTES,
+  MAX_TOTAL_INPUT_SIZE_BYTES,
+  MAX_COMPUTATION_COST_LAMPORTS,
+  // Error handling
+  ArciumError,
+  isArciumError,
+  type ArciumErrorCode,
+  // Environment variable configuration
+  ARCIUM_ENV_VARS,
+  DEFAULT_RPC_ENDPOINTS,
+  getEnvVar,
+  resolveRpcUrl,
+  resolveNetwork,
+  resolveTimeout,
+  resolveCluster,
   type ArciumNetwork,
   type ArciumConfig,
   type ArciumCluster,
@@ -161,6 +214,8 @@ export {
   type DecryptionResult,
   type IArciumClient,
   type IArciumReader,
+  type ArciumLimitsConfig,
+  type ArciumLimitsResolved,
 } from './arcium-types'
 
 // Inco types (for advanced usage)
@@ -189,7 +244,12 @@ export {
 } from './inco-types'
 
 // C-SPL (Confidential SPL) types and client
-export { CSPLClient, type CSPLClientConfig } from './cspl'
+export {
+  CSPLClient,
+  type CSPLClientConfig,
+  type CSPLCacheConfig,
+  type CSPLCacheStats,
+} from './cspl'
 export {
   CSPL_TOKENS,
   CSPL_PROGRAM_IDS,
@@ -227,6 +287,35 @@ export {
   type PrivateSwapResult,
   type PrivateSwapStep,
 } from './private-swap'
+
+// C-SPL Token Service (higher-level wrapper)
+export {
+  CSPLTokenService,
+  type CSPLTokenServiceConfig,
+  type WrapParams,
+  type WrapResult,
+  type UnwrapParams,
+  type UnwrapResult,
+  type ApproveParams,
+  type ApproveResult,
+  type CSPLServiceStatus,
+} from './cspl-token'
+
+// Combined Privacy Service (SIP Native + C-SPL integration)
+export {
+  CombinedPrivacyService,
+  createCombinedPrivacyServiceDevnet,
+  createCombinedPrivacyServiceMainnet,
+  type CombinedPrivacyServiceConfig,
+  type CombinedTransferParams,
+  type CombinedTransferResult,
+  type StealthAddressResult,
+  type ClaimParams,
+  type ClaimResult,
+  type CostBreakdown,
+  type PrivacyComparison,
+  type ServiceStatus,
+} from './combined-privacy'
 
 // Router
 export { SmartRouter } from './router'

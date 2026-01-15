@@ -949,3 +949,51 @@ export type {
   AnalyzableTransaction,
   KnownExchange,
 } from './surveillance'
+
+// Privacy Advisor Agent (LangChain-powered)
+export {
+  PrivacyAdvisorAgent,
+  createPrivacyAdvisor,
+  // LangChain tools
+  createPrivacyAdvisorTools,
+  createAnalyzeWalletTool,
+  createQuickScoreTool,
+  createSIPComparisonTool,
+  createExplainTool,
+} from './advisor'
+
+export type {
+  // Core types
+  AdvisorRole,
+  AdvisorMessage,
+  AdvisorStatus,
+  // Configuration
+  PrivacyAdvisorConfig,
+  AdvisoryContext,
+  // Response types
+  AdvisorResponse,
+  PrivacyAdvisoryReport,
+  AdvisorRecommendation,
+  // Utilities
+  ToolResult,
+  StreamCallback,
+  // Tools config
+  ToolsConfig,
+} from './advisor'
+
+// Privacy-Aware Logging (prevents sensitive data in logs)
+export {
+  PrivacyLogger,
+  createPrivacyLogger,
+  privacyLogger,
+  redactAddress,
+  redactSignature,
+  maskAmount,
+  redactSensitiveData,
+} from './privacy-logger'
+
+export type {
+  LogLevel,
+  PrivacyLoggerConfig,
+  SensitiveData,
+} from './privacy-logger'

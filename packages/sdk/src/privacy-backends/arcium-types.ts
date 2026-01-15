@@ -15,6 +15,7 @@
  */
 
 import type { CipherType, ComputationStatus } from './interface'
+import { SIPError, ErrorCode } from '../errors'
 
 // ─── Re-export from interface ────────────────────────────────────────────────
 
@@ -304,11 +305,16 @@ export const ARCIUM_CLUSTERS: Record<ArciumNetwork, string> = {
 
 /**
  * Arcium program addresses on Solana
+ *
+ * NOTE: These are PLACEHOLDER addresses for type safety only.
+ * Real program IDs come from @arcium-hq/client SDK at runtime.
+ * The PLACEHOLDER prefix makes them obviously invalid to prevent
+ * accidental use in production or devnet testing.
  */
 export const ARCIUM_PROGRAM_IDS: Record<ArciumNetwork, string> = {
-  devnet: 'ArcmDevnetProgramAddress111111111111111111111',
-  testnet: 'ArcmTestnetProgramAddress11111111111111111111',
-  'mainnet-beta': 'ArcmMainnetProgramAddress11111111111111111111',
+  devnet: 'PLACEHLDRArciumDevnet11111111111111111111111',
+  testnet: 'PLACEHLDRArciumTestnet1111111111111111111111',
+  'mainnet-beta': 'PLACEHLDRArciumMainnet1111111111111111111111',
 }
 
 /**
@@ -326,3 +332,396 @@ export const ESTIMATED_COMPUTATION_TIME_MS = 60_000
  * Actual cost depends on circuit complexity and cluster fees
  */
 export const BASE_COMPUTATION_COST_LAMPORTS = BigInt(50_000_000) // ~0.05 SOL
+
+// ─── Cost Calculation Constants ───────────────────────────────────────────────
+
+/**
+ * Cost per encrypted input in lamports (~0.001 SOL)
+ * Used in computation cost estimation
+ */
+export const COST_PER_ENCRYPTED_INPUT_LAMPORTS = BigInt(1_000_000)
+
+/**
+ * Cost per kilobyte of input data in lamports (~0.0005 SOL)
+ * Used in computation cost estimation for larger payloads
+ */
+export const COST_PER_INPUT_KB_LAMPORTS = BigInt(500_000)
+
+/**
+ * Bytes per kilobyte for size calculations
+ * Using 1000 (SI standard) rather than 1024 (binary)
+ */
+export const BYTES_PER_KB = 1000
+
+/**
+ * Solana slot time in milliseconds
+ * Average time between Solana slots (~400ms)
+ * @see https://docs.solana.com/cluster/synchronization
+ */
+export const SOLANA_SLOT_TIME_MS = 400
+
+// ─── Upper Bound Validation Constants ─────────────────────────────────────────
+
+/**
+ * Default maximum number of encrypted inputs per computation
+ * Prevents excessive MPC coordination overhead
+ */
+export const DEFAULT_MAX_ENCRYPTED_INPUTS = 100
+
+/**
+ * @deprecated Use DEFAULT_MAX_ENCRYPTED_INPUTS instead
+ */
+export const MAX_ENCRYPTED_INPUTS = DEFAULT_MAX_ENCRYPTED_INPUTS
+
+/**
+ * Default maximum size of a single encrypted input (1 MB)
+ * Prevents memory exhaustion during encryption/decryption
+ */
+export const DEFAULT_MAX_INPUT_SIZE_BYTES = 1_048_576
+
+/**
+ * @deprecated Use DEFAULT_MAX_INPUT_SIZE_BYTES instead
+ */
+export const MAX_INPUT_SIZE_BYTES = DEFAULT_MAX_INPUT_SIZE_BYTES
+
+/**
+ * Default maximum total size of all inputs combined (10 MB)
+ * Prevents excessive network/computation load
+ */
+export const DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES = 10_485_760
+
+/**
+ * @deprecated Use DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES instead
+ */
+export const MAX_TOTAL_INPUT_SIZE_BYTES = DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES
+
+/**
+ * Default maximum reasonable computation cost (~1 SOL)
+ * Prevents overflow and unreasonable cost estimates
+ */
+export const DEFAULT_MAX_COMPUTATION_COST_LAMPORTS = BigInt(1_000_000_000)
+
+/**
+ * @deprecated Use DEFAULT_MAX_COMPUTATION_COST_LAMPORTS instead
+ */
+export const MAX_COMPUTATION_COST_LAMPORTS = DEFAULT_MAX_COMPUTATION_COST_LAMPORTS
+
+// ─── Configurable Limits Types ────────────────────────────────────────────────
+
+/**
+ * Configuration for Arcium validation limits.
+ * All fields are optional - defaults from DEFAULT_* constants are used if not specified.
+ */
+export interface ArciumLimitsConfig {
+  /** Maximum number of encrypted inputs per computation */
+  maxEncryptedInputs?: number
+  /** Maximum size of a single encrypted input in bytes */
+  maxInputSizeBytes?: number
+  /** Maximum total size of all inputs combined in bytes */
+  maxTotalInputSizeBytes?: number
+  /** Maximum computation cost in lamports */
+  maxComputationCostLamports?: bigint
+}
+
+/**
+ * Resolved limits configuration with all values set.
+ * Used internally after merging user config with defaults.
+ */
+export interface ArciumLimitsResolved {
+  maxEncryptedInputs: number
+  maxInputSizeBytes: number
+  maxTotalInputSizeBytes: number
+  maxComputationCostLamports: bigint
+}
+
+// ─── Error Types ──────────────────────────────────────────────────────────────
+
+/**
+ * Arcium-specific error codes
+ */
+export type ArciumErrorCode =
+  | 'ARCIUM_ERROR'
+  | 'ARCIUM_INVALID_NETWORK'
+  | 'ARCIUM_COMPUTATION_FAILED'
+  | 'ARCIUM_COMPUTATION_TIMEOUT'
+  | 'ARCIUM_CLUSTER_UNAVAILABLE'
+  | 'ARCIUM_CIRCUIT_NOT_FOUND'
+
+/**
+ * Error thrown by Arcium backend operations
+ *
+ * Extends SIPError with Arcium-specific context and error codes.
+ *
+ * @example
+ * ```typescript
+ * throw new ArciumError('Invalid network', 'ARCIUM_INVALID_NETWORK', {
+ *   context: { network: 'invalid', validNetworks: ['devnet', 'testnet', 'mainnet-beta'] }
+ * })
+ * ```
+ */
+export class ArciumError extends SIPError {
+  /** Arcium-specific error code */
+  readonly arciumCode: ArciumErrorCode
+
+  /** Network where error occurred */
+  readonly network?: ArciumNetwork
+
+  /** Computation ID if applicable */
+  readonly computationId?: string
+
+  /** Cluster involved if applicable */
+  readonly cluster?: string
+
+  constructor(
+    message: string,
+    arciumCode: ArciumErrorCode = 'ARCIUM_ERROR',
+    options?: {
+      cause?: Error
+      context?: Record<string, unknown>
+      network?: ArciumNetwork
+      computationId?: string
+      cluster?: string
+    }
+  ) {
+    // Map Arcium code to SIP error code
+    let sipCode: ErrorCode
+    switch (arciumCode) {
+      case 'ARCIUM_INVALID_NETWORK':
+        sipCode = ErrorCode.ARCIUM_INVALID_NETWORK
+        break
+      case 'ARCIUM_COMPUTATION_FAILED':
+        sipCode = ErrorCode.ARCIUM_COMPUTATION_FAILED
+        break
+      case 'ARCIUM_COMPUTATION_TIMEOUT':
+        sipCode = ErrorCode.ARCIUM_COMPUTATION_TIMEOUT
+        break
+      case 'ARCIUM_CLUSTER_UNAVAILABLE':
+        sipCode = ErrorCode.ARCIUM_CLUSTER_UNAVAILABLE
+        break
+      case 'ARCIUM_CIRCUIT_NOT_FOUND':
+        sipCode = ErrorCode.ARCIUM_CIRCUIT_NOT_FOUND
+        break
+      default:
+        sipCode = ErrorCode.ARCIUM_ERROR
+    }
+
+    super(message, sipCode, options)
+    this.name = 'ArciumError'
+    this.arciumCode = arciumCode
+    this.network = options?.network
+    this.computationId = options?.computationId
+    this.cluster = options?.cluster
+  }
+
+  /**
+   * Check if this is a network configuration error
+   */
+  isNetworkError(): boolean {
+    return this.arciumCode === 'ARCIUM_INVALID_NETWORK'
+  }
+
+  /**
+   * Check if this is a computation-related error
+   */
+  isComputationError(): boolean {
+    return (
+      this.arciumCode === 'ARCIUM_COMPUTATION_FAILED' ||
+      this.arciumCode === 'ARCIUM_COMPUTATION_TIMEOUT'
+    )
+  }
+
+  /**
+   * Check if this is a cluster-related error
+   */
+  isClusterError(): boolean {
+    return this.arciumCode === 'ARCIUM_CLUSTER_UNAVAILABLE'
+  }
+}
+
+/**
+ * Check if an error is an ArciumError
+ */
+export function isArciumError(error: unknown): error is ArciumError {
+  return error instanceof ArciumError
+}
+
+// ─── Environment Variable Configuration ──────────────────────────────────────
+
+/**
+ * Environment variable names for Arcium configuration
+ *
+ * Allows runtime override of SDK settings without code changes.
+ * Priority: network-specific env → generic env → config → default
+ *
+ * @example
+ * ```bash
+ * # Generic RPC URL (used if network-specific not set)
+ * export ARCIUM_RPC_URL=https://my-rpc.example.com
+ *
+ * # Network-specific RPC URLs (highest priority)
+ * export ARCIUM_RPC_URL_DEVNET=https://devnet.my-rpc.example.com
+ * export ARCIUM_RPC_URL_MAINNET=https://mainnet.my-rpc.example.com
+ *
+ * # Other settings
+ * export ARCIUM_NETWORK=devnet
+ * export ARCIUM_TIMEOUT_MS=600000
+ * ```
+ */
+export const ARCIUM_ENV_VARS = {
+  /** Generic RPC URL (fallback if network-specific not set) */
+  RPC_URL: 'ARCIUM_RPC_URL',
+  /** Devnet-specific RPC URL */
+  RPC_URL_DEVNET: 'ARCIUM_RPC_URL_DEVNET',
+  /** Testnet-specific RPC URL */
+  RPC_URL_TESTNET: 'ARCIUM_RPC_URL_TESTNET',
+  /** Mainnet-specific RPC URL */
+  RPC_URL_MAINNET: 'ARCIUM_RPC_URL_MAINNET',
+  /** Default network */
+  NETWORK: 'ARCIUM_NETWORK',
+  /** Default MPC cluster */
+  CLUSTER: 'ARCIUM_CLUSTER',
+  /** Default cipher type */
+  CIPHER: 'ARCIUM_CIPHER',
+  /** Computation timeout in milliseconds */
+  TIMEOUT_MS: 'ARCIUM_TIMEOUT_MS',
+} as const
+
+/**
+ * Default Solana RPC endpoints per network
+ *
+ * Used as fallback when no env var or config is provided.
+ */
+export const DEFAULT_RPC_ENDPOINTS: Record<ArciumNetwork, string> = {
+  devnet: 'https://api.devnet.solana.com',
+  testnet: 'https://api.testnet.solana.com',
+  'mainnet-beta': 'https://api.mainnet-beta.solana.com',
+}
+
+/**
+ * Get environment variable value (cross-platform)
+ *
+ * Works in both Node.js and browser environments.
+ *
+ * @param name - Environment variable name
+ * @returns Value if set, undefined otherwise
+ */
+export function getEnvVar(name: string): string | undefined {
+  // Node.js environment
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[name]
+  }
+  // Browser environment (globalThis fallback)
+  if (typeof globalThis !== 'undefined') {
+    const global = globalThis as Record<string, unknown>
+    if (global[name] !== undefined) {
+      return String(global[name])
+    }
+  }
+  return undefined
+}
+
+/**
+ * Resolve RPC URL with fallback chain
+ *
+ * Priority: network-specific env → generic env → config → default
+ *
+ * @param network - Target network
+ * @param configUrl - URL from config (optional)
+ * @returns Resolved RPC URL
+ *
+ * @example
+ * ```typescript
+ * // Uses ARCIUM_RPC_URL_DEVNET if set, else ARCIUM_RPC_URL, else config, else default
+ * const rpcUrl = resolveRpcUrl('devnet', config.rpcUrl)
+ * ```
+ */
+export function resolveRpcUrl(
+  network: ArciumNetwork,
+  configUrl?: string
+): string {
+  // Map network to its specific env var
+  const networkEnvMap: Record<ArciumNetwork, string> = {
+    devnet: ARCIUM_ENV_VARS.RPC_URL_DEVNET,
+    testnet: ARCIUM_ENV_VARS.RPC_URL_TESTNET,
+    'mainnet-beta': ARCIUM_ENV_VARS.RPC_URL_MAINNET,
+  }
+
+  // 1. Check network-specific env var (highest priority)
+  const networkEnvUrl = getEnvVar(networkEnvMap[network])
+  if (networkEnvUrl) {
+    return networkEnvUrl
+  }
+
+  // 2. Check generic env var
+  const genericEnvUrl = getEnvVar(ARCIUM_ENV_VARS.RPC_URL)
+  if (genericEnvUrl) {
+    return genericEnvUrl
+  }
+
+  // 3. Use config value if provided
+  if (configUrl) {
+    return configUrl
+  }
+
+  // 4. Fall back to default
+  return DEFAULT_RPC_ENDPOINTS[network]
+}
+
+/**
+ * Resolve network from env or config
+ *
+ * @param configNetwork - Network from config (optional)
+ * @returns Resolved network, defaults to 'devnet'
+ */
+export function resolveNetwork(configNetwork?: ArciumNetwork): ArciumNetwork {
+  const envNetwork = getEnvVar(ARCIUM_ENV_VARS.NETWORK)
+  if (envNetwork && isValidNetwork(envNetwork)) {
+    return envNetwork as ArciumNetwork
+  }
+  return configNetwork ?? 'devnet'
+}
+
+/**
+ * Resolve computation timeout from env or config
+ *
+ * @param configTimeout - Timeout from config in ms (optional)
+ * @returns Resolved timeout in ms
+ */
+export function resolveTimeout(configTimeout?: number): number {
+  const envTimeout = getEnvVar(ARCIUM_ENV_VARS.TIMEOUT_MS)
+  if (envTimeout) {
+    const parsed = parseInt(envTimeout, 10)
+    if (!isNaN(parsed) && parsed > 0) {
+      return parsed
+    }
+  }
+  return configTimeout ?? DEFAULT_COMPUTATION_TIMEOUT_MS
+}
+
+/**
+ * Resolve cluster from env or config
+ *
+ * @param network - Target network (for default cluster selection)
+ * @param configCluster - Cluster from config (optional)
+ * @returns Resolved cluster ID
+ */
+export function resolveCluster(
+  network: ArciumNetwork,
+  configCluster?: string
+): string {
+  const envCluster = getEnvVar(ARCIUM_ENV_VARS.CLUSTER)
+  if (envCluster) {
+    return envCluster
+  }
+  return configCluster ?? ARCIUM_CLUSTERS[network]
+}
+
+/**
+ * Check if a string is a valid ArciumNetwork value
+ *
+ * @param value - String to validate
+ * @returns True if valid network
+ */
+function isValidNetwork(value: string): value is ArciumNetwork {
+  return value === 'devnet' || value === 'testnet' || value === 'mainnet-beta'
+}

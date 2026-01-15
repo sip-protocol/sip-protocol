@@ -60,6 +60,10 @@ import type {
 import { isTransferParams } from './interface'
 import { generateViewingKey, encryptForViewing } from '../privacy'
 import { bytesToHex } from '@noble/hashes/utils'
+import { createPrivacyLogger } from '../privacy-logger'
+
+/** Privacy-aware logger for MagicBlock backend */
+const magicBlockLogger = createPrivacyLogger('MagicBlock')
 
 /**
  * MagicBlock network type
@@ -137,6 +141,17 @@ export class MagicBlockBackend implements PrivacyBackend {
   private wallet?: Keypair
 
   constructor(config: MagicBlockBackendConfig = {}) {
+    // Validate network parameter if provided
+    if (config.network !== undefined) {
+      const validNetworks: MagicBlockNetwork[] = ['devnet', 'mainnet-beta']
+      if (!validNetworks.includes(config.network)) {
+        throw new Error(
+          `Invalid MagicBlock network '${config.network}'. ` +
+            `Valid networks: ${validNetworks.join(', ')}`
+        )
+      }
+    }
+
     this.config = {
       network: config.network ?? 'devnet',
       region: config.region ?? 'us',
@@ -280,9 +295,8 @@ export class MagicBlockBackend implements PrivacyBackend {
       delegateTx.sign(wallet)
       const delegateSig = await this.magicRouter.sendTransaction(delegateTx, [wallet])
 
-      if (this.config.debug) {
-        console.log(`[MagicBlock] Delegation tx: ${delegateSig}`)
-      }
+      // Log with privacy-aware logger (redacts full signature)
+      magicBlockLogger.debug('Delegation transaction sent', { signature: delegateSig })
 
       // Step 3: Wait for delegation confirmation
       const latestBlockhash = await this.connection.getLatestBlockhash()
@@ -396,6 +410,10 @@ export class MagicBlockBackend implements PrivacyBackend {
 
   /**
    * Estimate transfer cost in lamports
+   *
+   * Note: _params is reserved for dynamic cost calculation based on
+   * amount, token type, or other factors when TEE pricing becomes variable.
+   * Currently using fixed costs for simplicity.
    */
   private estimateTransferCost(_params: TransferParams): bigint {
     // Base transaction fee

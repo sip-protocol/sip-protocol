@@ -27,6 +27,7 @@ import {
   authenticate,
   isAuthEnabled,
   getCorsConfig,
+  requestIdMiddleware,
 } from './middleware'
 import {
   initSentry,
@@ -48,6 +49,9 @@ if (env.METRICS_ENABLED === 'true') {
 
 // Shutdown middleware (early to reject during shutdown)
 app.use(shutdownMiddleware)
+
+// Request ID middleware (early for correlation)
+app.use(requestIdMiddleware)
 
 // Security middleware
 app.use(helmet())

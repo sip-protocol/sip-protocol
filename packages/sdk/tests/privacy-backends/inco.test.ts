@@ -97,6 +97,34 @@ describe('IncoBackend', () => {
       expect(backend.getConfig().timeout).toBe(600000)
     })
 
+    // ─── Network Validation Tests ─────────────────────────────────────────────
+
+    it('should throw on invalid network', () => {
+      expect(() => {
+        new IncoBackend({
+          // @ts-expect-error - Testing invalid network value
+          network: 'invalid-network',
+        })
+      }).toThrow("Invalid Inco network 'invalid-network'")
+    })
+
+    it('should include valid networks in error message', () => {
+      expect(() => {
+        new IncoBackend({
+          // @ts-expect-error - Testing invalid network value
+          network: 'devnet',
+        })
+      }).toThrow('Valid networks: testnet, mainnet')
+    })
+
+    it('should accept all valid networks', () => {
+      const validNetworks = ['testnet', 'mainnet'] as const
+      for (const network of validNetworks) {
+        const backend = new IncoBackend({ network })
+        expect(backend.name).toBe('inco')
+      }
+    })
+
     it('should use default RPC URL for testnet', () => {
       const backend = new IncoBackend({ network: 'testnet' })
 
@@ -663,6 +691,27 @@ describe('IncoBackend', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('not found')
+    })
+
+    it('should use default timeout from config', async () => {
+      const customBackend = new IncoBackend({ timeout: 10000 })
+      const params = createValidComputationParams()
+      const execResult = await customBackend.executeComputation(params)
+
+      // Should complete without timeout since simulation is instant
+      const awaitResult = await customBackend.awaitComputation(execResult.computationId!)
+
+      expect(awaitResult.success).toBe(true)
+    })
+
+    it('should use custom timeout when provided', async () => {
+      const params = createValidComputationParams()
+      const execResult = await backend.executeComputation(params)
+
+      // Should complete without timeout since simulation is instant
+      const awaitResult = await backend.awaitComputation(execResult.computationId!, 5000)
+
+      expect(awaitResult.success).toBe(true)
     })
 
     it('should clear computation cache', async () => {

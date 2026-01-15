@@ -10,37 +10,37 @@
  *
  * Bounty: Solana Privacy Hack - Arcium Track ($10,000)
  * Issue: https://github.com/sip-protocol/sip-protocol/issues/484
+ *
+ * IMPORTANT: This demo shows the CORRECT pattern for handling result types.
+ * Always check result.success BEFORE accessing result fields like csplMint.
+ *
+ * Issue #527: This example demonstrates proper wrapResult.success checks.
  */
 
+import { PrivacyLevel } from '@sip-protocol/types'
 import {
-  // Arcium Backend
+  // Arcium Backend (compute privacy)
   ArciumBackend,
-  createArciumDevnetBackend,
-  // C-SPL Token Service
+  // C-SPL Token Service (encrypted balances)
   CSPLTokenService,
-  createCSPLServiceDevnet,
-  // Combined Privacy Service
-  CombinedPrivacyService,
+  // Combined Privacy Service (SIP Native + C-SPL)
   createCombinedPrivacyServiceDevnet,
-  // Types
-  CSPL_TOKEN_REGISTRY,
-  hasCSPLSupport,
-  getCSPLToken,
+  // C-SPL Types
+  CSPL_TOKENS,
+  type CSPLToken,
 } from '../src/privacy-backends'
-
-// Token mints
-const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
-const SOL_MINT = 'So11111111111111111111111111111111111111112'
 
 // Demo addresses
 const ALICE = '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU'
 const BOB_META_ADDRESS = 'sip:solana:0x02abc123def456789012345678901234567890123456:0x03def456abc789012345678901234567890123456789'
-const AUDITOR_VIEWING_KEY = '0x04audit123456789compliance987654321viewkey'
+
+// Token mints
+const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
 
 async function main() {
   console.log('╔════════════════════════════════════════════════════════════════╗')
   console.log('║     SIP Protocol + Arcium: Combined Privacy Demo              ║')
-  console.log('║     Solana Privacy Hack - Arcium Track ($10,000)              ║')
+  console.log('║     Demonstrating proper wrapResult.success checks (#527)     ║')
   console.log('╚════════════════════════════════════════════════════════════════╝\n')
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -48,8 +48,10 @@ async function main() {
   // ─────────────────────────────────────────────────────────────────────────────
   console.log('━━━ Part 1: Arcium Backend Overview ━━━\n')
 
-  const arcium = createArciumDevnetBackend()
-  await arcium.initialize()
+  const arcium = new ArciumBackend({
+    rpcUrl: 'https://api.devnet.solana.com',
+    network: 'devnet',
+  })
 
   console.log('Arcium Backend:')
   console.log(`  Name: ${arcium.name}`)
@@ -71,69 +73,92 @@ async function main() {
   console.log('━━━ Part 2: C-SPL Token Support ━━━\n')
 
   console.log('Supported C-SPL Tokens:')
-  for (const [mint, token] of Object.entries(CSPL_TOKEN_REGISTRY)) {
-    console.log(`  ${token.symbol}:`)
-    console.log(`    SPL Mint: ${mint.slice(0, 20)}...`)
-    console.log(`    C-SPL Mint: ${token.csplMint.slice(0, 20)}...`)
-    console.log(`    Decimals: ${token.decimals}`)
-    console.log(`    Wrap Enabled: ${token.wrapEnabled}`)
+  for (const [symbol, token] of Object.entries(CSPL_TOKENS)) {
+    const t = token as Partial<CSPLToken>
+    console.log(`  ${symbol}:`)
+    console.log(`    Mint: ${t.mint?.slice(0, 20)}...`)
+    console.log(`    Decimals: ${t.decimals}`)
+    console.log(`    Native Wrap: ${t.isNativeWrap ?? false}`)
   }
   console.log()
 
-  // Check token support
-  console.log('Token Support Check:')
-  console.log(`  USDC: ${hasCSPLSupport(USDC_MINT) ? '✓ Supported' : '✗ Not supported'}`)
-  console.log(`  SOL: ${hasCSPLSupport(SOL_MINT) ? '✓ Supported' : '✗ Not supported'}`)
-  console.log()
-
   // ─────────────────────────────────────────────────────────────────────────────
-  // Part 3: C-SPL Token Service Operations
+  // Part 3: C-SPL Token Service - Proper Result Handling (#527)
   // ─────────────────────────────────────────────────────────────────────────────
-  console.log('━━━ Part 3: C-SPL Token Service Operations ━━━\n')
+  console.log('━━━ Part 3: C-SPL Token Service - Proper Result Handling (#527) ━━━\n')
 
-  const cspl = createCSPLServiceDevnet({ verbose: false })
-  await cspl.initialize()
+  const csplService = new CSPLTokenService({
+    rpcUrl: 'https://api.devnet.solana.com',
+  })
+  await csplService.initialize()
 
-  // Wrap SPL to C-SPL
-  console.log('Step 1: Wrap SPL → C-SPL (hide balance)')
-  const wrapResult = await cspl.wrap({
-    splMint: USDC_MINT,
-    owner: ALICE,
+  // Wrap SPL to C-SPL with PROPER error handling
+  console.log('Step 1: Wrap SPL → C-SPL (with proper success checks)')
+  console.log('  ⚠️  IMPORTANT: Always check wrapResult.success BEFORE accessing fields!\n')
+
+  const wrapResult = await csplService.wrap({
+    mint: USDC_MINT,
     amount: 1000_000000n, // 1000 USDC
+    owner: ALICE,
   })
-  console.log(`  Success: ${wrapResult.success}`)
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // CRITICAL: Check wrapResult.success BEFORE accessing csplMint or other fields!
+  // This is the FIX for Issue #527 - never use wrapResult.csplMint! directly
+  // ══════════════════════════════════════════════════════════════════════════════
+  if (!wrapResult.success) {
+    console.log('  ❌ Wrap failed!')
+    console.log(`  Error: ${wrapResult.error}`)
+    console.log('  Exiting demo - cannot proceed without wrapped tokens.\n')
+    return
+  }
+
+  // NOW it's safe to access wrapResult fields
+  console.log('  ✅ Wrap succeeded!')
   console.log(`  C-SPL Mint: ${wrapResult.csplMint?.slice(0, 20)}...`)
-  console.log(`  Amount: 1000 USDC (now encrypted)`)
-  console.log()
-
-  // Check balance
-  console.log('Step 2: Check Confidential Balance')
-  const balance = await cspl.getBalance(wrapResult.csplMint!, ALICE)
-  console.log(`  Encrypted Balance: [encrypted on-chain]`)
-  console.log(`  Decrypted (owner only): ${balance?.decryptedBalance} lamports`)
-  console.log(`  Symbol: ${balance?.symbol}`)
-  console.log()
-
-  // Confidential transfer
-  console.log('Step 3: Confidential Transfer')
-  const transferResult = await cspl.transfer({
-    csplMint: wrapResult.csplMint!,
-    sender: ALICE,
-    recipient: 'BobsAddress123456789012345678901234567890123',
-    amount: 500_000000n, // 500 USDC
-    auditorKey: AUDITOR_VIEWING_KEY,
-    memo: 'Private payment',
-  })
-  console.log(`  Success: ${transferResult.success}`)
-  console.log(`  Signature: ${transferResult.signature?.slice(0, 20)}...`)
-  console.log(`  Amount: Hidden from public (encrypted)`)
-  console.log(`  Auditor: Can decrypt with viewing key`)
+  console.log(`  Amount: 1000 USDC (now encrypted on-chain)`)
+  console.log(`  Signature: ${wrapResult.signature?.slice(0, 20)}...`)
   console.log()
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Part 4: Combined Privacy (SIP + Arcium Synergy)
+  // Show the WRONG way (what we're fixing with issue #527)
   // ─────────────────────────────────────────────────────────────────────────────
-  console.log('━━━ Part 4: Combined Privacy (SIP + Arcium Synergy) ━━━\n')
+  console.log('━━━ WRONG vs RIGHT Pattern (Issue #527) ━━━\n')
+
+  console.log('❌ WRONG (what we fixed):')
+  console.log('   // Using non-null assertion without checking success')
+  console.log('   const balance = await cspl.getBalance(wrapResult.csplMint!, ALICE)')
+  console.log('   // This could crash if wrapResult.success was false!')
+  console.log()
+
+  console.log('✅ RIGHT (what we do now):')
+  console.log('   // Check success FIRST')
+  console.log('   if (!wrapResult.success) {')
+  console.log('     console.error(wrapResult.error)')
+  console.log('     return')
+  console.log('   }')
+  console.log('   // NOW safe to access fields')
+  console.log('   const balance = await cspl.getBalance(wrapResult.csplMint, ALICE)')
+  console.log()
+
+  // Check balance (using the safe pattern)
+  if (wrapResult.csplMint) {
+    console.log('Step 2: Check Confidential Balance (safe pattern)')
+    const balance = await csplService.getBalance(wrapResult.csplMint, ALICE)
+    if (balance) {
+      console.log(`  Token: ${balance.token.symbol || 'Unknown'}`)
+      console.log(`  Encrypted Balance: [stored on-chain, hidden from public]`)
+      console.log(`  Owner can decrypt with their private key`)
+    } else {
+      console.log('  Balance not available (simulated environment)')
+    }
+    console.log()
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Part 4: Combined Privacy Service - Full Integration
+  // ─────────────────────────────────────────────────────────────────────────────
+  console.log('━━━ Part 4: Combined Privacy Service ━━━\n')
 
   const combined = createCombinedPrivacyServiceDevnet()
   await combined.initialize()
@@ -144,10 +169,11 @@ async function main() {
   console.log('┌─────────────────┬────────────┬─────────┬──────────┐')
   console.log('│ Feature         │ SIP Native │ Arcium  │ Combined │')
   console.log('├─────────────────┼────────────┼─────────┼──────────┤')
-  console.log(`│ Hidden Sender   │     ${comparison.sipNative.hiddenSender ? '✓' : '✗'}      │    ${comparison.arcium.hiddenCompute ? '✗' : '✗'}    │    ✓     │`)
-  console.log(`│ Hidden Recipient│     ${comparison.sipNative.hiddenRecipient ? '✓' : '✗'}      │    ✗    │    ✓     │`)
-  console.log(`│ Hidden Amount   │     ${comparison.sipNative.hiddenAmount ? '✓' : '✗'}      │    ${comparison.arcium.hiddenAmount ? '✓' : '✗'}    │    ✓     │`)
-  console.log(`│ Hidden Compute  │     ✗      │    ${comparison.arcium.hiddenCompute ? '✓' : '✗'}    │    ✓     │`)
+  console.log(`│ Hidden Sender   │     ${comparison.sipNative.hiddenSender ? '✓' : '✗'}      │    ${comparison.arciumCSPL.hiddenSender ? '✓' : '✗'}    │    ${comparison.combined.hiddenSender ? '✓' : '✗'}     │`)
+  console.log(`│ Hidden Recipient│     ${comparison.sipNative.hiddenRecipient ? '✓' : '✗'}      │    ${comparison.arciumCSPL.hiddenRecipient ? '✓' : '✗'}    │    ${comparison.combined.hiddenRecipient ? '✓' : '✗'}     │`)
+  console.log(`│ Hidden Amount   │     ${comparison.sipNative.hiddenAmount ? '✓' : '✗'}      │    ${comparison.arciumCSPL.hiddenAmount ? '✓' : '✗'}    │    ${comparison.combined.hiddenAmount ? '✓' : '✗'}     │`)
+  console.log(`│ Hidden Compute  │     ${comparison.sipNative.hiddenCompute ? '✓' : '✗'}      │    ${comparison.arciumCSPL.hiddenCompute ? '✓' : '✗'}    │    ${comparison.combined.hiddenCompute ? '✓' : '✗'}     │`)
+  console.log(`│ Compliance      │     ${comparison.sipNative.compliance ? '✓' : '✗'}      │    ${comparison.arciumCSPL.compliance ? '✓' : '✗'}    │    ${comparison.combined.compliance ? '✓' : '✗'}     │`)
   console.log('└─────────────────┴────────────┴─────────┴──────────┘')
   console.log()
 
@@ -165,37 +191,41 @@ async function main() {
   console.log()
 
   const result = await combined.executePrivateTransfer({
-    splMint: USDC_MINT,
     sender: ALICE,
     recipientMetaAddress: BOB_META_ADDRESS,
     amount: 100_000000n, // 100 USDC
-    decimals: 6,
-    viewingKey: AUDITOR_VIEWING_KEY,
+    token: USDC_MINT,
+    privacyLevel: PrivacyLevel.SHIELDED,
     memo: 'Combined privacy payment',
   })
 
-  console.log('Transfer Result:')
-  console.log(`  Success: ${result.success}`)
-  console.log(`  Total Time: ${result.totalTime}ms`)
+  // Again - always check success FIRST!
+  if (!result.success) {
+    console.log('❌ Combined transfer failed!')
+    console.log(`Error: ${result.error}`)
+    return
+  }
+
+  console.log('✅ Transfer Result:')
+  console.log(`  Stealth Address: ${result.stealthAddress?.slice(0, 20)}...`)
+  console.log(`  C-SPL Mint: ${result.csplMint?.slice(0, 20)}...`)
+  console.log(`  Total Time: ${result.metadata?.totalDuration}ms`)
   console.log()
 
-  if (result.success) {
-    console.log('Steps Completed:')
-    console.log(`  1. Wrap: SPL → C-SPL ✓`)
-    console.log(`     C-SPL Mint: ${result.wrap?.csplMint?.slice(0, 20)}...`)
-    console.log(`  2. Stealth: Generated one-time address ✓`)
-    console.log(`     Stealth Address: ${result.stealth?.stealthAddress?.slice(0, 20)}...`)
-    console.log(`     Ephemeral Key: ${result.stealth?.ephemeralPubKey}`)
-    console.log(`  3. Transfer: C-SPL to stealth address ✓`)
-    console.log(`     Signature: ${result.transfer?.signature?.slice(0, 20)}...`)
-    console.log()
+  console.log('Steps Completed:')
+  console.log(`  1. Wrap: SPL → C-SPL ✓`)
+  console.log(`     Signature: ${result.wrapSignature?.slice(0, 20)}...`)
+  console.log(`  2. Stealth: Generated one-time address ✓`)
+  console.log(`     Address: ${result.stealthAddress?.slice(0, 20)}...`)
+  console.log(`  3. Transfer: C-SPL to stealth address ✓`)
+  console.log(`     Signature: ${result.transferSignature?.slice(0, 20)}...`)
+  console.log()
 
-    console.log('Privacy Achieved:')
-    console.log(`  Hidden Recipient: ${result.privacyAchieved.hiddenRecipient ? '✓' : '✗'} (stealth address)`)
-    console.log(`  Hidden Amount: ${result.privacyAchieved.hiddenAmount ? '✓' : '✗'} (C-SPL encryption)`)
-    console.log(`  Hidden Sender: ${result.privacyAchieved.hiddenSender ? '✓' : '✗'} (no linkability)`)
-    console.log(`  Compliance Support: ${result.privacyAchieved.complianceSupport ? '✓' : '✗'} (viewing key)`)
-  }
+  console.log('Privacy Achieved:')
+  console.log(`  Hidden Recipient: ✓ (stealth address)`)
+  console.log(`  Hidden Amount: ✓ (C-SPL encryption)`)
+  console.log(`  Hidden Sender: ✓ (no linkability)`)
+  console.log(`  Compliance Support: ${result.metadata?.hasViewingKey ? '✓' : '✗'} (viewing key)`)
   console.log()
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -204,19 +234,19 @@ async function main() {
   console.log('━━━ Part 5: Cost Estimation ━━━\n')
 
   const costEstimate = await combined.estimateCost({
-    splMint: USDC_MINT,
     sender: ALICE,
     recipientMetaAddress: BOB_META_ADDRESS,
     amount: 100_000000n,
-    decimals: 6,
+    token: USDC_MINT,
+    privacyLevel: PrivacyLevel.SHIELDED,
   })
 
   console.log('Estimated Costs:')
-  console.log(`  Wrap (SPL → C-SPL): ${costEstimate.breakdown.wrap} lamports`)
-  console.log(`  Stealth address: ${costEstimate.breakdown.stealth} lamports`)
-  console.log(`  Transfer: ${costEstimate.breakdown.transfer} lamports`)
+  console.log(`  Wrap (SPL → C-SPL): ${costEstimate.wrapCost} lamports`)
+  console.log(`  Stealth address: ${costEstimate.stealthCost} lamports`)
+  console.log(`  Transfer: ${costEstimate.transferCost} lamports`)
   console.log(`  ─────────────────────`)
-  console.log(`  Total: ${costEstimate.totalCost} lamports`)
+  console.log(`  Total: ${costEstimate.totalCost} ${costEstimate.currency}`)
   console.log()
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -224,23 +254,28 @@ async function main() {
   // ─────────────────────────────────────────────────────────────────────────────
   console.log('━━━ Part 6: Recipient Claim Flow ━━━\n')
 
-  if (result.success && result.stealth) {
+  if (result.stealthAddress) {
     console.log('Bob receives the stealth announcement...')
-    console.log(`  Stealth Address: ${result.stealth.stealthAddress.slice(0, 20)}...`)
-    console.log(`  Ephemeral Key: ${result.stealth.ephemeralPubKey}`)
+    console.log(`  Stealth Address: ${result.stealthAddress.slice(0, 20)}...`)
     console.log()
 
     console.log('Bob derives his stealth private key:')
     const claimResult = await combined.claimFromStealth({
-      stealthAddress: result.stealth.stealthAddress,
-      ephemeralPubKey: result.stealth.ephemeralPubKey,
-      recipientSpendingKey: '0x02abc123def456789012345678901234567890123456',
-      recipientViewingKey: '0x03def456abc789012345678901234567890123456789',
-      unwrapToSPL: false,
+      stealthAddress: result.stealthAddress,
+      ephemeralPubkey: 'simulated-ephemeral-pubkey',
+      spendingPrivateKey: '0x02abc123def456789012345678901234567890123456',
+      viewingPrivateKey: '0x03def456abc789012345678901234567890123456789',
+      csplMint: result.csplMint || '',
     })
 
-    console.log(`  Success: ${claimResult.success}`)
-    console.log(`  Stealth Private Key: ${claimResult.stealthPrivateKey?.slice(0, 20)}...`)
+    // Check success first!
+    if (!claimResult.success) {
+      console.log(`  ❌ Claim failed: ${claimResult.error}`)
+    } else {
+      console.log(`  ✅ Claim succeeded!`)
+      console.log(`  Amount: ${claimResult.amount} (decrypted)`)
+      console.log(`  Signature: ${claimResult.signature?.slice(0, 20)}...`)
+    }
     console.log()
 
     console.log('Bob can now:')
@@ -256,6 +291,15 @@ async function main() {
   console.log('╔════════════════════════════════════════════════════════════════╗')
   console.log('║                         Summary                                ║')
   console.log('╚════════════════════════════════════════════════════════════════╝\n')
+
+  console.log('Issue #527 Fix Demonstrated:')
+  console.log()
+  console.log('  The key fix is to ALWAYS check result.success BEFORE accessing')
+  console.log('  result fields like csplMint, stealthAddress, signature, etc.')
+  console.log()
+  console.log('  ❌ Wrong:  wrapResult.csplMint!  (non-null assertion)')
+  console.log('  ✅ Right:  if (!wrapResult.success) { return } // then access')
+  console.log()
 
   console.log('SIP Protocol + Arcium Integration:')
   console.log()
@@ -280,24 +324,11 @@ async function main() {
   console.log('           └──────────────────────┘')
   console.log()
 
-  console.log('Value Proposition:')
-  console.log('  SIP Protocol acts as a Privacy Aggregator, combining multiple')
-  console.log('  privacy backends for superior protection. Users get:')
-  console.log()
-  console.log('  1. Transaction Privacy (SIP Native)')
-  console.log('     - Stealth addresses prevent recipient tracking')
-  console.log('     - Pedersen commitments hide amounts')
-  console.log()
-  console.log('  2. Compute Privacy (Arcium)')
-  console.log('     - C-SPL tokens encrypt balances on-chain')
-  console.log('     - MPC ensures private computation')
-  console.log()
-  console.log('  3. Regulatory Compliance')
-  console.log('     - Viewing keys allow selective disclosure')
-  console.log('     - Auditors can verify without public exposure')
-  console.log()
-
   console.log('━━━ Demo Complete ━━━')
+
+  // Cleanup
+  await csplService.disconnect()
+  await combined.disconnect()
 }
 
 main().catch(console.error)

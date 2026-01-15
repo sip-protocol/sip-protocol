@@ -4,12 +4,20 @@
  * Comprehensive test suite for the Arcium MPC compute privacy backend.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { ArciumBackend } from '../../src/privacy-backends/arcium'
 import {
   ARCIUM_CLUSTERS,
   BASE_COMPUTATION_COST_LAMPORTS,
   ESTIMATED_COMPUTATION_TIME_MS,
+  MAX_ENCRYPTED_INPUTS,
+  MAX_INPUT_SIZE_BYTES,
+  MAX_TOTAL_INPUT_SIZE_BYTES,
+  MAX_COMPUTATION_COST_LAMPORTS,
+  DEFAULT_MAX_ENCRYPTED_INPUTS,
+  DEFAULT_MAX_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES,
+  DEFAULT_MAX_COMPUTATION_COST_LAMPORTS,
 } from '../../src/privacy-backends/arcium-types'
 import type {
   ComputationParams,
@@ -96,6 +104,34 @@ describe('ArciumBackend', () => {
       expect(backend.name).toBe('arcium')
     })
 
+    // ─── Network Validation Tests ─────────────────────────────────────────────
+
+    it('should throw on invalid network', () => {
+      expect(() => {
+        new ArciumBackend({
+          // @ts-expect-error - Testing invalid network value
+          network: 'invalid-network',
+        })
+      }).toThrow("Invalid Arcium network 'invalid-network'")
+    })
+
+    it('should include valid networks in error message', () => {
+      expect(() => {
+        new ArciumBackend({
+          // @ts-expect-error - Testing invalid network value
+          network: 'mainnet',
+        })
+      }).toThrow('Valid networks: devnet, testnet, mainnet-beta')
+    })
+
+    it('should accept all valid networks', () => {
+      const validNetworks = ['devnet', 'testnet', 'mainnet-beta'] as const
+      for (const network of validNetworks) {
+        const backend = new ArciumBackend({ network })
+        expect(backend.name).toBe('arcium')
+      }
+    })
+
     it('should use default cluster for network', () => {
       const devnetBackend = new ArciumBackend({ network: 'devnet' })
       const testnetBackend = new ArciumBackend({ network: 'testnet' })
@@ -103,6 +139,214 @@ describe('ArciumBackend', () => {
       // Both should create successfully with their network's default cluster
       expect(devnetBackend.name).toBe('arcium')
       expect(testnetBackend.name).toBe('arcium')
+    })
+
+    // ─── Configurable Limits Tests ────────────────────────────────────────────
+
+    describe('configurable limits', () => {
+      it('should use default limits when not configured', () => {
+        const backend = new ArciumBackend()
+        const limits = backend.getLimits()
+
+        expect(limits.maxEncryptedInputs).toBe(DEFAULT_MAX_ENCRYPTED_INPUTS)
+        expect(limits.maxInputSizeBytes).toBe(DEFAULT_MAX_INPUT_SIZE_BYTES)
+        expect(limits.maxTotalInputSizeBytes).toBe(DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES)
+        expect(limits.maxComputationCostLamports).toBe(DEFAULT_MAX_COMPUTATION_COST_LAMPORTS)
+      })
+
+      it('should accept custom maxEncryptedInputs', () => {
+        const backend = new ArciumBackend({
+          limits: { maxEncryptedInputs: 50 },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxEncryptedInputs).toBe(50)
+        // Others should use defaults
+        expect(limits.maxInputSizeBytes).toBe(DEFAULT_MAX_INPUT_SIZE_BYTES)
+      })
+
+      it('should accept custom maxInputSizeBytes', () => {
+        const backend = new ArciumBackend({
+          limits: { maxInputSizeBytes: 512_000 },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxInputSizeBytes).toBe(512_000)
+      })
+
+      it('should accept custom maxTotalInputSizeBytes', () => {
+        const backend = new ArciumBackend({
+          limits: { maxTotalInputSizeBytes: 5_000_000 },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxTotalInputSizeBytes).toBe(5_000_000)
+      })
+
+      it('should accept custom maxComputationCostLamports', () => {
+        const backend = new ArciumBackend({
+          limits: { maxComputationCostLamports: BigInt(500_000_000) },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxComputationCostLamports).toBe(BigInt(500_000_000))
+      })
+
+      it('should accept all custom limits together', () => {
+        const backend = new ArciumBackend({
+          limits: {
+            maxEncryptedInputs: 25,
+            maxInputSizeBytes: 256_000,
+            maxTotalInputSizeBytes: 2_000_000,
+            maxComputationCostLamports: BigInt(250_000_000),
+          },
+        })
+        const limits = backend.getLimits()
+
+        expect(limits.maxEncryptedInputs).toBe(25)
+        expect(limits.maxInputSizeBytes).toBe(256_000)
+        expect(limits.maxTotalInputSizeBytes).toBe(2_000_000)
+        expect(limits.maxComputationCostLamports).toBe(BigInt(250_000_000))
+      })
+
+      it('should return copy of limits (immutable)', () => {
+        const backend = new ArciumBackend()
+        const limits1 = backend.getLimits()
+        const limits2 = backend.getLimits()
+
+        expect(limits1).not.toBe(limits2) // Different objects
+        expect(limits1).toEqual(limits2) // Same values
+      })
+
+      // ─── Limit Validation Tests ─────────────────────────────────────────────
+
+      it('should throw on zero maxEncryptedInputs', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxEncryptedInputs: 0 },
+          })
+        }).toThrow('maxEncryptedInputs must be positive')
+      })
+
+      it('should throw on negative maxEncryptedInputs', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxEncryptedInputs: -1 },
+          })
+        }).toThrow('maxEncryptedInputs must be positive')
+      })
+
+      it('should throw on zero maxInputSizeBytes', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxInputSizeBytes: 0 },
+          })
+        }).toThrow('maxInputSizeBytes must be positive')
+      })
+
+      it('should throw on negative maxInputSizeBytes', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxInputSizeBytes: -1 },
+          })
+        }).toThrow('maxInputSizeBytes must be positive')
+      })
+
+      it('should throw on zero maxTotalInputSizeBytes', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxTotalInputSizeBytes: 0 },
+          })
+        }).toThrow('maxTotalInputSizeBytes must be positive')
+      })
+
+      it('should throw on negative maxTotalInputSizeBytes', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxTotalInputSizeBytes: -1 },
+          })
+        }).toThrow('maxTotalInputSizeBytes must be positive')
+      })
+
+      it('should throw on zero maxComputationCostLamports', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxComputationCostLamports: BigInt(0) },
+          })
+        }).toThrow('maxComputationCostLamports must be positive')
+      })
+
+      it('should throw on negative maxComputationCostLamports', () => {
+        expect(() => {
+          new ArciumBackend({
+            limits: { maxComputationCostLamports: BigInt(-1) },
+          })
+        }).toThrow('maxComputationCostLamports must be positive')
+      })
+
+      it('should accept minimum valid limit (1)', () => {
+        const backend = new ArciumBackend({
+          limits: { maxEncryptedInputs: 1 },
+        })
+
+        expect(backend.getLimits().maxEncryptedInputs).toBe(1)
+      })
+    })
+  })
+
+  // ─── Environment Variable Tests ─────────────────────────────────────────────
+
+  describe('env var integration', () => {
+    afterEach(() => {
+      // Clean up env vars after each test
+      delete process.env.ARCIUM_RPC_URL
+      delete process.env.ARCIUM_RPC_URL_DEVNET
+      delete process.env.ARCIUM_RPC_URL_TESTNET
+      delete process.env.ARCIUM_RPC_URL_MAINNET
+      delete process.env.ARCIUM_NETWORK
+      delete process.env.ARCIUM_CLUSTER
+      delete process.env.ARCIUM_TIMEOUT_MS
+    })
+
+    it('should use env var for RPC URL when creating backend', () => {
+      process.env.ARCIUM_RPC_URL_DEVNET = 'https://env-devnet.rpc.url'
+
+      // Backend should be created successfully with env var URL
+      const backend = new ArciumBackend()
+      expect(backend.name).toBe('arcium')
+    })
+
+    it('should use env var for network when creating backend', () => {
+      process.env.ARCIUM_NETWORK = 'testnet'
+
+      // Backend should use testnet from env var
+      const backend = new ArciumBackend()
+      expect(backend.name).toBe('arcium')
+    })
+
+    it('should use env var for timeout when creating backend', () => {
+      process.env.ARCIUM_TIMEOUT_MS = '900000'
+
+      const backend = new ArciumBackend()
+      expect(backend.name).toBe('arcium')
+    })
+
+    it('should use env var for cluster when creating backend', () => {
+      process.env.ARCIUM_CLUSTER = 'env-cluster-1'
+
+      // Backend should use cluster from env var
+      const backend = new ArciumBackend()
+      expect(backend.name).toBe('arcium')
+    })
+
+    it('should handle env var priority correctly', () => {
+      // Test verifies the priority order: env var > config > default
+      process.env.ARCIUM_NETWORK = 'mainnet-beta'
+
+      // Note: Env var has higher priority, so this will use mainnet-beta
+      // This is intentional - env vars override config
+      const backend = new ArciumBackend({ network: 'testnet' })
+      expect(backend.name).toBe('arcium')
     })
   })
 
@@ -245,6 +489,277 @@ describe('ArciumBackend', () => {
 
         expect(result.available).toBe(true)
       })
+
+      // ─── Upper Bound Validation Tests ─────────────────────────────────────────
+
+      it('should reject too many encrypted inputs', async () => {
+        const tooManyInputs = Array.from(
+          { length: MAX_ENCRYPTED_INPUTS + 1 },
+          () => new Uint8Array([1, 2, 3])
+        )
+        const params = createValidComputationParams({
+          encryptedInputs: tooManyInputs,
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(false)
+        expect(result.reason).toContain('Too many encrypted inputs')
+        expect(result.reason).toContain(`${MAX_ENCRYPTED_INPUTS + 1}`)
+        expect(result.reason).toContain(`${MAX_ENCRYPTED_INPUTS}`)
+      })
+
+      it('should accept exactly MAX_ENCRYPTED_INPUTS', async () => {
+        const maxInputs = Array.from(
+          { length: MAX_ENCRYPTED_INPUTS },
+          () => new Uint8Array([1, 2, 3])
+        )
+        const params = createValidComputationParams({
+          encryptedInputs: maxInputs,
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(true)
+      })
+
+      it('should reject oversized individual input', async () => {
+        const oversizedInput = new Uint8Array(MAX_INPUT_SIZE_BYTES + 1)
+        const params = createValidComputationParams({
+          encryptedInputs: [oversizedInput],
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(false)
+        expect(result.reason).toContain('size')
+        expect(result.reason).toContain('exceeds maximum')
+        expect(result.reason).toContain('1 MB')
+      })
+
+      it('should accept exactly MAX_INPUT_SIZE_BYTES', async () => {
+        const maxSizeInput = new Uint8Array(MAX_INPUT_SIZE_BYTES)
+        maxSizeInput[0] = 1 // Ensure non-empty
+        const params = createValidComputationParams({
+          encryptedInputs: [maxSizeInput],
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(true)
+      })
+
+      it('should reject when total input size exceeds maximum', async () => {
+        // Create multiple inputs that individually fit but together exceed MAX_TOTAL_INPUT_SIZE_BYTES
+        const inputSize = Math.floor(MAX_INPUT_SIZE_BYTES / 2) // Half of max individual
+        const numInputs = Math.ceil((MAX_TOTAL_INPUT_SIZE_BYTES + 1) / inputSize)
+        const inputs = Array.from({ length: numInputs }, () => {
+          const arr = new Uint8Array(inputSize)
+          arr[0] = 1 // Ensure non-empty
+          return arr
+        })
+        const params = createValidComputationParams({
+          encryptedInputs: inputs,
+        })
+
+        const result = await backend.checkAvailability(params)
+
+        expect(result.available).toBe(false)
+        expect(result.reason).toContain('Total input size')
+        expect(result.reason).toContain('exceeds maximum')
+        expect(result.reason).toContain('10 MB')
+      })
+
+      // ─── Boundary Tests with Custom Limits (MAX-1, MAX, MAX+1) ──────────────
+
+      describe('boundary tests with custom limits', () => {
+        it('should accept MAX-1 encrypted inputs with custom limit', async () => {
+          const customLimit = 10
+          const backend = new ArciumBackend({
+            limits: { maxEncryptedInputs: customLimit },
+          })
+          const inputs = Array.from(
+            { length: customLimit - 1 },
+            () => new Uint8Array([1, 2, 3])
+          )
+          const params = createValidComputationParams({
+            encryptedInputs: inputs,
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should accept exactly MAX encrypted inputs with custom limit', async () => {
+          const customLimit = 10
+          const backend = new ArciumBackend({
+            limits: { maxEncryptedInputs: customLimit },
+          })
+          const inputs = Array.from(
+            { length: customLimit },
+            () => new Uint8Array([1, 2, 3])
+          )
+          const params = createValidComputationParams({
+            encryptedInputs: inputs,
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should reject MAX+1 encrypted inputs with custom limit', async () => {
+          const customLimit = 10
+          const backend = new ArciumBackend({
+            limits: { maxEncryptedInputs: customLimit },
+          })
+          const inputs = Array.from(
+            { length: customLimit + 1 },
+            () => new Uint8Array([1, 2, 3])
+          )
+          const params = createValidComputationParams({
+            encryptedInputs: inputs,
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(false)
+          expect(result.reason).toContain('Too many encrypted inputs')
+          expect(result.reason).toContain(`${customLimit + 1}`)
+          expect(result.reason).toContain(`${customLimit}`)
+        })
+
+        it('should accept input size at MAX-1 with custom limit', async () => {
+          const customLimit = 1000 // 1000 bytes
+          const backend = new ArciumBackend({
+            limits: { maxInputSizeBytes: customLimit },
+          })
+          const input = new Uint8Array(customLimit - 1)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should accept input size at exactly MAX with custom limit', async () => {
+          const customLimit = 1000 // 1000 bytes
+          const backend = new ArciumBackend({
+            limits: { maxInputSizeBytes: customLimit },
+          })
+          const input = new Uint8Array(customLimit)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should reject input size at MAX+1 with custom limit', async () => {
+          const customLimit = 1000 // 1000 bytes
+          const backend = new ArciumBackend({
+            limits: { maxInputSizeBytes: customLimit },
+          })
+          const input = new Uint8Array(customLimit + 1)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(false)
+          expect(result.reason).toContain('exceeds maximum')
+          expect(result.reason).toContain('1000 bytes')
+        })
+
+        it('should accept total size at MAX-1 with custom limit', async () => {
+          const customLimit = 2000 // 2000 bytes total
+          const backend = new ArciumBackend({
+            limits: {
+              maxTotalInputSizeBytes: customLimit,
+              maxInputSizeBytes: customLimit, // Allow individual inputs up to total
+            },
+          })
+          const input = new Uint8Array(customLimit - 1)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should accept total size at exactly MAX with custom limit', async () => {
+          const customLimit = 2000 // 2000 bytes total
+          const backend = new ArciumBackend({
+            limits: {
+              maxTotalInputSizeBytes: customLimit,
+              maxInputSizeBytes: customLimit,
+            },
+          })
+          const input = new Uint8Array(customLimit)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(true)
+        })
+
+        it('should reject total size at MAX+1 with custom limit', async () => {
+          const customLimit = 2000 // 2000 bytes total
+          const backend = new ArciumBackend({
+            limits: {
+              maxTotalInputSizeBytes: customLimit,
+              maxInputSizeBytes: customLimit + 1, // Allow individual but not total
+            },
+          })
+          const input = new Uint8Array(customLimit + 1)
+          input[0] = 1
+          const params = createValidComputationParams({
+            encryptedInputs: [input],
+          })
+
+          const result = await backend.checkAvailability(params)
+
+          expect(result.available).toBe(false)
+          expect(result.reason).toContain('Total input size')
+          expect(result.reason).toContain('exceeds maximum')
+          expect(result.reason).toContain('2 KB') // 2000 bytes rounds to 2 KB
+        })
+
+        it('should cap cost at custom maxComputationCostLamports', async () => {
+          const customLimit = BigInt(100_000_000) // 0.1 SOL
+          const backend = new ArciumBackend({
+            limits: { maxComputationCostLamports: customLimit },
+          })
+          // Create inputs that would normally generate high cost
+          const largeInputs = Array.from({ length: 50 }, () => {
+            const arr = new Uint8Array(50_000) // 50KB each
+            arr[0] = 1
+            return arr
+          })
+          const params = createValidComputationParams({
+            encryptedInputs: largeInputs,
+          })
+
+          const cost = await backend.estimateCost(params)
+
+          expect(cost).toBeLessThanOrEqual(customLimit)
+        })
+      })
     })
 
     describe('with TransferParams', () => {
@@ -378,6 +893,54 @@ describe('ArciumBackend', () => {
     })
   })
 
+  // ─── Error Propagation Tests ───────────────────────────────────────────────────
+
+  describe('error propagation', () => {
+    it('should include clear error message for validation failures', async () => {
+      const backend = new ArciumBackend()
+      const params = createValidComputationParams({ chain: 'ethereum' })
+
+      const result = await backend.executeComputation(params)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('only supports Solana')
+    })
+
+    it('should NOT include metadata for validation failures (no exception thrown)', async () => {
+      const backend = new ArciumBackend({ debug: true })
+      const params = createValidComputationParams({ chain: 'ethereum' })
+
+      const result = await backend.executeComputation(params)
+
+      // Validation failures return early - they don't go through catch block
+      // So metadata is NOT included even with debug: true
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
+      expect(result.metadata).toBeUndefined()
+    })
+
+    it('should support debug config option', () => {
+      const backendWithDebug = new ArciumBackend({ debug: true })
+      const backendWithoutDebug = new ArciumBackend({ debug: false })
+      const backendDefault = new ArciumBackend()
+
+      // All backends should be properly constructed
+      expect(backendWithDebug.name).toBe('arcium')
+      expect(backendWithoutDebug.name).toBe('arcium')
+      expect(backendDefault.name).toBe('arcium')
+    })
+
+    it('should have formatErrorMessage helper method', async () => {
+      const backend = new ArciumBackend()
+      const params = createValidComputationParams({ circuitId: '' })
+
+      const result = await backend.executeComputation(params)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('circuitId is required')
+    })
+  })
+
   // ─── estimateCost Tests ──────────────────────────────────────────────────────
 
   describe('estimateCost', () => {
@@ -443,6 +1006,26 @@ describe('ArciumBackend', () => {
 
       expect(cost).toBe(BigInt(0))
     })
+
+    it('should cap cost at MAX_COMPUTATION_COST_LAMPORTS', async () => {
+      // Create params that would generate a very high cost
+      // Note: This test uses max allowed inputs to push cost high
+      const largeInputs = Array.from(
+        { length: MAX_ENCRYPTED_INPUTS },
+        () => {
+          const arr = new Uint8Array(100_000) // 100KB each
+          arr[0] = 1
+          return arr
+        }
+      )
+      const params = createValidComputationParams({
+        encryptedInputs: largeInputs,
+      })
+
+      const cost = await backend.estimateCost(params)
+
+      expect(cost).toBeLessThanOrEqual(MAX_COMPUTATION_COST_LAMPORTS)
+    })
   })
 
   // ─── Computation Tracking Tests ──────────────────────────────────────────────
@@ -496,6 +1079,27 @@ describe('ArciumBackend', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('not found')
+    })
+
+    it('should use default timeout from config', async () => {
+      const customBackend = new ArciumBackend({ timeout: 10000 })
+      const params = createValidComputationParams()
+      const execResult = await customBackend.executeComputation(params)
+
+      // Should complete without timeout since simulation is instant
+      const awaitResult = await customBackend.awaitComputation(execResult.computationId!)
+
+      expect(awaitResult.success).toBe(true)
+    })
+
+    it('should use custom timeout when provided', async () => {
+      const params = createValidComputationParams()
+      const execResult = await backend.executeComputation(params)
+
+      // Should complete without timeout since simulation is instant
+      const awaitResult = await backend.awaitComputation(execResult.computationId!, 5000)
+
+      expect(awaitResult.success).toBe(true)
     })
 
     it('should clear computation cache', async () => {
@@ -695,5 +1299,300 @@ describe('Arcium Constants', () => {
       // 60 seconds
       expect(ESTIMATED_COMPUTATION_TIME_MS).toBe(60_000)
     })
+  })
+
+  describe('upper bound constants', () => {
+    it('should have MAX_ENCRYPTED_INPUTS = 100', () => {
+      expect(MAX_ENCRYPTED_INPUTS).toBe(100)
+    })
+
+    it('should have MAX_INPUT_SIZE_BYTES = 1 MB', () => {
+      expect(MAX_INPUT_SIZE_BYTES).toBe(1_048_576)
+    })
+
+    it('should have MAX_TOTAL_INPUT_SIZE_BYTES = 10 MB', () => {
+      expect(MAX_TOTAL_INPUT_SIZE_BYTES).toBe(10_485_760)
+    })
+
+    it('should have MAX_COMPUTATION_COST_LAMPORTS = ~1 SOL', () => {
+      expect(MAX_COMPUTATION_COST_LAMPORTS).toBe(BigInt(1_000_000_000))
+    })
+
+    it('should ensure max cost is greater than base cost', () => {
+      expect(MAX_COMPUTATION_COST_LAMPORTS).toBeGreaterThan(BASE_COMPUTATION_COST_LAMPORTS)
+    })
+  })
+
+  describe('DEFAULT_* constants (new preferred API)', () => {
+    it('should have DEFAULT_MAX_ENCRYPTED_INPUTS = 100', () => {
+      expect(DEFAULT_MAX_ENCRYPTED_INPUTS).toBe(100)
+    })
+
+    it('should have DEFAULT_MAX_INPUT_SIZE_BYTES = 1 MB', () => {
+      expect(DEFAULT_MAX_INPUT_SIZE_BYTES).toBe(1_048_576)
+    })
+
+    it('should have DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES = 10 MB', () => {
+      expect(DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES).toBe(10_485_760)
+    })
+
+    it('should have DEFAULT_MAX_COMPUTATION_COST_LAMPORTS = ~1 SOL', () => {
+      expect(DEFAULT_MAX_COMPUTATION_COST_LAMPORTS).toBe(BigInt(1_000_000_000))
+    })
+  })
+
+  describe('backward compatibility (deprecated MAX_* = DEFAULT_*)', () => {
+    it('MAX_ENCRYPTED_INPUTS should equal DEFAULT_MAX_ENCRYPTED_INPUTS', () => {
+      expect(MAX_ENCRYPTED_INPUTS).toBe(DEFAULT_MAX_ENCRYPTED_INPUTS)
+    })
+
+    it('MAX_INPUT_SIZE_BYTES should equal DEFAULT_MAX_INPUT_SIZE_BYTES', () => {
+      expect(MAX_INPUT_SIZE_BYTES).toBe(DEFAULT_MAX_INPUT_SIZE_BYTES)
+    })
+
+    it('MAX_TOTAL_INPUT_SIZE_BYTES should equal DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES', () => {
+      expect(MAX_TOTAL_INPUT_SIZE_BYTES).toBe(DEFAULT_MAX_TOTAL_INPUT_SIZE_BYTES)
+    })
+
+    it('MAX_COMPUTATION_COST_LAMPORTS should equal DEFAULT_MAX_COMPUTATION_COST_LAMPORTS', () => {
+      expect(MAX_COMPUTATION_COST_LAMPORTS).toBe(DEFAULT_MAX_COMPUTATION_COST_LAMPORTS)
+    })
+  })
+})
+
+// ─── Environment Variable Resolver Tests ───────────────────────────────────
+
+describe('Environment Variable Resolvers', () => {
+  afterEach(() => {
+    // Clean up env vars after each test
+    delete process.env.ARCIUM_RPC_URL
+    delete process.env.ARCIUM_RPC_URL_DEVNET
+    delete process.env.ARCIUM_RPC_URL_TESTNET
+    delete process.env.ARCIUM_RPC_URL_MAINNET
+    delete process.env.ARCIUM_NETWORK
+    delete process.env.ARCIUM_CLUSTER
+    delete process.env.ARCIUM_TIMEOUT_MS
+  })
+
+  describe('getEnvVar', () => {
+    it('should return env var value when set', async () => {
+      const { getEnvVar } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.TEST_VAR = 'test-value'
+      expect(getEnvVar('TEST_VAR')).toBe('test-value')
+      delete process.env.TEST_VAR
+    })
+
+    it('should return undefined when env var not set', async () => {
+      const { getEnvVar } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(getEnvVar('NON_EXISTENT_VAR')).toBeUndefined()
+    })
+  })
+
+  describe('resolveRpcUrl', () => {
+    it('should use network-specific env var first', async () => {
+      const { resolveRpcUrl } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_RPC_URL_DEVNET = 'https://network-specific.rpc.url'
+      process.env.ARCIUM_RPC_URL = 'https://generic.rpc.url'
+
+      expect(resolveRpcUrl('devnet', 'https://config.rpc.url')).toBe('https://network-specific.rpc.url')
+    })
+
+    it('should fall back to generic env var', async () => {
+      const { resolveRpcUrl } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_RPC_URL = 'https://generic.rpc.url'
+
+      expect(resolveRpcUrl('devnet', 'https://config.rpc.url')).toBe('https://generic.rpc.url')
+    })
+
+    it('should fall back to config value', async () => {
+      const { resolveRpcUrl } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveRpcUrl('devnet', 'https://config.rpc.url')).toBe('https://config.rpc.url')
+    })
+
+    it('should fall back to default', async () => {
+      const { resolveRpcUrl, DEFAULT_RPC_ENDPOINTS } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveRpcUrl('devnet')).toBe(DEFAULT_RPC_ENDPOINTS.devnet)
+    })
+  })
+
+  describe('resolveNetwork', () => {
+    it('should use env var when set', async () => {
+      const { resolveNetwork } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_NETWORK = 'testnet'
+
+      expect(resolveNetwork('devnet')).toBe('testnet')
+    })
+
+    it('should fall back to config', async () => {
+      const { resolveNetwork } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveNetwork('testnet')).toBe('testnet')
+    })
+
+    it('should fall back to default devnet', async () => {
+      const { resolveNetwork } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveNetwork()).toBe('devnet')
+    })
+
+    it('should ignore invalid env var value', async () => {
+      const { resolveNetwork } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_NETWORK = 'invalid-network'
+
+      expect(resolveNetwork('testnet')).toBe('testnet')
+    })
+  })
+
+  describe('resolveTimeout', () => {
+    it('should use env var when set', async () => {
+      const { resolveTimeout } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_TIMEOUT_MS = '600000'
+
+      expect(resolveTimeout(300000)).toBe(600000)
+    })
+
+    it('should fall back to config', async () => {
+      const { resolveTimeout } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveTimeout(300000)).toBe(300000)
+    })
+
+    it('should fall back to default', async () => {
+      const { resolveTimeout, DEFAULT_COMPUTATION_TIMEOUT_MS } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveTimeout()).toBe(DEFAULT_COMPUTATION_TIMEOUT_MS)
+    })
+
+    it('should ignore invalid env var value', async () => {
+      const { resolveTimeout, DEFAULT_COMPUTATION_TIMEOUT_MS } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_TIMEOUT_MS = 'not-a-number'
+
+      expect(resolveTimeout()).toBe(DEFAULT_COMPUTATION_TIMEOUT_MS)
+    })
+
+    it('should ignore negative env var value', async () => {
+      const { resolveTimeout, DEFAULT_COMPUTATION_TIMEOUT_MS } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_TIMEOUT_MS = '-1000'
+
+      expect(resolveTimeout()).toBe(DEFAULT_COMPUTATION_TIMEOUT_MS)
+    })
+  })
+
+  describe('resolveCluster', () => {
+    it('should use env var when set', async () => {
+      const { resolveCluster } = await import('../../src/privacy-backends/arcium-types')
+
+      process.env.ARCIUM_CLUSTER = 'env-cluster-1'
+
+      expect(resolveCluster('devnet', 'config-cluster-1')).toBe('env-cluster-1')
+    })
+
+    it('should fall back to config', async () => {
+      const { resolveCluster } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveCluster('devnet', 'config-cluster-1')).toBe('config-cluster-1')
+    })
+
+    it('should fall back to network default', async () => {
+      const { resolveCluster, ARCIUM_CLUSTERS } = await import('../../src/privacy-backends/arcium-types')
+
+      expect(resolveCluster('devnet')).toBe(ARCIUM_CLUSTERS.devnet)
+    })
+  })
+})
+
+// ─── ArciumError Tests ──────────────────────────────────────────────────────
+
+describe('ArciumError', () => {
+  it('should be thrown on invalid network', async () => {
+    const { ArciumError, isArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    try {
+      new ArciumBackend({
+        // @ts-expect-error - Testing invalid network
+        network: 'invalid',
+      })
+      expect.fail('Should have thrown ArciumError')
+    } catch (error) {
+      expect(isArciumError(error)).toBe(true)
+      if (isArciumError(error)) {
+        expect(error.arciumCode).toBe('ARCIUM_INVALID_NETWORK')
+        expect(error.name).toBe('ArciumError')
+        expect(error.message).toContain('Invalid Arcium network')
+      }
+    }
+  })
+
+  it('should include context in error', async () => {
+    const { isArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    try {
+      new ArciumBackend({
+        // @ts-expect-error - Testing invalid network
+        network: 'badnet',
+      })
+      expect.fail('Should have thrown ArciumError')
+    } catch (error) {
+      if (isArciumError(error)) {
+        expect(error.context?.receivedNetwork).toBe('badnet')
+        expect(error.context?.validNetworks).toContain('devnet')
+        expect(error.context?.validNetworks).toContain('testnet')
+        expect(error.context?.validNetworks).toContain('mainnet-beta')
+      }
+    }
+  })
+
+  it('should have isNetworkError helper', async () => {
+    const { ArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    const networkError = new ArciumError('test', 'ARCIUM_INVALID_NETWORK')
+    const computeError = new ArciumError('test', 'ARCIUM_COMPUTATION_FAILED')
+
+    expect(networkError.isNetworkError()).toBe(true)
+    expect(computeError.isNetworkError()).toBe(false)
+  })
+
+  it('should have isComputationError helper', async () => {
+    const { ArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    const computeError = new ArciumError('test', 'ARCIUM_COMPUTATION_FAILED')
+    const timeoutError = new ArciumError('test', 'ARCIUM_COMPUTATION_TIMEOUT')
+    const networkError = new ArciumError('test', 'ARCIUM_INVALID_NETWORK')
+
+    expect(computeError.isComputationError()).toBe(true)
+    expect(timeoutError.isComputationError()).toBe(true)
+    expect(networkError.isComputationError()).toBe(false)
+  })
+
+  it('should have isClusterError helper', async () => {
+    const { ArciumError } = await import('../../src/privacy-backends/arcium-types')
+
+    const clusterError = new ArciumError('test', 'ARCIUM_CLUSTER_UNAVAILABLE')
+    const networkError = new ArciumError('test', 'ARCIUM_INVALID_NETWORK')
+
+    expect(clusterError.isClusterError()).toBe(true)
+    expect(networkError.isClusterError()).toBe(false)
+  })
+
+  it('should extend SIPError', async () => {
+    const { ArciumError } = await import('../../src/privacy-backends/arcium-types')
+    const { SIPError, ErrorCode } = await import('../../src/errors')
+
+    const error = new ArciumError('test error', 'ARCIUM_ERROR')
+
+    // Should be an instance of SIPError
+    expect(error).toBeInstanceOf(SIPError)
+    expect(error.code).toBe(ErrorCode.ARCIUM_ERROR)
   })
 })

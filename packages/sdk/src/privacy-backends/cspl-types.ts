@@ -111,7 +111,7 @@ export interface ConfidentialTransferParams {
   encryptedAmount: Uint8Array
   /** Zero-knowledge proof for valid transfer (proves sender has sufficient balance) */
   proof?: Uint8Array
-  /** Optional memo (public) */
+  /** Optional memo (public, max CSPL_MAX_MEMO_BYTES bytes) */
   memo?: string
 }
 
@@ -445,14 +445,19 @@ export const CSPL_TOKENS: Record<string, Partial<CSPLToken>> = {
 /**
  * C-SPL program IDs
  *
- * Note: These are placeholder values. Real values TBD when C-SPL launches.
+ * NOTE: TOKEN_PROGRAM and ATA_PROGRAM are PLACEHOLDER addresses.
+ * Real values TBD when C-SPL launches on Solana.
+ * The PLACEHOLDR prefix makes them obviously invalid to prevent
+ * accidental use in production.
+ *
+ * CONFIDENTIAL_TRANSFER is the real Solana Token-2022 program ID.
  */
 export const CSPL_PROGRAM_IDS = {
-  /** C-SPL token program */
-  TOKEN_PROGRAM: 'CSPL1111111111111111111111111111111111111111',
-  /** C-SPL associated token account program */
-  ATA_PROGRAM: 'CSPLAta11111111111111111111111111111111111111',
-  /** Confidential transfer extension */
+  /** C-SPL token program (PLACEHOLDER - TBD) */
+  TOKEN_PROGRAM: 'PLACEHLDRCSPLTokenProgram111111111111111111',
+  /** C-SPL associated token account program (PLACEHOLDER - TBD) */
+  ATA_PROGRAM: 'PLACEHLDRCSPLAtaProgram1111111111111111111',
+  /** Confidential transfer extension (REAL Solana Token-2022 program) */
   CONFIDENTIAL_TRANSFER: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb',
 } as const
 
@@ -465,6 +470,16 @@ export const DEFAULT_SWAP_SLIPPAGE_BPS = 50
  * Maximum pending transfers before apply is required
  */
 export const MAX_PENDING_TRANSFERS = 65536
+
+/**
+ * Maximum memo length in bytes
+ *
+ * Solana memo program limit is 566 bytes, but we use 256 for:
+ * - Better UX (reasonable user-facing memo length)
+ * - Compatibility with other privacy backends
+ * - Room for protocol metadata in the transaction
+ */
+export const CSPL_MAX_MEMO_BYTES = 256
 
 /**
  * Cost estimate for C-SPL operations (in lamports)

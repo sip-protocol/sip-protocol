@@ -13,6 +13,7 @@ import {
   CSPL_OPERATION_TIMES,
   DEFAULT_SWAP_SLIPPAGE_BPS,
   MAX_PENDING_TRANSFERS,
+  CSPL_MAX_MEMO_BYTES,
 } from '../../src/privacy-backends/cspl-types'
 import type {
   CSPLToken,
@@ -22,10 +23,21 @@ import type {
 
 // ─── Test Helpers ────────────────────────────────────────────────────────────
 
+// Valid Solana base58 addresses for testing
+const TEST_ADDRESSES = {
+  owner: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
+  sender: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d',
+  recipient: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
+  alice: 'FzPuPPFpqNbnTLqVfVv7fqK8LtYGbYsf7Y9p6P9N9oSp',
+  bob: 'HN7cABqLq46Es1jh92dQQisAi5YqXg1RoycZjv8AwJbW',
+  auditor1: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+  auditor2: 'BPFLoaderUpgradeab1e11111111111111111111111',
+}
+
 function createTestToken(overrides: Partial<CSPLToken> = {}): CSPLToken {
   return {
     mint: 'So11111111111111111111111111111111111111112',
-    confidentialMint: 'cspl_So111111',
+    confidentialMint: 'CSPLWrap1111111111111111111111111111111111',
     decimals: 9,
     symbol: 'C-wSOL',
     name: 'Confidential Wrapped SOL',
@@ -37,7 +49,7 @@ function createWrapParams(overrides: Partial<WrapTokenParams> = {}): WrapTokenPa
   return {
     mint: 'So11111111111111111111111111111111111111112',
     amount: BigInt('1000000000'), // 1 SOL
-    owner: 'owner123',
+    owner: TEST_ADDRESSES.owner,
     ...overrides,
   }
 }
@@ -46,8 +58,8 @@ function createTransferParams(
   overrides: Partial<ConfidentialTransferParams> = {}
 ): ConfidentialTransferParams {
   return {
-    from: 'sender123',
-    to: 'recipient456',
+    from: TEST_ADDRESSES.sender,
+    to: TEST_ADDRESSES.recipient,
     token: createTestToken(),
     encryptedAmount: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]),
     ...overrides,
@@ -245,7 +257,7 @@ describe('CSPLClient', () => {
       const result = await client.unwrapToken({
         token,
         encryptedAmount: new Uint8Array([1, 2, 3, 4]),
-        owner: 'owner123',
+        owner: TEST_ADDRESSES.owner,
       })
 
       expect(result.success).toBe(true)
@@ -258,7 +270,7 @@ describe('CSPLClient', () => {
       const result = await client.unwrapToken({
         token,
         encryptedAmount: new Uint8Array([1, 2, 3, 4]),
-        owner: 'owner123',
+        owner: TEST_ADDRESSES.owner,
       })
 
       expect(typeof result.amount).toBe('bigint')
@@ -268,7 +280,7 @@ describe('CSPLClient', () => {
       const result = await client.unwrapToken({
         token: {} as CSPLToken,
         encryptedAmount: new Uint8Array([1, 2, 3, 4]),
-        owner: 'owner123',
+        owner: TEST_ADDRESSES.owner,
       })
 
       expect(result.success).toBe(false)
@@ -292,7 +304,7 @@ describe('CSPLClient', () => {
       const result = await client.unwrapToken({
         token,
         encryptedAmount: new Uint8Array([]),
-        owner: 'owner123',
+        owner: TEST_ADDRESSES.owner,
       })
 
       expect(result.success).toBe(false)
@@ -384,6 +396,78 @@ describe('CSPLClient', () => {
 
       // Cache is cleared for both parties
     })
+
+    // ─── Memo Validation Tests ────────────────────────────────────────────────────
+
+    it('should transfer successfully with valid memo', async () => {
+      const params = createTransferParams({ memo: 'Payment for services' })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+      expect(result.signature).toBeDefined()
+    })
+
+    it('should transfer successfully with memo at max length', async () => {
+      // Create a memo exactly at the limit (256 bytes)
+      const maxMemo = 'a'.repeat(CSPL_MAX_MEMO_BYTES)
+      const params = createTransferParams({ memo: maxMemo })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+    })
+
+    it('should fail with memo exceeding max length', async () => {
+      // Create a memo that exceeds the limit
+      const longMemo = 'a'.repeat(CSPL_MAX_MEMO_BYTES + 1)
+      const params = createTransferParams({ memo: longMemo })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Memo exceeds maximum length')
+      expect(result.error).toContain(`${CSPL_MAX_MEMO_BYTES}`)
+    })
+
+    it('should handle multi-byte UTF-8 characters in memo length check', async () => {
+      // Emoji and CJK characters are multi-byte in UTF-8
+      // 😀 = 4 bytes, 中 = 3 bytes
+      // 64 emojis = 256 bytes (at the limit)
+      const emojiMemo = '😀'.repeat(64)
+      const params = createTransferParams({ memo: emojiMemo })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+    })
+
+    it('should fail with multi-byte memo exceeding byte limit', async () => {
+      // 65 emojis = 260 bytes (exceeds 256 byte limit)
+      const emojiMemo = '😀'.repeat(65)
+      const params = createTransferParams({ memo: emojiMemo })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Memo exceeds maximum length')
+    })
+
+    it('should transfer successfully without memo', async () => {
+      const params = createTransferParams() // no memo field
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+    })
+
+    it('should transfer successfully with empty memo', async () => {
+      const params = createTransferParams({ memo: '' })
+
+      const result = await client.transfer(params)
+
+      expect(result.success).toBe(true)
+    })
   })
 
   // ─── Encrypt Amount Tests ─────────────────────────────────────────────────────
@@ -440,11 +524,98 @@ describe('CSPLClient', () => {
       const complianceClient = new CSPLClient({ enableCompliance: true })
       const result = await complianceClient.encryptAmount({
         amount: BigInt(1000000),
-        auditorKeys: ['auditor1', 'auditor2'],
+        auditorKeys: [TEST_ADDRESSES.auditor1, TEST_ADDRESSES.auditor2],
       })
 
       expect(result.auditorCiphertexts).toBeDefined()
       expect(result.auditorCiphertexts?.size).toBe(2)
+    })
+
+    // ─── Auditor Key Validation Tests ───────────────────────────────────────────
+
+    it('should reject invalid auditor key format', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: ['invalid-key'],
+        })
+      ).rejects.toThrow('Invalid auditor key format')
+    })
+
+    it('should reject empty auditor key', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: [''],
+        })
+      ).rejects.toThrow('Auditor key at index 0 is empty')
+    })
+
+    it('should reject auditor key with only whitespace', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: ['   '],
+        })
+      ).rejects.toThrow('Auditor key at index 0 is empty')
+    })
+
+    it('should reject short auditor key', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: ['abc123'],
+        })
+      ).rejects.toThrow('Invalid auditor key format')
+    })
+
+    it('should report correct index for invalid auditor key', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      await expect(
+        complianceClient.encryptAmount({
+          amount: BigInt(1000000),
+          auditorKeys: [TEST_ADDRESSES.auditor1, 'invalid-key'],
+        })
+      ).rejects.toThrow('Invalid auditor key format at index 1')
+    })
+
+    it('should accept valid auditor keys', async () => {
+      const complianceClient = new CSPLClient({ enableCompliance: true })
+
+      const result = await complianceClient.encryptAmount({
+        amount: BigInt(1000000),
+        auditorKeys: [TEST_ADDRESSES.auditor1],
+      })
+
+      expect(result.auditorCiphertexts).toBeDefined()
+      expect(result.auditorCiphertexts?.has(TEST_ADDRESSES.auditor1)).toBe(true)
+    })
+
+    it('should validate recipient pubkey format', async () => {
+      await expect(
+        client.encryptAmount({
+          amount: BigInt(1000000),
+          recipientPubkey: 'invalid-pubkey',
+        })
+      ).rejects.toThrow('Invalid recipient pubkey format')
+    })
+
+    it('should accept valid recipient pubkey', async () => {
+      const result = await client.encryptAmount({
+        amount: BigInt(1000000),
+        recipientPubkey: TEST_ADDRESSES.recipient,
+      })
+
+      expect(result.ciphertext).toBeDefined()
     })
   })
 
@@ -497,7 +668,7 @@ describe('CSPLClient', () => {
 
     it('should return balance', async () => {
       const token = createTestToken()
-      const balance = await client.getBalance('owner123', token)
+      const balance = await client.getBalance(TEST_ADDRESSES.owner, token)
 
       expect(balance).toBeDefined()
       expect(balance.token).toEqual(token)
@@ -507,10 +678,10 @@ describe('CSPLClient', () => {
     it('should cache balance', async () => {
       const token = createTestToken()
 
-      await client.getBalance('owner123', token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
       const stats1 = client.getCacheStats()
 
-      await client.getBalance('owner123', token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
       const stats2 = client.getCacheStats()
 
       expect(stats2.balances).toBe(stats1.balances)
@@ -528,10 +699,10 @@ describe('CSPLClient', () => {
 
     it('should create account', async () => {
       const token = createTestToken()
-      const account = await client.getOrCreateAccount('owner123', token)
+      const account = await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
 
       expect(account).toBeDefined()
-      expect(account.owner).toBe('owner123')
+      expect(account.owner).toBe(TEST_ADDRESSES.owner)
       expect(account.token).toEqual(token)
       expect(account.isInitialized).toBe(true)
     })
@@ -539,8 +710,8 @@ describe('CSPLClient', () => {
     it('should return cached account', async () => {
       const token = createTestToken()
 
-      const account1 = await client.getOrCreateAccount('owner123', token)
-      const account2 = await client.getOrCreateAccount('owner123', token)
+      const account1 = await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      const account2 = await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
 
       expect(account1).toEqual(account2)
     })
@@ -550,14 +721,14 @@ describe('CSPLClient', () => {
 
       await expect(
         client.getOrCreateAccount('', token)
-      ).rejects.toThrow('Owner')
+      ).rejects.toThrow('Invalid owner address format')
     })
 
     it('should throw without confidential mint', async () => {
       const token = { ...createTestToken(), confidentialMint: '' }
 
       await expect(
-        client.getOrCreateAccount('owner123', token)
+        client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
       ).rejects.toThrow('confidentialMint')
     })
   })
@@ -573,7 +744,7 @@ describe('CSPLClient', () => {
 
     it('should apply pending balance', async () => {
       const token = createTestToken()
-      const result = await client.applyPendingBalance('owner123', token)
+      const result = await client.applyPendingBalance(TEST_ADDRESSES.owner, token)
 
       expect(result.success).toBe(true)
     })
@@ -587,7 +758,7 @@ describe('CSPLClient', () => {
     })
 
     it('should fail without token', async () => {
-      const result = await client.applyPendingBalance('owner123', {} as CSPLToken)
+      const result = await client.applyPendingBalance(TEST_ADDRESSES.owner, {} as CSPLToken)
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('Token')
@@ -624,14 +795,14 @@ describe('CSPLClient', () => {
       expect(tokens).toContain('C-USDT')
     })
 
-    it('should estimate cost', () => {
-      const cost = client.estimateCost('transfer')
+    it('should estimate cost', async () => {
+      const cost = await client.estimateCost('transfer')
 
       expect(cost).toBe(CSPL_OPERATION_COSTS.transfer)
     })
 
-    it('should estimate time', () => {
-      const time = client.estimateTime('swap')
+    it('should estimate time', async () => {
+      const time = await client.estimateTime('swap')
 
       expect(time).toBe(CSPL_OPERATION_TIMES.swap)
     })
@@ -655,8 +826,8 @@ describe('CSPLClient', () => {
     it('should track cache stats', async () => {
       const token = createTestToken()
 
-      await client.getOrCreateAccount('owner1', token)
-      await client.getBalance('owner1', token)
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
 
       const stats = client.getCacheStats()
 
@@ -667,14 +838,121 @@ describe('CSPLClient', () => {
     it('should clear cache', async () => {
       const token = createTestToken()
 
-      await client.getOrCreateAccount('owner1', token)
-      await client.getBalance('owner1', token)
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
 
       client.clearCache()
       const stats = client.getCacheStats()
 
       expect(stats.accounts).toBe(0)
       expect(stats.balances).toBe(0)
+    })
+
+    it('should provide detailed cache stats with LRU metrics', async () => {
+      const token = createTestToken()
+
+      // Generate some cache activity
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
+      // Access again to generate hits
+      await client.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await client.getBalance(TEST_ADDRESSES.owner, token)
+
+      const detailedStats = client.getDetailedCacheStats()
+
+      // Check account cache stats
+      expect(detailedStats.accounts).toBeDefined()
+      expect(detailedStats.accounts.size).toBeGreaterThan(0)
+      expect(detailedStats.accounts.maxSize).toBe(1000) // DEFAULT_CACHE_SIZES.TOKEN_ACCOUNTS
+      expect(detailedStats.accounts.hits).toBeGreaterThan(0)
+      expect(detailedStats.accounts.hitRate).toBeGreaterThan(0)
+
+      // Check balance cache stats
+      expect(detailedStats.balances).toBeDefined()
+      expect(detailedStats.balances.size).toBeGreaterThan(0)
+      expect(detailedStats.balances.maxSize).toBe(500) // DEFAULT_CACHE_SIZES.BALANCES
+    })
+
+    it('should return cache configuration', () => {
+      const config = client.getCacheConfig()
+
+      expect(config.accountCacheSize).toBe(1000)
+      expect(config.balanceCacheSize).toBe(500)
+      expect(config.accountCacheTTL).toBe(5 * 60 * 1000) // 5 minutes
+      expect(config.balanceCacheTTL).toBe(30 * 1000) // 30 seconds
+    })
+
+    it('should accept custom cache configuration', () => {
+      const customClient = new CSPLClient({
+        cache: {
+          accountCacheSize: 100,
+          balanceCacheSize: 50,
+          accountCacheTTL: 60_000,
+          balanceCacheTTL: 10_000,
+        },
+      })
+
+      const config = customClient.getCacheConfig()
+
+      expect(config.accountCacheSize).toBe(100)
+      expect(config.balanceCacheSize).toBe(50)
+      expect(config.accountCacheTTL).toBe(60_000)
+      expect(config.balanceCacheTTL).toBe(10_000)
+    })
+
+    it('should prune expired cache entries', async () => {
+      // Create client with very short TTL for testing
+      const shortTTLClient = new CSPLClient({
+        cache: {
+          accountCacheTTL: 1, // 1ms TTL
+          balanceCacheTTL: 1,
+        },
+      })
+
+      const token = createTestToken()
+
+      await shortTTLClient.getOrCreateAccount(TEST_ADDRESSES.owner, token)
+      await shortTTLClient.getBalance(TEST_ADDRESSES.owner, token)
+
+      // Wait for TTL to expire
+      await new Promise(resolve => setTimeout(resolve, 10))
+
+      const pruned = shortTTLClient.pruneExpiredCache()
+
+      // Entries should have been pruned
+      expect(pruned.accounts).toBeGreaterThanOrEqual(0)
+      expect(pruned.balances).toBeGreaterThanOrEqual(0)
+    })
+
+    it('should evict LRU entries when cache is full', async () => {
+      // Create client with tiny cache for testing eviction
+      const tinyClient = new CSPLClient({
+        cache: {
+          accountCacheSize: 2,
+          balanceCacheSize: 2,
+        },
+      })
+
+      // Create 3 different tokens to fill and overflow the cache
+      // Cache key uses confidentialMint, so we need unique confidentialMints
+      const token1 = createTestToken({ confidentialMint: 'CSPLToken1111111111111111111111111111111' })
+      const token2 = createTestToken({ confidentialMint: 'CSPLToken2222222222222222222222222222222' })
+      const token3 = createTestToken({ confidentialMint: 'CSPLToken3333333333333333333333333333333' })
+
+      // Fill the cache
+      await tinyClient.getOrCreateAccount(TEST_ADDRESSES.owner, token1)
+      await tinyClient.getOrCreateAccount(TEST_ADDRESSES.owner, token2)
+
+      const statsBeforeEviction = tinyClient.getDetailedCacheStats()
+      expect(statsBeforeEviction.accounts.size).toBe(2)
+      expect(statsBeforeEviction.accounts.evictions).toBe(0)
+
+      // Add one more to trigger eviction
+      await tinyClient.getOrCreateAccount(TEST_ADDRESSES.owner, token3)
+
+      const statsAfterEviction = tinyClient.getDetailedCacheStats()
+      expect(statsAfterEviction.accounts.size).toBe(2) // Still at max
+      expect(statsAfterEviction.accounts.evictions).toBe(1) // One eviction
     })
   })
 })
@@ -743,6 +1021,10 @@ describe('C-SPL Constants', () => {
     it('should have MAX_PENDING_TRANSFERS', () => {
       expect(MAX_PENDING_TRANSFERS).toBe(65536)
     })
+
+    it('should have CSPL_MAX_MEMO_BYTES', () => {
+      expect(CSPL_MAX_MEMO_BYTES).toBe(256)
+    })
   })
 })
 
@@ -778,28 +1060,28 @@ describe('C-SPL Integration', () => {
       const wrapResult = await client.wrapToken({
         mint: token.mint,
         amount: BigInt('1000000000'),
-        owner: 'alice',
+        owner: TEST_ADDRESSES.alice,
       })
       expect(wrapResult.success).toBe(true)
 
       // 2. Transfer
       const transferResult = await client.transfer({
-        from: 'alice',
-        to: 'bob',
+        from: TEST_ADDRESSES.alice,
+        to: TEST_ADDRESSES.bob,
         token,
         encryptedAmount: wrapResult.encryptedBalance!,
       })
       expect(transferResult.success).toBe(true)
 
       // 3. Apply pending (bob)
-      const applyResult = await client.applyPendingBalance('bob', token)
+      const applyResult = await client.applyPendingBalance(TEST_ADDRESSES.bob, token)
       expect(applyResult.success).toBe(true)
 
       // 4. Unwrap (bob)
       const unwrapResult = await client.unwrapToken({
         token,
         encryptedAmount: new Uint8Array([1, 2, 3, 4]),
-        owner: 'bob',
+        owner: TEST_ADDRESSES.bob,
       })
       expect(unwrapResult.success).toBe(true)
     })

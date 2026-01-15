@@ -55,7 +55,15 @@ export const logger = pino(loggerConfig)
  */
 export const requestLogger = pinoHttp({
   logger,
+  // Use requestId from requestIdMiddleware (set earlier in chain)
+  // Falls back to header or generates new if middleware didn't run
   genReqId: (req) => {
+    // Type assertion for augmented request
+    const augmentedReq = req as typeof req & { requestId?: string }
+    if (augmentedReq.requestId) {
+      return augmentedReq.requestId
+    }
+    // Fallback for direct logger usage (tests, etc.)
     const existingId = req.headers['x-request-id']
     if (existingId && typeof existingId === 'string') {
       return existingId

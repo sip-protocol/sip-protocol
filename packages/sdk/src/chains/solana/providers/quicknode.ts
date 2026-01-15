@@ -39,11 +39,18 @@ import {
 import Client, {
   CommitmentLevel,
   type SubscribeRequest,
+  type SubscribeUpdate,
 } from '@triton-one/yellowstone-grpc'
+import type { ClientDuplexStream } from '@grpc/grpc-js'
 import { base58 } from '@scure/base'
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
 import { sanitizeUrl } from '../constants'
 import { ValidationError, ErrorCode } from '../../../errors'
+
+/**
+ * Type alias for Yellowstone gRPC subscription stream
+ */
+type GrpcSubscriptionStream = ClientDuplexStream<SubscribeRequest, SubscribeUpdate>
 
 /**
  * QuickNode provider configuration
@@ -103,8 +110,7 @@ export class QuickNodeProvider implements SolanaRPCProvider {
   private grpcEndpoint: string
   private grpcEnabled: boolean
   private grpcClient: Client | null = null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private activeStreams: Set<any> = new Set()
+  private activeStreams: Set<GrpcSubscriptionStream> = new Set()
 
   constructor(config: QuickNodeProviderConfig) {
     if (!config.endpoint) {

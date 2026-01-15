@@ -64,7 +64,31 @@ import {
   CSPL_PROGRAM_IDS,
   CSPL_OPERATION_COSTS,
   CSPL_OPERATION_TIMES,
+  CSPL_MAX_MEMO_BYTES,
 } from './cspl-types'
+
+import { isValidSolanaAddressFormat } from '../validation'
+import { deepFreeze } from './interface'
+import {
+  LRUCache,
+  DEFAULT_CACHE_SIZES,
+  DEFAULT_CACHE_TTL,
+  type LRUCacheStats,
+} from './lru-cache'
+
+/**
+ * Cache configuration for CSPLClient
+ */
+export interface CSPLCacheConfig {
+  /** Maximum entries in account cache (default: 1000) */
+  accountCacheSize?: number
+  /** Maximum entries in balance cache (default: 500) */
+  balanceCacheSize?: number
+  /** Account cache TTL in ms (default: 5 minutes) */
+  accountCacheTTL?: number
+  /** Balance cache TTL in ms (default: 30 seconds) */
+  balanceCacheTTL?: number
+}
 
 /**
  * Configuration for CSPLClient
@@ -78,6 +102,8 @@ export interface CSPLClientConfig {
   enableCompliance?: boolean
   /** Request timeout in milliseconds */
   timeout?: number
+  /** Cache configuration */
+  cache?: CSPLCacheConfig
 }
 
 /**
@@ -85,11 +111,22 @@ export interface CSPLClientConfig {
  *
  * Handles all operations for Confidential SPL tokens.
  */
+/**
+ * Extended cache stats including LRU metrics
+ */
+export interface CSPLCacheStats {
+  /** Account cache statistics */
+  accounts: LRUCacheStats
+  /** Balance cache statistics */
+  balances: LRUCacheStats
+}
+
 export class CSPLClient implements ICSPLClient {
-  private config: Required<CSPLClientConfig>
+  private config: Required<Omit<CSPLClientConfig, 'cache'>>
+  private cacheConfig: Required<CSPLCacheConfig>
   private connected: boolean = false
-  private accountCache: Map<string, ConfidentialTokenAccount> = new Map()
-  private balanceCache: Map<string, ConfidentialBalance> = new Map()
+  private accountCache: LRUCache<string, ConfidentialTokenAccount>
+  private balanceCache: LRUCache<string, ConfidentialBalance>
 
   /**
    * Create a new C-SPL client
@@ -103,6 +140,25 @@ export class CSPLClient implements ICSPLClient {
       enableCompliance: config.enableCompliance ?? false,
       timeout: config.timeout ?? 30_000,
     }
+
+    // Initialize cache configuration with defaults
+    this.cacheConfig = {
+      accountCacheSize: config.cache?.accountCacheSize ?? DEFAULT_CACHE_SIZES.TOKEN_ACCOUNTS,
+      balanceCacheSize: config.cache?.balanceCacheSize ?? DEFAULT_CACHE_SIZES.BALANCES,
+      accountCacheTTL: config.cache?.accountCacheTTL ?? DEFAULT_CACHE_TTL.TOKEN_ACCOUNTS,
+      balanceCacheTTL: config.cache?.balanceCacheTTL ?? DEFAULT_CACHE_TTL.BALANCES,
+    }
+
+    // Initialize LRU caches
+    this.accountCache = new LRUCache<string, ConfidentialTokenAccount>({
+      maxSize: this.cacheConfig.accountCacheSize,
+      ttl: this.cacheConfig.accountCacheTTL,
+    })
+
+    this.balanceCache = new LRUCache<string, ConfidentialBalance>({
+      maxSize: this.cacheConfig.balanceCacheSize,
+      ttl: this.cacheConfig.balanceCacheTTL,
+    })
   }
 
   /**
@@ -149,6 +205,11 @@ export class CSPLClient implements ICSPLClient {
     owner: string,
     token: CSPLToken
   ): Promise<ConfidentialTokenAccount> {
+    // Validate owner address format
+    if (!owner || !isValidSolanaAddressFormat(owner)) {
+      throw new Error('Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)')
+    }
+
     // Check cache first
     const cacheKey = `${owner}:${token.confidentialMint}`
     const cached = this.accountCache.get(cacheKey)
@@ -195,6 +256,11 @@ export class CSPLClient implements ICSPLClient {
    * @returns Confidential balance
    */
   async getBalance(owner: string, token: CSPLToken): Promise<ConfidentialBalance> {
+    // Validate owner address format
+    if (!owner || !isValidSolanaAddressFormat(owner)) {
+      throw new Error('Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)')
+    }
+
     // Check cache
     const cacheKey = `balance:${owner}:${token.confidentialMint}`
     const cached = this.balanceCache.get(cacheKey)
@@ -234,10 +300,22 @@ export class CSPLClient implements ICSPLClient {
         error: 'Token mint address is required',
       }
     }
+    if (!isValidSolanaAddressFormat(params.mint)) {
+      return {
+        success: false,
+        error: 'Invalid token mint address format. Expected base58-encoded Solana address (32-44 chars)',
+      }
+    }
     if (!params.owner || params.owner.trim() === '') {
       return {
         success: false,
         error: 'Owner address is required',
+      }
+    }
+    if (!isValidSolanaAddressFormat(params.owner)) {
+      return {
+        success: false,
+        error: 'Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)',
       }
     }
     if (params.amount <= BigInt(0)) {
@@ -312,6 +390,12 @@ export class CSPLClient implements ICSPLClient {
         error: 'Owner address is required',
       }
     }
+    if (!isValidSolanaAddressFormat(params.owner)) {
+      return {
+        success: false,
+        error: 'Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)',
+      }
+    }
     if (!params.encryptedAmount || params.encryptedAmount.length === 0) {
       return {
         success: false,
@@ -369,10 +453,22 @@ export class CSPLClient implements ICSPLClient {
         error: 'Sender address is required',
       }
     }
+    if (!isValidSolanaAddressFormat(params.from)) {
+      return {
+        success: false,
+        error: 'Invalid sender address format. Expected base58-encoded Solana address (32-44 chars)',
+      }
+    }
     if (!params.to || params.to.trim() === '') {
       return {
         success: false,
         error: 'Recipient address is required',
+      }
+    }
+    if (!isValidSolanaAddressFormat(params.to)) {
+      return {
+        success: false,
+        error: 'Invalid recipient address format. Expected base58-encoded Solana address (32-44 chars)',
       }
     }
     if (!params.token || !params.token.confidentialMint) {
@@ -385,6 +481,17 @@ export class CSPLClient implements ICSPLClient {
       return {
         success: false,
         error: 'Encrypted amount is required',
+      }
+    }
+
+    // Validate memo length (if provided)
+    if (params.memo !== undefined) {
+      const memoBytes = new TextEncoder().encode(params.memo)
+      if (memoBytes.length > CSPL_MAX_MEMO_BYTES) {
+        return {
+          success: false,
+          error: `Memo exceeds maximum length (${memoBytes.length} bytes > ${CSPL_MAX_MEMO_BYTES} bytes limit)`,
+        }
       }
     }
 
@@ -431,9 +538,35 @@ export class CSPLClient implements ICSPLClient {
    * @returns Encrypted amount
    */
   async encryptAmount(params: CSPLEncryptionParams): Promise<EncryptedAmount> {
-    // Validate
+    // Validate amount
     if (params.amount < BigInt(0)) {
       throw new Error('Amount cannot be negative')
+    }
+
+    // Validate recipient pubkey if provided
+    if (params.recipientPubkey !== undefined && params.recipientPubkey !== '') {
+      if (!isValidSolanaAddressFormat(params.recipientPubkey)) {
+        throw new Error(
+          `Invalid recipient pubkey format: '${params.recipientPubkey}'. ` +
+          'Expected base58-encoded Solana address (32-44 chars)'
+        )
+      }
+    }
+
+    // Validate auditor keys if provided
+    if (params.auditorKeys?.length) {
+      for (let i = 0; i < params.auditorKeys.length; i++) {
+        const auditorKey = params.auditorKeys[i]
+        if (!auditorKey || auditorKey.trim() === '') {
+          throw new Error(`Auditor key at index ${i} is empty`)
+        }
+        if (!isValidSolanaAddressFormat(auditorKey)) {
+          throw new Error(
+            `Invalid auditor key format at index ${i}: '${auditorKey}'. ` +
+            'Expected base58-encoded Solana address (32-44 chars)'
+          )
+        }
+      }
     }
 
     const encryptionType = this.config.defaultEncryption
@@ -508,10 +641,22 @@ export class CSPLClient implements ICSPLClient {
         error: 'Owner address is required',
       }
     }
+    if (!isValidSolanaAddressFormat(owner)) {
+      return {
+        success: false,
+        error: 'Invalid owner address format. Expected base58-encoded Solana address (32-44 chars)',
+      }
+    }
     if (!token || !token.confidentialMint) {
       return {
         success: false,
         error: 'Token configuration is required',
+      }
+    }
+    if (!isValidSolanaAddressFormat(token.confidentialMint)) {
+      return {
+        success: false,
+        error: 'Invalid token confidentialMint format. Expected base58-encoded Solana address (32-44 chars)',
       }
     }
 
@@ -578,28 +723,34 @@ export class CSPLClient implements ICSPLClient {
   /**
    * Estimate cost for an operation
    *
+   * Returns the estimated cost in lamports. Made async for consistency
+   * with other privacy backend cost estimation methods.
+   *
    * @param operation - Operation type
    * @returns Estimated cost in lamports
    */
-  estimateCost(operation: keyof typeof CSPL_OPERATION_COSTS): bigint {
+  async estimateCost(operation: keyof typeof CSPL_OPERATION_COSTS): Promise<bigint> {
     return CSPL_OPERATION_COSTS[operation]
   }
 
   /**
    * Estimate time for an operation
    *
+   * Returns the estimated time in milliseconds. Made async for consistency
+   * with other privacy backend estimation methods.
+   *
    * @param operation - Operation type
    * @returns Estimated time in milliseconds
    */
-  estimateTime(operation: keyof typeof CSPL_OPERATION_TIMES): number {
+  async estimateTime(operation: keyof typeof CSPL_OPERATION_TIMES): Promise<number> {
     return CSPL_OPERATION_TIMES[operation]
   }
 
   /**
-   * Get current configuration
+   * Get current configuration (deeply frozen copy)
    */
-  getConfig(): CSPLClientConfig {
-    return { ...this.config }
+  getConfig(): Readonly<CSPLClientConfig> {
+    return deepFreeze({ ...this.config })
   }
 
   /**
@@ -710,12 +861,47 @@ export class CSPLClient implements ICSPLClient {
   }
 
   /**
-   * Get cache stats
+   * Get cache entry counts (backward compatible)
+   *
+   * @returns Number of entries in each cache
    */
   getCacheStats(): { accounts: number; balances: number } {
     return {
       accounts: this.accountCache.size,
       balances: this.balanceCache.size,
+    }
+  }
+
+  /**
+   * Get detailed cache statistics including LRU metrics
+   *
+   * @returns Detailed cache stats with hit rates and eviction counts
+   */
+  getDetailedCacheStats(): CSPLCacheStats {
+    return {
+      accounts: this.accountCache.getStats(),
+      balances: this.balanceCache.getStats(),
+    }
+  }
+
+  /**
+   * Get cache configuration
+   *
+   * @returns Current cache configuration
+   */
+  getCacheConfig(): Readonly<CSPLCacheConfig> {
+    return deepFreeze({ ...this.cacheConfig })
+  }
+
+  /**
+   * Prune expired entries from all caches
+   *
+   * @returns Number of entries pruned from each cache
+   */
+  pruneExpiredCache(): { accounts: number; balances: number } {
+    return {
+      accounts: this.accountCache.prune(),
+      balances: this.balanceCache.prune(),
     }
   }
 }
