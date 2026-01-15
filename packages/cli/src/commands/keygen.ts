@@ -5,8 +5,18 @@ import {
   isEd25519Chain,
   encodeStealthMetaAddress,
 } from '@sip-protocol/sdk'
-import type { ChainId } from '@sip-protocol/types'
+import type { ChainId, HexString, StealthMetaAddress } from '@sip-protocol/types'
 import { success, keyValue, heading, warning } from '../utils/output'
+
+/**
+ * Result type for stealth meta-address generation
+ * Both secp256k1 and ed25519 functions return this structure
+ */
+interface GeneratedMetaAddress {
+  metaAddress: StealthMetaAddress
+  spendingPrivateKey: HexString
+  viewingPrivateKey: HexString
+}
 
 export function createKeygenCommand(): Command {
   return new Command('keygen')
@@ -21,7 +31,7 @@ export function createKeygenCommand(): Command {
         const chain = options.chain as ChainId
         const useEd25519 = isEd25519Chain(chain)
 
-        let metaAddress: any
+        let metaAddress: GeneratedMetaAddress
 
         if (useEd25519) {
           // Generate ed25519 meta-address (Solana, NEAR)

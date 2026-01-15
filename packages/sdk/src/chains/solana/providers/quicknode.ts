@@ -110,7 +110,7 @@ export class QuickNodeProvider implements SolanaRPCProvider {
   private grpcEndpoint: string
   private grpcEnabled: boolean
   private grpcClient: Client | null = null
-  private activeStreams: Set<GrpcSubscriptionStream> = new Set()
+private activeStreams: Set<GrpcSubscriptionStream> = new Set()
 
   constructor(config: QuickNodeProviderConfig) {
     if (!config.endpoint) {

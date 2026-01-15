@@ -127,7 +127,7 @@ export class TritonProvider implements SolanaRPCProvider {
   private xToken: string
   private grpcEnabled: boolean
   private grpcClient: Client | null = null
-  private activeStreams: Set<GrpcSubscriptionStream> = new Set()
+private activeStreams: Set<GrpcSubscriptionStream> = new Set()
 
   constructor(config: TritonProviderConfig) {
     if (!config.xToken) {
