@@ -27,15 +27,16 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express'
 import crypto from 'crypto'
 
+/** Extended Request interface with requestId */
+export interface RequestWithId extends Request {
+  requestId: string
+}
+
 /**
- * Extend Express Request with requestId
+ * Type guard to check if request has requestId
  */
-declare global {
-  namespace Express {
-    interface Request {
-      requestId: string
-    }
-  }
+export function hasRequestId(req: Request): req is RequestWithId {
+  return 'requestId' in req && typeof (req as RequestWithId).requestId === 'string'
 }
 
 /**
@@ -56,7 +57,7 @@ export const requestIdMiddleware: RequestHandler = (
     : crypto.randomUUID()
 
   // Attach to request for downstream use
-  req.requestId = requestId
+  ;(req as RequestWithId).requestId = requestId
 
   // Set response header for client correlation
   res.setHeader('X-Request-ID', requestId)
