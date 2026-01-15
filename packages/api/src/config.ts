@@ -44,6 +44,14 @@ export const env = cleanEnv(process.env, {
     desc: 'Rate limit window in milliseconds',
   }),
 
+  // Proxy trust configuration (for X-Forwarded-For header)
+  // Set to number of trusted proxies (e.g., 1 for single nginx)
+  // or 'loopback' for local proxies, or 'uniquelocal' for private IPs
+  TRUST_PROXY: str({
+    default: '1',
+    desc: 'Express trust proxy setting (number of hops, "loopback", "uniquelocal", or "false")',
+  }),
+
   // Logging
   LOG_LEVEL: str({
     choices: ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const,
