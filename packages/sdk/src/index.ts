@@ -823,6 +823,9 @@ export {
   processWebhookTransaction,
   verifyWebhookSignature,
   verifyAuthToken,
+  // Helius Enhanced Transactions (Human-readable TX data)
+  HeliusEnhanced,
+  createHeliusEnhanced,
 } from './chains/solana'
 
 // Solana Noir Verification (Aztec/Noir bounty)
@@ -844,6 +847,26 @@ export {
   SOLANA_ZK_PROGRAM_IDS,
   MAX_PROOF_SIZE_BYTES,
   MAX_PUBLIC_INPUTS,
+} from './solana'
+
+// Jito Relayer (Solana Gas Abstraction)
+export {
+  JitoRelayer,
+  createJitoRelayer,
+  createMainnetRelayer,
+  JitoRelayerError,
+  JitoRelayerErrorCode,
+  JITO_BLOCK_ENGINES,
+  JITO_TIP_ACCOUNTS,
+  JITO_DEFAULTS,
+} from './solana'
+
+export type {
+  JitoRelayerConfig,
+  JitoBundleRequest,
+  JitoBundleResult,
+  RelayedTransactionRequest,
+  RelayedTransactionResult,
 } from './solana'
 
 export type {
@@ -883,6 +906,22 @@ export type {
   WebhookProcessResult,
   WebhookRequest,
   WebhookHandler,
+  // Helius Enhanced Transactions types
+  HeliusEnhancedConfig,
+  EnhancedTransactionType,
+  NativeTransfer,
+  TokenTransfer,
+  NftTransfer,
+  SwapEvent,
+  EnhancedTransactionEvents,
+  EnhancedAccountData,
+  EnhancedTransaction,
+  ParseTransactionsOptions,
+  GetTransactionHistoryOptions,
+  PrivacyDisplayOptions,
+  SIPTransactionMetadata,
+  SIPEnhancedTransaction,
+  TransactionSummary,
 } from './chains/solana'
 
 // Same-Chain Executors

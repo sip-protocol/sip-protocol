@@ -1,0 +1,86 @@
+{
+  "name": "@sip-protocol/react-native",
+  "version": "0.1.0",
+  "description": "React Native SDK for Shielded Intents Protocol - privacy on iOS/Android",
+  "author": "SIP Protocol <hello@sip-protocol.org>",
+  "homepage": "https://sip-protocol.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sip-protocol/sip-protocol.git",
+    "directory": "packages/react-native"
+  },
+  "bugs": {
+    "url": "https://github.com/sip-protocol/sip-protocol/issues"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --external react --external react-native",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch --external react --external react-native",
+    "lint": "eslint --ext .ts,.tsx src/",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@sip-protocol/sdk": "workspace:*",
+    "@sip-protocol/types": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-native": ">=0.71.0",
+    "@solana/web3.js": "^1.87.0",
+    "@solana/spl-token": "^0.4.0"
+  },
+  "peerDependenciesMeta": {
+    "react-native-keychain": {
+      "optional": true
+    },
+    "@react-native-clipboard/clipboard": {
+      "optional": true
+    },
+    "@solana/web3.js": {
+      "optional": true
+    },
+    "@solana/spl-token": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@solana/spl-token": "^0.4.0",
+    "@solana/web3.js": "^1.87.0",
+    "@testing-library/react-native": "^12.0.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-native": "^0.72.0",
+    "react": "^18.2.0",
+    "react-native": "^0.73.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.1.0"
+  },
+  "keywords": [
+    "sip",
+    "privacy",
+    "react-native",
+    "mobile",
+    "solana",
+    "ethereum",
+    "stealth-addresses",
+    "ios",
+    "android"
+  ],
+  "license": "MIT"
+}
