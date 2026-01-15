@@ -1060,3 +1060,33 @@ export {
 } from './config/endpoints'
 
 export type { ZcashRpcConfig } from './config/endpoints'
+
+// Network Privacy (Tor/SOCKS5 Proxy Support)
+export {
+  // Types
+  type ProxyConfig,
+  type ProxyType,
+  type ParsedProxyConfig,
+  type ProxyAgentOptions,
+  type ProxyCheckResult,
+  type ProxiedFetch,
+  type NetworkPrivacyConfig,
+  // Constants
+  TOR_PORTS,
+  TOR_HOST,
+  TOR_CONTROL_PORT,
+  DEFAULT_PROXY_TIMEOUT,
+  PROXY_ENV_VAR,
+  PROXY_ENV_VARS,
+  DEFAULT_NETWORK_CONFIG,
+  // Functions
+  parseProxyConfig,
+  getProxyFromEnv,
+  isTorAvailable,
+  detectTorPort,
+  checkProxyAvailability,
+  createProxyAgent,
+  createProxiedFetch,
+  rotateCircuit,
+  createNetworkPrivacyClient,
+} from './network'
