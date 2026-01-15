@@ -41,6 +41,17 @@ initSentry()
 
 const app: Express = express()
 
+// Trust proxy configuration for X-Forwarded-For header
+// SECURITY: Required for rate limiting to work behind reverse proxy (nginx, Cloudflare, etc.)
+// Without this, rate limiting is trivially bypassable via X-Forwarded-For spoofing
+const trustProxy = env.TRUST_PROXY
+if (trustProxy !== 'false') {
+  // Parse as number if it looks like a number, otherwise use as string
+  const parsedValue = /^\d+$/.test(trustProxy) ? parseInt(trustProxy, 10) : trustProxy
+  app.set('trust proxy', parsedValue)
+  logger.info({ trustProxy: parsedValue }, 'Proxy trust configured')
+}
+
 // Metrics middleware (early to capture all requests)
 if (env.METRICS_ENABLED === 'true') {
   app.use(metricsMiddleware)

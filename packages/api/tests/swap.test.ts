@@ -137,27 +137,43 @@ describe('Quote Endpoint', () => {
       expect(response.body.error.code).toBe('VALIDATION_ERROR')
     })
 
-    it('should support cross-chain quotes', async () => {
-      const chains = [
-        { input: 'ethereum', output: 'solana' },
-        { input: 'solana', output: 'near' },
-        { input: 'polygon', output: 'arbitrum' },
+    it('should support cross-chain quotes with known tokens', async () => {
+      // Test cross-chain swaps using tokens in our registry
+      const quotes = [
+        { inputChain: 'ethereum', inputToken: 'ETH', outputChain: 'solana', outputToken: 'SOL' },
+        { inputChain: 'solana', inputToken: 'USDC', outputChain: 'near', outputToken: 'NEAR' },
+        { inputChain: 'solana', inputToken: 'SOL', outputChain: 'ethereum', outputToken: 'USDC' },
       ]
 
-      for (const { input, output } of chains) {
+      for (const quote of quotes) {
         const response = await request(app)
           .post('/api/v1/quote')
           .send({
-            inputChain: input,
-            inputToken: 'TOKEN',
+            ...quote,
             inputAmount: '1000000000',
-            outputChain: output,
-            outputToken: 'TOKEN',
           })
           .expect(200)
 
         expect(response.body.success).toBe(true)
+        // Dev mode should include warning
+        expect(response.body.data._warning).toContain('MOCK_DATA')
       }
+    })
+
+    it('should reject unknown tokens', async () => {
+      const response = await request(app)
+        .post('/api/v1/quote')
+        .send({
+          inputChain: 'solana',
+          inputToken: 'UNKNOWN_TOKEN',
+          inputAmount: '1000000000',
+          outputChain: 'ethereum',
+          outputToken: 'ETH',
+        })
+        .expect(400)
+
+      expect(response.body.success).toBe(false)
+      expect(response.body.error.code).toBe('UNKNOWN_TOKEN')
     })
   })
 })
@@ -180,6 +196,8 @@ describe('Swap Endpoint', () => {
       expect(response.body.data.swapId).toBeDefined()
       expect(response.body.data.status).toBe('pending')
       expect(response.body.data.timestamp).toBeDefined()
+      // Dev mode should include warning
+      expect(response.body.data._warning).toContain('MOCK_DATA')
     })
 
     it('should accept privacy level', async () => {

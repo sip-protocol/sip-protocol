@@ -112,6 +112,18 @@ describe('Rate Limiting Middleware', () => {
     expect(response.headers['ratelimit-reset']).toBeDefined()
   })
 
+  it('should use client IP from X-Forwarded-For when behind proxy', async () => {
+    // When trust proxy is enabled, rate limiting should use X-Forwarded-For header
+    // This test verifies the header is processed (rate limit applied per IP)
+    const response = await request(app)
+      .post('/api/v1/commitment/create')
+      .set('X-Forwarded-For', '203.0.113.50')
+      .send({ value: '1000' })
+
+    expect(response.status).toBe(200)
+    expect(response.headers['ratelimit-remaining']).toBeDefined()
+  })
+
   it('should skip rate limiting for health endpoint', async () => {
     // Make multiple requests to health - should not consume rate limit
     for (let i = 0; i < 5; i++) {

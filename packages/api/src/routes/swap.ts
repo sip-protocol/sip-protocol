@@ -1,6 +1,10 @@
 import { Router, Request, Response } from 'express'
 import { SIP, PrivacyLevel } from '@sip-protocol/sdk'
 import { validateRequest, schemas } from '../middleware'
+import { swapStore } from '../stores'
+import { getTokenDecimals } from '../services'
+import { env } from '../config'
+import { logger } from '../logger'
 import type {
   GetQuoteRequest,
   ExecuteSwapRequest,
@@ -15,19 +19,15 @@ const router: Router = Router()
 // Initialize SIP client
 const sip = new SIP({ network: 'testnet' })
 
-import type { HexString } from '@sip-protocol/types'
+/**
+ * Check if mock mode is allowed
+ * In production, mock mode should be explicitly disabled
+ */
+const MOCK_MODE_ENABLED = env.NODE_ENV !== 'production'
 
-// In-memory swap tracking (in production, use a database)
-const swaps = new Map<string, {
-  id: string
-  status: 'pending' | 'processing' | 'completed' | 'failed'
-  transactionHash?: HexString
-  inputAmount: string
-  outputAmount?: string
-  createdAt: string
-  updatedAt: string
-  error?: string
-}>()
+if (!MOCK_MODE_ENABLED) {
+  logger.warn('Production mode: Mock quotes and swaps are DISABLED')
+}
 
 /**
  * POST /quote
@@ -82,14 +82,44 @@ router.post(
       slippageTolerance
     } = req.body as GetQuoteRequest
 
-    // Create intent
+    // PRODUCTION MODE: Fail if quote aggregator not configured
+    if (!MOCK_MODE_ENABLED) {
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'QUOTE_SERVICE_UNAVAILABLE',
+          message: 'Real quote aggregator not configured. This API is not ready for production use.',
+          details: {
+            hint: 'Configure QUOTE_AGGREGATOR_URL or use development mode',
+          },
+        },
+      })
+    }
+
+    // Get proper decimals from token registry (fail loudly if unknown)
+    let inputDecimals: number
+    let outputDecimals: number
+    try {
+      inputDecimals = getTokenDecimals(inputChain, inputToken)
+      outputDecimals = getTokenDecimals(outputChain, outputToken)
+    } catch (err) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'UNKNOWN_TOKEN',
+          message: err instanceof Error ? err.message : 'Unknown token',
+        },
+      })
+    }
+
+    // Create intent with proper decimals
     const intent = await sip.createIntent({
       input: {
         asset: {
           chain: inputChain,
           address: null, // Native token
           symbol: inputToken,
-          decimals: 9,
+          decimals: inputDecimals,
         },
         amount: BigInt(inputAmount),
       },
@@ -98,7 +128,7 @@ router.post(
           chain: outputChain,
           address: null, // Native token
           symbol: outputToken,
-          decimals: 9,
+          decimals: outputDecimals,
         },
         // Calculate minAmount based on user's slippage tolerance (defaults to 1%)
         minAmount: BigInt(inputAmount) * BigInt(10000 - Math.floor((slippageTolerance || 1) * 100)) / 10000n,
@@ -107,12 +137,21 @@ router.post(
       privacy: PrivacyLevel.TRANSPARENT, // Default to transparent for quote
     })
 
-    // Get quotes (using mock data for now)
-    // In production, this would query real DEX aggregators
+    // DEV MODE: Return mock quote with warning
+    // In production, this block would never execute (see check above)
+    logger.warn({
+      inputChain,
+      inputToken,
+      outputChain,
+      outputToken,
+      inputAmount,
+    }, 'Returning MOCK quote - not for production use')
+
     const mockQuote: QuoteResponse = {
       quoteId: `quote-${Date.now()}`,
       inputAmount,
-      outputAmount: (BigInt(inputAmount) * 95n / 100n).toString(), // Mock 5% fee
+      // Mock: 5% fee (clearly fake rate)
+      outputAmount: (BigInt(inputAmount) * 95n / 100n).toString(),
       rate: '0.95',
       estimatedTime: 30,
       fees: {
@@ -131,9 +170,12 @@ router.post(
       },
     }
 
-    const response: ApiResponse<QuoteResponse> = {
+    const response: ApiResponse<QuoteResponse & { _warning?: string }> = {
       success: true,
-      data: mockQuote,
+      data: {
+        ...mockQuote,
+        _warning: 'MOCK_DATA: This quote uses simulated pricing. Do not use for real transactions.',
+      },
     }
 
     res.json(response)
@@ -177,33 +219,56 @@ router.post(
   '/swap',
   validateRequest({ body: schemas.executeSwap }),
   async (req: Request, res: Response) => {
-    const { intentId, quoteId, privacy, viewingKey } = req.body as ExecuteSwapRequest
+    const { intentId, quoteId, inputAmount } = req.body as ExecuteSwapRequest & { inputAmount?: string }
+
+    // PRODUCTION MODE: Fail if swap executor not configured
+    if (!MOCK_MODE_ENABLED) {
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'SWAP_SERVICE_UNAVAILABLE',
+          message: 'Real swap executor not configured. This API is not ready for production use.',
+          details: {
+            hint: 'Configure SWAP_EXECUTOR_URL or use development mode',
+          },
+        },
+      })
+    }
 
     // Generate swap ID
     const swapId = `swap-${Date.now()}`
 
-    // Store swap status
+    // Track actual input amount from request (not hardcoded)
+    // In dev mode, allow a default for testing but warn about it
+    const actualInputAmount = inputAmount || '0'
+    if (!inputAmount) {
+      logger.warn({ swapId, quoteId, intentId }, 'Swap created without inputAmount - using 0')
+    }
+
+    // Store swap in LRU cache with TTL
     const swap = {
       id: swapId,
       status: 'pending' as const,
-      inputAmount: '1000000000', // Mock value
+      inputAmount: actualInputAmount,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
-    swaps.set(swapId, swap)
+    swapStore.set(swapId, swap)
 
-    // In production, this would:
-    // 1. Sign the transaction
-    // 2. Submit to the network
-    // 3. Track the transaction
-    // For now, we just return a mock response
+    logger.warn({
+      swapId,
+      quoteId,
+      intentId,
+      inputAmount: actualInputAmount,
+    }, 'Creating MOCK swap - not for production use')
 
-    const response: ApiResponse<SwapResponse> = {
+    const response: ApiResponse<SwapResponse & { _warning?: string }> = {
       success: true,
       data: {
         swapId,
         status: 'pending',
         timestamp: new Date().toISOString(),
+        _warning: 'MOCK_DATA: This swap is simulated. No real transaction will be executed.',
       },
     }
 
@@ -241,7 +306,7 @@ router.get(
     // Express 5 types params as string | string[] - ensure we have a string
     const swapId = Array.isArray(id) ? id[0] : id
 
-    const swap = swaps.get(swapId)
+    const swap = swapStore.get(swapId)
 
     if (!swap) {
       return res.status(404).json({

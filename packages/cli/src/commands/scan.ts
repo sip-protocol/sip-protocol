@@ -1,7 +1,9 @@
 import { Command } from 'commander'
 import { checkStealthAddress, checkEd25519StealthAddress, isEd25519Chain } from '@sip-protocol/sdk'
 import type { ChainId } from '@sip-protocol/types'
-import { success, keyValue, heading, info, warning, table } from '../utils/output'
+import { success, heading, info, warning, table } from '../utils/output'
+import * as fs from 'fs'
+import * as path from 'path'
 
 export function createScanCommand(): Command {
   return new Command('scan')
@@ -10,6 +12,7 @@ export function createScanCommand(): Command {
     .requiredOption('-s, --spending-key <key>', 'Your spending private key (hex)')
     .requiredOption('-v, --viewing-key <key>', 'Your viewing private key (hex)')
     .option('-a, --addresses <addresses...>', 'Specific addresses to check')
+    .option('-o, --output-file <path>', 'Output file for private keys (required to export keys)')
     .action(async (options) => {
       try {
         heading('Scan for Stealth Payments')
@@ -73,19 +76,44 @@ export function createScanCommand(): Command {
 
         if (foundCount > 0) {
           console.log()
-          const headers = ['Address', 'Match', 'Private Key']
+          // SECURITY: Never display private keys in terminal output
+          const headers = ['Address', 'Match']
           const rows = results
             .filter(r => r.isMine)
             .map(r => [
-              r.address.slice(0, 10) + '...',
+              r.address.slice(0, 16) + '...' + r.address.slice(-8),
               'Yes',
-              r.privateKey ? r.privateKey.slice(0, 10) + '...' : 'N/A',
             ])
 
           table(headers, rows)
 
           console.log()
-          warning('Store the private keys securely to access these funds')
+
+          // Only export keys to file with secure permissions
+          if (options.outputFile) {
+            const outputPath = path.resolve(options.outputFile)
+            const exportData = results
+              .filter(r => r.isMine)
+              .map(r => ({
+                address: r.address,
+                privateKey: r.privateKey,
+                chain: options.chain,
+                exportedAt: new Date().toISOString(),
+              }))
+
+            // Write with restricted permissions (owner read/write only)
+            fs.writeFileSync(outputPath, JSON.stringify(exportData, null, 2), {
+              mode: 0o600,
+              encoding: 'utf-8',
+            })
+
+            success(`Private keys exported to: ${outputPath}`)
+            warning('SECURITY: Delete this file after importing keys to your wallet!')
+            warning('SECURITY: File permissions set to 600 (owner only)')
+          } else {
+            info('Private keys not exported (use --output-file to export securely)')
+            warning('Keys are NOT displayed in terminal for security reasons')
+          }
         } else {
           info('No stealth payments found')
         }
