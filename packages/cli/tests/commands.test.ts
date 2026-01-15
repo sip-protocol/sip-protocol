@@ -93,10 +93,28 @@ describe('CLI Commands', () => {
       expect(options).toContain('--chain')
     })
 
+    it('keygen should have output-file option for secure key export', () => {
+      const cmd = createKeygenCommand()
+      const options = cmd.options.map(o => o.long || o.short)
+      expect(options).toContain('--output-file')
+    })
+
+    it('keygen should have format option for output format', () => {
+      const cmd = createKeygenCommand()
+      const options = cmd.options.map(o => o.long || o.short)
+      expect(options).toContain('--format')
+    })
+
     it('scan should have output-file option for secure key export', () => {
       const cmd = createScanCommand()
       const options = cmd.options.map(o => o.long || o.short)
       expect(options).toContain('--output-file')
+    })
+
+    it('scan should have format option for output format', () => {
+      const cmd = createScanCommand()
+      const options = cmd.options.map(o => o.long || o.short)
+      expect(options).toContain('--format')
     })
 
     it('commit should accept amount argument', () => {

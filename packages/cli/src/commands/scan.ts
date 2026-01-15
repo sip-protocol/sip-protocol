@@ -20,6 +20,38 @@ interface StealthCheckResult {
   stealthPrivateKey?: HexString
 }
 
+/**
+ * Output format type
+ */
+type OutputFormat = 'json' | 'text'
+
+/**
+ * Format scan results as text for file export
+ */
+function formatScanResultsAsText(
+  results: Array<{ address: string; privateKey?: string; chain: string }>,
+  exportedAt: string
+): string {
+  const lines = [
+    `# SIP Scan Results`,
+    `# Exported: ${exportedAt}`,
+    `# Found: ${results.length} stealth payment(s)`,
+    ``,
+  ]
+
+  for (const r of results) {
+    lines.push(`## Address: ${r.address}`)
+    lines.push(`CHAIN=${r.chain}`)
+    if (r.privateKey) {
+      lines.push(`PRIVATE_KEY=${r.privateKey}`)
+    }
+    lines.push(``)
+  }
+
+  lines.push(`# WARNING: Delete this file after importing keys to your wallet!`)
+  return lines.join('\n')
+}
+
 export function createScanCommand(): Command {
   return new Command('scan')
     .description('Scan for stealth payments')
@@ -28,6 +60,7 @@ export function createScanCommand(): Command {
     .requiredOption('-v, --viewing-key <key>', 'Your viewing private key (hex)')
     .option('-a, --addresses <addresses...>', 'Specific addresses to check')
     .option('-o, --output-file <path>', 'Output file for private keys (required to export keys)')
+    .option('-f, --format <format>', 'Output format: json or text', 'json')
     .action(async (options) => {
       try {
         heading('Scan for Stealth Payments')
@@ -131,17 +164,22 @@ export function createScanCommand(): Command {
           // Only export keys to file with secure permissions
           if (options.outputFile) {
             const outputPath = path.resolve(options.outputFile)
+            const format = (options.format || 'json') as OutputFormat
+            const exportedAt = new Date().toISOString()
             const exportData = results
               .filter(r => r.isMine)
               .map(r => ({
                 address: r.address,
                 privateKey: r.privateKey,
                 chain: options.chain,
-                exportedAt: new Date().toISOString(),
               }))
 
+            const content = format === 'json'
+              ? JSON.stringify(exportData.map(d => ({ ...d, exportedAt })), null, 2)
+              : formatScanResultsAsText(exportData, exportedAt)
+
             // Write with restricted permissions (owner read/write only)
-            fs.writeFileSync(outputPath, JSON.stringify(exportData, null, 2), {
+            fs.writeFileSync(outputPath, content, {
               mode: 0o600,
               encoding: 'utf-8',
             })
