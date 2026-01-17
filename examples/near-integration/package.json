@@ -1,0 +1,19 @@
+{
+  "name": "@sip-protocol/examples-near-integration",
+  "version": "0.1.0",
+  "description": "SIP Protocol NEAR integration examples",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "01:stealth": "npx ts-node 01-near-stealth-address.ts",
+    "02:swap": "npx ts-node 02-cross-chain-swap.ts"
+  },
+  "dependencies": {
+    "@sip-protocol/sdk": "workspace:*",
+    "near-api-js": "^4.0.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

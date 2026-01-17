@@ -1,0 +1,23 @@
+{
+  "name": "@sip-protocol/examples-solana-integration",
+  "version": "0.1.0",
+  "description": "SIP Protocol Solana integration examples",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "01:basic": "npx ts-node 01-basic-stealth-transfer.ts",
+    "02:scan": "npx ts-node 02-scan-and-claim.ts",
+    "03:batch": "npx ts-node 03-batch-transfer.ts",
+    "04:viewing": "npx ts-node 04-viewing-key-disclosure.ts",
+    "05:wallet": "npx ts-node 05-wallet-adapter-integration.ts"
+  },
+  "dependencies": {
+    "@sip-protocol/sdk": "workspace:*",
+    "@solana/web3.js": "^1.91.0",
+    "@solana/spl-token": "^0.4.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
