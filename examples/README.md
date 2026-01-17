@@ -19,6 +19,8 @@ npx ts-node examples/<example-name>/index.ts
 | Example | Description | Key Concepts |
 |---------|-------------|--------------|
 | [Solana Integration](./solana-integration/) | **Solana-native privacy** (ed25519 stealth) | SPL transfers, scanning, wallet adapters |
+| [NEAR Integration](./near-integration/) | **NEAR privacy + cross-chain** (ed25519 + Intents) | Implicit accounts, NEP-141, 1Click API |
+| [Ethereum Integration](./ethereum-integration/) | **Ethereum privacy** (secp256k1 stealth) | ETH/ERC-20, MetaMask, ERC-4337 |
 | [React Hooks](./react-hooks/) | React integration patterns | useStealthTransfer, useScanPayments |
 | [Range SAS](./range-sas/) | Compliance with attestations | Viewing key delegation, auditor workflows |
 

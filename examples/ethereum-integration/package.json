@@ -1,0 +1,22 @@
+{
+  "name": "@sip-protocol/examples-ethereum-integration",
+  "version": "0.1.0",
+  "description": "SIP Protocol Ethereum integration examples",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "01:transfer": "npx ts-node 01-basic-eth-transfer.ts",
+    "02:erc20": "npx ts-node 02-erc20-transfer.ts",
+    "03:scan": "npx ts-node 03-scan-and-claim.ts",
+    "04:batch": "npx ts-node 04-batch-transfer.ts",
+    "05:metamask": "npx ts-node 05-metamask-integration.ts",
+    "06:viewing": "npx ts-node 06-viewing-key-disclosure.ts"
+  },
+  "dependencies": {
+    "@sip-protocol/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
