@@ -14,6 +14,16 @@ npx ts-node examples/<example-name>/index.ts
 
 ## Available Examples
 
+### Chain-Specific Integration
+
+| Example | Description | Key Concepts |
+|---------|-------------|--------------|
+| [Solana Integration](./solana-integration/) | **Solana-native privacy** (ed25519 stealth) | SPL transfers, scanning, wallet adapters |
+| [React Hooks](./react-hooks/) | React integration patterns | useStealthTransfer, useScanPayments |
+| [Range SAS](./range-sas/) | Compliance with attestations | Viewing key delegation, auditor workflows |
+
+### Core Concepts
+
 | Example | Description | Key Concepts |
 |---------|-------------|--------------|
 | [Private Payment](./private-payment/) | Send/receive with stealth addresses | Stealth meta-address, scanning, key recovery |
