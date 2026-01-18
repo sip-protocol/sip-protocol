@@ -49,8 +49,8 @@
     "example:auction": "tsx examples/auction-example.ts"
   },
   "optionalDependencies": {
-    "socks-proxy-agent": "^8.0.0",
-    "https-proxy-agent": "^7.0.0"
+    "https-proxy-agent": "^7.0.0",
+    "socks-proxy-agent": "^8.0.0"
   },
   "dependencies": {
     "@aztec/bb.js": "3.0.1",
@@ -66,6 +66,8 @@
     "@noir-lang/types": "1.0.0-beta.18",
     "@radr/shadowwire": "^1.1.1",
     "@scure/base": "^2.0.0",
+    "@scure/bip32": "^2.0.1",
+    "@scure/bip39": "^2.0.1",
     "@sip-protocol/types": "^0.2.1",
     "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
@@ -77,10 +79,10 @@
   "devDependencies": {
     "@grpc/grpc-js": "^1.14.3",
     "@types/node": "^20.10.0",
-    "socks-proxy-agent": "^8.0.0",
-    "https-proxy-agent": "^7.0.0",
     "@vitest/coverage-v8": "1.6.1",
     "fast-check": "^4.5.3",
+    "https-proxy-agent": "^7.0.0",
+    "socks-proxy-agent": "^8.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.3.0",
     "vitest": "^1.1.0"
