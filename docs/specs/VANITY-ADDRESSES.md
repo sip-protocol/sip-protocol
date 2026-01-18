@@ -206,6 +206,7 @@ For longer prefixes, use GPU:
 |-----------|-------|---------|-----------|
 | Anchor Program | Solana | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | ✅ 2026-01-18 |
 | Treasury | Solana | `S1P9WhBSbAGGatvrVE4TRBZfWpbG96U26zksy2TQj8q` | ✅ 2026-01-18 |
+| Authority (Deploy/Upgrade) | Solana | `S1P6j1yeTm6zkewQVeihrTZvmfoHABRkHDhabWTuWMd` | ✅ 2026-01-18 |
 | Solidity Contract | Ethereum | `0x5AFE...` | 🔲 Pending |
 | Base Contract | Base L2 | `0x5AFE...` | 🔲 Pending |
 | Arbitrum Contract | Arbitrum | `0x5AFE...` | 🔲 Pending |
