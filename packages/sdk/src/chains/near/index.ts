@@ -106,3 +106,33 @@ export {
   type NEARStealthAddressResult,
   type NEARStealthMetaAddressResult,
 } from './stealth'
+
+// ─── Pedersen Commitments (M17-NEAR-03) ──────────────────────────────────────
+
+export {
+  // Core commitment functions
+  commitNEAR,
+  verifyOpeningNEAR,
+  // NEP-141 token commitments
+  commitNEP141Token,
+  verifyNEP141TokenCommitment,
+  // Amount conversion utilities
+  toYoctoNEAR,
+  fromYoctoNEAR,
+  // Homomorphic operations
+  addCommitmentsNEAR,
+  subtractCommitmentsNEAR,
+  addBlindingsNEAR,
+  subtractBlindingsNEAR,
+  // Utility functions
+  getGeneratorsNEAR,
+  generateBlindingNEAR,
+  // Constants
+  ED25519_ORDER as NEAR_ED25519_ORDER,
+  MAX_NEAR_AMOUNT,
+  MAX_COMMITMENT_VALUE as NEAR_MAX_COMMITMENT_VALUE,
+  // Types
+  type NEARPedersenCommitment,
+  type NEARCommitmentPoint,
+  type NEP141TokenCommitment,
+} from './commitment'
