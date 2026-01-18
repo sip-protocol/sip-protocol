@@ -221,6 +221,27 @@ export {
   type NEARPrivacyTransaction,
   type NEARSignedPrivacyTransaction,
   type NEARViewingKeyExport,
+  // Wallet Selector integration
+  PrivacyWalletSelector,
+  createPrivacyWalletSelector,
+  createMainnetPrivacySelector,
+  createTestnetPrivacySelector,
+  type WalletSelector,
+  type WalletSelectorState,
+  type Wallet as NEARWallet,
+  type WalletAction as NEARWalletAction,
+  type WalletTransactionResult as NEARWalletTransactionResult,
+  type SignAndSendTransactionParams as NEARSignAndSendTransactionParams,
+  type SignAndSendTransactionsParams as NEARSignAndSendTransactionsParams,
+  type SignMessageParams as NEARSignMessageParams,
+  type SignedMessage as NEARSignedMessage,
+  type PrivacyWalletSelectorConfig,
+  type PrivacyKeyPair,
+  type StealthAddressResult,
+  type PrivateTransferParams,
+  type PrivateTransferResult,
+  type WalletPrivacyCapabilities,
+  type ViewingKeyExport,
 } from './near'
 
 // Hardware wallet adapters

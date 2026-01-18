@@ -16,3 +16,27 @@ export {
   type NEARSignedPrivacyTransaction,
   type NEARViewingKeyExport,
 } from './adapter'
+
+// Wallet Selector integration
+export {
+  PrivacyWalletSelector,
+  createPrivacyWalletSelector,
+  createMainnetPrivacySelector,
+  createTestnetPrivacySelector,
+  type WalletSelector,
+  type WalletSelectorState,
+  type Wallet,
+  type WalletAction,
+  type WalletTransactionResult,
+  type SignAndSendTransactionParams,
+  type SignAndSendTransactionsParams,
+  type SignMessageParams,
+  type SignedMessage,
+  type PrivacyWalletSelectorConfig,
+  type PrivacyKeyPair,
+  type StealthAddressResult,
+  type PrivateTransferParams,
+  type PrivateTransferResult,
+  type WalletPrivacyCapabilities,
+  type ViewingKeyExport,
+} from './wallet-selector'
