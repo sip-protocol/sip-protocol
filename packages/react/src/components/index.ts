@@ -14,3 +14,14 @@ export {
   type GasEstimate,
   type PrivacyLevelInfo,
 } from './privacy-toggle'
+
+export {
+  StealthAddressDisplay,
+  useStealthAddressDisplay,
+  isValidStealthAddress,
+  truncateAddress,
+  NEAR_NETWORKS,
+  type StealthAddressDisplayProps,
+  type OwnershipStatus,
+  type NetworkConfig,
+} from './stealth-address-display'

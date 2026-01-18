@@ -17,4 +17,12 @@ export {
   type PrivacyToggleProps,
   type GasEstimate,
   type PrivacyLevelInfo,
+  StealthAddressDisplay,
+  useStealthAddressDisplay,
+  isValidStealthAddress,
+  truncateAddress,
+  NEAR_NETWORKS,
+  type StealthAddressDisplayProps,
+  type OwnershipStatus,
+  type NetworkConfig,
 } from './components'
