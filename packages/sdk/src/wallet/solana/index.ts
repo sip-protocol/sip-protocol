@@ -17,6 +17,19 @@ export {
 
 export type { MockSolanaAdapterConfig } from './mock'
 
+// Privacy-enabled adapter (Issue #304)
+export {
+  PrivacySolanaWalletAdapter,
+  createPrivacySolanaAdapter,
+} from './privacy-adapter'
+
+export type {
+  PrivacySolanaAdapterConfig,
+  StealthKeyMaterial,
+  ScannedPayment,
+  ClaimResult,
+} from './privacy-adapter'
+
 // Types
 export {
   getSolanaProvider,

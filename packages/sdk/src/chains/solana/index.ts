@@ -79,6 +79,47 @@ export {
   hasTokenAccount,
 } from './transfer'
 
+// Enhanced SPL Transfer (Issue #286)
+export {
+  resolveTokenMetadata,
+  batchResolveTokenMetadata,
+  getTokenBalance,
+  batchGetTokenBalances,
+  validateTransfer,
+  sendEnhancedSPLTransfer,
+  sendBatchSPLTransfer,
+  formatTokenAmount,
+  parseTokenAmount,
+  type TokenMetadata,
+  type TokenBalance,
+  type EnhancedSPLTransferParams,
+  type EnhancedSPLTransferResult,
+  type BatchTransferItem,
+  type BatchTransferResult,
+  type TransferValidation,
+} from './spl-transfer'
+
+// Native SOL Transfer (Issue #292)
+export {
+  validateSOLTransfer,
+  estimateSOLTransfer,
+  sendSOLTransfer,
+  sendMaxSOLTransfer,
+  sendBatchSOLTransfer,
+  formatLamports,
+  parseSOLToLamports,
+  getSOLBalance,
+  RENT_EXEMPT_MINIMUM,
+  STEALTH_ACCOUNT_BUFFER,
+  type SOLTransferParams,
+  type MaxSOLTransferParams,
+  type SOLTransferResult,
+  type SOLTransferValidation,
+  type SOLTransferEstimate,
+  type BatchSOLTransferItem,
+  type BatchSOLTransferResult,
+} from './sol-transfer'
+
 // Scan and claim functions
 export {
   scanForPayments,
@@ -246,3 +287,22 @@ export {
   type TransactionConfirmationResult,
   type SendTransactionOptions,
 } from './rpc-client'
+
+// Transaction Builder (Issue #298)
+export {
+  ShieldedTransactionBuilder,
+  createTransactionBuilder,
+  estimateComputeUnits,
+  calculatePriorityFee,
+  ShieldedTransactionType,
+  DEFAULT_COMPUTE_UNITS,
+  DEFAULT_PRIORITY_FEE,
+  MIN_COMPUTE_UNITS,
+  MAX_COMPUTE_UNITS,
+  type TransactionBuilderConfig,
+  type ComputeBudgetConfig,
+  type SPLTransferInstruction,
+  type SOLTransferInstruction,
+  type BuiltTransaction,
+  type SerializedTransaction,
+} from './transaction-builder'
