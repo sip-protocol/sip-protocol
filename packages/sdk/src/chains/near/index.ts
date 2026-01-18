@@ -301,3 +301,37 @@ export {
   type TokenBalanceInfo,
   type StorageDepositInfo,
 } from './nep141'
+
+// ─── Native Transfer (M17-NEAR-10) ─────────────────────────────────────────────
+
+export {
+  // Privacy-wrapped transfers
+  buildPrivateNativeTransferWithCommitment,
+  buildBatchPrivateNativeTransfer,
+  // Gas sponsorship
+  buildGasSponsoredTransfer,
+  // Account creation helpers
+  getAccountCreationCost,
+  meetsMinimumBalance,
+  calculateRecommendedAmount,
+  adjustTransferAmount,
+  // Amount formatting
+  formatNEARAmount,
+  parseNEARAmount,
+  // Commitment verification
+  verifyNativeTransferCommitment,
+  createTransferCommitmentProof,
+  // Constants
+  IMPLICIT_ACCOUNT_CREATION_COST,
+  STORAGE_COST_PER_BYTE,
+  RECOMMENDED_STEALTH_MINIMUM,
+  RELAYER_GAS,
+  // Types
+  type PrivateNativeTransferWithCommitmentParams,
+  type PrivateNativeTransferWithCommitmentResult,
+  type BatchNativeTransferParams,
+  type BatchNativeTransferResult,
+  type GasSponsoredTransferParams,
+  type GasSponsoredTransferResult,
+  type AccountCreationCost,
+} from './native-transfer'
