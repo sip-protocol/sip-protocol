@@ -134,3 +134,59 @@ export {
   type SIPEnhancedTransaction,
   type TransactionSummary,
 } from './providers'
+
+// Key Derivation (BIP39/SLIP-0010)
+export {
+  deriveSolanaStealthKeys,
+  deriveViewingKeyFromSpending,
+  generateMnemonic,
+  isValidMnemonic,
+  validateMnemonic,
+  validateDerivationPath,
+  getDerivationPath,
+  SOLANA_DEFAULT_PATH,
+  type SolanaKeyDerivationOptions,
+  type SolanaKeyDerivationResult,
+} from './key-derivation'
+
+// Pedersen Commitments (ed25519)
+export {
+  commitSolana,
+  verifyOpeningSolana,
+  commitSPLToken,
+  verifySPLTokenCommitment,
+  toSmallestUnits,
+  fromSmallestUnits,
+  addCommitmentsSolana,
+  subtractCommitmentsSolana,
+  addBlindingsSolana,
+  subtractBlindingsSolana,
+  getGeneratorsSolana,
+  generateBlindingSolana,
+  ED25519_ORDER,
+  MAX_SPL_AMOUNT,
+  type SolanaPedersenCommitment,
+  type SolanaCommitmentPoint,
+  type SPLTokenCommitment,
+} from './commitment'
+
+// Viewing Key Management
+export {
+  generateViewingKeyFromSpending,
+  generateRandomViewingKey,
+  computeViewingKeyHash,
+  computeViewingKeyHashFromPrivate,
+  exportViewingKey,
+  importViewingKey,
+  encryptForViewing,
+  decryptWithViewing,
+  createMemoryStorage,
+  isAnnouncementForViewingKey,
+  deriveChildViewingKey,
+  getViewingPublicKey,
+  type SolanaViewingKey,
+  type ViewingKeyExport,
+  type EncryptedPayload,
+  type SolanaTransactionData,
+  type ViewingKeyStorage,
+} from './viewing-key'
