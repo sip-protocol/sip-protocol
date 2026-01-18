@@ -211,6 +211,18 @@ export type {
   MockSuiAdapterConfig,
 } from './sui'
 
+// NEAR adapter
+export {
+  NEARWalletAdapter,
+  type NEARWalletAdapterConfig,
+  type NEARConnectOptions,
+  type NEARPrivacyKeyPair,
+  type NEARStealthAddressWithKeys,
+  type NEARPrivacyTransaction,
+  type NEARSignedPrivacyTransaction,
+  type NEARViewingKeyExport,
+} from './near'
+
 // Hardware wallet adapters
 export {
   // Types
