@@ -924,6 +924,55 @@ export type {
   TransactionSummary,
 } from './chains/solana'
 
+// NEAR Same-Chain Privacy (M17-NEAR)
+export {
+  // Constants
+  NEAR_RPC_ENDPOINTS,
+  NEAR_EXPLORER_URLS,
+  NEAR_TOKEN_CONTRACTS,
+  NEAR_TOKEN_DECIMALS,
+  NEAR_IMPLICIT_ACCOUNT_LENGTH,
+  DEFAULT_GAS as NEAR_DEFAULT_GAS,
+  ONE_NEAR,
+  ONE_YOCTO,
+  SIP_MEMO_PREFIX as NEAR_SIP_MEMO_PREFIX,
+  getExplorerUrl as getNEARExplorerUrl,
+  getAccountExplorerUrl as getNEARAccountExplorerUrl,
+  getTokenContract as getNEARTokenContract,
+  isImplicitAccount,
+  isNamedAccount,
+  isValidAccountId as isValidNEARAccountId,
+  // Stealth Address (M17-NEAR-01, M17-NEAR-02)
+  generateNEARStealthMetaAddress,
+  generateNEARStealthAddress,
+  deriveNEARStealthPrivateKey,
+  checkNEARStealthAddress,
+  ed25519PublicKeyToImplicitAccount,
+  implicitAccountToEd25519PublicKey,
+  encodeNEARStealthMetaAddress,
+  parseNEARStealthMetaAddress,
+  validateNEARStealthMetaAddress,
+  validateNEARStealthAddress,
+  // Types (re-exported from types.ts)
+  parseAnnouncement as parseNEARAnnouncement,
+  createAnnouncementMemo as createNEARAnnouncementMemo,
+} from './chains/near'
+
+export type {
+  NEARNetwork,
+  NEARAnnouncement,
+  NEARPrivateTransferParams,
+  NEARPrivateTransferResult,
+  NEARScanParams,
+  NEARScanResult,
+  NEARDetectedPayment,
+  NEARClaimParams,
+  NEARClaimResult,
+  NEARStealthBalance,
+  NEARStealthAddressResult,
+  NEARStealthMetaAddressResult,
+} from './chains/near'
+
 // Same-Chain Executors
 export {
   SolanaSameChainExecutor,
