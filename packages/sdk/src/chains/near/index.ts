@@ -335,3 +335,38 @@ export {
   type GasSponsoredTransferResult,
   type AccountCreationCost,
 } from './native-transfer'
+
+// ─── Function Call Privacy (M17-NEAR-11) ───────────────────────────────────────
+
+export {
+  // Private function calls
+  buildPrivateFunctionCall,
+  buildBatchPrivateFunctionCalls,
+  buildMultiStepPrivateTransaction,
+  // Access key management
+  buildFunctionCallAccessKey,
+  // NFT privacy
+  buildPrivateNFTMint,
+  buildPrivateNFTTransfer,
+  // DeFi privacy
+  buildPrivateDeFiSwap,
+  // Gas estimation
+  estimateFunctionCallGas,
+  estimateMultiStepGas,
+  // Constants
+  FUNCTION_CALL_DEFAULT_GAS,
+  NFT_MINT_GAS,
+  NFT_STORAGE_DEPOSIT,
+  DEX_SWAP_GAS,
+  // Types
+  type PrivateFunctionCallParams,
+  type PrivateFunctionCallResult,
+  type PrivateFunctionCallFromStealthParams,
+  type MultiStepPrivateTransactionParams,
+  type MultiStepPrivateTransactionResult,
+  type FunctionCallAccessKeyParams,
+  type PrivateNFTMintParams,
+  type PrivateNFTMintResult,
+  type PrivateDeFiSwapParams,
+  type PrivateDeFiSwapResult,
+} from './function-call'
