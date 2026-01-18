@@ -188,3 +188,38 @@ export {
   type NEARErrorCallback,
   type NEARAnnouncementCache,
 } from './resolver'
+
+// ─── Implicit Account Privacy (M17-NEAR-06) ───────────────────────────────────
+
+export {
+  // Private transfer building
+  buildPrivateTransfer,
+  buildPrivateTokenTransfer,
+  buildStorageDeposit,
+  // Key derivation
+  deriveStealthAccountKeyPair,
+  // Claim transactions
+  buildClaimTransaction,
+  buildDeleteStealthAccount,
+  // Access key management
+  buildAddAccessKey,
+  buildKeyRotation,
+  // Account utilities
+  isStealthCompatibleAccount,
+  getImplicitAccountPublicKey,
+  verifyImplicitAccountMatch,
+  // Types
+  type NEARPrivateTransferBuild,
+  type NEARAction,
+  type NEARTransferAction,
+  type NEARFunctionCallAction,
+  type NEARAddKeyAction,
+  type NEARDeleteKeyAction,
+  type NEARDeleteAccountAction,
+  type NEARStealthKeyPair,
+  type DeriveStealthKeyPairParams,
+  type NEARClaimTransactionParams,
+  type NEARClaimTransactionBuild,
+  type NEARAddAccessKeyParams,
+  type NEARKeyRotationParams,
+} from './implicit-account'
