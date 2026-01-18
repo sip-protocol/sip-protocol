@@ -136,3 +136,33 @@ export {
   type NEARCommitmentPoint,
   type NEP141TokenCommitment,
 } from './commitment'
+
+// ─── Viewing Keys (M17-NEAR-04) ───────────────────────────────────────────────
+
+export {
+  // Key generation
+  generateNEARViewingKeyFromSpending,
+  generateRandomNEARViewingKey,
+  // Hash computation
+  computeNEARViewingKeyHash,
+  computeNEARViewingKeyHashFromPrivate,
+  // Export/Import
+  exportNEARViewingKey,
+  importNEARViewingKey,
+  // Encryption/Decryption
+  encryptForNEARViewing,
+  decryptWithNEARViewing,
+  // Storage
+  createNEARMemoryStorage,
+  // Utilities
+  isNEARAnnouncementForViewingKey,
+  deriveNEARChildViewingKey,
+  getNEARViewingPublicKey,
+  validateNEARViewingKey,
+  // Types
+  type NEARViewingKey,
+  type NEARViewingKeyExport,
+  type NEAREncryptedPayload,
+  type NEARTransactionData,
+  type NEARViewingKeyStorage,
+} from './viewing-key'

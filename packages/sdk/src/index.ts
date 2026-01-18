@@ -956,6 +956,36 @@ export {
   // Types (re-exported from types.ts)
   parseAnnouncement as parseNEARAnnouncement,
   createAnnouncementMemo as createNEARAnnouncementMemo,
+  // Pedersen Commitments (M17-NEAR-03)
+  commitNEAR,
+  verifyOpeningNEAR,
+  commitNEP141Token,
+  verifyNEP141TokenCommitment,
+  toYoctoNEAR,
+  fromYoctoNEAR,
+  addCommitmentsNEAR,
+  subtractCommitmentsNEAR,
+  addBlindingsNEAR,
+  subtractBlindingsNEAR,
+  getGeneratorsNEAR,
+  generateBlindingNEAR,
+  NEAR_ED25519_ORDER,
+  MAX_NEAR_AMOUNT,
+  NEAR_MAX_COMMITMENT_VALUE,
+  // Viewing Keys (M17-NEAR-04)
+  generateNEARViewingKeyFromSpending,
+  generateRandomNEARViewingKey,
+  computeNEARViewingKeyHash,
+  computeNEARViewingKeyHashFromPrivate,
+  exportNEARViewingKey,
+  importNEARViewingKey,
+  encryptForNEARViewing,
+  decryptWithNEARViewing,
+  createNEARMemoryStorage,
+  isNEARAnnouncementForViewingKey,
+  deriveNEARChildViewingKey,
+  getNEARViewingPublicKey,
+  validateNEARViewingKey,
 } from './chains/near'
 
 export type {
@@ -971,6 +1001,16 @@ export type {
   NEARStealthBalance,
   NEARStealthAddressResult,
   NEARStealthMetaAddressResult,
+  // Commitment types (M17-NEAR-03)
+  NEARPedersenCommitment,
+  NEARCommitmentPoint,
+  NEP141TokenCommitment,
+  // Viewing key types (M17-NEAR-04)
+  NEARViewingKey,
+  NEARViewingKeyExport,
+  NEAREncryptedPayload,
+  NEARTransactionData,
+  NEARViewingKeyStorage,
 } from './chains/near'
 
 // Same-Chain Executors
