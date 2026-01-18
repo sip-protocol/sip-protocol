@@ -99,6 +99,27 @@ export {
   type TransferValidation,
 } from './spl-transfer'
 
+// Native SOL Transfer (Issue #292)
+export {
+  validateSOLTransfer,
+  estimateSOLTransfer,
+  sendSOLTransfer,
+  sendMaxSOLTransfer,
+  sendBatchSOLTransfer,
+  formatLamports,
+  parseSOLToLamports,
+  getSOLBalance,
+  RENT_EXEMPT_MINIMUM,
+  STEALTH_ACCOUNT_BUFFER,
+  type SOLTransferParams,
+  type MaxSOLTransferParams,
+  type SOLTransferResult,
+  type SOLTransferValidation,
+  type SOLTransferEstimate,
+  type BatchSOLTransferItem,
+  type BatchSOLTransferResult,
+} from './sol-transfer'
+
 // Scan and claim functions
 export {
   scanForPayments,
