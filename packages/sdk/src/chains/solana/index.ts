@@ -101,6 +101,22 @@ export {
   type ErrorCallback,
 } from './stealth-scanner'
 
+// Ephemeral Keypair Management (Issue #270)
+export {
+  generateEphemeralKeypair,
+  generateManagedEphemeralKeypair,
+  batchGenerateEphemeralKeypairs,
+  batchGenerateManagedEphemeralKeypairs,
+  disposeEphemeralKeypairs,
+  wipeEphemeralPrivateKey,
+  formatEphemeralAnnouncement,
+  parseEphemeralAnnouncement,
+  type EphemeralKeypair,
+  type EphemeralKeyUsageResult,
+  type ManagedEphemeralKeypair,
+  type BatchGenerationOptions,
+} from './ephemeral-keys'
+
 // RPC Providers (Infrastructure Agnostic)
 export {
   createProvider,
