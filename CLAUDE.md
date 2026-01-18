@@ -84,7 +84,7 @@ Quick reference for navigating between SIP Protocol repositories.
 **Key Commands:**
 ```bash
 pnpm install                    # Install dependencies
-pnpm test -- --run              # Run all tests (2,757 tests)
+pnpm test -- --run              # Run all tests (4,108+ tests)
 pnpm typecheck                  # Type check
 pnpm build                      # Build all packages
 ```
@@ -227,6 +227,23 @@ pnpm preview                    # Preview build
 
 ---
 
+## SOURCES OF TRUTH
+
+> **Code is truth. Docs are derived.** Before updating documentation, verify against code.
+
+See **[docs/INVENTORY.md](docs/INVENTORY.md)** for full ecosystem inventory.
+
+**Quick verification (run from repo root):**
+```bash
+ls packages/ programs/ contracts/ examples/   # Component inventory
+pnpm turbo test -- --run 2>&1 | grep "Tests"  # Test counts
+gh issue list --search "EPIC" --state open    # Active milestones
+```
+
+**Update triggers:** New package, version bump, test count change (>10%), new program/contract.
+
+---
+
 ## CURRENT FOCUS
 
 See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
@@ -248,7 +265,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **SIP (Shielded Intents Protocol)** is the privacy standard for Web3 — like HTTPS for the internet. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Status:** M15 Complete | 2,757 tests (SDK: 2,474, React: 57, CLI: 33, API: 67, Website: 126) | Live at sip-protocol.org
+**Status:** M16 Complete | 4,108+ tests (SDK: 3,988, React: 82, CLI: 10, API: 18, RN: 10) | Live at sip-protocol.org
 
 **🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($4,500: NEAR $4,000 + Tachyon $500) | Dec 2025 | #14 of 88 | [Devfolio](https://devfolio.co/projects/sip-protocol-2026)
 
@@ -356,7 +373,7 @@ const payments = await scanForPayments({
 # Install dependencies
 pnpm install
 
-# Run all tests (2,757 tests)
+# Run all tests (4,108+ tests)
 pnpm test -- --run
 
 # Run E2E tests only (128 tests)
@@ -374,17 +391,17 @@ pnpm build
 
 ---
 
-## Test Suite (2,757 total tests)
+## Test Suite (4,108+ total tests)
 
 ### Package Test Counts
 
 | Package | Tests | Location |
 |---------|-------|----------|
-| @sip-protocol/sdk | 2,474 | `packages/sdk/tests/` |
-| @sip-protocol/react | 57 | `packages/react/tests/` |
-| @sip-protocol/cli | 33 | `packages/cli/tests/` |
-| @sip-protocol/api | 67 | `packages/api/tests/` |
-| sip-website | 126 | `tests/` (in sip-website repo) |
+| @sip-protocol/sdk | 3,988 | `packages/sdk/tests/` |
+| @sip-protocol/react | 82 | `packages/react/tests/` |
+| @sip-protocol/cli | 10 | `packages/cli/tests/` |
+| @sip-protocol/api | 18 | `packages/api/tests/` |
+| @sip-protocol/react-native | 10 | `packages/react-native/tests/` |
 
 ### SDK Test Breakdown
 
@@ -648,4 +665,4 @@ ssh core  # Admin user for nginx/system config
 ---
 
 **Last Updated:** 2025-12-31
-**Status:** M15 Complete | Phase 4 Starting (M16-M18) | 2,757 Tests | 6 Packages | 🏆 Zypherpunk Winner ($4,500, #14/88)
+**Status:** M16 Complete | Phase 4 Active (M17-M18) | 4,108+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($4,500, #14/88)

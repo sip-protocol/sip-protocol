@@ -28,7 +28,7 @@
 [![pnpm](https://img.shields.io/badge/pnpm-Monorepo-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) NEAR Track ($4,000)**
+**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($4,500: NEAR $4,000 + Tachyon $500) | #14 of 88**
 
 </div>
 
@@ -375,11 +375,23 @@ User Input → Privacy Layer → Intent Creation → Solver Network → Executio
 
 ## 📚 Packages
 
-| Package | Description | Status |
-|---------|-------------|--------|
-| [`@sip-protocol/sdk`](packages/sdk) | Core SDK for creating shielded intents | ✅ Active |
-| [`@sip-protocol/types`](packages/types) | TypeScript type definitions | ✅ Active |
-| [`examples`](examples/) | Integration examples and reference implementations | ✅ Active |
+| Package | Version | Description | Tests |
+|---------|---------|-------------|-------|
+| [`@sip-protocol/sdk`](packages/sdk) | 0.7.3 | Core SDK for shielded intents | 3,988 |
+| [`@sip-protocol/types`](packages/types) | 0.2.1 | TypeScript type definitions | - |
+| [`@sip-protocol/react`](packages/react) | 0.1.0 | React hooks for SIP | 82 |
+| [`@sip-protocol/cli`](packages/cli) | 0.2.0 | CLI tool | 10 |
+| [`@sip-protocol/api`](packages/api) | 0.1.0 | REST API wrapper | 18 |
+| [`@sip-protocol/react-native`](packages/react-native) | 0.1.1 | iOS/Android SDK | 10 |
+| [`circuits`](packages/circuits) | - | Noir ZK circuits | - |
+
+**On-chain Programs:**
+| Program | Description |
+|---------|-------------|
+| [`sip-privacy`](programs/sip-privacy) | Solana Anchor program |
+| [`sip-ethereum`](contracts/sip-ethereum) | Ethereum Foundry contracts |
+
+**Examples:** 11 integration examples in [`examples/`](examples/)
 
 ---
 
@@ -422,39 +434,29 @@ See [SDK README](packages/sdk/README.md) for detailed provider documentation.
 
 ## 🗺️ Roadmap
 
-### Phase 1: Foundation ✅ **Complete**
+See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking.
 
-- ✅ Core type definitions (ShieldedIntent, PrivacyLevel, StealthAddress)
-- ✅ SDK architecture (SIP client, IntentBuilder)
-- ✅ Stealth address generation (secp256k1, EIP-5564 style)
-- ✅ Pedersen commitment implementation
-- ✅ Reference application with comparison view
-- ✅ Monorepo setup (pnpm + Turborepo)
+### Phase 1-3: Foundation ✅ **Complete** (M1-M15)
 
-### Phase 2: Core Protocol 🔄 **In Progress**
+- ✅ Core SDK with stealth addresses, Pedersen commitments, viewing keys
+- ✅ Multi-chain support (15+ chains including Solana, Ethereum, NEAR)
+- ✅ ZK proof system (Noir circuits, browser proving)
+- ✅ NEAR Intents + Zcash integration
+- ✅ React, CLI, API packages
+- ✅ 4,108+ tests
 
-- ✅ Zcash testnet RPC client
-- ✅ Shielded transaction support
-- ✅ Solver interface design
-- ⏳ NEAR 1Click API integration
-- ⏳ End-to-end shielded flow
-- ⏳ Mock ZK proof generation
+### Phase 4: Same-Chain Expansion 🎯 **Active** (M16-M18)
 
-### Phase 3: Integration 📋 **Planned**
+- ✅ M16: Narrative capture (content, community, positioning)
+- 🔲 M17: Solana same-chain privacy (Anchor program)
+- 🔲 M18: Ethereum same-chain privacy (Solidity contracts)
 
-- [ ] Real ZK proof generation
-- [ ] Solver network integration
-- [ ] Multi-chain execution
-- [ ] Viewing key verification
-- [ ] Transaction status tracking
+### Phase 5: Technical Moat 🔲 **Planned** (M19-M22)
 
-### Phase 4: Production 🚀 **Future**
-
-- [ ] Security audit
-- [ ] Mainnet deployment
-- [ ] SDK v1.0 release
-- [ ] Documentation site
-- [ ] Additional chain support
+- 🔲 M19: Proof composition (Zcash + Mina)
+- 🔲 M20: Multi-language SDK (Python, Rust, Go)
+- 🔲 M21: SIP-EIP standard proposal
+- 🔲 M22: Institutional custody integration
 
 ---
 
@@ -483,7 +485,7 @@ See [SDK README](packages/sdk/README.md) for detailed provider documentation.
 
 ```bash
 # Clone the repository
-git clone https://github.com/RECTOR-LABS/sip-protocol.git
+git clone https://github.com/sip-protocol/sip-protocol.git
 cd sip-protocol
 
 # Install dependencies
@@ -496,10 +498,11 @@ pnpm dev
 ### Commands
 
 ```bash
-pnpm dev        # Start development server (port 3000)
-pnpm build      # Build all packages
-pnpm lint       # Lint code
-pnpm typecheck  # Type check
+pnpm dev              # Start development server
+pnpm build            # Build all packages
+pnpm test -- --run    # Run all tests (4,108+)
+pnpm lint             # Lint code
+pnpm typecheck        # Type check
 ```
 
 ---
@@ -595,7 +598,7 @@ SIP builds on the shoulders of giants:
 
 <div align="center">
 
-**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) NEAR Track**
+**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($4,500) | #14 of 88**
 
 *Privacy is not a feature. It's a right.*
 

@@ -732,16 +732,16 @@ See private strategy docs: `~/.claude/sip-protocol/SOLANA-PRIVACY-HACK.md`
 
 ---
 
-#### M16: Narrative Capture & Positioning 🔲 Q1 2026
+#### M16: Narrative Capture & Positioning ✅ Complete
 
-Establish SIP as "the right way to do privacy" before competitors solidify.
+Established SIP as "the right way to do privacy" — cryptographic vs pool mixing narrative.
 
 | Issue | Description | Budget | Status |
 |-------|-------------|--------|--------|
-| [#451](../../issues/451) | [EPIC] Narrative Capture | $10K total | 🎯 Starting |
-| [#384-391](../../issues?q=is%3Aissue+M16+article) | Content Campaign (8 articles + 15 threads) | $4,500 (45%) | 🔲 Planned |
-| [#392-395](../../issues?q=is%3Aissue+M16+community) | Community Building (Discord + Twitter) | $3,500 (35%) | 🔲 Planned |
-| [#396](../../issues/396) | Ecosystem Presentations (3 events) | $2,000 (20%) | 🔲 Planned |
+| [#451](../../issues/451) | [EPIC] Narrative Capture | $10K total | ✅ Done |
+| [#384-391](../../issues?q=is%3Aissue+M16+article) | Content Campaign (8 articles + 15 threads) | $4,500 (45%) | ✅ Done |
+| [#392-395](../../issues?q=is%3Aissue+M16+community) | Community Building (Discord + Twitter) | $3,500 (35%) | ✅ Done |
+| [#396](../../issues/396) | Ecosystem Presentations (3 events) | $2,000 (20%) | ✅ Done |
 
 **Deliverables:**
 - **Content:** 8 technical articles (Medium, Mirror, dev.to) + 15 Twitter threads
@@ -1358,13 +1358,13 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Current focus areas:**
-- M16: Narrative capture and competitive positioning
-- M17: Solana same-chain privacy module
+- M17: Solana same-chain privacy module (30 issues)
+- Solana Privacy Hack (Jan 12 - Feb 1, 2026)
 - External security audit (M8 completion)
 - Foundation grant applications
 
 ---
 
-*Last updated: January 13, 2026*
-*Added: Full Stack Privacy concept (Dark AMM + SIP integration)*
-*Hackathon sprint added: Solana Privacy Hack (Jan 12 - Feb 1, 2026)*
+*Last updated: January 18, 2026*
+*M16 Narrative Capture completed*
+*Hackathon sprint active: Solana Privacy Hack (Jan 12 - Feb 1, 2026)*
