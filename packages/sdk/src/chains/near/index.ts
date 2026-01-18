@@ -242,3 +242,28 @@ export {
   type NEARGasEstimate,
   type NEARPrivacyAdapterState,
 } from './privacy-adapter'
+
+// ─── RPC Client (M17-NEAR-08) ─────────────────────────────────────────────────
+
+export {
+  // Client class
+  NEARRpcClient,
+  createNEARRpcClient,
+  createMainnetRpcClient,
+  createTestnetRpcClient,
+  // Error handling
+  NEARRpcClientError,
+  NEARErrorCode,
+  // Types
+  type NEARFinality,
+  type NEARTransactionStatus,
+  type NEARRpcConfig,
+  type NEARAccessKey,
+  type NEARAccountInfo,
+  type NEARBlockInfo,
+  type NEARTransactionOutcome as NEARRpcTransactionOutcome,
+  type NEARReceiptOutcome,
+  type NEARSignedTransaction,
+  type NEARTxStatusResult,
+  type NEARPollOptions,
+} from './rpc'
