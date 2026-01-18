@@ -287,3 +287,22 @@ export {
   type TransactionConfirmationResult,
   type SendTransactionOptions,
 } from './rpc-client'
+
+// Transaction Builder (Issue #298)
+export {
+  ShieldedTransactionBuilder,
+  createTransactionBuilder,
+  estimateComputeUnits,
+  calculatePriorityFee,
+  ShieldedTransactionType,
+  DEFAULT_COMPUTE_UNITS,
+  DEFAULT_PRIORITY_FEE,
+  MIN_COMPUTE_UNITS,
+  MAX_COMPUTE_UNITS,
+  type TransactionBuilderConfig,
+  type ComputeBudgetConfig,
+  type SPLTransferInstruction,
+  type SOLTransferInstruction,
+  type BuiltTransaction,
+  type SerializedTransaction,
+} from './transaction-builder'
