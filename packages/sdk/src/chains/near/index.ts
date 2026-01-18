@@ -267,3 +267,37 @@ export {
   type NEARTxStatusResult,
   type NEARPollOptions,
 } from './rpc'
+
+// ─── NEP-141 Token Privacy (M17-NEAR-09) ───────────────────────────────────────
+
+export {
+  // Privacy-wrapped transfers
+  buildPrivateTokenTransferWithCommitment,
+  buildPrivateTokenTransferCall,
+  // Batch transfers
+  buildBatchPrivateTokenTransfer,
+  buildBatchStorageDeposit,
+  // Storage management
+  buildStorageWithdraw,
+  buildStorageUnregister,
+  // Token utilities
+  parseTokenMetadata,
+  formatTokenAmount,
+  parseTokenAmount,
+  // Commitment utilities
+  extractCommitmentFromMemo,
+  verifyCommitmentInMemo,
+  // Constants
+  FT_TRANSFER_CALL_GAS,
+  FT_TRANSFER_CALL_TOTAL_GAS,
+  // Types
+  type PrivateTokenTransferWithCommitmentParams,
+  type PrivateTokenTransferWithCommitmentResult,
+  type PrivateTokenTransferCallParams,
+  type PrivateTokenTransferCallResult,
+  type BatchTokenTransferParams,
+  type BatchTokenTransferResult,
+  type NEP141TokenMetadata,
+  type TokenBalanceInfo,
+  type StorageDepositInfo,
+} from './nep141'
