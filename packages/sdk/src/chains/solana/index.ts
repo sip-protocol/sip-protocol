@@ -79,6 +79,26 @@ export {
   hasTokenAccount,
 } from './transfer'
 
+// Enhanced SPL Transfer (Issue #286)
+export {
+  resolveTokenMetadata,
+  batchResolveTokenMetadata,
+  getTokenBalance,
+  batchGetTokenBalances,
+  validateTransfer,
+  sendEnhancedSPLTransfer,
+  sendBatchSPLTransfer,
+  formatTokenAmount,
+  parseTokenAmount,
+  type TokenMetadata,
+  type TokenBalance,
+  type EnhancedSPLTransferParams,
+  type EnhancedSPLTransferResult,
+  type BatchTransferItem,
+  type BatchTransferResult,
+  type TransferValidation,
+} from './spl-transfer'
+
 // Scan and claim functions
 export {
   scanForPayments,
