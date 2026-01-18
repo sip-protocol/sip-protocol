@@ -166,3 +166,25 @@ export {
   type NEARTransactionData,
   type NEARViewingKeyStorage,
 } from './viewing-key'
+
+// ─── Stealth Address Resolver (M17-NEAR-05) ───────────────────────────────────
+
+export {
+  // Scanner class
+  NEARStealthScanner,
+  createNEARStealthScanner,
+  // Cache
+  createNEARAnnouncementCache,
+  // Batch utilities
+  batchScanNEARAnnouncements,
+  hasNEARAnnouncementMatch,
+  // Types
+  type NEARScanRecipient,
+  type NEARStealthScannerOptions,
+  type NEARHistoricalScanOptions,
+  type NEARDetectedPaymentResult,
+  type NEARHistoricalScanResult,
+  type NEARPaymentCallback,
+  type NEARErrorCallback,
+  type NEARAnnouncementCache,
+} from './resolver'
