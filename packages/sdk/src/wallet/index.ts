@@ -242,6 +242,23 @@ export {
   type PrivateTransferResult,
   type WalletPrivacyCapabilities,
   type ViewingKeyExport,
+  // MyNearWallet integration
+  MyNearWalletPrivacy,
+  createMyNearWalletPrivacy,
+  createMainnetMyNearWallet,
+  createTestnetMyNearWallet,
+  parseMyNearWalletCallback,
+  MY_NEAR_WALLET_MAINNET,
+  MY_NEAR_WALLET_TESTNET,
+  type MyNearWalletConfig,
+  type MyNearWalletConnectionState,
+  type MyNearWalletPrivacyKeys,
+  type MyNearWalletStealthAddress,
+  type MyNearWalletPrivateTransferParams,
+  type TransactionPreview as NEARTransactionPreview,
+  type MyNearWalletCallbackResult,
+  type MyNearWalletViewingKeyExport,
+  type LedgerStatus as NEARLedgerStatus,
 } from './near'
 
 // Hardware wallet adapters

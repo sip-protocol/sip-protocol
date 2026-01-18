@@ -40,3 +40,23 @@ export {
   type WalletPrivacyCapabilities,
   type ViewingKeyExport,
 } from './wallet-selector'
+
+// MyNearWallet integration
+export {
+  MyNearWalletPrivacy,
+  createMyNearWalletPrivacy,
+  createMainnetMyNearWallet,
+  createTestnetMyNearWallet,
+  parseMyNearWalletCallback,
+  MY_NEAR_WALLET_MAINNET,
+  MY_NEAR_WALLET_TESTNET,
+  type MyNearWalletConfig,
+  type MyNearWalletConnectionState,
+  type MyNearWalletPrivacyKeys,
+  type MyNearWalletStealthAddress,
+  type MyNearWalletPrivateTransferParams,
+  type TransactionPreview,
+  type MyNearWalletCallbackResult,
+  type MyNearWalletViewingKeyExport,
+  type LedgerStatus,
+} from './my-near-wallet'
