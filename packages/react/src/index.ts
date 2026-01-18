@@ -34,4 +34,12 @@ export {
   type TransactionAction,
   type PrivacyVerification,
   type PrivacyTransaction,
+  ViewingKeyManager,
+  useViewingKeyManager,
+  type ViewingKeyManagerProps,
+  type ViewingKey,
+  type ViewingKeyStatus,
+  type ViewingKeyUsage,
+  type KeyExportFormat,
+  type KeyImportSource,
 } from './components'

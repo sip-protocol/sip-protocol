@@ -37,3 +37,14 @@ export {
   type PrivacyVerification,
   type PrivacyTransaction,
 } from './transaction-tracker'
+
+export {
+  ViewingKeyManager,
+  useViewingKeyManager,
+  type ViewingKeyManagerProps,
+  type ViewingKey,
+  type ViewingKeyStatus,
+  type ViewingKeyUsage,
+  type KeyExportFormat,
+  type KeyImportSource,
+} from './viewing-key-manager'
