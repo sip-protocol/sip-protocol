@@ -223,3 +223,22 @@ export {
   type NEARAddAccessKeyParams,
   type NEARKeyRotationParams,
 } from './implicit-account'
+
+// ─── Privacy Adapter (M17-NEAR-07) ────────────────────────────────────────────
+
+export {
+  // Adapter class
+  NEARPrivacyAdapter,
+  createNEARPrivacyAdapter,
+  createMainnetNEARPrivacyAdapter,
+  createTestnetNEARPrivacyAdapter,
+  // Types
+  type NEARPrivacyLevel,
+  type NEARPrivacyAdapterConfig,
+  type NEARShieldedTransferParams,
+  type NEARShieldedTokenTransferParams,
+  type NEARShieldedTransferBuild,
+  type NEARAdapterClaimParams,
+  type NEARGasEstimate,
+  type NEARPrivacyAdapterState,
+} from './privacy-adapter'
