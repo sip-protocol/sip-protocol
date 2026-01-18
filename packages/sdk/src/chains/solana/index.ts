@@ -232,3 +232,17 @@ export {
   type SolanaTransactionData,
   type ViewingKeyStorage,
 } from './viewing-key'
+
+// RPC Client (Issue #280)
+export {
+  SolanaRPCClient,
+  createRPCClient,
+  createClusterClient,
+  RPC_ENDPOINTS,
+  RPCErrorType,
+  type RPCClientConfig,
+  type ClassifiedRPCError,
+  type PriorityFeeEstimate,
+  type TransactionConfirmationResult,
+  type SendTransactionOptions,
+} from './rpc-client'
