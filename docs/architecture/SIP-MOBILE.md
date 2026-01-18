@@ -8,66 +8,664 @@
 
 ## Executive Summary
 
-SIP Mobile is the mobile application for SIP Protocol, bringing privacy-preserving transactions to Solana users on mobile devices. The app implements a **hybrid wallet architecture** that supports both embedded wallets (for seamless onboarding) and external wallet connections (for power users).
+SIP Mobile is the **multi-chain** mobile application for SIP Protocol, bringing privacy-preserving transactions to users across Solana, Ethereum, and other blockchains. The app implements a **hybrid wallet architecture** with **chain abstraction from day 1**, supporting both embedded wallets (for seamless onboarding) and external wallet connections (for power users).
 
-**Core Value Proposition:** One-tap private payments with stealth addresses, Pedersen commitments, and viewing keys for compliance.
+**Core Value Proposition:** One-tap private payments across any chain with stealth addresses, Pedersen commitments, and viewing keys for compliance.
+
+**Multi-Chain Strategy:** Architecture built for multi-chain from day 1, with phased rollout:
+- **Phase 1 (Launch):** Solana
+- **Phase 2:** Ethereum L1 + L2s (Arbitrum, Optimism, Base)
+- **Phase 3:** Bitcoin, NEAR, Cosmos ecosystem
 
 ---
 
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              SIP MOBILE APP                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                         PRESENTATION LAYER                              │ │
-│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐  │ │
-│  │  │   Payments   │ │    Wallet    │ │   Receive    │ │   Settings   │  │ │
-│  │  │    Screen    │ │    Screen    │ │    Screen    │ │    Screen    │  │ │
-│  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘  │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                    │                                         │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                          STATE MANAGEMENT                               │ │
-│  │                     (Zustand + React Query)                             │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                    │                                         │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                         WALLET ABSTRACTION                              │ │
-│  │  ┌─────────────────────────────┐  ┌─────────────────────────────────┐  │ │
-│  │  │     EMBEDDED WALLET         │  │      EXTERNAL WALLET            │  │ │
-│  │  │  ┌───────────────────────┐  │  │  ┌───────────────────────────┐  │  │ │
-│  │  │  │   Privy SDK           │  │  │  │   MWA (Android)           │  │  │ │
-│  │  │  │   • Apple/Google SSO  │  │  │  │   • Phantom, Solflare     │  │  │ │
-│  │  │  │   • Email login       │  │  │  │   • Any MWA wallet        │  │  │ │
-│  │  │  │   • Passkey auth      │  │  │  ├───────────────────────────┤  │  │ │
-│  │  │  │   • MPC key sharding  │  │  │  │   Deeplinks (iOS)         │  │  │ │
-│  │  │  └───────────────────────┘  │  │  │   • Phantom Universal     │  │  │ │
-│  │  └─────────────────────────────┘  │  │   • Solflare              │  │  │ │
-│  │         "Quick Start"              │  └───────────────────────────┘  │  │ │
-│  │                                    │        "Power User"             │  │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                    │                                         │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                          PRIVACY LAYER                                  │ │
-│  │                       @sip-protocol/sdk                                 │ │
-│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐  │ │
-│  │  │   Stealth    │ │   Pedersen   │ │   Viewing    │ │   Privacy    │  │ │
-│  │  │  Addresses   │ │ Commitments  │ │     Keys     │ │    Levels    │  │ │
-│  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘  │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                    │                                         │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                         BLOCKCHAIN LAYER                                │ │
-│  │  ┌──────────────────────────────────────────────────────────────────┐  │ │
-│  │  │                    @solana/web3.js                                │  │ │
-│  │  │         Helius RPC │ QuickNode │ Triton │ Public RPC             │  │ │
-│  │  └──────────────────────────────────────────────────────────────────┘  │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              SIP MOBILE APP                                      │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌────────────────────────────────────────────────────────────────────────────┐ │
+│  │                         PRESENTATION LAYER                                  │ │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐      │ │
+│  │  │   Payments   │ │    Wallet    │ │   Receive    │ │   Settings   │      │ │
+│  │  │    Screen    │ │    Screen    │ │    Screen    │ │    Screen    │      │ │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘      │ │
+│  └────────────────────────────────────────────────────────────────────────────┘ │
+│                                      │                                           │
+│  ┌────────────────────────────────────────────────────────────────────────────┐ │
+│  │                          STATE MANAGEMENT                                   │ │
+│  │                     (Zustand + React Query + MMKV)                          │ │
+│  └────────────────────────────────────────────────────────────────────────────┘ │
+│                                      │                                           │
+│  ┌────────────────────────────────────────────────────────────────────────────┐ │
+│  │                      CHAIN ABSTRACTION LAYER                                │ │
+│  │  ┌──────────────────────────────────────────────────────────────────────┐  │ │
+│  │  │  Unified Interfaces: Account | Transaction | Token | Network         │  │ │
+│  │  └──────────────────────────────────────────────────────────────────────┘  │ │
+│  │  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐              │ │
+│  │  │  SOLANA         │ │  ETHEREUM       │ │  OTHER CHAINS   │              │ │
+│  │  │  ┌───────────┐  │ │  ┌───────────┐  │ │  ┌───────────┐  │              │ │
+│  │  │  │ @solana/  │  │ │  │ viem      │  │ │  │ Chain SDK │  │              │ │
+│  │  │  │ web3.js   │  │ │  │ wagmi     │  │ │  │ (future)  │  │              │ │
+│  │  │  ├───────────┤  │ │  ├───────────┤  │ │  ├───────────┤  │              │ │
+│  │  │  │ MWA       │  │ │  │WalletConnect│ │  │ Native    │  │              │ │
+│  │  │  │ Deeplinks │  │ │  │ Deeplinks │  │ │  │ Adapters  │  │              │ │
+│  │  │  └───────────┘  │ │  └───────────┘  │ │  └───────────┘  │              │ │
+│  │  │   Phase 1 ✓     │ │   Phase 2       │ │   Phase 3       │              │ │
+│  │  └─────────────────┘ └─────────────────┘ └─────────────────┘              │ │
+│  └────────────────────────────────────────────────────────────────────────────┘ │
+│                                      │                                           │
+│  ┌────────────────────────────────────────────────────────────────────────────┐ │
+│  │                         WALLET ABSTRACTION                                  │ │
+│  │  ┌─────────────────────────────┐  ┌─────────────────────────────────────┐  │ │
+│  │  │     EMBEDDED WALLET         │  │      EXTERNAL WALLET                │  │ │
+│  │  │  ┌───────────────────────┐  │  │  ┌─────────────────────────────┐    │  │ │
+│  │  │  │   Privy SDK           │  │  │  │ SOLANA: MWA / Deeplinks     │    │  │ │
+│  │  │  │   • Multi-chain keys  │  │  │  │ EVM: WalletConnect v2       │    │  │ │
+│  │  │  │   • Apple/Google SSO  │  │  │  │ Hardware: Ledger (BT)       │    │  │ │
+│  │  │  │   • MPC key sharding  │  │  │  └─────────────────────────────┘    │  │ │
+│  │  │  └───────────────────────┘  │  │        "Power User"                 │  │ │
+│  │  │       "Quick Start"          │  │                                     │  │ │
+│  │  └─────────────────────────────┘  └─────────────────────────────────────┘  │ │
+│  └────────────────────────────────────────────────────────────────────────────┘ │
+│                                      │                                           │
+│  ┌────────────────────────────────────────────────────────────────────────────┐ │
+│  │                          PRIVACY LAYER                                      │ │
+│  │                       @sip-protocol/sdk                                     │ │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐      │ │
+│  │  │   Stealth    │ │   Pedersen   │ │   Viewing    │ │   Privacy    │      │ │
+│  │  │  Addresses   │ │ Commitments  │ │     Keys     │ │    Levels    │      │ │
+│  │  │  (all chains)│ │  (all chains)│ │  (all chains)│ │  (all chains)│      │ │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘      │ │
+│  └────────────────────────────────────────────────────────────────────────────┘ │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Multi-Chain Architecture
+
+### Design Philosophy
+
+**"Build for many, launch with one"** - The codebase is architecturally prepared for multi-chain from day 1, but launches with Solana to align with M17 milestone and Seeker device availability.
+
+### Chain Support Roadmap
+
+| Phase | Chains | Timeline | Features |
+|-------|--------|----------|----------|
+| **Phase 1** | Solana | Launch | Full privacy features, Seeker/MWA, dApp Store |
+| **Phase 2** | Ethereum, Arbitrum, Optimism, Base | +2 months | EVM privacy, WalletConnect, L2 support |
+| **Phase 3** | Bitcoin, NEAR, Cosmos | +4 months | Extended ecosystem |
+
+### Chain Abstraction Layer
+
+The chain abstraction layer provides unified interfaces that work identically across all supported chains.
+
+#### Core Interfaces
+
+```typescript
+// src/types/chain.ts
+
+/**
+ * Supported blockchain networks
+ */
+export type ChainId =
+  // Solana
+  | 'solana:mainnet'
+  | 'solana:devnet'
+  // Ethereum & L2s
+  | 'eip155:1'      // Ethereum Mainnet
+  | 'eip155:42161'  // Arbitrum One
+  | 'eip155:10'     // Optimism
+  | 'eip155:8453'   // Base
+  | 'eip155:137'    // Polygon
+  // Future
+  | 'near:mainnet'
+  | 'cosmos:cosmoshub-4'
+
+export type ChainType = 'solana' | 'evm' | 'near' | 'cosmos' | 'bitcoin'
+
+export interface ChainConfig {
+  id: ChainId
+  type: ChainType
+  name: string
+  nativeCurrency: {
+    name: string
+    symbol: string
+    decimals: number
+  }
+  rpcUrls: string[]
+  blockExplorerUrl: string
+  iconUrl: string
+  testnet: boolean
+}
+
+/**
+ * Chain-agnostic account representation
+ */
+export interface UnifiedAccount {
+  // Unique identifier across all chains
+  id: string
+
+  // Display info
+  label: string
+  avatarUrl?: string
+
+  // Chain-specific addresses
+  addresses: {
+    [chainId: ChainId]: string
+  }
+
+  // Wallet type
+  type: 'embedded' | 'external' | 'hardware' | 'watch'
+
+  // Privacy keys (chain-agnostic)
+  stealthMetaAddress?: string
+  viewingPublicKey?: string
+}
+
+/**
+ * Chain-agnostic transaction
+ */
+export interface UnifiedTransaction {
+  id: string
+  chainId: ChainId
+  type: 'send' | 'receive' | 'swap' | 'contract'
+
+  // Amounts
+  amount: string
+  token: UnifiedToken
+
+  // Addresses (chain-specific format)
+  from: string
+  to: string
+
+  // Privacy
+  privacyLevel: 'transparent' | 'shielded' | 'compliant'
+  stealthAddress?: string
+  viewingKeyHash?: string
+
+  // Status
+  status: 'pending' | 'confirmed' | 'failed'
+  timestamp: number
+  txHash: string
+  blockExplorerUrl: string
+}
+
+/**
+ * Chain-agnostic token
+ */
+export interface UnifiedToken {
+  // Unique across chains
+  id: string
+
+  // Display
+  symbol: string
+  name: string
+  decimals: number
+  logoUrl: string
+
+  // Chain-specific addresses
+  addresses: {
+    [chainId: ChainId]: string | 'native'
+  }
+
+  // Price (USD)
+  priceUsd?: number
+  change24h?: number
+}
+
+/**
+ * Chain-agnostic balance
+ */
+export interface UnifiedBalance {
+  token: UnifiedToken
+  chainId: ChainId
+  balance: string          // Raw amount
+  balanceFormatted: string // Human readable
+  balanceUsd: number
+}
+```
+
+#### Chain Provider Interface
+
+```typescript
+// src/services/chains/types.ts
+
+import { UnifiedTransaction, UnifiedToken, UnifiedBalance, ChainId } from '@/types/chain'
+
+/**
+ * Each chain implements this interface
+ */
+export interface ChainProvider {
+  // Chain info
+  readonly chainId: ChainId
+  readonly chainType: ChainType
+
+  // Connection
+  connect(): Promise<void>
+  disconnect(): Promise<void>
+  isConnected(): boolean
+
+  // Account
+  getAddress(): Promise<string>
+  getBalance(tokenAddress?: string): Promise<UnifiedBalance>
+  getBalances(): Promise<UnifiedBalance[]>
+
+  // Transactions
+  sendTransaction(tx: SendTransactionParams): Promise<string>
+  getTransaction(txHash: string): Promise<UnifiedTransaction>
+  getTransactionHistory(address: string): Promise<UnifiedTransaction[]>
+  estimateFee(tx: SendTransactionParams): Promise<TransactionFee>
+
+  // Tokens
+  getTokenInfo(address: string): Promise<UnifiedToken>
+  getTokenBalance(tokenAddress: string): Promise<UnifiedBalance>
+
+  // Privacy (SIP-specific)
+  generateStealthAddress(
+    spendingPubKey: string,
+    viewingPubKey: string
+  ): Promise<StealthAddressResult>
+
+  scanForPayments(
+    viewingPrivateKey: string,
+    spendingPublicKey: string,
+    fromBlock?: number
+  ): Promise<DetectedPayment[]>
+
+  // Signing
+  signMessage(message: string): Promise<string>
+  signTransaction(tx: unknown): Promise<unknown>
+}
+
+export interface SendTransactionParams {
+  to: string
+  amount: string
+  token?: string // Token address, undefined for native
+  privacyLevel: 'transparent' | 'shielded' | 'compliant'
+  viewingKey?: string // For compliant transactions
+  memo?: string
+}
+
+export interface TransactionFee {
+  amount: string
+  amountUsd: number
+  token: UnifiedToken
+  estimated: boolean
+}
+
+export interface StealthAddressResult {
+  stealthAddress: string
+  ephemeralPublicKey: string
+  viewingKeyHash: string
+}
+
+export interface DetectedPayment {
+  txHash: string
+  amount: string
+  token: UnifiedToken
+  stealthAddress: string
+  timestamp: number
+}
+```
+
+#### Chain Provider Factory
+
+```typescript
+// src/services/chains/factory.ts
+
+import { ChainId, ChainType } from '@/types/chain'
+import { ChainProvider } from './types'
+import { SolanaProvider } from './solana/provider'
+import { EVMProvider } from './evm/provider'
+// Future: import { NearProvider } from './near/provider'
+
+const providers = new Map<ChainId, ChainProvider>()
+
+export function getChainProvider(chainId: ChainId): ChainProvider {
+  if (providers.has(chainId)) {
+    return providers.get(chainId)!
+  }
+
+  const provider = createProvider(chainId)
+  providers.set(chainId, provider)
+  return provider
+}
+
+function createProvider(chainId: ChainId): ChainProvider {
+  const chainType = getChainType(chainId)
+
+  switch (chainType) {
+    case 'solana':
+      return new SolanaProvider(chainId)
+
+    case 'evm':
+      return new EVMProvider(chainId)
+
+    // Future chains
+    // case 'near':
+    //   return new NearProvider(chainId)
+
+    default:
+      throw new Error(`Unsupported chain: ${chainId}`)
+  }
+}
+
+function getChainType(chainId: ChainId): ChainType {
+  if (chainId.startsWith('solana:')) return 'solana'
+  if (chainId.startsWith('eip155:')) return 'evm'
+  if (chainId.startsWith('near:')) return 'near'
+  if (chainId.startsWith('cosmos:')) return 'cosmos'
+  throw new Error(`Unknown chain type for: ${chainId}`)
+}
+
+// Convenience exports
+export const solana = () => getChainProvider('solana:mainnet')
+export const ethereum = () => getChainProvider('eip155:1')
+export const arbitrum = () => getChainProvider('eip155:42161')
+export const base = () => getChainProvider('eip155:8453')
+```
+
+### Solana Implementation (Phase 1)
+
+```typescript
+// src/services/chains/solana/provider.ts
+
+import { Connection, PublicKey, Transaction } from '@solana/web3.js'
+import { ChainProvider, SendTransactionParams } from '../types'
+import { ChainId, UnifiedBalance, UnifiedTransaction } from '@/types/chain'
+import { generateStealthAddress as sipGenerateStealth } from '@sip-protocol/sdk'
+
+export class SolanaProvider implements ChainProvider {
+  readonly chainId: ChainId
+  readonly chainType = 'solana' as const
+
+  private connection: Connection
+  private walletAdapter: WalletAdapter | null = null
+
+  constructor(chainId: ChainId) {
+    this.chainId = chainId
+    const rpcUrl = this.getRpcUrl(chainId)
+    this.connection = new Connection(rpcUrl, 'confirmed')
+  }
+
+  async sendTransaction(params: SendTransactionParams): Promise<string> {
+    if (!this.walletAdapter) {
+      throw new Error('Wallet not connected')
+    }
+
+    const { to, amount, token, privacyLevel } = params
+
+    // Handle privacy levels
+    let recipient = to
+    let ephemeralPubKey: string | undefined
+
+    if (privacyLevel === 'shielded' || privacyLevel === 'compliant') {
+      // Generate stealth address for recipient
+      const stealth = await this.generateStealthAddress(
+        params.recipientSpendingKey!,
+        params.recipientViewingKey!
+      )
+      recipient = stealth.stealthAddress
+      ephemeralPubKey = stealth.ephemeralPublicKey
+    }
+
+    // Build transaction
+    const tx = await this.buildTransaction(recipient, amount, token)
+
+    // Add ephemeral pubkey as memo if shielded
+    if (ephemeralPubKey) {
+      tx.add(this.createMemoInstruction(ephemeralPubKey))
+    }
+
+    // Sign and send
+    const signature = await this.walletAdapter.signAndSendTransaction(tx)
+
+    return signature
+  }
+
+  async generateStealthAddress(
+    spendingPubKey: string,
+    viewingPubKey: string
+  ): Promise<StealthAddressResult> {
+    // Use SIP SDK (chain-agnostic)
+    const result = await sipGenerateStealth({
+      spendingPublicKey: spendingPubKey,
+      viewingPublicKey: viewingPubKey,
+      chain: 'solana',
+    })
+
+    return {
+      stealthAddress: result.stealthAddress,
+      ephemeralPublicKey: result.ephemeralPublicKey,
+      viewingKeyHash: result.viewingKeyHash,
+    }
+  }
+
+  // ... other methods
+}
+```
+
+### EVM Implementation (Phase 2)
+
+```typescript
+// src/services/chains/evm/provider.ts
+
+import { createPublicClient, createWalletClient, http } from 'viem'
+import { mainnet, arbitrum, optimism, base } from 'viem/chains'
+import { ChainProvider, SendTransactionParams } from '../types'
+import { ChainId, UnifiedBalance, UnifiedTransaction } from '@/types/chain'
+import { generateStealthAddress as sipGenerateStealth } from '@sip-protocol/sdk'
+
+const CHAIN_CONFIGS = {
+  'eip155:1': mainnet,
+  'eip155:42161': arbitrum,
+  'eip155:10': optimism,
+  'eip155:8453': base,
+}
+
+export class EVMProvider implements ChainProvider {
+  readonly chainId: ChainId
+  readonly chainType = 'evm' as const
+
+  private publicClient: ReturnType<typeof createPublicClient>
+  private walletClient: ReturnType<typeof createWalletClient> | null = null
+
+  constructor(chainId: ChainId) {
+    this.chainId = chainId
+    const chain = CHAIN_CONFIGS[chainId as keyof typeof CHAIN_CONFIGS]
+
+    this.publicClient = createPublicClient({
+      chain,
+      transport: http(),
+    })
+  }
+
+  async sendTransaction(params: SendTransactionParams): Promise<string> {
+    if (!this.walletClient) {
+      throw new Error('Wallet not connected')
+    }
+
+    const { to, amount, token, privacyLevel } = params
+
+    // Handle privacy levels
+    let recipient = to as `0x${string}`
+    let ephemeralPubKey: string | undefined
+
+    if (privacyLevel === 'shielded' || privacyLevel === 'compliant') {
+      const stealth = await this.generateStealthAddress(
+        params.recipientSpendingKey!,
+        params.recipientViewingKey!
+      )
+      recipient = stealth.stealthAddress as `0x${string}`
+      ephemeralPubKey = stealth.ephemeralPublicKey
+    }
+
+    // Send transaction
+    const hash = await this.walletClient.sendTransaction({
+      to: recipient,
+      value: BigInt(amount),
+      // Include ephemeral key in data field for stealth txs
+      data: ephemeralPubKey ? (`0x${ephemeralPubKey}` as `0x${string}`) : undefined,
+    })
+
+    return hash
+  }
+
+  async generateStealthAddress(
+    spendingPubKey: string,
+    viewingPubKey: string
+  ): Promise<StealthAddressResult> {
+    // Use SIP SDK (same interface as Solana!)
+    const result = await sipGenerateStealth({
+      spendingPublicKey: spendingPubKey,
+      viewingPublicKey: viewingPubKey,
+      chain: 'ethereum', // SDK handles chain-specific derivation
+    })
+
+    return {
+      stealthAddress: result.stealthAddress,
+      ephemeralPublicKey: result.ephemeralPublicKey,
+      viewingKeyHash: result.viewingKeyHash,
+    }
+  }
+
+  // ... other methods
+}
+```
+
+### Multi-Chain Hooks
+
+```typescript
+// src/hooks/useChain.ts
+
+import { useCallback, useMemo } from 'react'
+import { useChainStore } from '@/stores/chain.store'
+import { getChainProvider } from '@/services/chains/factory'
+import { ChainId, UnifiedBalance } from '@/types/chain'
+
+export function useChain() {
+  const { activeChainId, setActiveChain, enabledChains } = useChainStore()
+
+  const provider = useMemo(
+    () => getChainProvider(activeChainId),
+    [activeChainId]
+  )
+
+  const switchChain = useCallback(async (chainId: ChainId) => {
+    if (!enabledChains.includes(chainId)) {
+      throw new Error(`Chain ${chainId} is not enabled`)
+    }
+    setActiveChain(chainId)
+  }, [enabledChains, setActiveChain])
+
+  return {
+    chainId: activeChainId,
+    provider,
+    switchChain,
+    enabledChains,
+  }
+}
+
+// src/hooks/useMultiChainBalances.ts
+
+export function useMultiChainBalances(address: string) {
+  const { enabledChains } = useChainStore()
+
+  return useQueries({
+    queries: enabledChains.map((chainId) => ({
+      queryKey: ['balances', chainId, address],
+      queryFn: async () => {
+        const provider = getChainProvider(chainId)
+        return provider.getBalances()
+      },
+      enabled: !!address,
+    })),
+    combine: (results) => {
+      const balances: UnifiedBalance[] = []
+      let totalUsd = 0
+
+      for (const result of results) {
+        if (result.data) {
+          balances.push(...result.data)
+          totalUsd += result.data.reduce((sum, b) => sum + b.balanceUsd, 0)
+        }
+      }
+
+      return {
+        balances,
+        totalUsd,
+        isLoading: results.some((r) => r.isLoading),
+      }
+    },
+  })
+}
+```
+
+### Chain Selector UI
+
+```typescript
+// src/components/chain/ChainSelector.tsx
+
+import React from 'react'
+import { View, Text, Pressable, Image } from 'react-native'
+import { useChain } from '@/hooks/useChain'
+import { CHAIN_CONFIGS } from '@/constants/chains'
+
+export function ChainSelector() {
+  const { chainId, switchChain, enabledChains } = useChain()
+
+  return (
+    <View className="flex-row gap-2">
+      {enabledChains.map((id) => {
+        const config = CHAIN_CONFIGS[id]
+        const isActive = id === chainId
+
+        return (
+          <Pressable
+            key={id}
+            onPress={() => switchChain(id)}
+            className={`p-2 rounded-xl flex-row items-center gap-2 ${
+              isActive ? 'bg-cyan-500/20 border border-cyan-500' : 'bg-gray-800'
+            }`}
+          >
+            <Image
+              source={{ uri: config.iconUrl }}
+              className="w-6 h-6 rounded-full"
+            />
+            <Text className={isActive ? 'text-cyan-400' : 'text-gray-400'}>
+              {config.name}
+            </Text>
+          </Pressable>
+        )
+      })}
+    </View>
+  )
+}
+```
+
+### Multi-Chain Account Display
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Account Center                                                  │
+├─────────────────────────────────────────────────────────────────┤
+│  [All Chains ▼]  Total: $8,702.03                               │
+├─────────────────────────────────────────────────────────────────┤
+│  ┌─────┐                                                        │
+│  │ 👾  │  rz 1                           $8,702.03              │
+│  └─────┘                                                        │
+│           🟣 Solana    4KAF...H2y2        $222.29               │
+│           ⟠ Ethereum  0x7a3...9f21       $8,438.38              │
+│           🔵 Arbitrum 0x7a3...9f21       $28.36                 │
+│           🔴 Optimism 0x7a3...9f21       $13.00                 │
+├─────────────────────────────────────────────────────────────────┤
+│              + Add Account                                       │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
