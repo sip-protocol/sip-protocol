@@ -11,9 +11,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
   createTestEnvironment,
-  createMockConnection,
-  aliceKeypair,
-  bobKeypair,
 } from '../../fixtures/solana'
 
 // Import SDK functions
@@ -62,10 +59,9 @@ describe('E2E: Solana Receive Flow', () => {
       const keys1 = deriveSolanaStealthKeys({ mnemonic })
       const keys2 = deriveSolanaStealthKeys({ mnemonic })
 
-      // Same mnemonic = same keys
-      expect(keys1.metaAddress).toBe(keys2.metaAddress)
-      expect(keys1.spendingPublicKey).toBe(keys2.spendingPublicKey)
-      expect(keys1.viewingPublicKey).toBe(keys2.viewingPublicKey)
+      // Same mnemonic = same keys (metaAddress is an object)
+      expect(keys1.metaAddress).toStrictEqual(keys2.metaAddress)
+      expect(encodeStealthMetaAddress(keys1.metaAddress)).toBe(encodeStealthMetaAddress(keys2.metaAddress))
     })
 
     it('should generate viewing key from spending key', () => {
@@ -75,8 +71,10 @@ describe('E2E: Solana Receive Flow', () => {
         recipient.spendingPrivateKey
       )
 
-      expect(derivedViewing.viewingPublicKey).toBeDefined()
-      expect(derivedViewing.viewingPrivateKey).toBeDefined()
+      // SolanaViewingKey has publicKey, privateKey, hash, createdAt
+      expect(derivedViewing.publicKey).toBeDefined()
+      expect(derivedViewing.privateKey).toBeDefined()
+      expect(derivedViewing.hash).toBeDefined()
     })
   })
 
@@ -95,8 +93,10 @@ describe('E2E: Solana Receive Flow', () => {
 
     it('should detect announcement is for recipient', () => {
       const recipient = generateStealthMetaAddress('solana')
-      const viewingKeyHash = computeViewingKeyHash(recipient.metaAddress.viewingKey)
-      const viewTag = viewingKeyHash.slice(2, 4)
+
+      // Generate a viewing key to use for announcement matching
+      const viewingKey = generateViewingKeyFromSpending(recipient.spendingPrivateKey)
+      const viewTag = viewingKey.hash.slice(2, 4)
 
       // Create announcement with matching view tag
       const ephemeralPubKey = 'EphemKey123456789012345678901234567890123'
@@ -105,11 +105,9 @@ describe('E2E: Solana Receive Flow', () => {
 
       expect(parsed).not.toBeNull()
 
-      // Check if announcement is for this viewing key
-      const isForMe = isAnnouncementForViewingKey(parsed!, recipient.viewingPrivateKey)
-      // Note: This may return false due to simplified view tag matching
-      // The actual check is more complex in production
-      expect(typeof isForMe).toBe('boolean')
+      // Check if announcement is for this viewing key using hash comparison
+      const isForMe = isAnnouncementForViewingKey(viewingKey.hash, viewingKey)
+      expect(isForMe).toBe(true)
     })
 
     it('should reject announcement with wrong view tag', () => {
@@ -251,13 +249,8 @@ describe('E2E: Solana Receive Flow', () => {
       const bobMnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
       const bobKeys = deriveSolanaStealthKeys({ mnemonic: bobMnemonic })
 
-      // Alice sends
-      const bobMeta = {
-        chain: 'solana' as const,
-        spendingKey: bobKeys.spendingPublicKey,
-        viewingKey: bobKeys.viewingPublicKey,
-      }
-      const stealth = generateStealthAddress(bobMeta)
+      // Alice sends using bobKeys.metaAddress (which is already an object)
+      const stealth = generateStealthAddress(bobKeys.metaAddress)
 
       // Bob detects
       const isForBob = checkStealthAddress(

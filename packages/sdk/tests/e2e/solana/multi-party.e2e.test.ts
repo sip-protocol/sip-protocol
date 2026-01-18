@@ -9,12 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import {
-  createTestEnvironment,
-  aliceKeypair,
-  bobKeypair,
-  charlieKeypair,
-} from '../../fixtures/solana'
+import { createTestEnvironment } from '../../fixtures/solana'
 
 // Import SDK functions
 import {
@@ -22,9 +17,9 @@ import {
   computeViewingKeyHash,
   encryptForViewing,
   decryptWithViewing,
-  getViewingPublicKey,
   commitSolana,
   verifyOpeningSolana,
+  type SolanaTransactionData,
 } from '../../../src/chains/solana'
 
 import {
@@ -114,27 +109,23 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       // 1. Alice sends to Bob
       const stealthForBob = generateStealthAddress(bob.metaAddress)
 
-      // 2. Create audit trail encrypted for auditor
-      const auditData = JSON.stringify({
+      // 2. Create audit trail encrypted for auditor using SolanaTransactionData
+      const auditData: SolanaTransactionData = {
         sender: encodeStealthMetaAddress(alice.metaAddress),
-        recipient: encodeStealthMetaAddress(bob.metaAddress),
-        stealthAddress: stealthForBob.stealthAddress.address,
-        timestamp: Date.now(),
+        recipient: stealthForBob.stealthAddress.address,
         amount: '1000000000', // 1 SOL in lamports
-      })
+        mint: null, // Native SOL
+        timestamp: Date.now(),
+        memo: `Recipient meta: ${encodeStealthMetaAddress(bob.metaAddress)}`,
+      }
 
-      const encryptedAudit = encryptForViewing(
-        new TextEncoder().encode(auditData),
-        auditorKey
-      )
+      const encryptedAudit = encryptForViewing(auditData, auditorKey)
 
       // 3. Auditor can decrypt and verify
       const decryptedAudit = decryptWithViewing(encryptedAudit, auditorKey)
-      const parsed = JSON.parse(new TextDecoder().decode(decryptedAudit))
 
-      expect(parsed.sender).toContain('sip:solana:')
-      expect(parsed.recipient).toContain('sip:solana:')
-      expect(parsed.amount).toBe('1000000000')
+      expect(decryptedAudit.sender).toContain('sip:solana:')
+      expect(decryptedAudit.amount).toBe('1000000000')
     })
 
     it('should allow multiple auditors with separate keys', () => {
@@ -146,29 +137,34 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       // Send payment
       const stealthForBob = generateStealthAddress(bob.metaAddress)
 
-      // Different audit data for different auditors
-      const taxData = JSON.stringify({ amount: '1000000000', taxCategory: 'income' })
-      const complianceData = JSON.stringify({ aml_check: 'passed', kyc_verified: true })
+      // Different audit data for different auditors using SolanaTransactionData
+      const taxData: SolanaTransactionData = {
+        sender: 'alice',
+        recipient: stealthForBob.stealthAddress.address,
+        amount: '1000000000',
+        mint: null,
+        timestamp: Date.now(),
+        memo: 'taxCategory: income',
+      }
 
-      const encryptedTax = encryptForViewing(
-        new TextEncoder().encode(taxData),
-        taxAuditor
-      )
-      const encryptedCompliance = encryptForViewing(
-        new TextEncoder().encode(complianceData),
-        complianceAuditor
-      )
+      const complianceData: SolanaTransactionData = {
+        sender: 'alice',
+        recipient: stealthForBob.stealthAddress.address,
+        amount: '1000000000',
+        mint: null,
+        timestamp: Date.now(),
+        memo: 'aml_check: passed, kyc_verified: true',
+      }
+
+      const encryptedTax = encryptForViewing(taxData, taxAuditor)
+      const encryptedCompliance = encryptForViewing(complianceData, complianceAuditor)
 
       // Each auditor sees only their data
-      const taxParsed = JSON.parse(
-        new TextDecoder().decode(decryptWithViewing(encryptedTax, taxAuditor))
-      )
-      const complianceParsed = JSON.parse(
-        new TextDecoder().decode(decryptWithViewing(encryptedCompliance, complianceAuditor))
-      )
+      const taxDecrypted = decryptWithViewing(encryptedTax, taxAuditor)
+      const complianceDecrypted = decryptWithViewing(encryptedCompliance, complianceAuditor)
 
-      expect(taxParsed.taxCategory).toBe('income')
-      expect(complianceParsed.kyc_verified).toBe(true)
+      expect(taxDecrypted.memo).toContain('income')
+      expect(complianceDecrypted.memo).toContain('kyc_verified')
 
       // Cross-access fails
       expect(() => decryptWithViewing(encryptedTax, complianceAuditor)).toThrow()
@@ -287,7 +283,7 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       )
 
       // Phase 1: Senders → Pool
-      const inboundPayments = senders.map((sender) =>
+      const inboundPayments = senders.map(() =>
         generateStealthAddress(pool.metaAddress)
       )
 
@@ -332,7 +328,6 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
     })
 
     it('should maintain privacy under batch operations', () => {
-      const sender = generateStealthMetaAddress('solana')
       const recipient = generateStealthMetaAddress('solana')
 
       // Batch of payments

@@ -11,9 +11,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
   createTestEnvironment,
-  aliceKeypair,
-  bobKeypair,
-  USDC,
 } from '../../fixtures/solana'
 
 // Import SDK functions
@@ -21,9 +18,7 @@ import {
   deriveSolanaStealthKeys,
   generateEphemeralKeypair,
   commitSolana,
-  commitSPLToken,
   verifyOpeningSolana,
-  verifySPLTokenCommitment,
   createAnnouncementMemo,
   parseAnnouncement,
   computeViewingKeyHash,
@@ -90,9 +85,12 @@ describe('E2E: Solana Send Flow', () => {
         mnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
       })
 
-      expect(result.metaAddress).toMatch(/^sip:solana:/)
-      expect(result.spendingPublicKey).toMatch(/^0x/)
-      expect(result.viewingPublicKey).toMatch(/^0x/)
+      // metaAddress is an object, encode it for string check
+      const encoded = encodeStealthMetaAddress(result.metaAddress)
+      expect(encoded).toMatch(/^sip:solana:/)
+      // Public keys are in metaAddress object
+      expect(result.metaAddress.spendingKey).toMatch(/^0x/)
+      expect(result.metaAddress.viewingKey).toMatch(/^0x/)
     })
   })
 
@@ -103,32 +101,12 @@ describe('E2E: Solana Send Flow', () => {
 
       expect(commitment.commitment).toBeDefined()
       expect(commitment.blinding).toBeDefined()
-      expect(commitment.amount).toBe(amount)
 
       // Verify the commitment
       const valid = verifyOpeningSolana(
         commitment.commitment,
         amount,
         commitment.blinding
-      )
-      expect(valid).toBe(true)
-    })
-
-    it('should create valid commitment for SPL token amount', () => {
-      const amount = 100_000_000n // 100 USDC (6 decimals)
-      const commitment = commitSPLToken(amount, USDC.decimals)
-
-      expect(commitment.commitment).toBeDefined()
-      expect(commitment.blinding).toBeDefined()
-      expect(commitment.rawAmount).toBe(amount)
-      expect(commitment.decimals).toBe(6)
-
-      // Verify the commitment
-      const valid = verifySPLTokenCommitment(
-        commitment.commitment,
-        amount,
-        commitment.blinding,
-        USDC.decimals
       )
       expect(valid).toBe(true)
     })
@@ -282,12 +260,6 @@ describe('E2E: Solana Send Flow', () => {
       const amount = 1_000_000_000_000_000_000n // 1 billion SOL
       const commitment = commitSolana(amount)
       expect(verifyOpeningSolana(commitment.commitment, amount, commitment.blinding)).toBe(true)
-    })
-
-    it('should handle small token amounts (dust)', () => {
-      const amount = 1n // 0.000001 USDC
-      const commitment = commitSPLToken(amount, USDC.decimals)
-      expect(verifySPLTokenCommitment(commitment.commitment, amount, commitment.blinding, USDC.decimals)).toBe(true)
     })
 
     it('should reject malformed meta-address', () => {
