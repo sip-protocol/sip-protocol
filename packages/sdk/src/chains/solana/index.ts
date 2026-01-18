@@ -117,6 +117,17 @@ export {
   type BatchGenerationOptions,
 } from './ephemeral-keys'
 
+// Privacy Adapter (Issue #276)
+export {
+  SolanaPrivacyAdapter,
+  createSolanaPrivacyAdapter,
+  type SolanaPrivacyAdapterConfig,
+  type ShieldedTransferParams,
+  type AdapterScanParams,
+  type AdapterClaimParams,
+  type PrivacyAdapterState,
+} from './privacy-adapter'
+
 // RPC Providers (Infrastructure Agnostic)
 export {
   createProvider,
