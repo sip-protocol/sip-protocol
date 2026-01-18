@@ -86,6 +86,48 @@ export {
   getStealthBalance,
 } from './scan'
 
+// Advanced Stealth Scanner (Issue #262)
+export {
+  StealthScanner,
+  createStealthScanner,
+  batchScanForRecipients,
+  fullHistoricalScan,
+  type ScanRecipient,
+  type StealthScannerOptions,
+  type HistoricalScanOptions,
+  type DetectedPayment,
+  type HistoricalScanResult,
+  type PaymentCallback,
+  type ErrorCallback,
+} from './stealth-scanner'
+
+// Ephemeral Keypair Management (Issue #270)
+export {
+  generateEphemeralKeypair,
+  generateManagedEphemeralKeypair,
+  batchGenerateEphemeralKeypairs,
+  batchGenerateManagedEphemeralKeypairs,
+  disposeEphemeralKeypairs,
+  wipeEphemeralPrivateKey,
+  formatEphemeralAnnouncement,
+  parseEphemeralAnnouncement,
+  type EphemeralKeypair,
+  type EphemeralKeyUsageResult,
+  type ManagedEphemeralKeypair,
+  type BatchGenerationOptions,
+} from './ephemeral-keys'
+
+// Privacy Adapter (Issue #276)
+export {
+  SolanaPrivacyAdapter,
+  createSolanaPrivacyAdapter,
+  type SolanaPrivacyAdapterConfig,
+  type ShieldedTransferParams,
+  type AdapterScanParams,
+  type AdapterClaimParams,
+  type PrivacyAdapterState,
+} from './privacy-adapter'
+
 // RPC Providers (Infrastructure Agnostic)
 export {
   createProvider,
@@ -190,3 +232,17 @@ export {
   type SolanaTransactionData,
   type ViewingKeyStorage,
 } from './viewing-key'
+
+// RPC Client (Issue #280)
+export {
+  SolanaRPCClient,
+  createRPCClient,
+  createClusterClient,
+  RPC_ENDPOINTS,
+  RPCErrorType,
+  type RPCClientConfig,
+  type ClassifiedRPCError,
+  type PriorityFeeEstimate,
+  type TransactionConfirmationResult,
+  type SendTransactionOptions,
+} from './rpc-client'
