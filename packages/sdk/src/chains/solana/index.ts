@@ -86,6 +86,21 @@ export {
   getStealthBalance,
 } from './scan'
 
+// Advanced Stealth Scanner (Issue #262)
+export {
+  StealthScanner,
+  createStealthScanner,
+  batchScanForRecipients,
+  fullHistoricalScan,
+  type ScanRecipient,
+  type StealthScannerOptions,
+  type HistoricalScanOptions,
+  type DetectedPayment,
+  type HistoricalScanResult,
+  type PaymentCallback,
+  type ErrorCallback,
+} from './stealth-scanner'
+
 // RPC Providers (Infrastructure Agnostic)
 export {
   createProvider,
