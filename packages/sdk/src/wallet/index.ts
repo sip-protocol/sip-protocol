@@ -259,6 +259,27 @@ export {
   type MyNearWalletCallbackResult,
   type MyNearWalletViewingKeyExport,
   type LedgerStatus as NEARLedgerStatus,
+  // Meteor Wallet integration
+  MeteorWalletPrivacy,
+  createMeteorWalletPrivacy,
+  createMainnetMeteorWallet,
+  createTestnetMeteorWallet,
+  isMeteorWalletAvailable,
+  MeteorWalletError,
+  MeteorErrorCode,
+  METEOR_DEEP_LINK_SCHEME,
+  METEOR_APP_LINK_MAINNET,
+  METEOR_APP_LINK_TESTNET,
+  METEOR_PROVIDER_KEY,
+  type MeteorWalletProvider,
+  type MeteorWalletConfig,
+  type MeteorConnectionState,
+  type MeteorSigningMode,
+  type MeteorPrivacyKeys,
+  type MeteorPrivateTransferParams,
+  type TransactionSimulation as NEARTransactionSimulation,
+  type MeteorTransactionResult,
+  type MeteorAccountInfo,
 } from './near'
 
 // Hardware wallet adapters

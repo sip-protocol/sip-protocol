@@ -60,3 +60,27 @@ export {
   type MyNearWalletViewingKeyExport,
   type LedgerStatus,
 } from './my-near-wallet'
+
+// Meteor Wallet integration
+export {
+  MeteorWalletPrivacy,
+  createMeteorWalletPrivacy,
+  createMainnetMeteorWallet,
+  createTestnetMeteorWallet,
+  isMeteorWalletAvailable,
+  MeteorWalletError,
+  MeteorErrorCode,
+  METEOR_DEEP_LINK_SCHEME,
+  METEOR_APP_LINK_MAINNET,
+  METEOR_APP_LINK_TESTNET,
+  METEOR_PROVIDER_KEY,
+  type MeteorWalletProvider,
+  type MeteorWalletConfig,
+  type MeteorConnectionState,
+  type MeteorSigningMode,
+  type MeteorPrivacyKeys,
+  type MeteorPrivateTransferParams,
+  type TransactionSimulation,
+  type MeteorTransactionResult,
+  type MeteorAccountInfo,
+} from './meteor-wallet'
