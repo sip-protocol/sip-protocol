@@ -25,4 +25,13 @@ export {
   type StealthAddressDisplayProps,
   type OwnershipStatus,
   type NetworkConfig,
+  TransactionTracker,
+  useTransactionTracker,
+  type TransactionTrackerProps,
+  type TransactionStatus,
+  type PrivacyVerificationStatus,
+  type TransactionActionType,
+  type TransactionAction,
+  type PrivacyVerification,
+  type PrivacyTransaction,
 } from './components'
