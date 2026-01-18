@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import '@testing-library/jest-dom/vitest'
 
 // Mock @ledgerhq/hw-transport-webusb to prevent import errors
 vi.mock('@ledgerhq/hw-transport-webusb', () => ({
