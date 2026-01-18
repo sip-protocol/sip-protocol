@@ -333,7 +333,7 @@ export async function sendSOLTransfer(
   const stealthAccountExists = accountInfo !== null
 
   // Calculate actual transfer amount
-  let transferAmount = amount
+  const transferAmount = amount
   let rentBufferIncluded = false
 
   if (!stealthAccountExists && includeRentBuffer) {
@@ -479,7 +479,7 @@ export async function sendMaxSOLTransfer(
     )
   }
 
-  let maxAmount = balanceLamports - reserved
+  const maxAmount = balanceLamports - reserved
 
   // Check rent requirement for new accounts
   const { stealthAddress } = generateEd25519StealthAddress(recipientMetaAddress)
