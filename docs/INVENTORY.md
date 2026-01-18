@@ -1,0 +1,235 @@
+# SIP Protocol Ecosystem Inventory
+
+> **Source of Truth** for all SIP Protocol repositories and components.
+> Update this file when code structure changes.
+
+---
+
+## Quick Verification
+
+```bash
+# Run from sip-protocol/ root
+ls packages/                              # NPM packages (7)
+ls programs/                              # Solana programs
+ls contracts/                             # Ethereum contracts
+ls examples/                              # Integration examples (11)
+pnpm turbo test -- --run 2>&1 | grep "Tests"  # Test counts
+gh issue list --search "EPIC" --state open    # Active milestones
+```
+
+---
+
+## 1. sip-protocol/sip-protocol (Core Monorepo)
+
+### NPM Packages
+
+| Package | Version | Description | Tests |
+|---------|---------|-------------|-------|
+| `@sip-protocol/sdk` | 0.7.3 | Core SDK for shielded intents | 3,988 |
+| `@sip-protocol/types` | 0.2.1 | TypeScript type definitions | - |
+| `@sip-protocol/react` | 0.1.0 | React hooks | 82 |
+| `@sip-protocol/cli` | 0.2.0 | CLI tool | 10 |
+| `@sip-protocol/api` | 0.1.0 | REST API wrapper | 18 |
+| `@sip-protocol/react-native` | 0.1.1 | iOS/Android SDK | 10 |
+| `circuits` | - | Noir ZK circuits | - |
+
+**Total tests: 4,108+**
+
+### Solana Programs
+
+| Location | Description | Language |
+|----------|-------------|----------|
+| `programs/sip-privacy/` | Privacy program | Rust (Anchor) |
+
+**Structure:**
+```
+programs/sip-privacy/programs/sip-privacy/src/
+├── lib.rs              # Main program entry
+├── commitment/         # Pedersen commitment logic
+└── zk_verifier/        # ZK proof verification
+```
+
+### Ethereum Contracts
+
+| Location | Description | Language |
+|----------|-------------|----------|
+| `contracts/sip-ethereum/` | Privacy contracts | Solidity 0.8.24 (Foundry) |
+
+**Contracts:**
+```
+contracts/sip-ethereum/src/
+├── SIPPrivacy.sol              # Main privacy contract
+├── StealthAddressRegistry.sol  # Stealth address management
+├── ZKVerifier.sol              # ZK proof verification
+├── PedersenVerifier.sol        # Commitment verification
+├── interfaces/                 # Contract interfaces
+└── utils/                      # Utility libraries
+```
+
+### Examples
+
+| Directory | Description |
+|-----------|-------------|
+| `noir-solana-demo` | Noir circuits + Solana integration |
+| `compliance` | Viewing key compliance demo |
+| `private-payment` | Private payment flow |
+| `private-swap` | Private swap implementation |
+| `wallet-integration` | Wallet adapter examples |
+| `zcash-connection` | Zcash RPC integration |
+| `near-integration` | NEAR Intents integration |
+| `range-sas` | Range proofs with stealth addresses |
+| `react-hooks` | React hooks usage |
+| `solana-integration` | Solana same-chain privacy |
+| `ethereum-integration` | Ethereum same-chain privacy |
+
+### Documentation
+
+| Location | Description |
+|----------|-------------|
+| `docs/specs/` | Protocol specifications (17 files) |
+| `docs/security/` | Security docs, audit prep (7 files) |
+| `docs/research/` | Feasibility studies (2 files) |
+| `docs/workshops/` | Developer materials (4 files) |
+| `docs/content/` | M16 content campaign (4 files) |
+| `docs/community/` | Discord, DevRel, LOI templates (4 files) |
+| `docs/bounties/` | Hackathon submissions (2 files) |
+| `docs/circuits/` | Constraint analysis (1 file) |
+| `docs/runbooks/` | Incident response (1 file) |
+
+---
+
+## 2. sip-protocol/sip-app
+
+**Version:** 0.1.0
+**Stack:** Next.js 14, React 18, Tailwind, Zustand
+**Deployment:** app.sip-protocol.org (port 5005)
+
+### App Routes
+
+| Route | Description |
+|-------|-------------|
+| `/(dex)/` | Private DEX with Jupiter integration |
+| `/(payments)/` | Private payments (hackathon focus) |
+| `/(wallet)/` | Wallet interface |
+| `/(enterprise)/` | Compliance dashboard |
+| `/(tools)/` | Developer tools |
+| `/api/` | API routes |
+
+---
+
+## 3. sip-protocol/sip-website
+
+**Version:** 0.0.1
+**Stack:** Next.js 14, React 18, Tailwind
+**Deployment:** sip-protocol.org (port 5000)
+
+### Pages
+
+| Route | Description |
+|-------|-------------|
+| `/about` | About page |
+| `/features` | Feature showcase |
+| `/sdk` | SDK documentation |
+| `/roadmap` | Public roadmap |
+| `/pitch-deck` | Investor pitch |
+
+**Note:** Demo pages deprecated, migrated to sip-app.
+
+---
+
+## 4. sip-protocol/docs-sip
+
+**Version:** 0.0.0
+**Stack:** Astro Starlight, MDX
+**Deployment:** docs.sip-protocol.org (port 5003)
+
+### Documentation Sections
+
+| Section | Description |
+|---------|-------------|
+| `concepts/` | Core concepts |
+| `guides/` | How-to guides |
+| `specs/` | Technical specs |
+| `integrations/` | Integration guides |
+| `reference/` | API reference |
+| `security/` | Security documentation |
+| `cookbook/` | Code recipes |
+
+---
+
+## 5. sip-protocol/blog-sip
+
+**Version:** 0.0.1
+**Stack:** Astro 4, MDX, Tailwind
+**Deployment:** blog.sip-protocol.org (port 5004)
+
+**Posts:** 26 articles
+
+### Topics
+
+- Privacy architecture (Pedersen, stealth addresses)
+- Competitor analysis (PrivacyCash, pool mixing)
+- Integration tutorials (Arcium, Inco)
+- Regulatory landscape
+- SDK getting started
+
+---
+
+## 6. sip-protocol/circuits
+
+**Stack:** Noir, Barretenberg, Nargo CLI
+
+### Circuits
+
+| Circuit | Description |
+|---------|-------------|
+| Funding Proof | Prove balance >= minimum |
+| Validity Proof | Prove intent authorization |
+| Fulfillment Proof | Prove fulfillment correctness |
+
+---
+
+## 7. sip-protocol/.github
+
+### Contents
+
+| File | Description |
+|------|-------------|
+| `profile/README.md` | Organization profile page |
+| `ISSUE_TEMPLATE/` | Default issue templates |
+| `workflows/` | Shared GitHub Actions |
+
+---
+
+## VPS Deployment
+
+| Service | Port | Container | Domain |
+|---------|------|-----------|--------|
+| sip-website | 5000 | sip-website | sip-protocol.org |
+| sip-docs | 5003 | sip-docs | docs.sip-protocol.org |
+| sip-blog | 5004 | sip-blog | blog.sip-protocol.org |
+| sip-app | 5005 | sip-app | app.sip-protocol.org |
+
+---
+
+## Milestone Status
+
+| Phase | Milestones | Status |
+|-------|------------|--------|
+| Phase 1-3 | M1-M15 | ✅ Complete |
+| Phase 4 | M16 Narrative | ✅ Complete |
+| Phase 4 | M17 Solana Same-Chain | 🎯 Active (30 issues) |
+| Phase 4 | M18 Ethereum Same-Chain | 🔲 Planned |
+| Phase 5 | M19-M22 | 🔲 Planned |
+
+---
+
+## Update Log
+
+| Date | Change |
+|------|--------|
+| 2026-01-18 | Initial inventory, M16 complete |
+
+---
+
+*Last updated: January 18, 2026*
