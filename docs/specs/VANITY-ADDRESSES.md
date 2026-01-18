@@ -1,8 +1,9 @@
 # Vanity Address Specification
 
 > **Purpose:** Define vanity address strategy for SIP Protocol branding across chains
-> **Status:** Draft
+> **Status:** Complete
 > **Created:** 2026-01-18
+> **Updated:** 2026-01-18
 
 ---
 
@@ -97,15 +98,6 @@ Since "SIP" cannot be represented in hex, we use **"5AFE"** which reads as **"SA
 
 ---
 
-## Named Accounts (No Grinding Required)
-
-| Platform | Target Name | Status |
-|----------|-------------|--------|
-| NEAR | `sip.near` or `sip-protocol.near` | 🔲 To register |
-| ENS | `sip.eth` or `sipprotocol.eth` | 🔲 To register |
-| SNS (Solana) | `sip.sol` | 🔲 To register |
-| Unstoppable | `sip.crypto` | 🔲 To check availability |
-
 ---
 
 ## Difficulty Estimates
@@ -175,28 +167,30 @@ For longer prefixes, use GPU:
 
 ---
 
-## Implementation Checklist
+## Implementation Status
 
-### Phase 1: Solana (M17)
+### Phase 1: Solana ✅ Complete
 
-- [ ] Generate `SIP...` keypair for Anchor Program ID
-- [ ] Generate `SIP...` keypair for Treasury Wallet
-- [ ] Store keypairs securely (not in repo)
-- [ ] Document program ID in CLAUDE.md after deployment
-- [ ] Register `sip.sol` SNS domain
+- [x] Generate `S1P...` keypair for Anchor Program ID
+- [x] Generate `S1P...` keypair for Treasury Wallet
+- [x] Generate `S1P...` keypair for Authority (Deploy/Upgrade)
+- [x] Store keypairs securely (encrypted with age)
+- [x] Backup to password manager
 
-### Phase 2: Ethereum (M18)
+### Phase 2: Ethereum ✅ Complete
 
-- [ ] Calculate CREATE2 salt for `0x5AFE...` deployment
-- [ ] Verify same salt works across L2s (Base, Arbitrum, Optimism)
-- [ ] Document contract addresses in CLAUDE.md
-- [ ] Register `sip.eth` ENS domain
+- [x] Generate EVM deployer with `0x5AFE...` prefix
+- [x] Works across all EVM chains (ETH, Base, Arb, OP)
+- [x] Store keypair securely (encrypted with age)
 
-### Phase 3: Cross-Chain
+### Decision: Named Domains Not Needed
 
-- [ ] Register `sip.near` NEAR account
-- [ ] Generate token mint vanity address (if applicable)
-- [ ] Update all documentation with final addresses
+Vanity addresses provide sufficient branding. Named domains (SNS, ENS, NEAR) add:
+- Recurring costs (annual renewal)
+- No technical benefit over vanity addresses
+- Extra attack surface (domain hijacking)
+
+Vanity addresses are permanent and self-custodied.
 
 ---
 
@@ -220,4 +214,4 @@ For longer prefixes, use GPU:
 
 ---
 
-*Last Updated: 2026-01-18*
+*Last Updated: 2026-01-18* — All keypairs generated and backed up.
