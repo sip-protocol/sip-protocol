@@ -18,6 +18,37 @@ export {
   type PrivacyContext,
 } from './privacy-adapter'
 
+// MetaMask Privacy Utilities
+export {
+  // Factory
+  createMetaMaskPrivacyAdapter,
+  isMetaMaskAdapter,
+  // Detection
+  isMetaMaskInstalled,
+  isMetaMaskFlaskInstalled,
+  getMetaMaskVersion,
+  // Message building
+  buildKeyDerivationMessage,
+  buildKeyDerivationTypedData,
+  buildViewKeyShareTypedData,
+  createSigningContext,
+  // Signature parsing
+  parseSignature,
+  toCompactSignature,
+  // Constants
+  DEFAULT_SIP_DOMAIN,
+  PRIVACY_OPERATION_DESCRIPTIONS,
+  KEY_DERIVATION_TYPES,
+  STEALTH_TRANSFER_TYPES,
+  VIEW_KEY_SHARE_TYPES,
+  // Types
+  type MetaMaskSigningMethod,
+  type PrivacyOperationType,
+  type PrivacySigningContext,
+  type MetaMaskSigningRequest,
+  type SIPDomainConfig,
+} from './metamask-privacy'
+
 // Mock adapter for testing
 export {
   MockEthereumAdapter,
