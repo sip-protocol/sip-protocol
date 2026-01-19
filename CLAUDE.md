@@ -84,7 +84,7 @@ Quick reference for navigating between SIP Protocol repositories.
 **Key Commands:**
 ```bash
 pnpm install                    # Install dependencies
-pnpm test -- --run              # Run all tests (4,108+ tests)
+pnpm test -- --run              # Run all tests (5,584+ tests)
 pnpm typecheck                  # Type check
 pnpm build                      # Build all packages
 ```
@@ -265,7 +265,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **SIP (Shielded Intents Protocol)** is the privacy standard for Web3 — like HTTPS for the internet. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Status:** M16 Complete | 4,108+ tests (SDK: 3,988, React: 82, CLI: 10, API: 18, RN: 10) | Live at sip-protocol.org
+**Status:** M16 Complete | 5,584+ tests (SDK: 5,076, React: 291, CLI: 45, API: 162, RN: 10) | Live at sip-protocol.org
 
 **🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($4,500: NEAR $4,000 + Tachyon $500) | Dec 2025 | #14 of 88 | [Devfolio](https://devfolio.co/projects/sip-protocol-2026)
 
@@ -373,7 +373,7 @@ const payments = await scanForPayments({
 # Install dependencies
 pnpm install
 
-# Run all tests (4,108+ tests)
+# Run all tests (5,584+ tests)
 pnpm test -- --run
 
 # Run E2E tests only (128 tests)
@@ -391,16 +391,16 @@ pnpm build
 
 ---
 
-## Test Suite (4,108+ total tests)
+## Test Suite (5,584+ total tests)
 
 ### Package Test Counts
 
 | Package | Tests | Location |
 |---------|-------|----------|
-| @sip-protocol/sdk | 3,988 | `packages/sdk/tests/` |
-| @sip-protocol/react | 82 | `packages/react/tests/` |
-| @sip-protocol/cli | 10 | `packages/cli/tests/` |
-| @sip-protocol/api | 18 | `packages/api/tests/` |
+| @sip-protocol/sdk | 5,076 | `packages/sdk/tests/` |
+| @sip-protocol/react | 291 | `packages/react/tests/` |
+| @sip-protocol/cli | 45 | `packages/cli/tests/` |
+| @sip-protocol/api | 162 | `packages/api/tests/` |
 | @sip-protocol/react-native | 10 | `packages/react-native/tests/` |
 
 ### SDK Test Breakdown
@@ -414,15 +414,21 @@ pnpm build
 | Integration tests | ~100 | `packages/sdk/tests/integration/` |
 | E2E tests | 128 | `packages/sdk/tests/e2e/` |
 | Multi-curve/chain tests | ~200 | `packages/sdk/tests/multi-*.test.ts` |
+| NEAR privacy tests | ~600 | `packages/sdk/tests/chains/near/` |
+| NEAR wallet tests | ~400 | `packages/sdk/tests/wallet/near-*.test.ts` |
 
 ### React Package Tests
 
 | Suite | Count | Location |
 |-------|-------|----------|
-| useSIP hook | 12 | `packages/react/tests/hooks/use-sip.test.tsx` |
-| useStealthAddress hook | 15 | `packages/react/tests/hooks/use-stealth-address.test.tsx` |
-| usePrivateSwap hook | 18 | `packages/react/tests/hooks/use-private-swap.test.tsx` |
-| useViewingKey hook | 12 | `packages/react/tests/hooks/use-viewing-key.test.tsx` |
+| useSIP hook | 17 | `packages/react/tests/hooks/use-sip.test.tsx` |
+| useStealthAddress hook | 12 | `packages/react/tests/use-stealth-address.test.tsx` |
+| usePrivateSwap hook | 16 | `packages/react/tests/hooks/use-private-swap.test.tsx` |
+| useViewingKey hook | 14 | `packages/react/tests/hooks/use-viewing-key.test.tsx` |
+| PrivacyToggle component | 41 | `packages/react/tests/components/privacy-toggle.test.tsx` |
+| StealthAddressDisplay | 46 | `packages/react/tests/components/stealth-address-display.test.tsx` |
+| TransactionTracker | 53 | `packages/react/tests/components/transaction-tracker.test.tsx` |
+| ViewingKeyManager | 51 | `packages/react/tests/components/viewing-key-manager.test.tsx` |
 
 ---
 
@@ -664,5 +670,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2025-12-31
-**Status:** M16 Complete | Phase 4 Active (M17-M18) | 4,108+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($4,500, #14/88)
+**Last Updated:** 2026-01-19
+**Status:** M16 Complete | Phase 4 Active (M17-M18) | 5,584+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($4,500, #14/88)
