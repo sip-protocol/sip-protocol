@@ -35,7 +35,7 @@
     "@sip-protocol/types": "workspace:*",
     "chalk": "^4.1.2",
     "commander": "^14.0.2",
-    "conf": "^10.2.0",
+    "conf": "^15.0.2",
     "ora": "^9.0.0",
     "prompts": "^2.4.2"
   },
