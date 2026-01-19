@@ -1,15 +1,11 @@
-// Provider
-export { SIPProvider, type SIPProviderProps } from './providers/sip-provider'
+/**
+ * SIP Protocol React Components
+ *
+ * UI components for privacy-enabled transactions.
+ *
+ * @packageDocumentation
+ */
 
-// Hooks
-export {
-  useSIP,
-  useStealthAddress,
-  usePrivateSwap,
-  useViewingKey,
-} from './hooks'
-
-// Components
 export {
   PrivacyToggle,
   usePrivacyToggle,
@@ -17,6 +13,9 @@ export {
   type PrivacyToggleProps,
   type GasEstimate,
   type PrivacyLevelInfo,
+} from './privacy-toggle'
+
+export {
   StealthAddressDisplay,
   useStealthAddressDisplay,
   isValidStealthAddress,
@@ -25,6 +24,9 @@ export {
   type StealthAddressDisplayProps,
   type OwnershipStatus,
   type NetworkConfig,
+} from './stealth-address-display'
+
+export {
   TransactionTracker,
   useTransactionTracker,
   type TransactionTrackerProps,
@@ -34,6 +36,9 @@ export {
   type TransactionAction,
   type PrivacyVerification,
   type PrivacyTransaction,
+} from './transaction-tracker'
+
+export {
   ViewingKeyManager,
   useViewingKeyManager,
   type ViewingKeyManagerProps,
@@ -42,4 +47,4 @@ export {
   type ViewingKeyUsage,
   type KeyExportFormat,
   type KeyImportSource,
-} from './components'
+} from './viewing-key-manager'
