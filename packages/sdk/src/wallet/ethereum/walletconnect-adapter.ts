@@ -459,6 +459,7 @@ export class WalletConnectPrivacyAdapter extends PrivacyEthereumWalletAdapter {
     // Dynamic import of WalletConnect
     // This allows the package to be optional
     try {
+      // @ts-expect-error - Optional peer dependency, users must install separately
       const { SignClient } = await import('@walletconnect/sign-client')
 
       this.signClient = await SignClient.init({

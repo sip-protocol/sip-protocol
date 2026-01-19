@@ -183,8 +183,8 @@ export class PrivacyEthereumWalletAdapter extends EthereumWalletAdapter {
         const parsed = parseEthereumStealthMetaAddress(config.metaAddress)
         metaAddress = {
           chain: 'ethereum',
-          spendingKey: parsed.spendingPublicKey,
-          viewingKey: parsed.viewingPublicKey,
+          spendingKey: parsed.spendingKey,
+          viewingKey: parsed.viewingKey,
         }
       } else if ('spendingKey' in config.metaAddress) {
         // Already StealthMetaAddress format

@@ -74,6 +74,16 @@ export {
 // Ledger adapter
 export { LedgerWalletAdapter, createLedgerAdapter } from './ledger'
 
+// Ledger privacy adapter (Ethereum stealth addresses)
+export {
+  LedgerPrivacyAdapter,
+  createLedgerPrivacyAdapter,
+  type LedgerPrivacyConfig,
+  type LedgerStealthKeyMaterial,
+  type LedgerScannedPayment,
+  type LedgerClaimResult,
+} from './ledger-privacy'
+
 // Trezor adapter
 export { TrezorWalletAdapter, createTrezorAdapter } from './trezor'
 
