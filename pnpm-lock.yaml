@@ -13,6 +13,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       '@changesets/changelog-github':
         specifier: ^0.5.2
@@ -355,8 +359,8 @@ importers:
         specifier: ^10.2.0
         version: 10.2.0
       zod:
-        specifier: ^3.24.1
-        version: 3.25.76
+        specifier: ^4.3.5
+        version: 4.3.5
     optionalDependencies:
       https-proxy-agent:
         specifier: ^7.0.0
