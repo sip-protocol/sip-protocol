@@ -202,3 +202,15 @@ export {
   isRegistered,
   extractSchemeId,
 } from './registry'
+
+// ─── RPC Client ──────────────────────────────────────────────────────────────
+export {
+  EthereumRpcClient,
+  type TransactionStatus,
+  type SubmittedTransaction,
+  type TransactionReceipt,
+  type RpcRequestOptions,
+  createRpcClient,
+  createMainnetRpcClient,
+  createSepoliaRpcClient,
+} from './rpc'
