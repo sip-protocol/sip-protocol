@@ -175,8 +175,8 @@ importers:
         specifier: workspace:*
         version: link:../types
       chalk:
-        specifier: ^4.1.2
-        version: 4.1.2
+        specifier: ^5.6.2
+        version: 5.6.2
       commander:
         specifier: ^14.0.2
         version: 14.0.2
