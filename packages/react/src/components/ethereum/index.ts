@@ -39,3 +39,17 @@ export {
   type TransactionHistoryFilter,
   type TransactionHistorySort,
 } from './transaction-history'
+
+export {
+  EthereumStealthAddressDisplay,
+  useEthereumStealthAddressDisplay,
+  ETHEREUM_STEALTH_NETWORKS,
+  isValidEthereumAddress,
+  isValidEthereumStealthAddress,
+  isValidEphemeralPublicKey,
+  truncateEthereumAddress,
+  type EthereumStealthAddressDisplayProps,
+  type EthereumOwnershipStatus,
+  type EthereumStealthNetworkId,
+  type EthereumStealthNetworkConfig,
+} from './stealth-address-display'
