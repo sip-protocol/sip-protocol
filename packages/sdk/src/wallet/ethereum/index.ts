@@ -18,6 +18,22 @@ export {
   type PrivacyContext,
 } from './privacy-adapter'
 
+// Multi-Wallet Privacy Adapter (Rabby, Rainbow, etc.)
+export {
+  MultiWalletPrivacyAdapter,
+  createMultiWalletAdapter,
+  createRabbyPrivacyAdapter,
+  createRainbowPrivacyAdapter,
+  detectWallets,
+  isWalletInstalled,
+  getWalletProvider,
+  type WalletType,
+  type DetectedWallet,
+  type MultiWalletConfig,
+  type WalletConnectionOptions,
+  type EIP1193Provider as MultiWalletEIP1193Provider,
+} from './multi-wallet'
+
 // WalletConnect Privacy Adapter
 export {
   WalletConnectPrivacyAdapter,
