@@ -7,6 +7,17 @@
  */
 
 export {
+  EthereumPrivacyToggle,
+  useEthereumPrivacyToggle,
+  type EthereumPrivacyToggleProps,
+  type EthereumPrivacyLevel,
+  type EthereumNetworkId,
+  type EthereumGasEstimate,
+  type NetworkGasConfig,
+  type EthereumPrivacyLevelInfo,
+} from './privacy-toggle'
+
+export {
   EthereumTransactionTracker,
   useEthereumTransactionTracker,
   ETHEREUM_NETWORKS,
