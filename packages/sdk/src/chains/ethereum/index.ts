@@ -214,3 +214,15 @@ export {
   createMainnetRpcClient,
   createSepoliaRpcClient,
 } from './rpc'
+
+// ─── Transfer Builder ────────────────────────────────────────────────────────
+export {
+  StealthTransferBuilder,
+  type PreparedTransaction,
+  type PreparedStealthTransfer,
+  type TransferResult,
+  type PreparedClaim,
+  createStealthTransferBuilder,
+  createMainnetTransferBuilder,
+  createSepoliaTransferBuilder,
+} from './transfer'
