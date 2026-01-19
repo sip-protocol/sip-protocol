@@ -51,9 +51,21 @@ export {
 
 // Ethereum-specific components
 export {
+  EthereumPrivacyToggle,
+  useEthereumPrivacyToggle,
+  type EthereumPrivacyToggleProps,
+  type EthereumPrivacyLevel,
+  type EthereumNetworkId,
+  type EthereumGasEstimate,
+  type EthereumPrivacyLevelInfo,
+  type NetworkGasConfig,
+} from './ethereum/privacy-toggle'
+
+export {
   EthereumTransactionTracker,
   useEthereumTransactionTracker,
   ETHEREUM_NETWORKS,
+  getNetworkByChainId,
   type EthereumTransactionTrackerProps,
   type EthereumNetwork,
 } from './ethereum/transaction-tracker'
@@ -62,7 +74,22 @@ export {
   EthereumViewingKeyManager,
   useEthereumViewingKey,
   type EthereumViewingKeyManagerProps,
+  type EthereumViewingKey,
 } from './ethereum/viewing-key-manager'
+
+export {
+  EthereumStealthAddressDisplay,
+  useEthereumStealthAddressDisplay,
+  ETHEREUM_STEALTH_NETWORKS,
+  isValidEthereumAddress,
+  isValidEthereumStealthAddress,
+  isValidEphemeralPublicKey,
+  truncateEthereumAddress,
+  type EthereumStealthAddressDisplayProps,
+  type EthereumOwnershipStatus,
+  type EthereumStealthNetworkId,
+  type EthereumStealthNetworkConfig,
+} from './ethereum/stealth-address-display'
 
 export {
   TransactionHistory,
