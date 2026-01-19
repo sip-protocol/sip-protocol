@@ -241,3 +241,28 @@ export {
   createMainnetTokenHelper,
   createSepoliaTokenHelper,
 } from './token'
+
+// ─── L2 Deployment ───────────────────────────────────────────────────────────
+export {
+  type L2NetworkConfig,
+  type DeploymentResult,
+  type VerificationRequest,
+  type VerificationResult,
+  type DeploymentConfig,
+  type MultiL2DeploymentStatus,
+  type L2GasComparison,
+  L2_NETWORK_CONFIGS,
+  getL2Config,
+  getSupportedL2s,
+  getL2ConfigByChainId,
+  isSupportedL2,
+  generateDeploymentTx,
+  estimateDeploymentGas,
+  getVerificationUrl,
+  getContractUrl,
+  buildVerificationBody,
+  checkVerificationStatus,
+  createDeploymentPlan,
+  getDeploymentOrder,
+  compareL2GasPrices,
+} from './deployment'
