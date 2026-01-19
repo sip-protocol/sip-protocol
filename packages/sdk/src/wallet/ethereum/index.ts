@@ -18,6 +18,16 @@ export {
   type PrivacyContext,
 } from './privacy-adapter'
 
+// WalletConnect Privacy Adapter
+export {
+  WalletConnectPrivacyAdapter,
+  createWalletConnectPrivacyAdapter,
+  type WalletConnectAdapterConfig,
+  type WalletConnectSession,
+  type WalletConnectResult,
+  type PairingUri,
+} from './walletconnect-adapter'
+
 // MetaMask Privacy Utilities
 export {
   // Factory
