@@ -48,3 +48,27 @@ export {
   type KeyExportFormat,
   type KeyImportSource,
 } from './viewing-key-manager'
+
+// Ethereum-specific components
+export {
+  EthereumTransactionTracker,
+  useEthereumTransactionTracker,
+  ETHEREUM_NETWORKS,
+  type EthereumTransactionTrackerProps,
+  type EthereumNetwork,
+} from './ethereum/transaction-tracker'
+
+export {
+  EthereumViewingKeyManager,
+  useEthereumViewingKey,
+  type EthereumViewingKeyManagerProps,
+} from './ethereum/viewing-key-manager'
+
+export {
+  TransactionHistory,
+  useTransactionHistory,
+  type TransactionHistoryProps,
+  type PrivacyTransactionHistoryItem,
+  type TransactionHistoryFilter,
+  type TransactionHistorySort,
+} from './ethereum/transaction-history'
