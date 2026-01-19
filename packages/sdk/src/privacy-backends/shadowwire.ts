@@ -72,6 +72,10 @@ export const SHADOWWIRE_TOKEN_MINTS: Record<TokenSymbol, string> = {
   BLACKCOIN: 'BLACKexampleaddress111111111111111111111', // Placeholder
   GIL: 'GILexampleaddress11111111111111111111111111', // Placeholder
   ANON: 'ANONexampleaddress1111111111111111111111111', // Placeholder
+  WLFI: 'WLFIexampleaddress1111111111111111111111111', // Placeholder - World Liberty Financial
+  USD1: 'USD1exampleaddress1111111111111111111111111', // Placeholder - USD1 stablecoin
+  AOL: 'AOLexampleaddress11111111111111111111111111', // Placeholder
+  IQLABS: 'IQLABSexampleaddress111111111111111111111', // Placeholder - IQ Labs token
 }
 
 /**
