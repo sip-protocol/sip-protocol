@@ -226,3 +226,18 @@ export {
   createMainnetTransferBuilder,
   createSepoliaTransferBuilder,
 } from './transfer'
+
+// ─── Token Helper ────────────────────────────────────────────────────────────
+export {
+  TokenHelper,
+  type TokenMetadata,
+  type TokenAllowance,
+  type PermitData,
+  type PermitTypedData,
+  type PreparedApproval,
+  type TransferCheck,
+  MAX_UINT256,
+  createTokenHelper,
+  createMainnetTokenHelper,
+  createSepoliaTokenHelper,
+} from './token'
