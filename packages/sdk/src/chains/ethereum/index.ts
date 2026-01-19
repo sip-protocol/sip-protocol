@@ -187,3 +187,18 @@ export {
   formatGasCost,
   getGasPriceSuggestion,
 } from './gas-estimation'
+
+// ─── Registry ────────────────────────────────────────────────────────────────
+export {
+  RegistryClient,
+  type StealthRegistryEntry,
+  type RegistryLookupOptions,
+  type RegistryRegisterOptions,
+  type RegistryQueryResult,
+  type RegistryTransaction,
+  createRegistryClient,
+  createMainnetRegistryClient,
+  createSepoliaRegistryClient,
+  isRegistered,
+  extractSchemeId,
+} from './registry'
