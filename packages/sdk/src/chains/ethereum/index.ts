@@ -153,3 +153,18 @@ export {
   getAnnouncementEventTopic,
   buildAnnouncementTopics,
 } from './announcement'
+
+// ─── Privacy Adapter ──────────────────────────────────────────────────────────
+export {
+  EthereumPrivacyAdapter,
+  type EthereumPrivacyAdapterConfig,
+  type EthereumShieldedTransferParams,
+  type EthereumShieldedTokenTransferParams,
+  type EthereumBuiltTransaction,
+  createEthereumPrivacyAdapter,
+  createMainnetEthereumPrivacyAdapter,
+  createSepoliaEthereumPrivacyAdapter,
+  createArbitrumPrivacyAdapter,
+  createOptimismPrivacyAdapter,
+  createBasePrivacyAdapter,
+} from './privacy-adapter'
