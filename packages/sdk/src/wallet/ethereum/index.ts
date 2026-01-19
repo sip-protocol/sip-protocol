@@ -7,6 +7,17 @@
 // Adapter
 export { EthereumWalletAdapter, createEthereumAdapter } from './adapter'
 
+// Privacy Adapter
+export {
+  PrivacyEthereumWalletAdapter,
+  createPrivacyEthereumAdapter,
+  type PrivacyEthereumAdapterConfig,
+  type EthereumStealthKeyMaterial,
+  type EthereumScannedPayment,
+  type EthereumClaimResult,
+  type PrivacyContext,
+} from './privacy-adapter'
+
 // Mock adapter for testing
 export {
   MockEthereumAdapter,
