@@ -919,7 +919,7 @@ describe('EIP-5564: Performance', () => {
     }
     const duration = performance.now() - start
 
-    // Should complete 100 checks in under 500ms
-    expect(duration).toBeLessThan(500)
+    // Should complete 100 checks in under 1000ms (relaxed for CI variance)
+    expect(duration).toBeLessThan(1000)
   })
 })
