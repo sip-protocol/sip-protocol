@@ -223,7 +223,7 @@ importers:
     devDependencies:
       '@testing-library/react':
         specifier: ^16.3.1
-        version: 16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@18.3.7)(@types/react@19.2.8)(react-dom@18.3.1)(react@18.3.1)
+        version: 16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3)(@types/react@19.2.8)(react-dom@18.3.1)(react@18.3.1)
       '@testing-library/react-hooks':
         specifier: ^8.0.1
         version: 8.0.1(@types/react@19.2.8)(react-dom@18.3.1)(react@18.3.1)
@@ -231,8 +231,8 @@ importers:
         specifier: ^19.2.8
         version: 19.2.8
       '@types/react-dom':
-        specifier: ^18.2.0
-        version: 18.3.7(@types/react@19.2.8)
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.8)
       jsdom:
         specifier: ^27.4.0
         version: 27.4.0
@@ -2968,7 +2968,7 @@ packages:
       redent: 3.0.0
     dev: true
 
-  /@testing-library/react@16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@18.3.7)(@types/react@19.2.8)(react-dom@18.3.1)(react@18.3.1):
+  /@testing-library/react@16.3.1(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3)(@types/react@19.2.8)(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-gr4KtAWqIOQoucWYD/f6ki+j5chXfcPc74Col/6poTyqTmn7zRmodWahWRCp8tYd+GMqBonw6hstNzqjbs6gjw==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -2986,7 +2986,7 @@ packages:
       '@babel/runtime': 7.28.4
       '@testing-library/dom': 10.4.1
       '@types/react': 19.2.8
-      '@types/react-dom': 18.3.7(@types/react@19.2.8)
+      '@types/react-dom': 19.2.3(@types/react@19.2.8)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
     dev: true
@@ -3215,10 +3215,10 @@ packages:
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
     dev: true
 
-  /@types/react-dom@18.3.7(@types/react@19.2.8):
-    resolution: {integrity: sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ==}
+  /@types/react-dom@19.2.3(@types/react@19.2.8):
+    resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
     peerDependencies:
-      '@types/react': ^18.0.0
+      '@types/react': ^19.2.0
     dependencies:
       '@types/react': 19.2.8
     dev: true
