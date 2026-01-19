@@ -33,6 +33,11 @@ export type EthereumNetwork =
   | 'base-sepolia'
   | 'polygon'
   | 'polygon-mumbai'
+  | 'zksync'
+  | 'scroll'
+  | 'linea'
+  | 'mantle'
+  | 'blast'
   | 'localhost'
 
 /**
@@ -50,6 +55,11 @@ export const EVM_CHAIN_IDS: Record<EthereumNetwork, number> = {
   'base-sepolia': 84532,
   polygon: 137,
   'polygon-mumbai': 80001,
+  zksync: 324,
+  scroll: 534352,
+  linea: 59144,
+  mantle: 5000,
+  blast: 81457,
   localhost: 31337,
 } as const
 
@@ -69,6 +79,11 @@ export const ETHEREUM_RPC_ENDPOINTS: Record<EthereumNetwork, string> = {
   'base-sepolia': getEnvVar('BASE_SEPOLIA_RPC', 'https://sepolia.base.org'),
   polygon: getEnvVar('POLYGON_MAINNET_RPC', 'https://polygon-rpc.com'),
   'polygon-mumbai': getEnvVar('POLYGON_MUMBAI_RPC', 'https://rpc-mumbai.maticvigil.com'),
+  zksync: getEnvVar('ZKSYNC_MAINNET_RPC', 'https://mainnet.era.zksync.io'),
+  scroll: getEnvVar('SCROLL_MAINNET_RPC', 'https://rpc.scroll.io'),
+  linea: getEnvVar('LINEA_MAINNET_RPC', 'https://rpc.linea.build'),
+  mantle: getEnvVar('MANTLE_MAINNET_RPC', 'https://rpc.mantle.xyz'),
+  blast: getEnvVar('BLAST_MAINNET_RPC', 'https://rpc.blast.io'),
   localhost: getEnvVar('ETH_LOCALHOST_RPC', 'http://localhost:8545'),
 } as const
 
@@ -87,6 +102,11 @@ export const ETHEREUM_EXPLORER_URLS: Record<EthereumNetwork, string> = {
   'base-sepolia': 'https://sepolia.basescan.org',
   polygon: 'https://polygonscan.com',
   'polygon-mumbai': 'https://mumbai.polygonscan.com',
+  zksync: 'https://explorer.zksync.io',
+  scroll: 'https://scrollscan.com',
+  linea: 'https://lineascan.build',
+  mantle: 'https://explorer.mantle.xyz',
+  blast: 'https://blastscan.io',
   localhost: 'http://localhost:8545',
 } as const
 
@@ -187,6 +207,12 @@ export const DEFAULT_GAS_LIMITS = {
   announcement: 80000n,
   /** Claim from stealth address */
   claim: 100000n,
+  /** Registry: register stealth meta-address */
+  registryRegister: 150000n,
+  /** Registry: update stealth meta-address */
+  registryUpdate: 100000n,
+  /** Registry: query meta-address (view call) */
+  registryQuery: 0n,
 } as const
 
 /**

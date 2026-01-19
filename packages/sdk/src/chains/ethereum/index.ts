@@ -168,3 +168,22 @@ export {
   createOptimismPrivacyAdapter,
   createBasePrivacyAdapter,
 } from './privacy-adapter'
+
+// ─── Gas Estimation ──────────────────────────────────────────────────────────
+export {
+  type EIP1559GasPrice,
+  type GasEstimateBreakdown,
+  type DetailedGasEstimate,
+  type GasEstimationOptions,
+  estimateEthTransferGas,
+  estimateTokenTransferGas,
+  estimateClaimGas,
+  estimateRegistryGas,
+  clearGasPriceCache,
+  updateGasPriceCache,
+  parseGasPriceResponse,
+  parseFeeHistoryResponse,
+  calculateEffectiveGasPrice,
+  formatGasCost,
+  getGasPriceSuggestion,
+} from './gas-estimation'
