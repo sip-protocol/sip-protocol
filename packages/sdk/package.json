@@ -74,7 +74,7 @@
     "@triton-one/yellowstone-grpc": "^4.0.2",
     "langchain": "^0.3.0",
     "pino": "^10.2.0",
-    "zod": "^3.24.1"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@grpc/grpc-js": "^1.14.3",
