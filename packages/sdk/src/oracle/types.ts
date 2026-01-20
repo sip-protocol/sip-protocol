@@ -262,4 +262,5 @@ export const CHAIN_NUMERIC_IDS: Record<ChainId, number> = {
   celestia: 509, // Non-standard, SIP-specific
   sei: 510, // Non-standard, SIP-specific
   dydx: 511, // Non-standard, SIP-specific
+  bsc: 56, // BNB Smart Chain
 }
