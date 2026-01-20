@@ -344,22 +344,13 @@ contract StealthAddressRegistry {
 
     /**
      * @notice Validate compressed secp256k1 public key format
-     * @param pubKey The public key bytes
+     * @param pubKey The public key bytes (works with both calldata and memory)
      * @return True if valid format
-     */
-    function _isValidCompressedPubKey(bytes calldata pubKey) internal pure returns (bool) {
-        if (pubKey.length != COMPRESSED_PUBKEY_LENGTH) return false;
-
-        // First byte must be 0x02 (even y) or 0x03 (odd y)
-        uint8 prefix = uint8(pubKey[0]);
-        return prefix == 0x02 || prefix == 0x03;
-    }
-
-    /**
-     * @notice Memory version of pubkey validation
      */
     function _isValidCompressedPubKey(bytes memory pubKey) internal pure returns (bool) {
         if (pubKey.length != COMPRESSED_PUBKEY_LENGTH) return false;
+
+        // First byte must be 0x02 (even y) or 0x03 (odd y)
         uint8 prefix = uint8(pubKey[0]);
         return prefix == 0x02 || prefix == 0x03;
     }

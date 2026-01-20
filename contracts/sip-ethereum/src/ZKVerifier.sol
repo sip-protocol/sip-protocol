@@ -186,7 +186,7 @@ contract ZKVerifier is IZKVerifier {
     function verifyProof(
         bytes32 commitment,
         bytes calldata proof
-    ) external view override returns (bool) {
+    ) external override returns (bool) {
         if (!verificationEnabled) revert VerificationDisabled();
         if (proof.length < MIN_PROOF_SIZE || proof.length > MAX_PROOF_SIZE) {
             revert InvalidProofSize();
@@ -213,7 +213,7 @@ contract ZKVerifier is IZKVerifier {
         uint256 minimumRequired,
         bytes32 assetId,
         bytes calldata proof
-    ) external view override returns (bool) {
+    ) external override returns (bool) {
         if (!verificationEnabled) revert VerificationDisabled();
         if (proof.length < MIN_PROOF_SIZE || proof.length > MAX_PROOF_SIZE) {
             revert InvalidProofSize();
@@ -246,7 +246,7 @@ contract ZKVerifier is IZKVerifier {
         bytes32 senderCommitment,
         bytes32 nullifier,
         bytes calldata proof
-    ) external view override returns (bool) {
+    ) external override returns (bool) {
         if (!verificationEnabled) revert VerificationDisabled();
         if (proof.length < MIN_PROOF_SIZE || proof.length > MAX_PROOF_SIZE) {
             revert InvalidProofSize();
@@ -366,7 +366,7 @@ contract ZKVerifier is IZKVerifier {
         uint8 proofType,
         bytes32 publicInputHash,
         bytes calldata proofData
-    ) internal view returns (bool) {
+    ) internal returns (bool) {
         VerificationKey storage vk = verificationKeys[proofType];
         if (!vk.initialized) revert VerificationKeyNotSet();
 
