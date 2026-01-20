@@ -94,6 +94,24 @@ export type {
 
 // ─── Proof Composition (M20) ────────────────────────────────────────────────
 
+// Proof Aggregator
+export {
+  ProofAggregator,
+  createProofAggregator,
+  DEFAULT_AGGREGATOR_CONFIG,
+} from './aggregator'
+
+export type {
+  AggregatorConfig,
+  AggregationProgressEvent,
+  AggregationProgressCallback,
+  SequentialAggregationOptions,
+  ParallelAggregationOptions,
+  RecursiveAggregationOptions,
+  AggregationStepResult,
+  DetailedAggregationResult,
+} from './aggregator'
+
 // Composer interfaces and errors
 export {
   type ComposableProofProvider,
