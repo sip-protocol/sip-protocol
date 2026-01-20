@@ -38,6 +38,8 @@ export type EthereumNetwork =
   | 'linea'
   | 'mantle'
   | 'blast'
+  | 'bsc'
+  | 'bsc-testnet'
   | 'localhost'
 
 /**
@@ -60,6 +62,8 @@ export const EVM_CHAIN_IDS: Record<EthereumNetwork, number> = {
   linea: 59144,
   mantle: 5000,
   blast: 81457,
+  bsc: 56,
+  'bsc-testnet': 97,
   localhost: 31337,
 } as const
 
@@ -84,6 +88,8 @@ export const ETHEREUM_RPC_ENDPOINTS: Record<EthereumNetwork, string> = {
   linea: getEnvVar('LINEA_MAINNET_RPC', 'https://rpc.linea.build'),
   mantle: getEnvVar('MANTLE_MAINNET_RPC', 'https://rpc.mantle.xyz'),
   blast: getEnvVar('BLAST_MAINNET_RPC', 'https://rpc.blast.io'),
+  bsc: getEnvVar('BSC_MAINNET_RPC', 'https://bsc-dataseed.binance.org'),
+  'bsc-testnet': getEnvVar('BSC_TESTNET_RPC', 'https://data-seed-prebsc-1-s1.binance.org:8545'),
   localhost: getEnvVar('ETH_LOCALHOST_RPC', 'http://localhost:8545'),
 } as const
 
@@ -107,6 +113,8 @@ export const ETHEREUM_EXPLORER_URLS: Record<EthereumNetwork, string> = {
   linea: 'https://lineascan.build',
   mantle: 'https://explorer.mantle.xyz',
   blast: 'https://blastscan.io',
+  bsc: 'https://bscscan.com',
+  'bsc-testnet': 'https://testnet.bscscan.com',
   localhost: 'http://localhost:8545',
 } as const
 
@@ -143,6 +151,80 @@ export const ETHEREUM_TOKEN_DECIMALS: Record<string, number> = {
   UNI: 18,
   AAVE: 18,
 }
+
+/**
+ * Common BEP-20 token addresses on BNB Chain (BSC) mainnet
+ */
+export const BSC_TOKEN_CONTRACTS = {
+  /** Wrapped BNB */
+  WBNB: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c',
+  /** Binance-Peg USD Coin */
+  USDC: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+  /** Binance-Peg Tether USD */
+  USDT: '0x55d398326f99059fF775485246999027B3197955',
+  /** Binance-Peg DAI */
+  DAI: '0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3',
+  /** Binance-Peg Chainlink */
+  LINK: '0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD',
+  /** PancakeSwap Token */
+  CAKE: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
+  /** Binance-Peg Ethereum */
+  ETH: '0x2170Ed0880ac9A755fd29B2688956BD959F933F8',
+  /** Binance-Peg BTCB */
+  BTCB: '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',
+} as const
+
+/**
+ * Token decimals for BNB Chain tokens
+ */
+export const BSC_TOKEN_DECIMALS: Record<string, number> = {
+  BNB: 18,
+  WBNB: 18,
+  USDC: 18, // Note: BSC USDC uses 18 decimals, not 6
+  USDT: 18, // Note: BSC USDT uses 18 decimals, not 6
+  DAI: 18,
+  LINK: 18,
+  CAKE: 18,
+  ETH: 18,
+  BTCB: 18,
+}
+
+/**
+ * PancakeSwap contract addresses on BNB Chain (BSC)
+ * PancakeSwap is the dominant DEX on BSC (like Uniswap on Ethereum)
+ */
+export const PANCAKESWAP_CONTRACTS = {
+  /** PancakeSwap V3 SmartRouter (preferred for best routing) */
+  SMART_ROUTER: '0x13f4EA83D0bd40E75C8222255bc855a974568Dd4',
+  /** PancakeSwap V3 Router */
+  V3_ROUTER: '0x1b81D678ffb9C0263b24A97847620C99d213eB14',
+  /** PancakeSwap V2 Router (legacy, still widely used) */
+  V2_ROUTER: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+  /** PancakeSwap V3 Factory */
+  V3_FACTORY: '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865',
+  /** PancakeSwap V2 Factory */
+  V2_FACTORY: '0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73',
+  /** PancakeSwap Quoter V2 (for price quotes) */
+  QUOTER_V2: '0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997',
+} as const
+
+/**
+ * PancakeSwap contract addresses on BSC Testnet
+ */
+export const PANCAKESWAP_TESTNET_CONTRACTS = {
+  /** PancakeSwap V3 SmartRouter */
+  SMART_ROUTER: '0x9a489505a00cE272eAa5e07Dba6491314CaE3796',
+  /** PancakeSwap V3 Router */
+  V3_ROUTER: '0x1b81D678ffb9C0263b24A97847620C99d213eB14',
+  /** PancakeSwap V2 Router */
+  V2_ROUTER: '0xD99D1c33F9fC3444f8101754aBC46c52416550D1',
+  /** PancakeSwap V3 Factory */
+  V3_FACTORY: '0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865',
+  /** PancakeSwap V2 Factory */
+  V2_FACTORY: '0x6725F303b657a9451d8BA641348b6761A6CC7a17',
+  /** PancakeSwap Quoter V2 */
+  QUOTER_V2: '0xbC203d7f83677c7ed3F7acEc959963E7F4ECC5C2',
+} as const
 
 /**
  * EIP-5564 Stealth Address Announcer contract address
@@ -298,6 +380,7 @@ export function isTestnet(network: EthereumNetwork): boolean {
     network === 'optimism-sepolia' ||
     network === 'base-sepolia' ||
     network === 'polygon-mumbai' ||
+    network === 'bsc-testnet' ||
     network === 'localhost'
   )
 }
@@ -316,6 +399,13 @@ export function isL2Network(network: EthereumNetwork): boolean {
     network === 'polygon' ||
     network === 'polygon-mumbai'
   )
+}
+
+/**
+ * Check if a network is an alternative L1 (non-Ethereum mainnet EVM chain)
+ */
+export function isAltL1Network(network: EthereumNetwork): boolean {
+  return network === 'bsc' || network === 'bsc-testnet'
 }
 
 /**
