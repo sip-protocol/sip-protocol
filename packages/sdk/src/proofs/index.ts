@@ -172,6 +172,34 @@ export type {
   CompositionTemplate,
 } from './orchestrator'
 
+// ─── Fallback Strategies (M20-11) ───────────────────────────────────────────
+
+// Fallback classes and factory functions
+export {
+  SequentialFallbackStrategy,
+  ExponentialBackoffStrategy,
+  PriorityFallbackStrategy,
+  CircuitBreaker,
+  FallbackExecutor,
+  createFallbackExecutor,
+  createCircuitBreaker,
+  createMockFallbackProvider,
+  DEFAULT_CIRCUIT_BREAKER_CONFIG,
+  DEFAULT_FALLBACK_CONFIG,
+} from './fallback'
+
+// Fallback types
+export type {
+  FallbackStrategy,
+  CircuitBreakerState,
+  CircuitBreakerConfig,
+  ProviderHealth,
+  FallbackEventType,
+  FallbackEvent,
+  FallbackEventListener,
+  FallbackExecutorConfig,
+} from './fallback'
+
 // Composer interfaces and errors
 export {
   type ComposableProofProvider,
