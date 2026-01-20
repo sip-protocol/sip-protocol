@@ -448,3 +448,81 @@ export type {
   IVerificationKeyCache,
   ICompiledCircuitCache,
 } from './cache'
+
+// ─── Parallel Proof Generation (M20-12) ──────────────────────────────────────
+
+// Parallel Executor
+export {
+  ParallelExecutor,
+  createParallelExecutor,
+  executeParallel,
+} from './parallel'
+
+// Dependency Graph
+export {
+  DependencyAnalyzer,
+  createDependencyAnalyzer,
+  createDependencyNode,
+} from './parallel'
+
+// Worker Pool
+export {
+  WorkerPool,
+  WorkStealingScheduler,
+  createWorkerPool,
+} from './parallel'
+
+// Concurrency Management
+export {
+  ConcurrencyManager,
+  createConcurrencyManager,
+  getRecommendedConcurrency,
+} from './parallel'
+
+// Parallel configuration defaults
+export {
+  DEFAULT_WORKER_POOL_CONFIG,
+  DEFAULT_CONCURRENCY_CONFIG,
+  DEFAULT_SCHEDULER_CONFIG,
+} from './parallel'
+
+// Parallel types
+export type {
+  // Dependency Graph
+  DependencyNode,
+  DependencyEdge,
+  DependencyGraph,
+  GraphAnalysis,
+  // Worker Pool
+  WorkerStatus,
+  WorkerInfo,
+  WorkerPoolConfig as ParallelWorkerPoolConfig,
+  WorkerPoolStats,
+  // Tasks
+  TaskStatus,
+  TaskPriority,
+  ProofTask,
+  TaskSubmitOptions,
+  // Concurrency
+  SystemResources,
+  ConcurrencyConfig,
+  ConcurrencyDecision,
+  // Work Stealing
+  WorkerStealingStats,
+  WorkStealEvent,
+  // Execution
+  ParallelExecutionOptions,
+  ParallelProgressEvent,
+  ParallelExecutionResult,
+  ParallelExecutionStats,
+  ParallelExecutionError,
+  // Scheduler
+  SchedulingStrategy,
+  SchedulerConfig,
+  // Interfaces
+  IDependencyAnalyzer,
+  IWorkerPool,
+  IConcurrencyManager,
+  IWorkStealingScheduler,
+  IParallelExecutor,
+} from './parallel'
