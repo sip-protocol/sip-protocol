@@ -1,0 +1,265 @@
+{
+  "version": "1.0.0",
+  "spec_version": "SIP-EIP Draft 1.0.0",
+  "generated": "2026-01-20T00:00:00Z",
+  "description": "Error condition test vectors for SIP-EIP compliance",
+  "error_codes": {
+    "general": {
+      "SIP_ERR_0100": "INVALID_INPUT",
+      "SIP_ERR_0101": "UNAUTHORIZED",
+      "SIP_ERR_0102": "NOT_INITIALIZED",
+      "SIP_ERR_0103": "ALREADY_INITIALIZED",
+      "SIP_ERR_0104": "INSUFFICIENT_FUNDS",
+      "SIP_ERR_0105": "EXPIRED"
+    },
+    "stealth_address": {
+      "SIP_ERR_0200": "INVALID_STEALTH_META_ADDRESS",
+      "SIP_ERR_0201": "INVALID_PUBLIC_KEY",
+      "SIP_ERR_0202": "STEALTH_ADDRESS_GENERATION_FAILED",
+      "SIP_ERR_0203": "INVALID_EPHEMERAL_KEY",
+      "SIP_ERR_0204": "SCANNING_FAILED"
+    },
+    "commitment": {
+      "SIP_ERR_0300": "INVALID_COMMITMENT",
+      "SIP_ERR_0301": "COMMITMENT_VERIFICATION_FAILED",
+      "SIP_ERR_0302": "INVALID_BLINDING_FACTOR",
+      "SIP_ERR_0303": "VALUE_OUT_OF_RANGE",
+      "SIP_ERR_0304": "HOMOMORPHIC_OPERATION_FAILED"
+    },
+    "viewing_key": {
+      "SIP_ERR_0400": "INVALID_VIEWING_KEY",
+      "SIP_ERR_0401": "VIEWING_KEY_NOT_REGISTERED",
+      "SIP_ERR_0402": "UNAUTHORIZED_VIEWER",
+      "SIP_ERR_0403": "DECRYPTION_FAILED",
+      "SIP_ERR_0404": "VIEWING_KEY_EXPIRED"
+    },
+    "privacy_level": {
+      "SIP_ERR_0500": "INVALID_PRIVACY_LEVEL",
+      "SIP_ERR_0501": "PRIVACY_LEVEL_MISMATCH",
+      "SIP_ERR_0502": "COMPLIANCE_REQUIRED"
+    },
+    "transfer": {
+      "SIP_ERR_0600": "TRANSFER_FAILED",
+      "SIP_ERR_0601": "INVALID_RECIPIENT",
+      "SIP_ERR_0602": "INVALID_AMOUNT",
+      "SIP_ERR_0603": "SLIPPAGE_EXCEEDED"
+    },
+    "proof": {
+      "SIP_ERR_0700": "PROOF_GENERATION_FAILED",
+      "SIP_ERR_0701": "PROOF_VERIFICATION_FAILED",
+      "SIP_ERR_0702": "INVALID_PROOF_FORMAT"
+    }
+  },
+  "vectors": [
+    {
+      "id": "error-general-001",
+      "description": "Empty input string",
+      "operation": "parseStealthMetaAddress",
+      "input": {
+        "meta_address": ""
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0100",
+        "type": "INVALID_INPUT",
+        "message_contains": "empty"
+      }
+    },
+    {
+      "id": "error-general-002",
+      "description": "Null input",
+      "operation": "createCommitment",
+      "input": {
+        "value": null
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0100",
+        "type": "INVALID_INPUT"
+      }
+    },
+    {
+      "id": "error-stealth-001",
+      "description": "Meta-address missing sip: prefix",
+      "operation": "decodeStealthMetaAddress",
+      "input": {
+        "meta_address": "ethereum:0x02...:0x03..."
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0200",
+        "type": "INVALID_STEALTH_META_ADDRESS",
+        "message_contains": "prefix"
+      }
+    },
+    {
+      "id": "error-stealth-002",
+      "description": "Meta-address wrong number of parts",
+      "operation": "decodeStealthMetaAddress",
+      "input": {
+        "meta_address": "sip:ethereum:0x02..."
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0200",
+        "type": "INVALID_STEALTH_META_ADDRESS",
+        "message_contains": "format"
+      }
+    },
+    {
+      "id": "error-stealth-003",
+      "description": "Meta-address invalid chain",
+      "operation": "decodeStealthMetaAddress",
+      "input": {
+        "meta_address": "sip::0x02...:0x03..."
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0200",
+        "type": "INVALID_STEALTH_META_ADDRESS",
+        "message_contains": "chain"
+      }
+    },
+    {
+      "id": "error-stealth-004",
+      "description": "Public key not on curve",
+      "operation": "generateStealthAddress",
+      "input": {
+        "spending_public_key": "0x020000000000000000000000000000000000000000000000000000000000000000",
+        "viewing_public_key": "0x02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0201",
+        "type": "INVALID_PUBLIC_KEY"
+      }
+    },
+    {
+      "id": "error-stealth-005",
+      "description": "Public key wrong length",
+      "operation": "generateStealthAddress",
+      "input": {
+        "spending_public_key": "0x02abcd",
+        "viewing_public_key": "0x02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0201",
+        "type": "INVALID_PUBLIC_KEY"
+      }
+    },
+    {
+      "id": "error-commit-001",
+      "description": "Zero blinding factor",
+      "operation": "createCommitment",
+      "input": {
+        "value": "100",
+        "blinding_factor": "0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0302",
+        "type": "INVALID_BLINDING_FACTOR",
+        "message_contains": "zero"
+      }
+    },
+    {
+      "id": "error-commit-002",
+      "description": "Blinding factor >= curve order",
+      "operation": "createCommitment",
+      "input": {
+        "value": "100",
+        "blinding_factor": "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0302",
+        "type": "INVALID_BLINDING_FACTOR",
+        "message_contains": "range"
+      }
+    },
+    {
+      "id": "error-commit-003",
+      "description": "Invalid commitment point",
+      "operation": "verifyCommitment",
+      "input": {
+        "commitment": "0x020000000000000000000000000000000000000000000000000000000000000000",
+        "value": "100",
+        "blinding_factor": "0x1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0300",
+        "type": "INVALID_COMMITMENT"
+      }
+    },
+    {
+      "id": "error-viewing-001",
+      "description": "Viewing key wrong length",
+      "operation": "encryptForViewer",
+      "input": {
+        "plaintext": "0x48656c6c6f",
+        "viewing_key": "0x0123456789abcdef"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0400",
+        "type": "INVALID_VIEWING_KEY"
+      }
+    },
+    {
+      "id": "error-viewing-002",
+      "description": "Decryption with wrong key",
+      "operation": "decryptWithViewingKey",
+      "input": {
+        "ciphertext": "0x...",
+        "nonce": "0x...",
+        "viewing_key": "0xwrongkey..."
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0403",
+        "type": "DECRYPTION_FAILED",
+        "message_contains": "authentication"
+      }
+    },
+    {
+      "id": "error-viewing-003",
+      "description": "Decryption with tampered ciphertext",
+      "operation": "decryptWithViewingKey",
+      "input": {
+        "ciphertext": "0x...tampered...",
+        "nonce": "0x...",
+        "viewing_key": "0xcorrectkey..."
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0403",
+        "type": "DECRYPTION_FAILED"
+      }
+    },
+    {
+      "id": "error-privacy-001",
+      "description": "Invalid privacy level value",
+      "operation": "createIntent",
+      "input": {
+        "privacy_level": "unknown"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0500",
+        "type": "INVALID_PRIVACY_LEVEL"
+      }
+    },
+    {
+      "id": "error-transfer-001",
+      "description": "Invalid recipient address",
+      "operation": "executeShieldedTransfer",
+      "input": {
+        "recipient": "not-an-address"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0601",
+        "type": "INVALID_RECIPIENT"
+      }
+    },
+    {
+      "id": "error-transfer-002",
+      "description": "Zero amount",
+      "operation": "executeShieldedTransfer",
+      "input": {
+        "amount": "0"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0602",
+        "type": "INVALID_AMOUNT"
+      }
+    }
+  ]
+}

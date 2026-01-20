@@ -1,0 +1,287 @@
+{
+  "version": "1.0.0",
+  "spec_version": "SIP-EIP Draft 1.0.0",
+  "generated": "2026-01-20T00:00:00Z",
+  "description": "Pedersen commitment test vectors for SIP-EIP compliance",
+  "constants": {
+    "curve": "secp256k1",
+    "G": {
+      "x": "0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+      "y": "0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8"
+    },
+    "H_domain": "SIP-PEDERSEN-GENERATOR-H-v1",
+    "curve_order": "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+  },
+  "vectors": [
+    {
+      "id": "commit-001",
+      "description": "Basic commitment - value 100",
+      "input": {
+        "value": "100",
+        "blinding_factor": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "expected": {
+        "formula": "C = value * G + blinding * H",
+        "verification": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-002",
+      "description": "Basic commitment - value 1 ETH (wei)",
+      "input": {
+        "value": "1000000000000000000",
+        "blinding_factor": "0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+      },
+      "expected": {
+        "verification": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-003",
+      "description": "Zero value commitment",
+      "input": {
+        "value": "0",
+        "blinding_factor": "0x1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "expected": {
+        "formula": "C = 0 * G + blinding * H = blinding * H",
+        "verification": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-004",
+      "description": "Large value near max uint64",
+      "input": {
+        "value": "18446744073709551615",
+        "blinding_factor": "0x2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "expected": {
+        "verification": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-005",
+      "description": "Commitment with random blinding",
+      "input": {
+        "value": "42",
+        "blinding_seed": "sip-test-commit-005"
+      },
+      "expected": {
+        "verification": true,
+        "note": "Blinding derived from SHA256(seed)"
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-006",
+      "description": "Commitment verification - correct opening",
+      "input": {
+        "commitment": "0x02...",
+        "value": "100",
+        "blinding_factor": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "expected": {
+        "verification_result": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-007",
+      "description": "Commitment verification - wrong value",
+      "input": {
+        "commitment": "0x02...",
+        "value": "999",
+        "blinding_factor": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "expected": {
+        "verification_result": false
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-008",
+      "description": "Commitment verification - wrong blinding",
+      "input": {
+        "commitment": "0x02...",
+        "value": "100",
+        "blinding_factor": "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      },
+      "expected": {
+        "verification_result": false
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-009",
+      "description": "Homomorphic addition - basic",
+      "input": {
+        "c1_value": "100",
+        "c1_blinding": "0x3333333333333333333333333333333333333333333333333333333333333333",
+        "c2_value": "50",
+        "c2_blinding": "0x4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "expected": {
+        "sum_value": "150",
+        "sum_blinding_formula": "(c1_blinding + c2_blinding) mod n",
+        "verification": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-010",
+      "description": "Homomorphic addition - zero sum",
+      "input": {
+        "c1_value": "0",
+        "c1_blinding": "0x5555555555555555555555555555555555555555555555555555555555555555",
+        "c2_value": "0",
+        "c2_blinding": "0x6666666666666666666666666666666666666666666666666666666666666666"
+      },
+      "expected": {
+        "sum_value": "0",
+        "verification": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-011",
+      "description": "Homomorphic addition - large values",
+      "input": {
+        "c1_value": "9223372036854775807",
+        "c1_blinding": "0x7777777777777777777777777777777777777777777777777777777777777777",
+        "c2_value": "9223372036854775807",
+        "c2_blinding": "0x8888888888888888888888888888888888888888888888888888888888888888"
+      },
+      "expected": {
+        "sum_value": "18446744073709551614",
+        "verification": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-012",
+      "description": "Homomorphic subtraction - basic",
+      "input": {
+        "c1_value": "100",
+        "c1_blinding": "0x9999999999999999999999999999999999999999999999999999999999999999",
+        "c2_value": "30",
+        "c2_blinding": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "expected": {
+        "diff_value": "70",
+        "diff_blinding_formula": "(c1_blinding - c2_blinding + n) mod n",
+        "verification": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-013",
+      "description": "Homomorphic subtraction - result zero",
+      "input": {
+        "c1_value": "100",
+        "c1_blinding": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "c2_value": "100",
+        "c2_blinding": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "expected": {
+        "diff_value": "0",
+        "diff_blinding": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "commitment_is_infinity": true
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-014",
+      "description": "Blinding factor addition",
+      "input": {
+        "b1": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "b2": "0x0000000000000000000000000000000000000000000000000000000000000002"
+      },
+      "expected": {
+        "sum": "0x0000000000000000000000000000000000000000000000000000000000000003"
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-015",
+      "description": "Blinding factor addition - wrap around",
+      "input": {
+        "b1": "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+        "b2": "0x0000000000000000000000000000000000000000000000000000000000000002"
+      },
+      "expected": {
+        "sum": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "note": "(n-1 + 2) mod n = 1"
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-016",
+      "description": "Blinding factor subtraction",
+      "input": {
+        "b1": "0x0000000000000000000000000000000000000000000000000000000000000005",
+        "b2": "0x0000000000000000000000000000000000000000000000000000000000000003"
+      },
+      "expected": {
+        "diff": "0x0000000000000000000000000000000000000000000000000000000000000002"
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-017",
+      "description": "Blinding factor subtraction - wrap around",
+      "input": {
+        "b1": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "b2": "0x0000000000000000000000000000000000000000000000000000000000000002"
+      },
+      "expected": {
+        "diff": "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+        "note": "(1 - 2 + n) mod n = n-1"
+      },
+      "valid": true
+    },
+    {
+      "id": "commit-error-001",
+      "description": "Invalid blinding - zero",
+      "input": {
+        "value": "100",
+        "blinding_factor": "0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0302",
+        "type": "INVALID_BLINDING_FACTOR"
+      },
+      "valid": false
+    },
+    {
+      "id": "commit-error-002",
+      "description": "Invalid blinding - exceeds curve order",
+      "input": {
+        "value": "100",
+        "blinding_factor": "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0302",
+        "type": "INVALID_BLINDING_FACTOR"
+      },
+      "valid": false
+    },
+    {
+      "id": "commit-error-003",
+      "description": "Invalid commitment point - not on curve",
+      "input": {
+        "commitment": "0x020000000000000000000000000000000000000000000000000000000000000000",
+        "value": "100",
+        "blinding_factor": "0x1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0300",
+        "type": "INVALID_COMMITMENT"
+      },
+      "valid": false
+    }
+  ]
+}
