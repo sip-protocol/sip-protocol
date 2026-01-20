@@ -180,6 +180,8 @@ const NETWORK_GAS_PRICES: Record<EthereumNetwork, bigint> = {
   linea: ONE_GWEI / 10n,
   mantle: ONE_GWEI / 10n,
   blast: ONE_GWEI / 10n,
+  bsc: 3n * ONE_GWEI, // BSC mainnet ~3-5 gwei
+  'bsc-testnet': 1n * ONE_GWEI,
   localhost: 1n * ONE_GWEI,
 }
 

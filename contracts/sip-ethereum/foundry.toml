@@ -27,6 +27,9 @@ arbitrum = { key = "${ARBISCAN_API_KEY}" }
 arbitrum_sepolia = { key = "${ARBISCAN_API_KEY}" }
 optimism = { key = "${OPTIMISM_ETHERSCAN_API_KEY}" }
 optimism_sepolia = { key = "${OPTIMISM_ETHERSCAN_API_KEY}" }
+# BNB Chain (Alt L1 - 4.32M DAU, #1 by daily active wallets)
+bsc = { key = "${BSCSCAN_API_KEY}", url = "https://api.bscscan.com/api" }
+bsc_testnet = { key = "${BSCSCAN_API_KEY}", url = "https://api-testnet.bscscan.com/api" }
 
 [rpc_endpoints]
 # Mainnet
@@ -41,3 +44,6 @@ arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
 # Optimism (6% TVL - High priority)
 optimism = "${OPTIMISM_RPC_URL}"
 optimism_sepolia = "${OPTIMISM_SEPOLIA_RPC_URL}"
+# BNB Chain (4.32M DAU - Highest daily active wallets)
+bsc = "${BSC_RPC_URL}"
+bsc_testnet = "${BSC_TESTNET_RPC_URL}"
