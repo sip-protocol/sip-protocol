@@ -104,7 +104,21 @@ export {
   ProviderNotFoundError,
   CompositionTimeoutError,
   IncompatibleSystemsError,
+  BaseProofComposer,
 } from './composer'
+
+// Composable Proof Providers
+export {
+  Halo2Provider,
+  createHalo2Provider,
+  createOrchardProvider,
+} from './providers'
+
+export type {
+  Halo2ProviderConfig,
+  Halo2CircuitConfig,
+  Halo2ProvingKey,
+} from './providers'
 
 // Composer SDK types
 export type {
