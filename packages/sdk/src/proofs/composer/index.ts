@@ -20,3 +20,6 @@ export {
   CompositionTimeoutError,
   IncompatibleSystemsError,
 } from './interface'
+
+// Implementation
+export { BaseProofComposer } from './base'
