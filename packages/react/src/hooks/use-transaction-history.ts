@@ -396,7 +396,7 @@ export function useTransactionHistory(
   // Initial fetch when filters change
   useEffect(() => {
     fetchHistory(false)
-  }, [filters]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filters])
 
   // Cleanup on unmount
   useEffect(() => {
