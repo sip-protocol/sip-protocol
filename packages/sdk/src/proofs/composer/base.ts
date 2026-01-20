@@ -466,7 +466,7 @@ export class BaseProofComposer implements ProofComposer {
     const totalSteps = proofs.length + 1 // +1 for aggregation step
 
     // Progress helper
-    const reportProgress = (step: number, operation: string) => {
+    const reportProgress = (_step: number, _operation: string) => {
       const event: CompositionEvent = {
         type: 'composition:progress',
         timestamp: Date.now(),
@@ -502,7 +502,7 @@ export class BaseProofComposer implements ProofComposer {
         )
         break
 
-      case Strategy.BATCH:
+      case Strategy.BATCH: {
         // Group by system and batch verify
         reportProgress(0, 'Batch verifying proofs')
         const groupedBySystem = new Map<ProofSystem, SingleProof[]>()
@@ -524,6 +524,7 @@ export class BaseProofComposer implements ProofComposer {
           }
         }
         break
+      }
 
       case Strategy.RECURSIVE:
         // Recursive aggregation - would need actual recursive SNARK support
