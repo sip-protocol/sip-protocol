@@ -203,6 +203,35 @@ export type {
   WinnerVerification,
 } from './auction'
 
+// Proof Composition
+export {
+  ProofAggregationStrategy,
+  ComposedProofStatus,
+  CompositionErrorCode,
+  DEFAULT_COMPOSITION_CONFIG,
+} from './proof-composition'
+export type {
+  ProofSystem,
+  ProofMetadata,
+  SingleProof,
+  ComposedProof,
+  CompositionMetadata,
+  VerificationHints,
+  ProofCompositionConfig,
+  ProofProviderCapabilities,
+  ProofProviderStatus,
+  ProofProviderMetrics,
+  CompositionResult,
+  CompositionError,
+  CompositionMetrics,
+  VerificationResult,
+  IndividualVerificationResult,
+  CompositionEventType,
+  CompositionEvent,
+  CompositionProgressEvent,
+  CompositionEventListener,
+} from './proof-composition'
+
 // Wallet Adapters
 export { WalletErrorCode } from './wallet'
 export type {

@@ -91,3 +91,71 @@ export type {
   HistoryCompletenessParams,
   ComplianceProofResult,
 } from './compliance-proof'
+
+// ─── Proof Composition (M20) ────────────────────────────────────────────────
+
+// Composer interfaces and errors
+export {
+  type ComposableProofProvider,
+  type ProofComposer,
+  type ProofProviderFactory,
+  type ProofProviderRegistry,
+  ProofCompositionError,
+  ProviderNotFoundError,
+  CompositionTimeoutError,
+  IncompatibleSystemsError,
+} from './composer'
+
+// Composer SDK types
+export type {
+  ProofProviderRegistration,
+  RegisterProviderOptions,
+  ProofGenerationRequest,
+  ProofGenerationResult,
+  ComposeProofsOptions,
+  VerifyComposedProofOptions,
+  AggregateProofsOptions,
+  AggregationResult,
+  ConvertProofOptions,
+  ConversionResult,
+  ProofCacheEntry,
+  CacheStats,
+  WorkerPoolConfig,
+  WorkerPoolStatus,
+  SystemCompatibility,
+  CompatibilityMatrix,
+  FallbackConfig,
+  ProofTelemetry,
+  TelemetryCollector,
+  ProofTelemetryMetrics,
+} from './composer'
+
+// Re-export base types from @sip-protocol/types for convenience
+export {
+  ProofAggregationStrategy,
+  ComposedProofStatus,
+  CompositionErrorCode,
+  DEFAULT_COMPOSITION_CONFIG,
+} from '@sip-protocol/types'
+
+export type {
+  ProofSystem,
+  ProofMetadata,
+  SingleProof,
+  ComposedProof,
+  CompositionMetadata,
+  VerificationHints,
+  ProofCompositionConfig,
+  ProofProviderCapabilities,
+  ProofProviderStatus,
+  ProofProviderMetrics,
+  CompositionResult,
+  CompositionError,
+  CompositionMetrics,
+  VerificationResult,
+  IndividualVerificationResult,
+  CompositionEventType,
+  CompositionEvent,
+  CompositionProgressEvent,
+  CompositionEventListener,
+} from '@sip-protocol/types'
