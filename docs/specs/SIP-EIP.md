@@ -1589,41 +1589,621 @@ const incoming = await sip.scan({
 
 ## Security Considerations
 
-### Cryptographic Assumptions
+This section provides a comprehensive security analysis of SIP, covering threat models, attack vectors, mitigations, and implementation requirements. Implementers MUST carefully review this section to ensure secure deployments.
 
-SIP security relies on:
-1. **Discrete Logarithm Problem (DLP)**: Stealth addresses and Pedersen commitments
-2. **Decisional Diffie-Hellman (DDH)**: Key agreement for ephemeral keys
-3. **Random Oracle Model**: Hash functions (SHA-256, Keccak-256)
+### 1. Threat Model
 
-### Attack Vectors and Mitigations
+#### 1.1 Adversary Capabilities
 
-| Attack | Risk | Mitigation |
-|--------|------|------------|
-| Stealth address reuse | Medium | Generate new address per transaction |
-| Viewing key compromise | High | Key rotation, hierarchical keys |
-| Timing attacks | Low | Constant-time implementations |
-| Metadata leakage | Medium | Encrypted notes, decoy transactions |
-| Quantum computing | Future | Migration path to post-quantum (WOTS+) |
+SIP considers adversaries with the following capabilities:
 
-### Key Management
+| Adversary Type | Capabilities | Threat Level |
+|----------------|--------------|--------------|
+| **Passive Observer** | Monitor public blockchain data, network traffic | High |
+| **Active Attacker** | Submit malicious transactions, front-run | Medium |
+| **Compromised Service** | Control RPC nodes, indexers, or relayers | Medium |
+| **State-Level Actor** | Network surveillance, legal compulsion | High |
+| **Quantum Adversary** | Future quantum computer access | Future |
 
-- Spending keys MUST be stored securely (hardware wallet recommended)
-- Viewing keys MAY be shared but should be rotated periodically
-- Ephemeral keys MUST be generated fresh for each transaction
+#### 1.2 Threat Model Diagram
 
-### Privacy Guarantees
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           SIP THREAT MODEL                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                    NETWORK LAYER THREATS                              │   │
+│  │  • IP address correlation        • Traffic analysis                   │   │
+│  │  • Timing correlation            • Node fingerprinting                │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                         │
+│                                    ▼                                         │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                   APPLICATION LAYER THREATS                           │   │
+│  │  • Malicious dApps               • Phishing attacks                   │   │
+│  │  • SDK vulnerabilities           • Wallet exploits                    │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                         │
+│                                    ▼                                         │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                   PROTOCOL LAYER THREATS                              │   │
+│  │  • Stealth address reuse         • Viewing key compromise             │   │
+│  │  • Commitment manipulation       • Proof forgery                      │   │
+│  │  • Front-running                 • Replay attacks                     │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                         │
+│                                    ▼                                         │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │                  CRYPTOGRAPHIC LAYER THREATS                          │   │
+│  │  • DLP breakthrough              • Weak randomness                    │   │
+│  │  • Side-channel leakage          • Quantum attacks (future)           │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────┐   │
+│  │  TRUST ASSUMPTIONS                                                    │   │
+│  │  ✓ Users control their private keys                                   │   │
+│  │  ✓ Cryptographic primitives are secure                                │   │
+│  │  ✓ Random number generation is unpredictable                          │   │
+│  │  ✗ Network layer provides anonymity (NOT assumed)                     │   │
+│  │  ✗ Third-party services are honest (NOT assumed)                      │   │
+│  └──────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-SIP provides:
-- **Sender Privacy**: Ephemeral keys prevent sender identification
-- **Recipient Privacy**: Stealth addresses prevent recipient tracking
-- **Amount Privacy**: Pedersen commitments hide values
-- **Unlinkability**: No connection between deposits and withdrawals
+### 2. Cryptographic Assumptions
 
-SIP does NOT protect against:
-- Network-level surveillance (IP tracking)
-- Side-channel attacks on client implementations
-- Compromised viewing keys revealing past transactions
+SIP security relies on the following hardness assumptions:
+
+#### 2.1 Core Assumptions
+
+| Assumption | Description | Affected Components |
+|------------|-------------|---------------------|
+| **Discrete Logarithm Problem (DLP)** | Given `G` and `P = p·G`, computing `p` is infeasible | Stealth addresses, key pairs |
+| **Computational Diffie-Hellman (CDH)** | Given `G`, `aG`, `bG`, computing `abG` is infeasible | Shared secret derivation |
+| **Decisional Diffie-Hellman (DDH)** | Cannot distinguish `(G, aG, bG, abG)` from random | Stealth address unlinkability |
+| **Random Oracle Model (ROM)** | Hash functions behave as random oracles | Domain separation, key derivation |
+
+#### 2.2 Pedersen Commitment Security
+
+**Binding Property** (Computational):
+- Cannot find `(v, r)` and `(v', r')` where `v ≠ v'` but `C(v,r) = C(v',r')`
+- Relies on: Unknown discrete log of `H` with respect to `G`
+- Breaks if: `log_G(H)` is known (attacker can open to any value)
+
+**Hiding Property** (Information-Theoretic):
+- Given commitment `C`, all values `v` are equally likely
+- Unconditional: Even unbounded adversaries cannot determine `v`
+- Relies on: Uniform random blinding factor `r`
+
+#### 2.3 Security Parameters
+
+| Parameter | Recommended | Minimum | Notes |
+|-----------|-------------|---------|-------|
+| Curve security level | 128-bit | 128-bit | secp256k1, ed25519 |
+| Hash output size | 256-bit | 256-bit | SHA-256, Keccak-256 |
+| Blinding factor entropy | 256-bit | 128-bit | CSPRNG required |
+| Key derivation iterations | N/A | N/A | HKDF-SHA256 |
+
+### 3. Stealth Address Security
+
+#### 3.1 Stealth Address Reuse Risks
+
+**Risk Level:** HIGH
+
+**Description:** Reusing a stealth address for multiple payments breaks unlinkability and reveals the recipient.
+
+**Attack Scenario:**
+```
+1. Alice sends 1 ETH to Bob's stealth address S1
+2. Bob withdraws from S1 to his main address M
+3. Carol sends 2 ETH to the SAME address S1
+4. Observer links: S1 ← Bob's address M
+5. Bob's receipt of Carol's payment is now PUBLIC
+```
+
+**Mitigations:**
+1. **MUST** generate unique stealth address per transaction
+2. **MUST** use fresh ephemeral key for each generation
+3. **SHOULD** implement address freshness checks in wallets
+4. **SHOULD NOT** display stealth addresses to users (use meta-address instead)
+
+**Implementation Requirement:**
+```typescript
+// CORRECT: Generate fresh address each time
+async function sendToRecipient(metaAddress: string, amount: bigint) {
+  const { stealthAddress, ephemeralPubKey } = await generateStealthAddress(
+    parseMetaAddress(metaAddress).spendingPubKey,
+    parseMetaAddress(metaAddress).viewingPubKey
+  )
+  // Use stealthAddress for THIS transaction only
+}
+
+// WRONG: Caching or reusing stealth addresses
+const cachedAddress = await generateStealthAddress(...) // NEVER DO THIS
+await send(cachedAddress, amount1)
+await send(cachedAddress, amount2)  // SECURITY VULNERABILITY
+```
+
+#### 3.2 Ephemeral Key Security
+
+**Risk Level:** MEDIUM
+
+**Description:** Weak or predictable ephemeral keys compromise stealth address privacy.
+
+**Requirements:**
+1. **MUST** generate ephemeral private key from CSPRNG with ≥256 bits entropy
+2. **MUST NOT** derive ephemeral key from deterministic sources (timestamps, counters)
+3. **MUST** securely delete ephemeral private key after use (sender-side)
+4. **SHOULD** use memory-safe key handling (zeroize on drop)
+
+**Weak Ephemeral Key Attack:**
+```
+If ephemeral key r is predictable:
+1. Attacker knows r → can compute R = r·G
+2. Attacker observes recipient meta-address (P, Q)
+3. Attacker computes: S = r·P (shared secret)
+4. Attacker derives stealth address and LINKS payments
+```
+
+#### 3.3 Stealth Address Scanning Privacy
+
+**Risk Level:** LOW-MEDIUM
+
+**Description:** Scanning for stealth payments may leak information to RPC providers.
+
+**Mitigations:**
+1. **SHOULD** use private RPC nodes or Tor-routed connections
+2. **SHOULD** batch scanning requests to avoid timing correlation
+3. **MAY** use oblivious transfer protocols for enhanced privacy
+4. **SHOULD** scan broader ranges than necessary (padding)
+
+### 4. Viewing Key Security
+
+#### 4.1 Viewing Key Compromise Scenarios
+
+**Risk Level:** HIGH
+
+**Scenario 1: Full Viewing Key Compromise**
+```
+Impact: ALL historical and future incoming transactions revealed
+Scope:  Complete loss of recipient privacy for that key
+```
+
+**Scenario 2: Time-Limited Key Compromise**
+```
+Impact: Transactions within validity window revealed
+Scope:  Limited to specified time range
+```
+
+**Scenario 3: Auditor Key Leakage**
+```
+Impact: Auditor's view of user transactions exposed
+Scope:  All transactions disclosed to that auditor
+```
+
+#### 4.2 Viewing Key Hierarchy
+
+To limit exposure, SIP supports hierarchical viewing keys:
+
+```
+                    ┌─────────────────────┐
+                    │   Master Spending   │
+                    │       Key           │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │   Master Viewing    │
+                    │       Key           │
+                    └──────────┬──────────┘
+                               │
+           ┌───────────────────┼───────────────────┐
+           │                   │                   │
+           ▼                   ▼                   ▼
+    ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+    │  Incoming   │     │  Outgoing   │     │   Auditor   │
+    │  View Key   │     │  View Key   │     │   View Key  │
+    └─────────────┘     └─────────────┘     └─────────────┘
+           │                   │                   │
+           ▼                   ▼                   ▼
+    ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+    │ Time-Limited│     │ Time-Limited│     │ Time-Limited│
+    │   Subkey    │     │   Subkey    │     │   Subkey    │
+    └─────────────┘     └─────────────┘     └─────────────┘
+```
+
+#### 4.3 Viewing Key Rotation
+
+**Recommendation:** Rotate viewing keys periodically or upon suspected compromise.
+
+**Rotation Process:**
+1. Generate new viewing key pair
+2. Register new viewing key hash on-chain
+3. Revoke old viewing key registration
+4. Re-encrypt any stored viewing keys for auditors
+5. Old keys can still decrypt historical transactions
+
+**Grace Period:** Allow 30-day overlap for auditors to transition.
+
+#### 4.4 Forward Secrecy Considerations
+
+**Limitation:** SIP viewing keys do NOT provide forward secrecy.
+
+If a viewing key is compromised:
+- Past transactions are retroactively visible
+- Future transactions remain visible until key rotation
+
+**Mitigation:** Use time-limited viewing keys for sensitive disclosures.
+
+### 5. Timing Attack Vectors
+
+#### 5.1 Proof Generation Timing
+
+**Risk Level:** LOW-MEDIUM
+
+**Description:** Variable proof generation time may leak information about inputs.
+
+**Attack Scenario:**
+```
+1. Attacker measures time to generate commitment/proof
+2. Different values/blinding factors may take different time
+3. Statistical analysis correlates timing with value ranges
+```
+
+**Mitigations:**
+1. **MUST** use constant-time scalar multiplication
+2. **MUST** use constant-time modular arithmetic
+3. **SHOULD** add random delays to normalize timing
+4. **SHOULD** use constant-time comparison for verification
+
+**Implementation Checklist:**
+- [ ] Scalar multiplication: Montgomery ladder or similar
+- [ ] Modular reduction: Barrett/Montgomery reduction
+- [ ] Conditional operations: Branchless implementations
+- [ ] Memory access: Cache-timing resistant patterns
+
+#### 5.2 Transaction Timing Correlation
+
+**Risk Level:** MEDIUM
+
+**Description:** Timing of shielded transactions may correlate with public activity.
+
+**Attack Scenario:**
+```
+1. User receives public payment at time T
+2. User sends shielded payment at time T+Δ
+3. If Δ is consistent, attacker links public→shielded
+```
+
+**Mitigations:**
+1. **SHOULD** add random delays between related transactions
+2. **SHOULD** batch transactions with other users (if available)
+3. **MAY** use scheduled/queued transaction submission
+4. **SHOULD NOT** immediately move funds after receiving them
+
+#### 5.3 Network Timing Analysis
+
+**Risk Level:** MEDIUM
+
+**Description:** Network-level timing can link sender/recipient even with encryption.
+
+**Mitigations:**
+1. **SHOULD** use Tor or VPN for transaction submission
+2. **SHOULD** use different network paths for send vs. receive
+3. **MAY** use mix networks for transaction relay
+4. **SHOULD** implement transaction batching at relayer level
+
+### 6. Metadata Leakage
+
+#### 6.1 On-Chain Metadata
+
+**Leaked Information:**
+| Metadata | Privacy Impact | Mitigation |
+|----------|----------------|------------|
+| Transaction timestamp | Activity timing visible | Delayed submission |
+| Gas price | Economic behavior visible | Standard gas pricing |
+| Contract interactions | Protocol usage visible | Proxy contracts |
+| Token type | Asset class visible | Multi-asset pools |
+| Transaction size | Approximate amount range | Padding, fixed sizes |
+
+#### 6.2 Encrypted Note Security
+
+**Risk Level:** MEDIUM
+
+**Description:** Encrypted notes may leak information through size, format, or encryption artifacts.
+
+**Requirements:**
+1. **MUST** use authenticated encryption (XChaCha20-Poly1305)
+2. **MUST** pad notes to fixed size (recommended: 256 bytes)
+3. **MUST** use unique nonce per encryption
+4. **SHOULD** include random padding in plaintext
+5. **MUST NOT** include identifiable plaintext patterns
+
+**Encrypted Note Format:**
+```
+┌────────────────────────────────────────────────────────────┐
+│  ENCRYPTED NOTE FORMAT (256 bytes fixed)                   │
+├────────────────────────────────────────────────────────────┤
+│  [Nonce: 24 bytes]                                         │
+│  [Ciphertext: 200 bytes padded]                            │
+│    - Amount: 32 bytes                                      │
+│    - Token: 20 bytes                                       │
+│    - Memo: up to 128 bytes                                 │
+│    - Random padding: remaining bytes                       │
+│  [Auth Tag: 16 bytes]                                      │
+│  [Version: 2 bytes]                                        │
+│  [Reserved: 14 bytes]                                      │
+└────────────────────────────────────────────────────────────┘
+```
+
+#### 6.3 Side-Channel Metadata
+
+**Risk Level:** MEDIUM-HIGH
+
+| Side Channel | Information Leaked | Mitigation |
+|--------------|-------------------|------------|
+| IP address | Geographic location | Tor, VPN |
+| Browser fingerprint | Device identity | Tor browser |
+| Wallet address reuse | Identity linkage | Fresh addresses |
+| RPC node logs | Transaction history | Private nodes |
+| ENS/naming services | Identity association | Avoid for private txs |
+
+### 7. Key Derivation Security
+
+#### 7.1 Key Derivation Requirements
+
+**MUST implement:**
+```
+SpendingKeyPair:
+  private = CSPRNG(32 bytes)
+  public  = private · G
+
+ViewingKeyPair:
+  private = HKDF-SHA256(
+    ikm   = spending_private,
+    salt  = "SIP-VIEWING-KEY-DERIVATION",
+    info  = "viewing-key-v1",
+    len   = 32
+  )
+  public = private · G
+```
+
+#### 7.2 Entropy Requirements
+
+| Key Type | Minimum Entropy | Source |
+|----------|-----------------|--------|
+| Spending private key | 256 bits | CSPRNG |
+| Viewing private key | Derived | HKDF from spending |
+| Ephemeral private key | 256 bits | CSPRNG |
+| Blinding factor | 256 bits | CSPRNG |
+
+**CSPRNG Requirements:**
+- Use platform-provided CSPRNG (e.g., `crypto.getRandomValues`, `/dev/urandom`)
+- **NEVER** use `Math.random()` or similar PRNGs
+- Test entropy quality in production environments
+- Implement entropy health monitoring
+
+#### 7.3 Key Storage Security
+
+**Spending Keys (CRITICAL):**
+1. **MUST** encrypt at rest with user-derived key
+2. **MUST** use secure enclave/HSM when available
+3. **SHOULD** support hardware wallet storage
+4. **MUST** implement secure deletion on key rotation
+
+**Viewing Keys (SENSITIVE):**
+1. **SHOULD** encrypt at rest
+2. **MAY** be stored with lower security than spending keys
+3. **MUST** track all viewing key disclosures
+4. **SHOULD** implement access logging
+
+### 8. Compliance vs. Privacy Tradeoffs
+
+#### 8.1 Privacy Levels Analysis
+
+| Level | Privacy | Compliance | Use Case |
+|-------|---------|------------|----------|
+| **TRANSPARENT** | None | Full | Public treasury, grants |
+| **SHIELDED** | Maximum | None | Personal transactions |
+| **COMPLIANT** | Selective | Auditable | Institutional use |
+
+#### 8.2 Selective Disclosure Matrix
+
+```
+                    ┌─────────────────────────────────────────────┐
+                    │         SELECTIVE DISCLOSURE MATRIX         │
+                    ├─────────────────────────────────────────────┤
+                    │                                             │
+                    │   Information      Viewing Key Type         │
+                    │   Disclosed    INCOMING  OUTGOING  FULL     │
+                    │   ──────────   ────────  ────────  ────     │
+                    │   Amounts         ✓         ✓        ✓      │
+                    │   Sender          ✗         ✓        ✓      │
+                    │   Recipient       ✓         ✗        ✓      │
+                    │   Timestamps      ✓         ✓        ✓      │
+                    │   Token type      ✓         ✓        ✓      │
+                    │   Tx history      Partial   Partial  Full   │
+                    │                                             │
+                    └─────────────────────────────────────────────┘
+```
+
+#### 8.3 Regulatory Considerations
+
+**AML/KYC Compatibility:**
+- Viewing keys enable compliance without breaking privacy for uninvolved parties
+- Time-limited keys allow audit windows without permanent exposure
+- Auditor-encrypted keys enable secure key custody
+
+**FATF Travel Rule:**
+- Encrypted notes can include required originator/beneficiary data
+- Only authorized parties can decrypt (regulated entities)
+- Privacy preserved for non-regulated transactions
+
+**GDPR/Data Protection:**
+- Users control their viewing keys (data sovereignty)
+- Right to be forgotten: Viewing keys can be rotated
+- Data minimization: Only required data in encrypted notes
+
+#### 8.4 Tradeoff Recommendations
+
+| Use Case | Recommended Level | Viewing Key Strategy |
+|----------|-------------------|---------------------|
+| Personal payments | SHIELDED | No disclosure |
+| Business expenses | COMPLIANT | Time-limited to accountant |
+| Institutional trading | COMPLIANT | Full key to compliance team |
+| Charitable donations | COMPLIANT | Incoming key to donor for tax |
+| Salary payments | COMPLIANT | Outgoing key to employer |
+
+### 9. Implementation Security Requirements
+
+#### 9.1 Mandatory Requirements
+
+Implementations **MUST**:
+
+1. **Cryptographic Operations**
+   - Use constant-time implementations for all secret-dependent operations
+   - Validate all curve points are on the curve
+   - Reject points at infinity and low-order points
+   - Use secure random number generation (CSPRNG)
+
+2. **Key Management**
+   - Encrypt private keys at rest
+   - Implement secure key deletion (memory zeroization)
+   - Support hardware wallet integration
+   - Log all viewing key disclosures
+
+3. **Input Validation**
+   - Validate all public inputs before processing
+   - Check commitment formats and ranges
+   - Verify stealth meta-address syntax
+   - Sanitize encrypted note contents
+
+4. **Error Handling**
+   - Use constant-time error responses
+   - Avoid leaking information in error messages
+   - Implement rate limiting on sensitive operations
+   - Log security-relevant events
+
+#### 9.2 Recommended Practices
+
+Implementations **SHOULD**:
+
+1. **Network Privacy**
+   - Support Tor/VPN connectivity options
+   - Implement transaction batching
+   - Use multiple RPC endpoints
+   - Add timing jitter to operations
+
+2. **Defense in Depth**
+   - Implement multiple validation layers
+   - Use memory-safe languages where possible
+   - Regular security audits
+   - Bug bounty programs
+
+3. **User Education**
+   - Warn about privacy limitations
+   - Explain viewing key implications
+   - Guide secure key backup
+   - Recommend privacy-preserving practices
+
+#### 9.3 Security Audit Checklist
+
+```
+□ Cryptographic implementation review
+  □ Constant-time operations verified
+  □ RNG quality tested
+  □ Key derivation follows spec
+  □ Commitment scheme correctly implemented
+
+□ Key management review
+  □ Secure storage implemented
+  □ Key deletion verified
+  □ Access controls enforced
+  □ Audit logging functional
+
+□ Protocol implementation review
+  □ All interfaces match specification
+  □ Error handling consistent
+  □ Input validation complete
+  □ Event emissions correct
+
+□ Integration security review
+  □ Network privacy measures
+  □ Third-party dependency audit
+  □ API security review
+  □ Frontend security (if applicable)
+```
+
+### 10. Future Security Considerations
+
+#### 10.1 Quantum Resistance
+
+**Timeline:** 10-20 years for cryptographically-relevant quantum computers
+
+**Vulnerable Components:**
+- Elliptic curve operations (stealth addresses, commitments)
+- ECDH key exchange
+
+**Migration Path:**
+1. **Short-term:** Increase key sizes within classical schemes
+2. **Medium-term:** Hybrid schemes (classical + post-quantum)
+3. **Long-term:** Full transition to post-quantum cryptography
+
+**Recommended Post-Quantum Alternatives:**
+- Key exchange: Kyber (NIST standard)
+- Signatures: Dilithium, SPHINCS+
+- Commitments: Lattice-based schemes
+
+#### 10.2 Quantum-Resistant Storage (WOTS+)
+
+For long-term key protection, SIP recommends WOTS+ (Winternitz One-Time Signature) vaults:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                 QUANTUM-RESISTANT VAULT DESIGN                   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Classical Layer (Current)                                       │
+│  ├── secp256k1 stealth addresses                                 │
+│  ├── Pedersen commitments                                        │
+│  └── Ed25519 signatures                                          │
+│                                                                  │
+│  Quantum-Resistant Layer (Future-Proof Storage)                  │
+│  ├── WOTS+ signatures for vault access                           │
+│  ├── Hash-based key derivation                                   │
+│  └── Commitment to classical keys                                │
+│                                                                  │
+│  Migration: Funds can be moved from classical to QR vault        │
+│             when quantum threat becomes imminent                 │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+See `QUANTUM-RESISTANT-STORAGE.md` for detailed specification.
+
+### 11. Security Guarantees Summary
+
+#### 11.1 What SIP Provides
+
+| Guarantee | Strength | Condition |
+|-----------|----------|-----------|
+| **Recipient Privacy** | Strong | Fresh stealth address per tx |
+| **Amount Privacy** | Perfect | Uniform random blinding |
+| **Sender Privacy** | Medium | Fresh ephemeral keys |
+| **Unlinkability** | Strong | No address/timing correlation |
+| **Compliance Capability** | Strong | Viewing key not compromised |
+
+#### 11.2 What SIP Does NOT Provide
+
+| Non-Guarantee | Reason | Mitigation |
+|---------------|--------|------------|
+| **Network anonymity** | Out of scope | Use Tor/VPN |
+| **Traffic analysis resistance** | Out of scope | Batching, delays |
+| **Forward secrecy** | Viewing key design | Time-limited keys |
+| **Post-quantum security** | Classical cryptography | Migration path |
+| **Implementation security** | Varies by implementation | Audits required |
 
 ## Copyright
 
