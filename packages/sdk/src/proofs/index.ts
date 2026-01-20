@@ -131,6 +131,27 @@ export type {
   VerifyOptions,
 } from './verifier'
 
+// Cross-System Validator
+export {
+  CrossSystemValidator,
+  createCrossSystemValidator,
+  SYSTEM_INFO,
+  BN254_MODULUS,
+  PALLAS_MODULUS,
+  VESTA_MODULUS,
+  BLS12_381_MODULUS,
+} from './validator'
+
+export type {
+  EllipticCurve,
+  FieldCharacteristics,
+  SystemInfo,
+  ValidationCheck,
+  ValidationReport,
+  CompatibilityEntry,
+  ValidationOptions,
+} from './validator'
+
 // Composer interfaces and errors
 export {
   type ComposableProofProvider,
