@@ -47,7 +47,7 @@ function getCpuCores(): number {
   }
   // Node.js
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const os = require('os')
     return os.cpus().length
   } catch {
@@ -73,7 +73,7 @@ function getMemoryInfo(): { total: number; available: number } {
   }
   // Node.js
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const os = require('os')
     return {
       total: os.totalmem(),
