@@ -236,10 +236,12 @@ export class WorkerPool implements IWorkerPool {
 
     // Apply options
     if (options?.priority) {
-      ;(task as { priority: typeof options.priority }).priority = options.priority
+      const t = task as { priority: typeof options.priority }
+      t.priority = options.priority
     }
     if (options?.maxRetries !== undefined) {
-      ;(task as { maxRetries: number }).maxRetries = options.maxRetries
+      const t = task as { maxRetries: number }
+      t.maxRetries = options.maxRetries
     }
 
     return new Promise((resolve, reject) => {
