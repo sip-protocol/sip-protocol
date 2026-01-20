@@ -16,6 +16,7 @@ import {
   createSwapCommand,
   createScanCommand,
   createBackendsCommand,
+  createProofCommand,
 } from '../src/commands'
 
 // Suppress console output during tests
@@ -83,6 +84,12 @@ describe('CLI Commands', () => {
       const cmd = createBackendsCommand()
       expect(cmd).toBeInstanceOf(Command)
       expect(cmd.name()).toBe('backends')
+    })
+
+    it('should create proof command', () => {
+      const cmd = createProofCommand()
+      expect(cmd).toBeInstanceOf(Command)
+      expect(cmd.name()).toBe('proof')
     })
   })
 
@@ -190,6 +197,113 @@ describe('CLI Commands', () => {
     })
   })
 
+  describe('Proof Command (M20)', () => {
+    it('should have generate subcommand', () => {
+      const cmd = createProofCommand()
+      const subcommands = cmd.commands.map(c => c.name())
+      expect(subcommands).toContain('generate')
+    })
+
+    it('should have compose subcommand', () => {
+      const cmd = createProofCommand()
+      const subcommands = cmd.commands.map(c => c.name())
+      expect(subcommands).toContain('compose')
+    })
+
+    it('should have verify subcommand', () => {
+      const cmd = createProofCommand()
+      const subcommands = cmd.commands.map(c => c.name())
+      expect(subcommands).toContain('verify')
+    })
+
+    it('should have inspect subcommand', () => {
+      const cmd = createProofCommand()
+      const subcommands = cmd.commands.map(c => c.name())
+      expect(subcommands).toContain('inspect')
+    })
+
+    it('should have convert subcommand', () => {
+      const cmd = createProofCommand()
+      const subcommands = cmd.commands.map(c => c.name())
+      expect(subcommands).toContain('convert')
+    })
+
+    it('should have systems subcommand', () => {
+      const cmd = createProofCommand()
+      const subcommands = cmd.commands.map(c => c.name())
+      expect(subcommands).toContain('systems')
+    })
+
+    it('should have compat subcommand', () => {
+      const cmd = createProofCommand()
+      const subcommands = cmd.commands.map(c => c.name())
+      expect(subcommands).toContain('compat')
+    })
+
+    it('generate should have --system option', () => {
+      const cmd = createProofCommand()
+      const genCmd = cmd.commands.find(c => c.name() === 'generate')
+      const options = genCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--system')
+    })
+
+    it('generate should have --circuit option', () => {
+      const cmd = createProofCommand()
+      const genCmd = cmd.commands.find(c => c.name() === 'generate')
+      const options = genCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--circuit')
+    })
+
+    it('generate should have --json option', () => {
+      const cmd = createProofCommand()
+      const genCmd = cmd.commands.find(c => c.name() === 'generate')
+      const options = genCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--json')
+    })
+
+    it('compose should have --proofs option', () => {
+      const cmd = createProofCommand()
+      const composeCmd = cmd.commands.find(c => c.name() === 'compose')
+      const options = composeCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--proofs')
+    })
+
+    it('compose should have --template option', () => {
+      const cmd = createProofCommand()
+      const composeCmd = cmd.commands.find(c => c.name() === 'compose')
+      const options = composeCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--template')
+    })
+
+    it('verify should have --json option', () => {
+      const cmd = createProofCommand()
+      const verifyCmd = cmd.commands.find(c => c.name() === 'verify')
+      const options = verifyCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--json')
+    })
+
+    it('convert should have --to option', () => {
+      const cmd = createProofCommand()
+      const convertCmd = cmd.commands.find(c => c.name() === 'convert')
+      const options = convertCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--to')
+    })
+
+    it('systems should have --json option', () => {
+      const cmd = createProofCommand()
+      const systemsCmd = cmd.commands.find(c => c.name() === 'systems')
+      const options = systemsCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--json')
+    })
+
+    it('compat should have --json option', () => {
+      const cmd = createProofCommand()
+      const compatCmd = cmd.commands.find(c => c.name() === 'compat')
+      const options = compatCmd?.options.map(o => o.long || o.short) || []
+      expect(options).toContain('--json')
+    })
+  })
+
   describe('Command Descriptions', () => {
     it('all commands should have descriptions', () => {
       const commands = [
@@ -202,6 +316,7 @@ describe('CLI Commands', () => {
         createSwapCommand(),
         createScanCommand(),
         createBackendsCommand(),
+        createProofCommand(),
       ]
 
       commands.forEach(cmd => {
@@ -227,6 +342,7 @@ describe('Main Program', () => {
     program.addCommand(createSwapCommand())
     program.addCommand(createScanCommand())
     program.addCommand(createBackendsCommand())
+    program.addCommand(createProofCommand())
 
     const commandNames = program.commands.map(c => c.name())
     expect(commandNames).toContain('init')
@@ -238,5 +354,6 @@ describe('Main Program', () => {
     expect(commandNames).toContain('swap')
     expect(commandNames).toContain('scan')
     expect(commandNames).toContain('backends')
+    expect(commandNames).toContain('proof')
   })
 })
