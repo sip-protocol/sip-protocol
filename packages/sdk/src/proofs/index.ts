@@ -152,6 +152,26 @@ export type {
   ValidationOptions,
 } from './validator'
 
+// Proof Orchestrator
+export {
+  ProofOrchestrator,
+  createProofOrchestrator,
+  DEFAULT_ORCHESTRATOR_CONFIG,
+  BUILTIN_TEMPLATES,
+} from './orchestrator'
+
+export type {
+  OrchestratorConfig,
+  CompositionState,
+  CompositionPlan,
+  CompositionRequest,
+  OrchestratorResult,
+  AuditLogEntry,
+  OrchestratorProgressEvent,
+  OrchestratorProgressCallback,
+  CompositionTemplate,
+} from './orchestrator'
+
 // Composer interfaces and errors
 export {
   type ComposableProofProvider,
