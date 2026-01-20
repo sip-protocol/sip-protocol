@@ -322,3 +322,69 @@ export type {
   CompositionProgressEvent,
   CompositionEventListener,
 } from '@sip-protocol/types'
+
+// ─── Proof Caching Layer (M20-13) ────────────────────────────────────────────
+
+// Cache implementations
+export {
+  LRUCache,
+  createLRUCache,
+  IndexedDBCache,
+  FileCache,
+  createPersistentCache,
+  createIndexedDBCache,
+  createFileCache,
+  MultiTierCache,
+  createMultiTierCache,
+} from './cache'
+
+// Cache key generator
+export {
+  CacheKeyGenerator,
+  createCacheKeyGenerator,
+  cacheKeyGenerator,
+} from './cache'
+
+// Cache configuration defaults
+export {
+  DEFAULT_LRU_CONFIG,
+  DEFAULT_PERSISTENT_CONFIG,
+  DEFAULT_MULTI_TIER_CONFIG,
+  DEFAULT_WARMING_CONFIG,
+  INITIAL_PROOF_CACHE_STATS,
+} from './cache'
+
+// Cache types
+export type {
+  // Cache Key
+  CacheKeyComponents,
+  CacheKey,
+  // Cache Entry
+  CacheEntryMetadata,
+  CacheEntry,
+  CacheLookupResult,
+  // Configuration
+  LRUCacheConfig,
+  PersistentCacheConfig,
+  MultiTierCacheConfig,
+  // Statistics
+  ProofCacheStats,
+  // Events
+  CacheEventType,
+  CacheEvent,
+  CacheEventListener,
+  // Invalidation
+  InvalidationStrategy,
+  InvalidationRule,
+  // Warming
+  CacheWarmingConfig,
+  WarmingResult,
+  // Interfaces
+  ICacheKeyGenerator,
+  IProofCache,
+  ILRUCache,
+  IPersistentCache,
+  IMultiTierCache,
+  IVerificationKeyCache,
+  ICompiledCircuitCache,
+} from './cache'
