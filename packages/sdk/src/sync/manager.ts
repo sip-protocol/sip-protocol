@@ -252,7 +252,10 @@ export class SyncManager {
           )
         )
         for (const notes of results) {
-          allNotes.push(...notes)
+          // Use concat to avoid stack overflow with large arrays
+          for (const note of notes) {
+            allNotes.push(note)
+          }
         }
       } else {
         // Sequential sync
@@ -261,7 +264,10 @@ export class SyncManager {
             throw new Error('Sync aborted')
           }
           const notes = await this.syncChain(chainId, viewingKey, spendingKey, options)
-          allNotes.push(...notes)
+          // Use loop to avoid stack overflow with large arrays
+          for (const note of notes) {
+            allNotes.push(note)
+          }
         }
       }
 
@@ -457,7 +463,10 @@ export class SyncManager {
 
       // Scan for notes (obliviously)
       const notes = await provider.scanForNotes(viewingKey.key, blockRange)
-      allNotes.push(...notes)
+      // Use loop to avoid stack overflow with large arrays
+      for (const note of notes) {
+        allNotes.push(note)
+      }
 
       // Emit progress
       const percentComplete = Number((endHeight * 100n) / currentHeight)

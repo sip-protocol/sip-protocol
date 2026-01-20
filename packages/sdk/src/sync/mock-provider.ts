@@ -44,7 +44,7 @@ export const DEFAULT_MOCK_CONFIG: MockSyncProviderConfig = {
   chains: ['ethereum', 'solana', 'near'],
   latencyMs: 100,
   noteProbability: 0.3,
-  blockHeight: 1_000_000n,
+  blockHeight: 10_000n, // Reasonable default for testing (not 1M blocks)
   failProbability: 0,
 }
 
