@@ -189,7 +189,7 @@ contract PedersenVerifier is IPedersenVerifier {
      * @return x X-coordinate
      * @return y Y-coordinate
      */
-    function _decompressPoint(bytes calldata point) internal pure returns (uint256 x, uint256 y) {
+    function _decompressPoint(bytes calldata point) internal view returns (uint256 x, uint256 y) {
         if (point.length == 64) {
             // Uncompressed: just x, y
             assembly {
@@ -218,7 +218,7 @@ contract PedersenVerifier is IPedersenVerifier {
      * @param odd Whether y should be odd
      * @return y Y-coordinate
      */
-    function _computeY(uint256 x, bool odd) internal pure returns (uint256 y) {
+    function _computeY(uint256 x, bool odd) internal view returns (uint256 y) {
         // y^2 = x^3 + 7 (mod p)
         uint256 y2 = addmod(mulmod(mulmod(x, x, P), x, P), 7, P);
 
@@ -295,7 +295,7 @@ contract PedersenVerifier is IPedersenVerifier {
         uint256 base,
         uint256 exp,
         uint256 mod
-    ) internal pure returns (uint256 result) {
+    ) internal view returns (uint256 result) {
         // modexp precompile at address 0x05
         bytes memory input = abi.encodePacked(
             uint256(32), // base length

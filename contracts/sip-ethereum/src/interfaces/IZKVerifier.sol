@@ -12,7 +12,7 @@ interface IZKVerifier {
      * @param proof The serialized proof
      * @return True if proof is valid
      */
-    function verifyProof(bytes32 commitment, bytes calldata proof) external view returns (bool);
+    function verifyProof(bytes32 commitment, bytes calldata proof) external returns (bool);
 
     /**
      * @notice Verify a funding proof (balance >= minimum)
@@ -27,7 +27,7 @@ interface IZKVerifier {
         uint256 minimumRequired,
         bytes32 assetId,
         bytes calldata proof
-    ) external view returns (bool);
+    ) external returns (bool);
 
     /**
      * @notice Verify a validity proof (intent authorization)
@@ -42,5 +42,5 @@ interface IZKVerifier {
         bytes32 senderCommitment,
         bytes32 nullifier,
         bytes calldata proof
-    ) external view returns (bool);
+    ) external returns (bool);
 }

@@ -44,7 +44,7 @@ contract DeployScript is Script {
     address public feeCollector;
     uint256 public feeBps;
 
-    function setUp() public {
+    function setUp() public virtual {
         // Load from environment or use deployer as default
         owner = vm.envOr("OWNER_ADDRESS", msg.sender);
         feeCollector = vm.envOr("FEE_COLLECTOR", msg.sender);
@@ -136,7 +136,7 @@ contract DeployTestnetScript is DeployScript {
 contract UpgradeVerifiersScript is Script {
     function run() external {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
-        address sipPrivacyAddress = vm.envAddress("SIP_PRIVACY_ADDRESS");
+        address payable sipPrivacyAddress = payable(vm.envAddress("SIP_PRIVACY_ADDRESS"));
 
         vm.startBroadcast(deployerKey);
 

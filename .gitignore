@@ -83,6 +83,19 @@ pnpm-debug.log*
 .vercel/
 
 # ----------------------------------------
+# Foundry (Solidity)
+# ----------------------------------------
+contracts/**/cache/
+contracts/**/out/
+contracts/**/lib/
+
+# ----------------------------------------
+# Rust (Halo2 POC)
+# ----------------------------------------
+research/**/target/
+research/**/Cargo.lock
+
+# ----------------------------------------
 # Misc
 # ----------------------------------------
 *.local
@@ -92,3 +105,4 @@ temp/
 packages/sdk/benchmarks/results.json
 .claude/
 .playwright-mcp/
+**/package-lock.json
