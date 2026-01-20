@@ -1441,3 +1441,55 @@ export {
   rotateCircuit,
   createNetworkPrivacyClient,
 } from './network'
+
+// ─── Oblivious Sync (M20-27) ────────────────────────────────────────────────
+
+// Oblivious synchronization where sync services learn NOTHING about user transactions
+// Inspired by Project Tachyon: https://seanbowe.com/blog/tachyon-scaling-zcash-oblivious-synchronization/
+export {
+  // Types (ChainId already exported from solana module)
+  type BlockRange,
+  type EncryptedNote,
+  type MerkleProof,
+  type SyncRandomness,
+  type ObliviousNullifier,
+  type ObliviousSyncQuery,
+  type ObliviousSyncResponse,
+  type SyncServiceHealth,
+  type ObliviousSyncConfig,
+  type ObliviousSyncProvider,
+  type WalletSyncState,
+  type TimeWindowedViewingKey,
+  type MockSyncProviderConfig,
+  type SyncManagerConfig,
+  type SyncProgressEvent,
+  type SyncCompletionEvent,
+  type SyncEventListener,
+  type SyncOptions,
+  // Constants
+  DEFAULT_SYNC_CONFIG,
+  DEFAULT_MOCK_CONFIG,
+  DEFAULT_MANAGER_CONFIG,
+  // Sync randomness functions
+  generateSyncRandomness,
+  isSyncRandomnessValid,
+  getCurrentEpoch,
+  // Nullifier functions
+  deriveObliviousNullifier,
+  deriveTraditionalNullifier,
+  // Sync state management
+  createSyncState,
+  updateSyncState,
+  // Viewing key integration
+  createTimeWindowedKey,
+  isNoteInWindow,
+  // Errors
+  ObliviousSyncError,
+  ObliviousSyncErrorCode,
+  // Mock provider
+  MockObliviousSyncProvider,
+  createMockSyncProvider,
+  // Sync manager
+  SyncManager,
+  createSyncManager,
+} from './sync'
