@@ -19,3 +19,16 @@ export type {
   Halo2CircuitConfig,
   Halo2ProvingKey,
 } from './halo2'
+
+// Kimchi Provider (Mina)
+export {
+  KimchiProvider,
+  createKimchiProvider,
+  createMinaMainnetProvider,
+  createZkAppProvider,
+} from './kimchi'
+
+export type {
+  KimchiProviderConfig,
+  KimchiCircuitConfig,
+} from './kimchi'

@@ -112,12 +112,18 @@ export {
   Halo2Provider,
   createHalo2Provider,
   createOrchardProvider,
+  KimchiProvider,
+  createKimchiProvider,
+  createMinaMainnetProvider,
+  createZkAppProvider,
 } from './providers'
 
 export type {
   Halo2ProviderConfig,
   Halo2CircuitConfig,
   Halo2ProvingKey,
+  KimchiProviderConfig,
+  KimchiCircuitConfig,
 } from './providers'
 
 // Composer SDK types
