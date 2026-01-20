@@ -1,0 +1,34 @@
+{
+  "name": "sip-kimchi-poc",
+  "version": "0.1.0",
+  "description": "SIP Protocol Kimchi/o1js Proof-of-Concept",
+  "type": "module",
+  "main": "build/src/main.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/main.ts",
+    "simple": "tsx src/simple.ts",
+    "commitment": "tsx src/commitment.ts",
+    "recursion": "tsx src/recursion.ts",
+    "test": "vitest run",
+    "clean": "rm -rf build"
+  },
+  "keywords": [
+    "zk",
+    "zero-knowledge",
+    "mina",
+    "o1js",
+    "kimchi",
+    "sip"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "o1js": "^1.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}

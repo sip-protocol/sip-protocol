@@ -1,0 +1,47 @@
+[package]
+name = "sip-halo2-poc"
+version = "0.1.0"
+edition = "2021"
+description = "SIP Protocol Halo2 Proof-of-Concept"
+license = "MIT"
+
+[dependencies]
+# Halo2 from PSE (Privacy & Scaling Explorations) - more actively maintained
+halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2", tag = "v0.3.0" }
+
+# Pasta curves (Pallas/Vesta cycle)
+pasta_curves = "0.5"
+
+# Utilities
+rand = "0.8"
+rand_core = { version = "0.6", features = ["std"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Hashing
+sha2 = "0.10"
+blake2 = "0.10"
+
+# CLI
+clap = { version = "4.4", features = ["derive"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bin]]
+name = "sip-halo2-poc"
+path = "src/main.rs"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
