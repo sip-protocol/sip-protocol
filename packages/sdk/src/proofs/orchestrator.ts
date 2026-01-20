@@ -397,7 +397,7 @@ export class ProofOrchestrator {
     const recommendations: string[] = []
 
     // Apply template if specified
-    let proofRequests = [...request.proofs]
+    const proofRequests = [...request.proofs]
     let strategy = request.strategy || Strategy.SEQUENTIAL
 
     if (request.template) {
