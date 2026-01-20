@@ -30,6 +30,16 @@
       "types": "./dist/proofs/noir.d.ts",
       "import": "./dist/proofs/noir.mjs",
       "require": "./dist/proofs/noir.js"
+    },
+    "./proofs/halo2": {
+      "types": "./dist/proofs/halo2.d.ts",
+      "import": "./dist/proofs/halo2.mjs",
+      "require": "./dist/proofs/halo2.js"
+    },
+    "./proofs/kimchi": {
+      "types": "./dist/proofs/kimchi.d.ts",
+      "import": "./dist/proofs/kimchi.mjs",
+      "require": "./dist/proofs/kimchi.js"
     }
   },
   "files": [
@@ -37,8 +47,8 @@
     "src"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/browser.ts src/proofs/noir.ts --format cjs,esm --dts",
-    "dev": "tsup src/index.ts src/browser.ts src/proofs/noir.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts src/browser.ts src/proofs/noir.ts src/proofs/halo2.ts src/proofs/kimchi.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/browser.ts src/proofs/noir.ts src/proofs/halo2.ts src/proofs/kimchi.ts --format cjs,esm --dts --watch",
     "lint": "eslint --ext .ts src/",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
