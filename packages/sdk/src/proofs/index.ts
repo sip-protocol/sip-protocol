@@ -293,6 +293,66 @@ export type {
   ProofTelemetryMetrics,
 } from './composer'
 
+// ─── Lazy Proof Generation (M20-14) ─────────────────────────────────────────
+
+// Lazy Proof
+export {
+  LazyProof,
+  createLazyProof,
+  DEFAULT_LAZY_CONFIG,
+} from './lazy'
+
+export type {
+  LazyProofStatus,
+  ProofTrigger,
+  ProofPriority,
+  LazyProofConfig,
+  ProofGenerator,
+  LazyProofEventType,
+  LazyProofEvent,
+  LazyProofEventListener,
+  SerializedLazyProof,
+} from './lazy'
+
+// Proof Generation Queue
+export {
+  ProofGenerationQueue,
+  createProofQueue,
+  DEFAULT_QUEUE_CONFIG,
+} from './lazy'
+
+export type {
+  ProofQueueConfig,
+  QueueStats,
+} from './lazy'
+
+// Lazy Verification Keys
+export {
+  LazyVerificationKey,
+  VerificationKeyRegistry,
+  createVKRegistry,
+} from './lazy'
+
+// Speculative Prefetching
+export {
+  SpeculativePrefetcher,
+  createPrefetcher,
+  DEFAULT_PREFETCH_CONFIG,
+} from './lazy'
+
+export type {
+  PrefetchConfig,
+} from './lazy'
+
+// Error handling
+export {
+  LazyProofError,
+} from './lazy'
+
+export type {
+  LazyProofErrorCode,
+} from './lazy'
+
 // Re-export base types from @sip-protocol/types for convenience
 export {
   ProofAggregationStrategy,
