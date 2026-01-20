@@ -1524,3 +1524,47 @@ export type {
   ChainCharacteristics,
   UnifiedOptimizationResult,
 } from './optimizations'
+
+// ─── Fee Module ──────────────────────────────────────────────────────────────
+
+export {
+  // Calculator
+  FeeCalculator,
+  createFeeCalculator,
+  estimateFee,
+  formatFee,
+  bpsToPercent,
+  percentToBps,
+  DEFAULT_FEE_TIERS,
+  DEFAULT_CHAIN_FEES,
+  // NEAR Contract
+  NEARFeeContract,
+  createNEARFeeContract,
+  createMainnetFeeContract,
+  createTestnetFeeContract,
+  calculateFeeForSwap,
+  NEAR_FEE_CONTRACTS,
+  DEFAULT_TREASURY,
+} from './fees'
+
+export type {
+  // Fee types
+  FeeModel,
+  FeeTier,
+  ChainFeeConfig,
+  FeeCalculationInput,
+  FeeCalculationResult,
+  FeeBreakdown,
+  TreasuryConfig as FeeTreasuryConfig, // Aliased to avoid conflict with existing TreasuryConfig
+  FeeCollectionEvent,
+  FeeStats,
+  FeeContractState,
+  FeeContractMethods,
+  FeeWaiverType,
+  FeeWaiver,
+  FeeGovernanceProposal,
+  FeeCalculatorOptions,
+  NEARFeeContractOptions,
+  FeeCollectionParams,
+  FeeCollectionResult,
+} from './fees'
