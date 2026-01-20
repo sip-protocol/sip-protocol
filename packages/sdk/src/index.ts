@@ -290,6 +290,21 @@ export {
   DEFAULT_MULTI_TIER_CONFIG,
   DEFAULT_WARMING_CONFIG,
   INITIAL_PROOF_CACHE_STATS,
+  // ─── Proof Format Converters (M20-08) ──────────────────────────────────────────
+  NoirProofConverter,
+  createNoirConverter,
+  Halo2ProofConverter,
+  createHalo2Converter,
+  KimchiProofConverter,
+  createKimchiConverter,
+  UnifiedProofConverter,
+  createUnifiedConverter,
+  convertToSIP,
+  convertFromSIP,
+  ProofConversionError,
+  InvalidProofError,
+  UnsupportedVersionError,
+  DEFAULT_CONVERSION_OPTIONS,
 } from './proofs'
 
 export type {
@@ -425,6 +440,20 @@ export type {
   IMultiTierCache,
   IVerificationKeyCache,
   ICompiledCircuitCache,
+  // ─── Proof Converter Types (M20-08) ─────────────────────────────────────────
+  NativeProofFormat,
+  NoirNativeProof,
+  Halo2NativeProof,
+  KimchiNativeProof,
+  ConversionOptions,
+  ConversionResult as ConverterConversionResult,
+  ConversionMetadata,
+  ConversionErrorCode,
+  ProofConverter,
+  ValidationResult as ConverterValidationResult,
+  ValidationError as ConverterValidationError,
+  AnyNativeProof,
+  ProofSystemToNativeMap,
 } from './proofs'
 
 // Oracle attestation (for fulfillment proofs)
