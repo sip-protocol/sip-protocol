@@ -434,13 +434,192 @@ Key derivation: HKDF-SHA256(sharedSecret, "SIP-NOTE-ENCRYPTION")
 
 ### 7. Interface Specification
 
-#### 7.1 Solidity Interface
+This section defines the core interfaces that implementations MUST provide for SIP compliance. Interfaces are specified in both Solidity (for on-chain) and TypeScript (for SDKs).
+
+#### 7.1 Interface Versioning
+
+All SIP interfaces follow semantic versioning with the following rules:
+
+```
+INTERFACE_VERSION = "1.0.0"
+
+Version Format: MAJOR.MINOR.PATCH
+
+MAJOR: Breaking changes (method signatures, return types)
+MINOR: Additive changes (new methods, new optional parameters)
+PATCH: Documentation, bug fixes, clarifications
+```
+
+**Version Query:**
 
 ```solidity
-interface ISIP {
-    /// @notice Generate stealth address for recipient
-    /// @param spendingPubKey Recipient's spending public key (compressed)
-    /// @param viewingPubKey Recipient's viewing public key (compressed)
+interface ISIPVersioned {
+    /// @notice Returns the interface version
+    /// @return version Semantic version string (e.g., "1.0.0")
+    function sipVersion() external pure returns (string memory version);
+
+    /// @notice Returns supported interface IDs
+    /// @return interfaceIds Array of supported interface identifiers
+    function supportedInterfaces() external pure returns (bytes4[] memory interfaceIds);
+}
+```
+
+**Interface IDs (ERC-165):**
+
+```
+ISIPProvider:            0x5310a1f0
+ISIPWallet:              0x8f2e4c3b
+IStealthAddressGenerator: 0x7a9d2e1c
+IViewingKeyProvider:     0x3b8c4d5a
+```
+
+#### 7.2 Error Codes
+
+SIP defines standard error codes for consistent error handling across implementations:
+
+```solidity
+/// @notice Standard SIP error codes
+library SIPErrors {
+    // General errors (0x01XX)
+    error InvalidInput(string reason);           // 0x0100
+    error Unauthorized(address caller);          // 0x0101
+    error NotInitialized();                      // 0x0102
+    error AlreadyInitialized();                  // 0x0103
+    error InsufficientFunds(uint256 required, uint256 available); // 0x0104
+    error Expired(uint256 deadline, uint256 current);             // 0x0105
+
+    // Stealth address errors (0x02XX)
+    error InvalidStealthMetaAddress(string reason);  // 0x0200
+    error InvalidPublicKey(bytes key);               // 0x0201
+    error StealthAddressGenerationFailed();          // 0x0202
+    error InvalidEphemeralKey(bytes key);            // 0x0203
+    error ScanningFailed(string reason);             // 0x0204
+
+    // Commitment errors (0x03XX)
+    error InvalidCommitment(bytes32 commitment);     // 0x0300
+    error CommitmentVerificationFailed();            // 0x0301
+    error InvalidBlindingFactor();                   // 0x0302
+    error ValueOutOfRange(uint256 value, uint256 max); // 0x0303
+    error HomomorphicOperationFailed(string reason); // 0x0304
+
+    // Viewing key errors (0x04XX)
+    error InvalidViewingKey(bytes key);              // 0x0400
+    error ViewingKeyNotRegistered(address account);  // 0x0401
+    error UnauthorizedViewer(address viewer);        // 0x0402
+    error DecryptionFailed(string reason);           // 0x0403
+    error ViewingKeyExpired(uint256 expiry);         // 0x0404
+
+    // Privacy level errors (0x05XX)
+    error InvalidPrivacyLevel(uint8 level);          // 0x0500
+    error PrivacyLevelMismatch(uint8 expected, uint8 actual); // 0x0501
+    error ComplianceRequired();                      // 0x0502
+
+    // Transfer errors (0x06XX)
+    error TransferFailed(string reason);             // 0x0600
+    error InvalidRecipient(address recipient);       // 0x0601
+    error InvalidAmount();                           // 0x0602
+    error SlippageExceeded(uint256 expected, uint256 actual); // 0x0603
+
+    // Proof errors (0x07XX)
+    error ProofGenerationFailed(string reason);      // 0x0700
+    error ProofVerificationFailed();                 // 0x0701
+    error InvalidProofFormat();                      // 0x0702
+}
+```
+
+**TypeScript Error Enumeration:**
+
+```typescript
+enum SIPErrorCode {
+  // General errors
+  INVALID_INPUT = 'SIP_ERR_0100',
+  UNAUTHORIZED = 'SIP_ERR_0101',
+  NOT_INITIALIZED = 'SIP_ERR_0102',
+  ALREADY_INITIALIZED = 'SIP_ERR_0103',
+  INSUFFICIENT_FUNDS = 'SIP_ERR_0104',
+  EXPIRED = 'SIP_ERR_0105',
+
+  // Stealth address errors
+  INVALID_STEALTH_META_ADDRESS = 'SIP_ERR_0200',
+  INVALID_PUBLIC_KEY = 'SIP_ERR_0201',
+  STEALTH_ADDRESS_GENERATION_FAILED = 'SIP_ERR_0202',
+  INVALID_EPHEMERAL_KEY = 'SIP_ERR_0203',
+  SCANNING_FAILED = 'SIP_ERR_0204',
+
+  // Commitment errors
+  INVALID_COMMITMENT = 'SIP_ERR_0300',
+  COMMITMENT_VERIFICATION_FAILED = 'SIP_ERR_0301',
+  INVALID_BLINDING_FACTOR = 'SIP_ERR_0302',
+  VALUE_OUT_OF_RANGE = 'SIP_ERR_0303',
+  HOMOMORPHIC_OPERATION_FAILED = 'SIP_ERR_0304',
+
+  // Viewing key errors
+  INVALID_VIEWING_KEY = 'SIP_ERR_0400',
+  VIEWING_KEY_NOT_REGISTERED = 'SIP_ERR_0401',
+  UNAUTHORIZED_VIEWER = 'SIP_ERR_0402',
+  DECRYPTION_FAILED = 'SIP_ERR_0403',
+  VIEWING_KEY_EXPIRED = 'SIP_ERR_0404',
+
+  // Privacy level errors
+  INVALID_PRIVACY_LEVEL = 'SIP_ERR_0500',
+  PRIVACY_LEVEL_MISMATCH = 'SIP_ERR_0501',
+  COMPLIANCE_REQUIRED = 'SIP_ERR_0502',
+
+  // Transfer errors
+  TRANSFER_FAILED = 'SIP_ERR_0600',
+  INVALID_RECIPIENT = 'SIP_ERR_0601',
+  INVALID_AMOUNT = 'SIP_ERR_0602',
+  SLIPPAGE_EXCEEDED = 'SIP_ERR_0603',
+
+  // Proof errors
+  PROOF_GENERATION_FAILED = 'SIP_ERR_0700',
+  PROOF_VERIFICATION_FAILED = 'SIP_ERR_0701',
+  INVALID_PROOF_FORMAT = 'SIP_ERR_0702',
+}
+
+class SIPError extends Error {
+  constructor(
+    public readonly code: SIPErrorCode,
+    message: string,
+    public readonly details?: Record<string, unknown>
+  ) {
+    super(`[${code}] ${message}`)
+    this.name = 'SIPError'
+  }
+}
+```
+
+#### 7.3 ISIPProvider Interface
+
+The primary interface for SIP implementations. Providers aggregate all SIP functionality.
+
+**Solidity:**
+
+```solidity
+/// @title ISIPProvider
+/// @notice Primary interface for SIP Protocol implementations
+/// @dev Aggregates stealth address, commitment, and transfer functionality
+interface ISIPProvider is ISIPVersioned {
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // INITIALIZATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Initialize the provider with configuration
+    /// @param config Encoded configuration parameters
+    function initialize(bytes calldata config) external;
+
+    /// @notice Check if provider is ready for operations
+    /// @return ready True if initialized and operational
+    function isReady() external view returns (bool ready);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEALTH ADDRESS OPERATIONS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Generate a stealth address for recipient
+    /// @param spendingPubKey Recipient's spending public key (compressed, 33 bytes)
+    /// @param viewingPubKey Recipient's viewing public key (compressed, 33 bytes)
     /// @return stealthAddress The generated one-time stealth address
     /// @return ephemeralPubKey Ephemeral public key for recipient scanning
     function generateStealthAddress(
@@ -448,15 +627,37 @@ interface ISIP {
         bytes calldata viewingPubKey
     ) external returns (address stealthAddress, bytes memory ephemeralPubKey);
 
-    /// @notice Create Pedersen commitment for amount
-    /// @param amount The value to commit
-    /// @return commitment The Pedersen commitment (compressed point)
-    /// @return blindingFactor The random blinding factor used
+    /// @notice Parse a stealth meta-address string
+    /// @param metaAddress The stealth meta-address (e.g., "sip:ethereum:0x....:0x....")
+    /// @return chain Chain identifier
+    /// @return spendingPubKey Spending public key
+    /// @return viewingPubKey Viewing public key
+    function parseStealthMetaAddress(
+        string calldata metaAddress
+    ) external pure returns (string memory chain, bytes memory spendingPubKey, bytes memory viewingPubKey);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // COMMITMENT OPERATIONS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Create a Pedersen commitment for an amount
+    /// @param amount The value to commit (must be < curve order)
+    /// @return commitment The commitment point (33 bytes compressed)
+    /// @return blindingFactor The random blinding factor used (32 bytes)
     function createCommitment(
         uint256 amount
     ) external returns (bytes32 commitment, bytes32 blindingFactor);
 
-    /// @notice Verify commitment matches claimed amount
+    /// @notice Create a commitment with a specific blinding factor
+    /// @param amount The value to commit
+    /// @param blindingFactor The blinding factor to use
+    /// @return commitment The commitment point
+    function createCommitmentWithBlinding(
+        uint256 amount,
+        bytes32 blindingFactor
+    ) external pure returns (bytes32 commitment);
+
+    /// @notice Verify a commitment opening
     /// @param commitment The commitment to verify
     /// @param amount The claimed amount
     /// @param blindingFactor The blinding factor
@@ -467,27 +668,756 @@ interface ISIP {
         bytes32 blindingFactor
     ) external pure returns (bool valid);
 
-    /// @notice Execute shielded transfer
-    /// @param intent The shielded intent data
-    /// @return success True if transfer succeeded
+    /// @notice Add two commitments homomorphically
+    /// @param c1 First commitment
+    /// @param c2 Second commitment
+    /// @return sum Commitment to sum of values
+    function addCommitments(
+        bytes32 c1,
+        bytes32 c2
+    ) external pure returns (bytes32 sum);
+
+    /// @notice Subtract two commitments homomorphically
+    /// @param c1 First commitment
+    /// @param c2 Second commitment
+    /// @return diff Commitment to difference of values
+    function subtractCommitments(
+        bytes32 c1,
+        bytes32 c2
+    ) external pure returns (bytes32 diff);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // TRANSFER OPERATIONS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Execute a shielded transfer
+    /// @param intent The shielded intent containing transfer details
+    /// @return success True if transfer executed successfully
+    /// @return txId Transaction identifier for tracking
     function executeShieldedTransfer(
         ShieldedIntent calldata intent
-    ) external payable returns (bool success);
+    ) external payable returns (bool success, bytes32 txId);
 
-    /// @notice Register viewing key hash for discoverability
-    /// @param viewingKeyHash Hash of the viewing key
-    function registerViewingKey(bytes32 viewingKeyHash) external;
+    /// @notice Get transfer status
+    /// @param txId Transaction identifier
+    /// @return status Current status of the transfer
+    function getTransferStatus(
+        bytes32 txId
+    ) external view returns (TransferStatus status);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // CONSTANTS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Get the generator point G
+    /// @return x X coordinate (32 bytes)
+    /// @return y Y coordinate (32 bytes)
+    function generatorG() external pure returns (bytes32 x, bytes32 y);
+
+    /// @notice Get the Pedersen generator H
+    /// @return x X coordinate (32 bytes)
+    /// @return y Y coordinate (32 bytes)
+    function generatorH() external pure returns (bytes32 x, bytes32 y);
+}
+
+/// @notice Transfer status enumeration
+enum TransferStatus {
+    PENDING,      // Transfer submitted, awaiting confirmation
+    CONFIRMED,    // Transfer confirmed on-chain
+    COMPLETED,    // Transfer fully completed
+    FAILED,       // Transfer failed
+    EXPIRED       // Transfer expired before completion
 }
 ```
 
-#### 7.2 Events
+**TypeScript:**
+
+```typescript
+interface ISIPProvider {
+  // Metadata
+  readonly version: string
+  readonly isReady: boolean
+  readonly supportedChains: string[]
+
+  // Initialization
+  initialize(config?: SIPProviderConfig): Promise<void>
+  waitUntilReady(timeoutMs?: number): Promise<void>
+
+  // Stealth address operations
+  generateStealthAddress(
+    spendingPubKey: HexString,
+    viewingPubKey: HexString
+  ): Promise<StealthAddressResult>
+
+  parseStealthMetaAddress(metaAddress: string): StealthMetaAddressParsed
+
+  createStealthMetaAddress(
+    chain: string,
+    spendingPubKey: HexString,
+    viewingPubKey: HexString
+  ): string
+
+  // Commitment operations
+  createCommitment(amount: bigint, blindingFactor?: Uint8Array): Promise<CommitmentResult>
+  verifyCommitment(commitment: HexString, amount: bigint, blindingFactor: HexString): boolean
+  addCommitments(c1: HexString, c2: HexString): HexString
+  subtractCommitments(c1: HexString, c2: HexString): HexString
+
+  // Transfer operations
+  executeShieldedTransfer(intent: ShieldedIntent): Promise<TransferResult>
+  getTransferStatus(txId: HexString): Promise<TransferStatus>
+
+  // Constants
+  getGeneratorG(): { x: HexString; y: HexString }
+  getGeneratorH(): { x: HexString; y: HexString }
+}
+
+interface SIPProviderConfig {
+  chain: string
+  rpcUrl?: string
+  networkId?: string
+  proofProvider?: IProofProvider
+}
+
+interface StealthAddressResult {
+  stealthAddress: HexString
+  ephemeralPublicKey: HexString
+}
+
+interface StealthMetaAddressParsed {
+  chain: string
+  spendingPublicKey: HexString
+  viewingPublicKey: HexString
+}
+
+interface CommitmentResult {
+  commitment: HexString
+  blindingFactor: HexString
+}
+
+interface TransferResult {
+  success: boolean
+  txId: HexString
+  stealthAddress?: HexString
+  commitment?: HexString
+}
+```
+
+#### 7.4 ISIPWallet Interface
+
+Interface for wallet integrations enabling SIP functionality.
+
+**Solidity:**
 
 ```solidity
-/// @notice Emitted when shielded transfer occurs
-/// @param commitment Amount commitment
-/// @param stealthAddress Recipient's stealth address
-/// @param ephemeralPubKey For recipient scanning
-/// @param encryptedNote Encrypted transaction note
+/// @title ISIPWallet
+/// @notice Interface for wallet integrations with SIP Protocol
+/// @dev Wallets implement this to enable privacy features
+interface ISIPWallet is ISIPVersioned {
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // KEY MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Get the wallet's stealth meta-address
+    /// @return metaAddress The stealth meta-address for receiving private payments
+    function getStealthMetaAddress() external view returns (string memory metaAddress);
+
+    /// @notice Get the spending public key
+    /// @return pubKey Compressed spending public key (33 bytes)
+    function getSpendingPublicKey() external view returns (bytes memory pubKey);
+
+    /// @notice Get the viewing public key
+    /// @return pubKey Compressed viewing public key (33 bytes)
+    function getViewingPublicKey() external view returns (bytes memory pubKey);
+
+    /// @notice Derive a stealth private key for a received payment
+    /// @param ephemeralPubKey The ephemeral public key from the sender
+    /// @return stealthPrivKey The derived stealth private key
+    /// @dev Only callable by wallet owner
+    function deriveStealthPrivateKey(
+        bytes calldata ephemeralPubKey
+    ) external returns (bytes memory stealthPrivKey);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SCANNING
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Scan for incoming stealth payments
+    /// @param fromBlock Starting block number
+    /// @param toBlock Ending block number (0 for latest)
+    /// @return payments Array of detected stealth payments
+    function scanForPayments(
+        uint256 fromBlock,
+        uint256 toBlock
+    ) external returns (StealthPayment[] memory payments);
+
+    /// @notice Check if a specific stealth address belongs to this wallet
+    /// @param stealthAddress The stealth address to check
+    /// @param ephemeralPubKey The ephemeral public key used
+    /// @return isOwned True if this wallet can spend from the address
+    function checkStealthOwnership(
+        address stealthAddress,
+        bytes calldata ephemeralPubKey
+    ) external view returns (bool isOwned);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // TRANSFER OPERATIONS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Send a shielded payment
+    /// @param recipientMetaAddress Recipient's stealth meta-address
+    /// @param token Token address (address(0) for native token)
+    /// @param amount Amount to send
+    /// @param privacyLevel Privacy level for the transfer
+    /// @return txId Transaction identifier
+    function sendShielded(
+        string calldata recipientMetaAddress,
+        address token,
+        uint256 amount,
+        PrivacyLevel privacyLevel
+    ) external payable returns (bytes32 txId);
+
+    /// @notice Withdraw from a stealth address
+    /// @param stealthAddress The stealth address to withdraw from
+    /// @param ephemeralPubKey The ephemeral key used for this address
+    /// @param recipient Destination address for withdrawal
+    /// @param token Token to withdraw (address(0) for native)
+    /// @param amount Amount to withdraw
+    /// @return txId Transaction identifier
+    function withdrawFromStealth(
+        address stealthAddress,
+        bytes calldata ephemeralPubKey,
+        address recipient,
+        address token,
+        uint256 amount
+    ) external returns (bytes32 txId);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // VIEWING KEYS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Export a viewing key for an auditor
+    /// @param keyType Type of viewing key (incoming, outgoing, full)
+    /// @param auditorPubKey Auditor's public key for encryption
+    /// @return encryptedKey Encrypted viewing key
+    function exportViewingKey(
+        ViewingKeyType keyType,
+        bytes calldata auditorPubKey
+    ) external returns (bytes memory encryptedKey);
+}
+
+/// @notice Detected stealth payment
+struct StealthPayment {
+    address stealthAddress;
+    bytes ephemeralPubKey;
+    bytes32 commitment;
+    address token;
+    uint256 blockNumber;
+    bytes32 txHash;
+}
+
+/// @notice Viewing key type
+enum ViewingKeyType {
+    INCOMING,   // Can detect incoming payments
+    OUTGOING,   // Can prove outgoing payments
+    FULL        // Both incoming and outgoing
+}
+```
+
+**TypeScript:**
+
+```typescript
+interface ISIPWallet {
+  // Metadata
+  readonly address: HexString
+  readonly chain: string
+  readonly isConnected: boolean
+
+  // Connection
+  connect(): Promise<void>
+  disconnect(): Promise<void>
+
+  // Key management
+  getStealthMetaAddress(): Promise<string>
+  getSpendingPublicKey(): Promise<HexString>
+  getViewingPublicKey(): Promise<HexString>
+  deriveStealthPrivateKey(ephemeralPubKey: HexString): Promise<HexString>
+
+  // Scanning
+  scanForPayments(options: ScanOptions): Promise<StealthPayment[]>
+  checkStealthOwnership(stealthAddress: HexString, ephemeralPubKey: HexString): Promise<boolean>
+
+  // Transfer operations
+  sendShielded(params: ShieldedSendParams): Promise<TransferResult>
+  withdrawFromStealth(params: WithdrawParams): Promise<TransferResult>
+
+  // Viewing keys
+  exportViewingKey(type: ViewingKeyType, auditorPubKey?: HexString): Promise<ExportedViewingKey>
+
+  // Signing
+  signMessage(message: Uint8Array): Promise<HexString>
+  signShieldedIntent(intent: ShieldedIntent): Promise<HexString>
+
+  // Events
+  on(event: 'payment', handler: (payment: StealthPayment) => void): void
+  on(event: 'disconnect', handler: () => void): void
+  off(event: string, handler: Function): void
+}
+
+interface ScanOptions {
+  fromBlock?: number
+  toBlock?: number
+  tokens?: HexString[]  // Filter by specific tokens
+}
+
+interface StealthPayment {
+  stealthAddress: HexString
+  ephemeralPublicKey: HexString
+  commitment: HexString
+  token: HexString
+  amount?: bigint  // Only if viewer has viewing key
+  blockNumber: number
+  txHash: HexString
+  timestamp: number
+}
+
+interface ShieldedSendParams {
+  recipientMetaAddress: string
+  token: HexString
+  amount: bigint
+  privacyLevel: PrivacyLevel
+  memo?: string
+}
+
+interface WithdrawParams {
+  stealthAddress: HexString
+  ephemeralPublicKey: HexString
+  recipient: HexString
+  token: HexString
+  amount: bigint
+}
+
+interface ExportedViewingKey {
+  type: ViewingKeyType
+  encryptedKey?: HexString  // If auditorPubKey provided
+  rawKey?: HexString        // If no encryption requested
+  validFrom: number
+  validUntil?: number
+}
+
+type ViewingKeyType = 'incoming' | 'outgoing' | 'full'
+```
+
+#### 7.5 IStealthAddressGenerator Interface
+
+Specialized interface for stealth address operations.
+
+**Solidity:**
+
+```solidity
+/// @title IStealthAddressGenerator
+/// @notice Interface for stealth address generation and scanning
+interface IStealthAddressGenerator is ISIPVersioned {
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // KEY GENERATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Generate a new stealth key pair
+    /// @return spendingPrivate Spending private key (32 bytes)
+    /// @return spendingPublic Spending public key (33 bytes compressed)
+    /// @return viewingPrivate Viewing private key (32 bytes)
+    /// @return viewingPublic Viewing public key (33 bytes compressed)
+    function generateKeyPair() external returns (
+        bytes memory spendingPrivate,
+        bytes memory spendingPublic,
+        bytes memory viewingPrivate,
+        bytes memory viewingPublic
+    );
+
+    /// @notice Derive public key from private key
+    /// @param privateKey The private key (32 bytes)
+    /// @return publicKey The compressed public key (33 bytes)
+    function derivePublicKey(
+        bytes calldata privateKey
+    ) external pure returns (bytes memory publicKey);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEALTH ADDRESS GENERATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Generate stealth address from meta-address
+    /// @param spendingPubKey Recipient's spending public key
+    /// @param viewingPubKey Recipient's viewing public key
+    /// @return stealthAddress The one-time stealth address
+    /// @return ephemeralPubKey Ephemeral public key for recipient
+    /// @return sharedSecret The ECDH shared secret (for encryption)
+    function generate(
+        bytes calldata spendingPubKey,
+        bytes calldata viewingPubKey
+    ) external returns (
+        address stealthAddress,
+        bytes memory ephemeralPubKey,
+        bytes32 sharedSecret
+    );
+
+    /// @notice Generate with deterministic ephemeral key (for testing)
+    /// @param spendingPubKey Recipient's spending public key
+    /// @param viewingPubKey Recipient's viewing public key
+    /// @param ephemeralPrivKey Ephemeral private key to use
+    /// @return stealthAddress The one-time stealth address
+    /// @return ephemeralPubKey Corresponding ephemeral public key
+    function generateDeterministic(
+        bytes calldata spendingPubKey,
+        bytes calldata viewingPubKey,
+        bytes calldata ephemeralPrivKey
+    ) external pure returns (
+        address stealthAddress,
+        bytes memory ephemeralPubKey
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEALTH ADDRESS RECOVERY
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Recover stealth private key as recipient
+    /// @param spendingPrivKey Recipient's spending private key
+    /// @param viewingPrivKey Recipient's viewing private key
+    /// @param ephemeralPubKey Ephemeral public key from sender
+    /// @return stealthPrivKey The derived stealth private key
+    function recover(
+        bytes calldata spendingPrivKey,
+        bytes calldata viewingPrivKey,
+        bytes calldata ephemeralPubKey
+    ) external pure returns (bytes memory stealthPrivKey);
+
+    /// @notice Compute shared secret for recipient
+    /// @param spendingPrivKey Recipient's spending private key
+    /// @param ephemeralPubKey Ephemeral public key from sender
+    /// @return sharedSecret The ECDH shared secret
+    function computeSharedSecret(
+        bytes calldata spendingPrivKey,
+        bytes calldata ephemeralPubKey
+    ) external pure returns (bytes32 sharedSecret);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // VERIFICATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Verify a stealth address derivation
+    /// @param stealthAddress The claimed stealth address
+    /// @param spendingPubKey Recipient's spending public key
+    /// @param viewingPubKey Recipient's viewing public key
+    /// @param ephemeralPubKey The ephemeral public key used
+    /// @return valid True if derivation is correct
+    function verify(
+        address stealthAddress,
+        bytes calldata spendingPubKey,
+        bytes calldata viewingPubKey,
+        bytes calldata ephemeralPubKey
+    ) external pure returns (bool valid);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // META-ADDRESS UTILITIES
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Create a stealth meta-address string
+    /// @param chain Chain identifier
+    /// @param spendingPubKey Spending public key
+    /// @param viewingPubKey Viewing public key
+    /// @return metaAddress The formatted stealth meta-address
+    function createMetaAddress(
+        string calldata chain,
+        bytes calldata spendingPubKey,
+        bytes calldata viewingPubKey
+    ) external pure returns (string memory metaAddress);
+
+    /// @notice Parse a stealth meta-address string
+    /// @param metaAddress The stealth meta-address to parse
+    /// @return chain Chain identifier
+    /// @return spendingPubKey Spending public key
+    /// @return viewingPubKey Viewing public key
+    function parseMetaAddress(
+        string calldata metaAddress
+    ) external pure returns (
+        string memory chain,
+        bytes memory spendingPubKey,
+        bytes memory viewingPubKey
+    );
+}
+```
+
+**TypeScript:**
+
+```typescript
+interface IStealthAddressGenerator {
+  // Metadata
+  readonly curve: 'secp256k1' | 'ed25519'
+  readonly domainSeparator: string
+
+  // Key generation
+  generateKeyPair(): Promise<StealthKeyPair>
+  derivePublicKey(privateKey: HexString): HexString
+
+  // Stealth address generation
+  generate(spendingPubKey: HexString, viewingPubKey: HexString): Promise<StealthGenerationResult>
+  generateDeterministic(
+    spendingPubKey: HexString,
+    viewingPubKey: HexString,
+    ephemeralPrivKey: HexString
+  ): StealthGenerationResult
+
+  // Recovery
+  recover(
+    spendingPrivKey: HexString,
+    viewingPrivKey: HexString,
+    ephemeralPubKey: HexString
+  ): HexString  // Returns stealth private key
+
+  computeSharedSecret(spendingPrivKey: HexString, ephemeralPubKey: HexString): HexString
+
+  // Verification
+  verify(
+    stealthAddress: HexString,
+    spendingPubKey: HexString,
+    viewingPubKey: HexString,
+    ephemeralPubKey: HexString
+  ): boolean
+
+  // Meta-address utilities
+  createMetaAddress(chain: string, spendingPubKey: HexString, viewingPubKey: HexString): string
+  parseMetaAddress(metaAddress: string): StealthMetaAddressParsed
+  isValidMetaAddress(metaAddress: string): boolean
+}
+
+interface StealthKeyPair {
+  spendingPrivateKey: HexString
+  spendingPublicKey: HexString
+  viewingPrivateKey: HexString
+  viewingPublicKey: HexString
+}
+
+interface StealthGenerationResult {
+  stealthAddress: HexString
+  ephemeralPublicKey: HexString
+  sharedSecret: HexString
+}
+```
+
+#### 7.6 IViewingKeyProvider Interface
+
+Interface for viewing key management and selective disclosure.
+
+**Solidity:**
+
+```solidity
+/// @title IViewingKeyProvider
+/// @notice Interface for viewing key management and compliance
+/// @dev Enables selective disclosure for auditors and regulators
+interface IViewingKeyProvider is ISIPVersioned {
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // VIEWING KEY GENERATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Derive a viewing key from spending key
+    /// @param spendingPrivKey The spending private key
+    /// @param keyType Type of viewing key to generate
+    /// @return viewingKey The derived viewing key
+    function deriveViewingKey(
+        bytes calldata spendingPrivKey,
+        ViewingKeyType keyType
+    ) external pure returns (bytes memory viewingKey);
+
+    /// @notice Generate a time-limited viewing key
+    /// @param spendingPrivKey The spending private key
+    /// @param keyType Type of viewing key
+    /// @param validFrom Start timestamp
+    /// @param validUntil Expiry timestamp
+    /// @return viewingKey The derived viewing key with time bounds
+    function deriveTimeLimitedViewingKey(
+        bytes calldata spendingPrivKey,
+        ViewingKeyType keyType,
+        uint256 validFrom,
+        uint256 validUntil
+    ) external pure returns (bytes memory viewingKey);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // REGISTRATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Register a viewing key hash on-chain
+    /// @param viewingKeyHash Hash of the viewing key
+    /// @dev Enables discoverability for auditors
+    function registerViewingKeyHash(bytes32 viewingKeyHash) external;
+
+    /// @notice Check if a viewing key hash is registered
+    /// @param account The account to check
+    /// @return registered True if a viewing key is registered
+    /// @return keyHash The registered key hash (if any)
+    function isViewingKeyRegistered(
+        address account
+    ) external view returns (bool registered, bytes32 keyHash);
+
+    /// @notice Revoke a viewing key registration
+    /// @param viewingKeyHash The key hash to revoke
+    function revokeViewingKey(bytes32 viewingKeyHash) external;
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // DISCLOSURE
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Encrypt viewing key for an auditor
+    /// @param viewingKey The viewing key to share
+    /// @param auditorPubKey Auditor's public key
+    /// @return encryptedKey The encrypted viewing key
+    function encryptViewingKeyForAuditor(
+        bytes calldata viewingKey,
+        bytes calldata auditorPubKey
+    ) external pure returns (bytes memory encryptedKey);
+
+    /// @notice Decrypt a viewing key (as auditor)
+    /// @param encryptedKey The encrypted viewing key
+    /// @param auditorPrivKey Auditor's private key
+    /// @return viewingKey The decrypted viewing key
+    function decryptViewingKey(
+        bytes calldata encryptedKey,
+        bytes calldata auditorPrivKey
+    ) external pure returns (bytes memory viewingKey);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SCANNING WITH VIEWING KEY
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Scan transactions using a viewing key
+    /// @param viewingKey The viewing key for decryption
+    /// @param announcements Array of stealth announcements to scan
+    /// @return matches Array of matching stealth addresses with amounts
+    function scanWithViewingKey(
+        bytes calldata viewingKey,
+        Announcement[] calldata announcements
+    ) external view returns (ViewingMatch[] memory matches);
+
+    /// @notice Decrypt a transaction amount using viewing key
+    /// @param viewingKey The viewing key
+    /// @param encryptedNote The encrypted note containing amount
+    /// @return amount The decrypted amount
+    function decryptAmount(
+        bytes calldata viewingKey,
+        bytes calldata encryptedNote
+    ) external pure returns (uint256 amount);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // VERIFICATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Verify viewing key hash matches viewing key
+    /// @param viewingKey The viewing key
+    /// @param viewingKeyHash The claimed hash
+    /// @return valid True if hash matches
+    function verifyViewingKeyHash(
+        bytes calldata viewingKey,
+        bytes32 viewingKeyHash
+    ) external pure returns (bool valid);
+
+    /// @notice Compute viewing key hash
+    /// @param viewingKey The viewing key bytes
+    /// @return hash The SHA-256 hash
+    function computeViewingKeyHash(
+        bytes calldata viewingKey
+    ) external pure returns (bytes32 hash);
+}
+
+/// @notice Stealth announcement for scanning
+struct Announcement {
+    address stealthAddress;
+    bytes ephemeralPubKey;
+    bytes encryptedNote;
+    uint256 blockNumber;
+}
+
+/// @notice Match result from viewing key scan
+struct ViewingMatch {
+    address stealthAddress;
+    bytes ephemeralPubKey;
+    uint256 amount;
+    address token;
+    uint256 blockNumber;
+    bytes32 txHash;
+}
+```
+
+**TypeScript:**
+
+```typescript
+interface IViewingKeyProvider {
+  // Viewing key generation
+  deriveViewingKey(spendingPrivKey: HexString, type: ViewingKeyType): HexString
+  deriveTimeLimitedViewingKey(
+    spendingPrivKey: HexString,
+    type: ViewingKeyType,
+    validFrom: number,
+    validUntil: number
+  ): TimeLimitedViewingKey
+
+  // Registration
+  registerViewingKeyHash(viewingKeyHash: HexString): Promise<TxHash>
+  isViewingKeyRegistered(account: HexString): Promise<{ registered: boolean; keyHash?: HexString }>
+  revokeViewingKey(viewingKeyHash: HexString): Promise<TxHash>
+
+  // Disclosure
+  encryptViewingKeyForAuditor(viewingKey: HexString, auditorPubKey: HexString): HexString
+  decryptViewingKey(encryptedKey: HexString, auditorPrivKey: HexString): HexString
+
+  // Scanning
+  scanWithViewingKey(viewingKey: HexString, announcements: Announcement[]): Promise<ViewingMatch[]>
+  decryptAmount(viewingKey: HexString, encryptedNote: HexString): bigint
+
+  // Verification
+  verifyViewingKeyHash(viewingKey: HexString, viewingKeyHash: HexString): boolean
+  computeViewingKeyHash(viewingKey: HexString): HexString
+}
+
+interface TimeLimitedViewingKey {
+  key: HexString
+  type: ViewingKeyType
+  validFrom: number
+  validUntil: number
+  signature: HexString  // Proves time bounds authenticity
+}
+
+interface Announcement {
+  stealthAddress: HexString
+  ephemeralPublicKey: HexString
+  encryptedNote: HexString
+  blockNumber: number
+  txHash?: HexString
+}
+
+interface ViewingMatch {
+  stealthAddress: HexString
+  ephemeralPublicKey: HexString
+  amount: bigint
+  token: HexString
+  blockNumber: number
+  txHash: HexString
+  timestamp?: number
+}
+
+type TxHash = HexString
+```
+
+#### 7.7 Events
+
+Standard events that SIP implementations MUST emit:
+
+```solidity
+/// @notice Emitted when a shielded transfer occurs
+/// @param commitment Amount commitment (indexed for filtering)
+/// @param stealthAddress Recipient's stealth address (indexed)
+/// @param ephemeralPubKey Ephemeral public key for recipient scanning
+/// @param encryptedNote Encrypted transaction metadata
 event ShieldedTransfer(
     bytes32 indexed commitment,
     address indexed stealthAddress,
@@ -495,19 +1425,29 @@ event ShieldedTransfer(
     bytes encryptedNote
 );
 
-/// @notice Emitted when viewing key is registered
-/// @param account The account registering the key
-/// @param viewingKeyHash Hash of the viewing key
+/// @notice Emitted when a viewing key is registered
+/// @param account The account registering the key (indexed)
+/// @param viewingKeyHash Hash of the viewing key (indexed)
+/// @param keyType Type of viewing key registered
 event ViewingKeyRegistered(
+    address indexed account,
+    bytes32 indexed viewingKeyHash,
+    ViewingKeyType keyType
+);
+
+/// @notice Emitted when a viewing key is revoked
+/// @param account The account revoking the key
+/// @param viewingKeyHash Hash of the revoked key
+event ViewingKeyRevoked(
     address indexed account,
     bytes32 indexed viewingKeyHash
 );
 
-/// @notice Emitted for EIP-5564 compatibility
-/// @param schemeId Always 0 for SIP
+/// @notice EIP-5564 compatible announcement
+/// @param schemeId The stealth scheme ID (0 for SIP)
 /// @param stealthAddress The generated stealth address
-/// @param caller The sender
-/// @param ephemeralPubKey For recipient scanning
+/// @param caller The transaction sender
+/// @param ephemeralPubKey Ephemeral public key
 /// @param metadata Additional encrypted data
 event Announcement(
     uint256 indexed schemeId,
@@ -516,6 +1456,46 @@ event Announcement(
     bytes ephemeralPubKey,
     bytes metadata
 );
+
+/// @notice Emitted when provider is initialized
+/// @param version Protocol version
+/// @param chain Chain identifier
+event ProviderInitialized(
+    string version,
+    string chain
+);
+
+/// @notice Emitted when transfer status changes
+/// @param txId Transaction identifier
+/// @param status New status
+/// @param timestamp Block timestamp
+event TransferStatusChanged(
+    bytes32 indexed txId,
+    TransferStatus status,
+    uint256 timestamp
+);
+```
+
+#### 7.8 Interface Inheritance Diagram
+
+```
+                    ┌─────────────────┐
+                    │  ISIPVersioned  │
+                    └────────┬────────┘
+                             │
+        ┌────────────────────┼────────────────────┐
+        │                    │                    │
+        ▼                    ▼                    ▼
+┌───────────────┐  ┌─────────────────┐  ┌─────────────────────────┐
+│ ISIPProvider  │  │   ISIPWallet    │  │ IStealthAddressGenerator│
+└───────────────┘  └─────────────────┘  └─────────────────────────┘
+        │                    │                    │
+        │                    │                    │
+        ▼                    ▼                    │
+┌───────────────────────────────────┐            │
+│        IViewingKeyProvider        │◄───────────┘
+└───────────────────────────────────┘
+```
 
 ## Rationale
 
