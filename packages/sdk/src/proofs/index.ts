@@ -232,6 +232,43 @@ export type {
   KimchiCircuitConfig,
 } from './providers'
 
+// ─── Proof Format Converters (M20-08) ────────────────────────────────────────
+
+// Converter classes and factory functions
+export {
+  NoirProofConverter,
+  createNoirConverter,
+  Halo2ProofConverter,
+  createHalo2Converter,
+  KimchiProofConverter,
+  createKimchiConverter,
+  UnifiedProofConverter,
+  createUnifiedConverter,
+  convertToSIP,
+  convertFromSIP,
+  ProofConversionError,
+  InvalidProofError,
+  UnsupportedVersionError,
+  DEFAULT_CONVERSION_OPTIONS,
+} from './converters'
+
+// Converter types
+export type {
+  NativeProofFormat,
+  NoirNativeProof,
+  Halo2NativeProof,
+  KimchiNativeProof,
+  ConversionOptions,
+  ConversionResult as ConverterConversionResult,
+  ConversionMetadata,
+  ConversionErrorCode,
+  ProofConverter,
+  ValidationResult,
+  ValidationError,
+  AnyNativeProof,
+  ProofSystemToNativeMap,
+} from './converters'
+
 // Composer SDK types
 export type {
   ProofProviderRegistration,
