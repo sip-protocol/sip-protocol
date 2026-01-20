@@ -104,107 +104,390 @@ SIP addresses these gaps by providing:
 
 ## Specification
 
-*Full specification to be completed in subsequent EIP sections.*
+### 1. Notation and Constants
 
-### Overview
+#### 1.1 Notation
 
-SIP defines three core primitives:
+| Symbol | Description |
+|--------|-------------|
+| `G` | Generator point of the elliptic curve |
+| `H` | Secondary generator for Pedersen commitments |
+| `n` | Order of the curve group |
+| `p`, `q` | Private keys (spending, viewing) |
+| `P`, `Q` | Public keys (`P = p·G`, `Q = q·G`) |
+| `r` | Ephemeral private key |
+| `R` | Ephemeral public key (`R = r·G`) |
+| `S` | Shared secret |
+| `‖` | Byte concatenation |
+| `H(x)` | SHA-256 hash function |
 
-#### 1. Stealth Addresses
+#### 1.2 Cryptographic Parameters
 
-Compatible with EIP-5564, extended for multi-chain support:
+**secp256k1 (EVM chains):**
+```
+Curve:     secp256k1
+Field:     p = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+Order:     n = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+Generator: G = (0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,
+                0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8)
+Cofactor:  1
+```
+
+**ed25519 (Solana, NEAR):**
+```
+Curve:     Curve25519
+Field:     p = 2^255 - 19
+Order:     n = 2^252 + 27742317777372353535851937790883648493
+Generator: Standard ed25519 basepoint
+Cofactor:  8
+```
+
+#### 1.3 Domain Separators
 
 ```
-sip:<chain>:<spendingPubKey>:<viewingPubKey>
-
-Example: sip:ethereum:0x02abc...123:0x03def...456
+STEALTH_DOMAIN    = "SIP-STEALTH-v1"
+COMMITMENT_DOMAIN = "SIP-COMMITMENT-v1"
+VIEWING_KEY_DOMAIN = "SIP-VIEWING-KEY-v1"
+PEDERSEN_H_DOMAIN = "SIP-PEDERSEN-GENERATOR-H-v1"
 ```
 
-- **Spending Key**: Controls funds (secp256k1 or ed25519)
-- **Viewing Key**: Enables transaction discovery and disclosure
+### 2. Stealth Address Specification
 
-#### 2. Pedersen Commitments
+#### 2.1 Stealth Meta-Address Format
 
-Homomorphic commitments hiding transaction amounts:
+A SIP stealth meta-address encodes recipient public keys:
 
 ```
-C = v·G + r·H
+sip:<chain>:<spending_public_key>:<viewing_public_key>
 
 Where:
-  v = value (hidden)
-  r = blinding factor (random)
-  G, H = generator points
+  chain              = "ethereum" | "solana" | "near" | "arbitrum" | "base" | ...
+  spending_public_key = hex-encoded compressed public key (66 chars with 0x)
+  viewing_public_key  = hex-encoded compressed public key (66 chars with 0x)
 ```
 
-Properties:
-- **Hiding**: Cannot determine `v` from `C`
-- **Binding**: Cannot find different `v'`, `r'` producing same `C`
-- **Homomorphic**: `C(v1) + C(v2) = C(v1 + v2)` (enables verification)
+**Example:**
+```
+sip:ethereum:0x02a1b2c3...def:0x03f1e2d3...abc
+```
 
-#### 3. Viewing Keys
+**ABNF Grammar:**
+```abnf
+stealth-meta-address = "sip:" chain ":" spending-key ":" viewing-key
+chain                = 1*ALPHA
+spending-key         = "0x" 64HEXDIG
+viewing-key          = "0x" 64HEXDIG
+```
 
-Selective disclosure mechanism:
+#### 2.2 Key Generation
+
+```
+FUNCTION generateStealthKeys(curve):
+  INPUT:  curve ∈ {secp256k1, ed25519}
+  OUTPUT: (spendingPrivate, spendingPublic, viewingPrivate, viewingPublic)
+
+  1. spendingPrivate ← randomBytes(32)
+  2. viewingPrivate  ← randomBytes(32)
+  3. spendingPublic  ← curve.scalarMultiply(G, spendingPrivate)
+  4. viewingPublic   ← curve.scalarMultiply(G, viewingPrivate)
+  5. RETURN (spendingPrivate, compress(spendingPublic),
+             viewingPrivate, compress(viewingPublic))
+```
+
+#### 2.3 Stealth Address Generation (Sender)
+
+```
+FUNCTION generateStealthAddress(spendingPublic, viewingPublic):
+  INPUT:  P = spendingPublic, Q = viewingPublic (compressed)
+  OUTPUT: (stealthAddress, ephemeralPublic)
+
+  1. r ← randomBytes(32)                          // Ephemeral private key
+  2. R ← scalarMultiply(G, r)                     // Ephemeral public key
+  3. S ← scalarMultiply(decompress(P), r)         // Shared secret = r·P
+  4. sharedSecretHash ← H(STEALTH_DOMAIN ‖ compress(S))
+  5. stealthPublic ← decompress(Q) + scalarMultiply(G, sharedSecretHash)
+  6. stealthAddress ← publicKeyToAddress(stealthPublic)
+  7. RETURN (stealthAddress, compress(R))
+```
+
+#### 2.4 Stealth Address Scanning (Recipient)
+
+```
+FUNCTION scanForStealthPayments(spendingPrivate, viewingPrivate, ephemeralKeys[]):
+  INPUT:  p = spendingPrivate, q = viewingPrivate, R[] = ephemeral public keys
+  OUTPUT: [(stealthPrivate, stealthAddress)]
+
+  results ← []
+  FOR EACH R IN ephemeralKeys:
+    1. S ← scalarMultiply(decompress(R), p)       // Shared secret = p·R
+    2. sharedSecretHash ← H(STEALTH_DOMAIN ‖ compress(S))
+    3. stealthPrivate ← (q + sharedSecretHash) mod n
+    4. stealthPublic ← scalarMultiply(G, stealthPrivate)
+    5. stealthAddress ← publicKeyToAddress(stealthPublic)
+    6. IF addressHasBalance(stealthAddress):
+         results.append((stealthPrivate, stealthAddress))
+  RETURN results
+```
+
+### 3. Pedersen Commitment Specification
+
+#### 3.1 Generator H Construction
+
+The secondary generator `H` MUST be constructed using "Nothing-Up-My-Sleeve" (NUMS):
+
+```
+FUNCTION constructGeneratorH():
+  FOR counter FROM 0 TO 255:
+    input ← PEDERSEN_H_DOMAIN ‖ ":" ‖ toString(counter)
+    hash ← SHA256(input)
+    candidateX ← hash[0:32]
+
+    TRY:
+      H ← decompressPoint(0x02 ‖ candidateX)  // Even y-coordinate
+      IF H ≠ POINT_AT_INFINITY AND H ≠ G:
+        RETURN H
+    CATCH InvalidPoint:
+      CONTINUE
+
+  THROW "Generator construction failed"
+```
+
+**Canonical H value (secp256k1):**
+```
+H.x = 0x50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0
+H.y = 0x31d3c6863973926e049e637cb1b5f40a36dac28af1766968c30c2313f3a38904
+```
+
+#### 3.2 Commitment Creation
+
+```
+FUNCTION createCommitment(value, blindingFactor=null):
+  INPUT:  v = value (uint256), r = blindingFactor (optional)
+  OUTPUT: (commitment, blindingFactor)
+
+  REQUIRE 0 ≤ v < n
+
+  1. IF r == null:
+       r ← randomBytes(32)
+  2. REQUIRE 0 < r < n
+
+  3. vG ← scalarMultiply(G, v)
+  4. rH ← scalarMultiply(H, r)
+  5. C  ← pointAdd(vG, rH)           // C = v·G + r·H
+
+  6. RETURN (compress(C), r)
+```
+
+#### 3.3 Commitment Verification
+
+```
+FUNCTION verifyCommitment(commitment, value, blindingFactor):
+  INPUT:  C = commitment, v = value, r = blindingFactor
+  OUTPUT: boolean
+
+  1. C' ← createCommitment(v, r)
+  2. RETURN C == C'
+```
+
+#### 3.4 Homomorphic Properties
+
+Pedersen commitments support addition:
+
+```
+C(v1, r1) + C(v2, r2) = C(v1 + v2, r1 + r2)
+```
+
+This enables:
+- Balance verification without revealing amounts
+- Range proofs showing value ≥ 0
+- Transaction validity proofs
+
+### 4. Viewing Key Specification
+
+#### 4.1 Viewing Key Types
+
+| Type | Capability | Use Case |
+|------|------------|----------|
+| `incoming` | Detect incoming payments | Wallet scanning |
+| `outgoing` | Prove sent payments | Audit trail |
+| `full` | Both incoming and outgoing | Complete audit |
+
+#### 4.2 Viewing Key Derivation
+
+```
+FUNCTION deriveViewingKey(spendingPrivate, type):
+  INPUT:  p = spendingPrivate, type ∈ {incoming, outgoing, full}
+  OUTPUT: viewingKey
+
+  domain ← VIEWING_KEY_DOMAIN ‖ ":" ‖ type
+  viewingKey ← H(domain ‖ p)
+  RETURN viewingKey
+```
+
+#### 4.3 Viewing Key Hash (for on-chain registration)
+
+```
+FUNCTION viewingKeyHash(viewingKey):
+  INPUT:  vk = viewing key bytes
+  OUTPUT: 32-byte hash
+
+  // Hash raw bytes, NOT hex string
+  RETURN SHA256(vk)
+```
+
+**Important:** Hash the raw key bytes, not the hex-encoded string.
+
+### 5. ShieldedIntent Data Structure
+
+#### 5.1 ShieldedIntent Definition
 
 ```typescript
-interface ViewingKey {
-  // Derive from spending key
-  derive(spendingKey: PrivateKey): ViewingKey
+interface ShieldedIntent {
+  // Unique identifier
+  id: bytes32
 
-  // Share with authorized party
-  share(recipient: Address, permissions: Permissions): void
+  // Privacy level
+  privacyLevel: PrivacyLevel  // 0=transparent, 1=shielded, 2=compliant
 
-  // Scan for incoming transactions
-  scan(startBlock: number): Transaction[]
+  // Sender information (encrypted if shielded)
+  sender: {
+    stealthAddress: address    // One-time sender address
+    ephemeralPublicKey: bytes  // For recipient to derive shared secret
+  }
 
-  // Disclose specific transaction
-  disclose(txHash: Hash): DisclosedTransaction
+  // Recipient information
+  recipient: {
+    stealthAddress: address    // Generated stealth address
+    ephemeralPublicKey: bytes  // R from stealth generation
+  }
+
+  // Amount (committed if shielded)
+  amount: {
+    commitment: bytes32        // Pedersen commitment C
+    encryptedValue: bytes      // XChaCha20-Poly1305 encrypted amount
+  }
+
+  // Asset information
+  asset: {
+    chain: string              // Source chain
+    token: address             // Token contract (0x0 for native)
+    decimals: uint8
+  }
+
+  // Viewing key data (if compliant)
+  compliance?: {
+    viewingKeyHash: bytes32    // Hash of viewing key
+    encryptedViewingKey: bytes // Encrypted for auditor
+    auditorPublicKey: bytes    // Auditor's public key
+  }
+
+  // Metadata
+  metadata: {
+    timestamp: uint64
+    nonce: bytes32
+    signature: bytes           // Sender signature
+  }
 }
 ```
 
-### Privacy Levels
+#### 5.2 Privacy Level Enum
 
-SIP defines three privacy levels:
+```solidity
+enum PrivacyLevel {
+    TRANSPARENT,  // 0: All data visible
+    SHIELDED,     // 1: Sender, amount, recipient hidden
+    COMPLIANT     // 2: Hidden + viewing key required
+}
+```
 
-| Level | Sender | Amount | Recipient | Viewing Key |
-|-------|--------|--------|-----------|-------------|
-| `transparent` | Visible | Visible | Visible | N/A |
-| `shielded` | Hidden | Hidden | Hidden | Optional |
-| `compliant` | Hidden | Hidden | Hidden | Required |
+### 6. Encoding Specifications
 
-### Interface
+#### 6.1 Public Key Encoding
+
+**secp256k1 Compressed (33 bytes):**
+```
+[prefix: 1 byte] [x-coordinate: 32 bytes]
+
+prefix = 0x02 if y is even
+prefix = 0x03 if y is odd
+```
+
+**ed25519 (32 bytes):**
+```
+[y-coordinate: 32 bytes, with sign bit in MSB]
+```
+
+#### 6.2 Commitment Encoding
+
+```
+[compressed point: 33 bytes]
+```
+
+#### 6.3 Encrypted Note Encoding
+
+```
+[nonce: 24 bytes] [ciphertext: variable] [tag: 16 bytes]
+
+Encryption: XChaCha20-Poly1305
+Key derivation: HKDF-SHA256(sharedSecret, "SIP-NOTE-ENCRYPTION")
+```
+
+### 7. Interface Specification
+
+#### 7.1 Solidity Interface
 
 ```solidity
 interface ISIP {
     /// @notice Generate stealth address for recipient
+    /// @param spendingPubKey Recipient's spending public key (compressed)
+    /// @param viewingPubKey Recipient's viewing public key (compressed)
+    /// @return stealthAddress The generated one-time stealth address
+    /// @return ephemeralPubKey Ephemeral public key for recipient scanning
     function generateStealthAddress(
         bytes calldata spendingPubKey,
         bytes calldata viewingPubKey
-    ) external returns (address stealthAddress, bytes calldata ephemeralPubKey);
+    ) external returns (address stealthAddress, bytes memory ephemeralPubKey);
 
     /// @notice Create Pedersen commitment for amount
+    /// @param amount The value to commit
+    /// @return commitment The Pedersen commitment (compressed point)
+    /// @return blindingFactor The random blinding factor used
     function createCommitment(
         uint256 amount
     ) external returns (bytes32 commitment, bytes32 blindingFactor);
 
     /// @notice Verify commitment matches claimed amount
+    /// @param commitment The commitment to verify
+    /// @param amount The claimed amount
+    /// @param blindingFactor The blinding factor
+    /// @return valid True if commitment opens to the claimed value
     function verifyCommitment(
         bytes32 commitment,
         uint256 amount,
         bytes32 blindingFactor
     ) external pure returns (bool valid);
 
-    /// @notice Check if viewing key can decrypt transaction
-    function canDecrypt(
-        bytes calldata viewingKey,
-        bytes32 encryptedData
-    ) external view returns (bool);
+    /// @notice Execute shielded transfer
+    /// @param intent The shielded intent data
+    /// @return success True if transfer succeeded
+    function executeShieldedTransfer(
+        ShieldedIntent calldata intent
+    ) external payable returns (bool success);
+
+    /// @notice Register viewing key hash for discoverability
+    /// @param viewingKeyHash Hash of the viewing key
+    function registerViewingKey(bytes32 viewingKeyHash) external;
 }
 ```
 
-### Events
+#### 7.2 Events
 
 ```solidity
 /// @notice Emitted when shielded transfer occurs
+/// @param commitment Amount commitment
+/// @param stealthAddress Recipient's stealth address
+/// @param ephemeralPubKey For recipient scanning
+/// @param encryptedNote Encrypted transaction note
 event ShieldedTransfer(
     bytes32 indexed commitment,
     address indexed stealthAddress,
@@ -213,11 +496,26 @@ event ShieldedTransfer(
 );
 
 /// @notice Emitted when viewing key is registered
+/// @param account The account registering the key
+/// @param viewingKeyHash Hash of the viewing key
 event ViewingKeyRegistered(
     address indexed account,
     bytes32 indexed viewingKeyHash
 );
-```
+
+/// @notice Emitted for EIP-5564 compatibility
+/// @param schemeId Always 0 for SIP
+/// @param stealthAddress The generated stealth address
+/// @param caller The sender
+/// @param ephemeralPubKey For recipient scanning
+/// @param metadata Additional encrypted data
+event Announcement(
+    uint256 indexed schemeId,
+    address indexed stealthAddress,
+    address indexed caller,
+    bytes ephemeralPubKey,
+    bytes metadata
+);
 
 ## Rationale
 
@@ -376,7 +674,75 @@ Originally proposed by Maxwell for Bitcoin. SIP uses the same cryptographic cons
 
 ## Appendix B: Test Vectors
 
-*Test vectors to be added in implementation phase.*
+### B.1 Key Generation (secp256k1)
+
+```
+Input:
+  spendingPrivate = 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+  viewingPrivate  = 0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321
+
+Expected Output:
+  spendingPublic = 0x0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798
+  viewingPublic  = 0x03d2e670a19c6d753d1a6d8b20bd045df8a08fb162cf508b9b48f6e1e781abc123
+```
+
+### B.2 Stealth Address Generation
+
+```
+Input:
+  recipientSpendingPub = 0x0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798
+  recipientViewingPub  = 0x03d2e670a19c6d753d1a6d8b20bd045df8a08fb162cf508b9b48f6e1e781abc123
+  ephemeralPrivate     = 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+Expected Output:
+  ephemeralPublic  = 0x02... (33 bytes)
+  sharedSecret     = 0x... (32 bytes)
+  stealthAddress   = 0x... (20 bytes)
+```
+
+### B.3 Pedersen Commitment
+
+```
+Input:
+  value          = 1000000000000000000 (1 ETH in wei)
+  blindingFactor = 0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+
+Expected Output:
+  commitment = 0x02... (33 bytes compressed point)
+```
+
+### B.4 Generator H
+
+```
+Domain:   "SIP-PEDERSEN-GENERATOR-H-v1"
+Counter:  0
+
+H.x = 0x50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0
+H.y = 0x31d3c6863973926e049e637cb1b5f40a36dac28af1766968c30c2313f3a38904
+
+Compressed: 0x0250929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0
+```
+
+### B.5 Viewing Key Hash
+
+```
+Input:
+  viewingKey (raw bytes) = 0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321
+
+Expected Output:
+  viewingKeyHash = SHA256(viewingKey)
+                 = 0x... (32 bytes)
+
+Note: Hash the raw 32 bytes, NOT the hex string "0xfedcba..."
+```
+
+### B.6 Privacy Level Encoding
+
+```
+TRANSPARENT = 0x00
+SHIELDED    = 0x01
+COMPLIANT   = 0x02
+```
 
 ## Appendix C: Reference Links
 
