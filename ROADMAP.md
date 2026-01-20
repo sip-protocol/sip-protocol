@@ -995,15 +995,48 @@ const payments = await scanForPayments({
 | [#382](../../issues/382) | Viewing key disclosure mechanism | High | 🔲 Planned |
 | [#382](../../issues/382) | SDK API: `sip.shieldedTransfer(ethereum, ...)` | High | 🔲 Planned |
 | [#422](../../issues/422) | **Gelato/ERC-4337 relayer** (gas abstraction) | High | 🔲 Planned |
-| [#458](../../issues/458) | **L2 Tier 1: Base, Arbitrum, Optimism** | Critical | 🔲 Planned |
-| - | L2 Tier 2: Polygon, zkSync (if survives) | Medium | 🔲 Planned |
+| [#458](../../issues/458) | **L2 Priority 1: Base** (Coinbase compliance alignment) | Critical | 🔲 Planned |
+| - | **L2 Priority 2: Arbitrum** (largest TVL, DeFi ecosystem) | Critical | 🔲 Planned |
+| - | **L2 Priority 3: Optimism** (OP Stack, Superchain) | High | 🔲 Planned |
+| - | L2 Tier 2: zkSync Era, Linea, Scroll | Medium | 🔲 Planned |
+| - | L2 Tier 3: Blast, Mantle, Mode, Taiko | Low | 🔲 Planned |
 | - | Gas optimization (batching, storage packing) | Medium | 🔲 Planned |
 | [#459](../../issues/459) | Integration examples (Uniswap, 1inch) | Medium | 🔲 Planned |
 
-**L2 Strategy (Based on Dec 2025 Market Data):**
-- **Base** (60%+ tx share), **Arbitrum** (44% TVL), **Optimism** (6% TVL) = 90%+ of L2 market
-- Same Solidity contract deploys to all EVM L2s (just different RPC endpoints)
-- Per 21Shares analysis: most other L2s may not survive 2026 consolidation
+**L2 Prioritization Strategy (Jan 2026):**
+
+| Priority | L2 | Type | TVL | Score | Rationale |
+|----------|-----|------|-----|-------|-----------|
+| 🥇 **#1** | **Base** | Optimistic | ~$14B | 92 | Coinbase compliance alignment, fastest growth, viewing keys narrative fit |
+| 🥈 **#2** | **Arbitrum** | Optimistic | ~$18B | 90 | Largest TVL, mature DeFi ecosystem, institutional presence |
+| 🥉 **#3** | **Optimism** | Optimistic | ~$8B | 85 | OP Stack (code reuse from Base), Superchain vision |
+| 4 | zkSync Era | ZK | ~$1B | 78 | ZK narrative, native account abstraction |
+| 5 | Linea | ZK | ~$1.2B | 75 | ConsenSys backing, MetaMask integration |
+| 6 | Scroll | ZK | ~$900M | 73 | EVM equivalence, growing ecosystem |
+| 7-10 | Blast, Mantle, Mode, Taiko | Mixed | Various | 62-70 | Long-tail coverage |
+
+*Score based on: TVL (25%), EVM compatibility (20%), dev ecosystem (15%), grant opportunity (15%), tx cost (10%), growth (10%), privacy stance (5%)*
+
+**Why Base First:**
+- **Compliance narrative** — Coinbase = regulated, SIP viewing keys = compliant privacy. Perfect match.
+- **Growth trajectory** — 60%+ tx share and accelerating
+- **Distribution** — Coinbase app funnels millions of users to Base
+- **Grant story** — "Privacy infrastructure for Base" is compelling pitch
+- **First-mover** — Less privacy competition on Base
+
+**Rollout Plan:**
+```
+Phase 1: Base        → Coinbase compliance narrative, prove product-market fit
+Phase 2: Arbitrum    → Largest TVL, DeFi integrations (Uniswap, GMX, Aave)
+Phase 3: Optimism    → OP Stack code reuse, Superchain distribution
+Phase 4: ZK Rollups  → zkSync, Linea, Scroll (if resources allow)
+Phase 5: Long-tail   → Blast, Mantle, Mode, Taiko (completeness)
+```
+
+**Implementation Notes:**
+- Base + Optimism share OP Stack — ~80% code reuse between them
+- Same Solidity contract deploys to all EVM L2s (different RPC endpoints only)
+- Per 21Shares analysis: L2 consolidation expected in 2026, focus on survivors
 
 **Relayer Strategy:** Use Gelato Network or ERC-4337 Paymasters for EVM chains — no dedicated infrastructure needed. Account abstraction enables native gas sponsorship.
 
