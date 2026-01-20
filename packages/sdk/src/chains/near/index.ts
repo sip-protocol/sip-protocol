@@ -370,3 +370,24 @@ export {
   type PrivateDeFiSwapParams,
   type PrivateDeFiSwapResult,
 } from './function-call'
+
+// ─── Transaction History (M17-NEAR-20) ─────────────────────────────────────────
+
+export {
+  // History retrieval
+  getTransactionHistory,
+  getTransactionByHash,
+  getTransactionCount,
+  // Export utilities
+  exportTransactions,
+  // Statistics
+  getTransactionSummary,
+  // Types
+  type NEARTransactionType,
+  type NEARHistoryPrivacyLevel,
+  type NEARHistoricalTransaction,
+  type NEARTransactionHistoryParams,
+  type NEARTransactionHistoryResult,
+  type NEARExportFormat,
+  type NEARExportOptions,
+} from './history'

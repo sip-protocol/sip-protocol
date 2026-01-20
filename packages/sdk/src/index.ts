@@ -1011,6 +1011,23 @@ export type {
   NEAREncryptedPayload,
   NEARTransactionData,
   NEARViewingKeyStorage,
+  // Transaction history types (M17-NEAR-20)
+  NEARTransactionType,
+  NEARHistoryPrivacyLevel,
+  NEARHistoricalTransaction,
+  NEARTransactionHistoryParams,
+  NEARTransactionHistoryResult,
+  NEARExportFormat,
+  NEARExportOptions,
+} from './chains/near'
+
+// NEAR Transaction History (M17-NEAR-20)
+export {
+  getTransactionHistory,
+  getTransactionByHash,
+  getTransactionCount,
+  exportTransactions,
+  getTransactionSummary,
 } from './chains/near'
 
 // Same-Chain Executors

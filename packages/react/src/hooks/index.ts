@@ -36,3 +36,13 @@ export {
   type UsePrivacyAdvisorParams,
   type UsePrivacyAdvisorReturn,
 } from './use-privacy-advisor'
+
+// NEAR Transaction History (M17-NEAR-20)
+export {
+  useTransactionHistory,
+  type HistoryStatus,
+  type UseTransactionHistoryParams,
+  type HistoryFilters,
+  type TransactionSummary,
+  type UseTransactionHistoryReturn,
+} from './use-transaction-history'

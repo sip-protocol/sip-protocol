@@ -74,9 +74,12 @@ export {
   type EthereumStealthNetworkId,
   type EthereumStealthNetworkConfig,
   TransactionHistory,
-  useTransactionHistory,
+  useEthereumTransactionHistory,
   type TransactionHistoryProps,
   type PrivacyTransactionHistoryItem,
   type TransactionHistoryFilter,
   type TransactionHistorySort,
+  // NEAR Transaction History (M17-NEAR-20)
+  NEARTransactionHistoryView,
+  type NEARTransactionHistoryViewProps,
 } from './components'

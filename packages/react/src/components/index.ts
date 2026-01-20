@@ -93,9 +93,15 @@ export {
 
 export {
   TransactionHistory,
-  useTransactionHistory,
+  useTransactionHistory as useEthereumTransactionHistory,
   type TransactionHistoryProps,
   type PrivacyTransactionHistoryItem,
   type TransactionHistoryFilter,
   type TransactionHistorySort,
 } from './ethereum/transaction-history'
+
+// NEAR Transaction History (M17-NEAR-20)
+export {
+  TransactionHistoryView as NEARTransactionHistoryView,
+  type TransactionHistoryViewProps as NEARTransactionHistoryViewProps,
+} from './transaction-history'
