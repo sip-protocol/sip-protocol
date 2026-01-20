@@ -427,6 +427,141 @@ export type {
   ICompiledCircuitCache,
 } from './proofs'
 
+// ─── Proof Composition (M20) ────────────────────────────────────────────────
+export {
+  // Proof Aggregator
+  ProofAggregator,
+  createProofAggregator,
+  DEFAULT_AGGREGATOR_CONFIG,
+  // Verification Pipeline
+  VerificationPipeline,
+  createVerificationPipeline,
+  DEFAULT_PIPELINE_CONFIG,
+  // Cross-System Validator
+  CrossSystemValidator,
+  createCrossSystemValidator,
+  SYSTEM_INFO,
+  BN254_MODULUS,
+  PALLAS_MODULUS,
+  VESTA_MODULUS,
+  BLS12_381_MODULUS,
+  // Proof Orchestrator
+  ProofOrchestrator,
+  createProofOrchestrator,
+  DEFAULT_ORCHESTRATOR_CONFIG,
+  BUILTIN_TEMPLATES,
+  // Composer errors
+  ProofCompositionError,
+  ProviderNotFoundError,
+  CompositionTimeoutError,
+  IncompatibleSystemsError,
+  BaseProofComposer,
+  // Composable Providers
+  Halo2Provider,
+  createHalo2Provider,
+  createOrchardProvider,
+  KimchiProvider,
+  createKimchiProvider,
+  createMinaMainnetProvider,
+  createZkAppProvider,
+  // Base types re-exported from @sip-protocol/types
+  ProofAggregationStrategy,
+  ComposedProofStatus,
+  CompositionErrorCode,
+  DEFAULT_COMPOSITION_CONFIG,
+} from './proofs'
+
+export type {
+  // Aggregator types
+  AggregatorConfig,
+  AggregationProgressEvent,
+  AggregationProgressCallback,
+  SequentialAggregationOptions,
+  ParallelAggregationOptions,
+  RecursiveAggregationOptions,
+  AggregationStepResult,
+  DetailedAggregationResult,
+  // Verification Pipeline types
+  VerificationPipelineConfig,
+  ProofDependency,
+  VerificationOrder,
+  DetailedVerificationResult,
+  LinkValidationResult,
+  SystemVerificationStats,
+  VerificationProgressEvent,
+  VerificationProgressCallback,
+  VerifyOptions,
+  // Cross-System Validator types
+  EllipticCurve,
+  FieldCharacteristics,
+  SystemInfo,
+  ValidationCheck,
+  ValidationReport,
+  CompatibilityEntry,
+  ValidationOptions,
+  // Orchestrator types
+  OrchestratorConfig,
+  CompositionState,
+  CompositionPlan,
+  CompositionRequest,
+  OrchestratorResult,
+  // Note: AuditLogEntry is already exported from @sip-protocol/types
+  OrchestratorProgressEvent,
+  OrchestratorProgressCallback,
+  CompositionTemplate,
+  // Composer types
+  ComposableProofProvider,
+  ProofComposer,
+  ProofProviderFactory,
+  ProofProviderRegistry,
+  ProofProviderRegistration,
+  RegisterProviderOptions,
+  ProofGenerationRequest,
+  ProofGenerationResult,
+  ComposeProofsOptions,
+  VerifyComposedProofOptions,
+  AggregateProofsOptions,
+  AggregationResult,
+  ConvertProofOptions,
+  ConversionResult,
+  ProofCacheEntry,
+  CacheStats,
+  WorkerPoolConfig,
+  WorkerPoolStatus,
+  SystemCompatibility,
+  CompatibilityMatrix,
+  FallbackConfig,
+  ProofTelemetry,
+  TelemetryCollector,
+  ProofTelemetryMetrics,
+  // Provider types
+  Halo2ProviderConfig,
+  Halo2CircuitConfig,
+  Halo2ProvingKey,
+  KimchiProviderConfig,
+  KimchiCircuitConfig,
+  // Base types from @sip-protocol/types
+  ProofSystem,
+  ProofMetadata,
+  SingleProof,
+  ComposedProof,
+  CompositionMetadata,
+  VerificationHints,
+  ProofCompositionConfig,
+  ProofProviderCapabilities,
+  ProofProviderStatus,
+  ProofProviderMetrics,
+  CompositionResult,
+  CompositionError,
+  CompositionMetrics,
+  // Note: VerificationResult is already exported from ./oracle
+  IndividualVerificationResult,
+  CompositionEventType,
+  CompositionEvent,
+  CompositionProgressEvent,
+  CompositionEventListener,
+} from './proofs'
+
 // Oracle attestation (for fulfillment proofs)
 export {
   // Verification functions

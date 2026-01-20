@@ -46,3 +46,26 @@ export {
   type TransactionSummary,
   type UseTransactionHistoryReturn,
 } from './use-transaction-history'
+
+// Proof Composition Hooks (M20-17)
+export {
+  // Main hooks
+  useProofComposer,
+  useProofVerification,
+  useComposedProof,
+  useProofCache,
+  useSystemCompatibility,
+  // Types
+  type ProofOperationStatus,
+  type UseProofComposerConfig,
+  type UseProofComposerReturn,
+  type UseProofVerificationConfig,
+  type UseProofVerificationReturn,
+  type UseComposedProofConfig,
+  type UseComposedProofReturn,
+  type UseProofCacheConfig,
+  type UseProofCacheReturn,
+  type UseSystemCompatibilityReturn,
+} from './use-proof-composition'
+
+// Note: useProofGeneration and useProofQueue will be added after M20-14 merges
