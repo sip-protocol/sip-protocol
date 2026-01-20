@@ -1,0 +1,225 @@
+{
+  "version": "1.0.0",
+  "spec_version": "SIP-EIP Draft 1.0.0",
+  "generated": "2026-01-20T00:00:00Z",
+  "description": "Viewing key test vectors for SIP-EIP compliance",
+  "constants": {
+    "encryption_algorithm": "XChaCha20-Poly1305",
+    "nonce_size": 24,
+    "tag_size": 16
+  },
+  "vectors": [
+    {
+      "id": "viewing-001",
+      "description": "Generate incoming viewing key",
+      "input": {
+        "master_private_key": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "key_type": "incoming"
+      },
+      "expected": {
+        "key_type": "incoming",
+        "derivation": "HKDF(master, 'SIP-VIEWING-KEY-v1:incoming')"
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-002",
+      "description": "Generate outgoing viewing key",
+      "input": {
+        "master_private_key": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "key_type": "outgoing"
+      },
+      "expected": {
+        "key_type": "outgoing",
+        "derivation": "HKDF(master, 'SIP-VIEWING-KEY-v1:outgoing')"
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-003",
+      "description": "Generate full viewing key",
+      "input": {
+        "master_private_key": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "key_type": "full"
+      },
+      "expected": {
+        "key_type": "full",
+        "derivation": "HKDF(master, 'SIP-VIEWING-KEY-v1:full')"
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-004",
+      "description": "Viewing key hash computation",
+      "input": {
+        "viewing_key": "0xfedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+      },
+      "expected": {
+        "hash_algorithm": "SHA-256",
+        "hash_input": "raw key bytes (not hex string)",
+        "hash_output_length": 32
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-005",
+      "description": "Viewing key public derivation",
+      "input": {
+        "viewing_private_key": "0x1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "expected": {
+        "public_key_derivation": "viewing_private * G"
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-006",
+      "description": "Encrypt for viewing key - basic",
+      "input": {
+        "plaintext": "0x48656c6c6f20576f726c6421",
+        "plaintext_string": "Hello World!",
+        "viewing_key": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "nonce": "0x333333333333333333333333333333333333333333333333"
+      },
+      "expected": {
+        "encryption_formula": "XChaCha20-Poly1305(key, nonce, plaintext)",
+        "ciphertext_length": "plaintext_length + 16 (tag)"
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-007",
+      "description": "Encrypt for viewing key - empty plaintext",
+      "input": {
+        "plaintext": "0x",
+        "viewing_key": "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "nonce": "0x555555555555555555555555555555555555555555555555"
+      },
+      "expected": {
+        "ciphertext_length": 16,
+        "note": "Empty plaintext produces 16-byte auth tag only"
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-008",
+      "description": "Encrypt for viewing key - large payload",
+      "input": {
+        "plaintext_length": 1024,
+        "viewing_key": "0x6666666666666666666666666666666666666666666666666666666666666666",
+        "nonce": "0x777777777777777777777777777777777777777777777777"
+      },
+      "expected": {
+        "ciphertext_length": 1040
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-009",
+      "description": "Decrypt with viewing key - successful",
+      "input": {
+        "ciphertext": "0x...",
+        "nonce": "0x888888888888888888888888888888888888888888888888",
+        "viewing_key": "0x9999999999999999999999999999999999999999999999999999999999999999"
+      },
+      "expected": {
+        "decryption_success": true,
+        "plaintext": "0x..."
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-010",
+      "description": "Decrypt with viewing key - wrong key",
+      "input": {
+        "ciphertext": "0x...",
+        "nonce": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "viewing_key": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "expected": {
+        "decryption_success": false,
+        "error": "Authentication tag verification failed"
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-011",
+      "description": "Encryption roundtrip",
+      "input": {
+        "plaintext": "0x5472616e73616374696f6e206d65746164617461",
+        "plaintext_string": "Transaction metadata",
+        "viewing_key": "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "expected": {
+        "encrypt_then_decrypt": "plaintext",
+        "roundtrip_success": true
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-012",
+      "description": "Different key types produce different keys",
+      "input": {
+        "master_private_key": "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "expected": {
+        "incoming_key": "unique",
+        "outgoing_key": "unique",
+        "full_key": "unique",
+        "all_different": true
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-013",
+      "description": "Deterministic key derivation",
+      "input": {
+        "master_private_key": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "key_type": "incoming"
+      },
+      "expected": {
+        "same_input_same_output": true,
+        "note": "Same master key and type always produces same viewing key"
+      },
+      "valid": true
+    },
+    {
+      "id": "viewing-error-001",
+      "description": "Invalid viewing key - too short",
+      "input": {
+        "viewing_key": "0x0123456789abcdef"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0400",
+        "type": "INVALID_VIEWING_KEY"
+      },
+      "valid": false
+    },
+    {
+      "id": "viewing-error-002",
+      "description": "Invalid viewing key - zero",
+      "input": {
+        "viewing_key": "0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0400",
+        "type": "INVALID_VIEWING_KEY"
+      },
+      "valid": false
+    },
+    {
+      "id": "viewing-error-003",
+      "description": "Decryption failed - tampered ciphertext",
+      "input": {
+        "ciphertext": "0x...tampered...",
+        "nonce": "0xffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "viewing_key": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0403",
+        "type": "DECRYPTION_FAILED"
+      },
+      "valid": false
+    }
+  ]
+}

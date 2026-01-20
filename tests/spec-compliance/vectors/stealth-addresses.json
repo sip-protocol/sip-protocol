@@ -1,0 +1,233 @@
+{
+  "version": "1.0.0",
+  "spec_version": "SIP-EIP Draft 1.0.0",
+  "generated": "2026-01-20T00:00:00Z",
+  "description": "Stealth address test vectors for SIP-EIP compliance",
+  "vectors": [
+    {
+      "id": "stealth-001",
+      "description": "Basic stealth address generation - Ethereum",
+      "input": {
+        "chain": "ethereum",
+        "spending_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "viewing_private_key": "0x0000000000000000000000000000000000000000000000000000000000000002",
+        "ephemeral_private_key": "0x0000000000000000000000000000000000000000000000000000000000000003"
+      },
+      "expected": {
+        "spending_public_key": "0x0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+        "viewing_public_key": "0x02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5",
+        "meta_address_format": "sip:ethereum:{spending}:{viewing}"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-002",
+      "description": "Basic stealth address generation - Solana",
+      "input": {
+        "chain": "solana",
+        "spending_private_key": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "viewing_private_key": "0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
+        "ephemeral_private_key": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+      },
+      "expected": {
+        "meta_address_format": "sip:solana:{spending}:{viewing}"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-003",
+      "description": "Basic stealth address generation - NEAR",
+      "input": {
+        "chain": "near",
+        "spending_private_key": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "viewing_private_key": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "ephemeral_private_key": "0x3333333333333333333333333333333333333333333333333333333333333333"
+      },
+      "expected": {
+        "meta_address_format": "sip:near:{spending}:{viewing}"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-004",
+      "description": "Stealth address with known shared secret",
+      "input": {
+        "chain": "ethereum",
+        "spending_private_key": "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "viewing_private_key": "0x5555555555555555555555555555555555555555555555555555555555555555",
+        "ephemeral_private_key": "0x6666666666666666666666666666666666666666666666666666666666666666"
+      },
+      "expected": {
+        "shared_secret_derivation": "ECDH(ephemeral_private, viewing_public)"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-005",
+      "description": "Stealth address scanning - positive case",
+      "input": {
+        "stealth_address": "0x...",
+        "ephemeral_public_key": "0x02...",
+        "viewing_private_key": "0x5555555555555555555555555555555555555555555555555555555555555555",
+        "spending_public_key": "0x02..."
+      },
+      "expected": {
+        "is_ours": true
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-006",
+      "description": "Stealth address scanning - negative case",
+      "input": {
+        "stealth_address": "0xdifferent...",
+        "ephemeral_public_key": "0x02...",
+        "viewing_private_key": "0x7777777777777777777777777777777777777777777777777777777777777777",
+        "spending_public_key": "0x02..."
+      },
+      "expected": {
+        "is_ours": false
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-007",
+      "description": "Private key derivation for spending",
+      "input": {
+        "spending_private_key": "0x8888888888888888888888888888888888888888888888888888888888888888",
+        "viewing_private_key": "0x9999999999999999999999999999999999999999999999999999999999999999",
+        "ephemeral_public_key": "0x02..."
+      },
+      "expected": {
+        "derivation_formula": "stealth_private = spending_private + H(shared_secret || spending_public)"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-008",
+      "description": "Meta-address encoding validation",
+      "input": {
+        "chain": "arbitrum",
+        "spending_public_key": "0x02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "viewing_public_key": "0x03bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "expected": {
+        "meta_address": "sip:arbitrum:0x02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:0x03bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-009",
+      "description": "Meta-address decoding validation",
+      "input": {
+        "meta_address": "sip:ethereum:0x0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798:0x02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5"
+      },
+      "expected": {
+        "chain": "ethereum",
+        "spending_public_key": "0x0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+        "viewing_public_key": "0x02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-010",
+      "description": "Chain-specific address encoding - Ethereum",
+      "input": {
+        "chain": "ethereum",
+        "stealth_public_key": "0x04..."
+      },
+      "expected": {
+        "address_format": "0x + keccak256(public_key)[12:32]"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-011",
+      "description": "Edge case - minimum valid private key",
+      "input": {
+        "chain": "ethereum",
+        "spending_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "viewing_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "ephemeral_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001"
+      },
+      "expected": {
+        "note": "Minimum valid scalar on secp256k1"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-012",
+      "description": "Edge case - near curve order private key",
+      "input": {
+        "chain": "ethereum",
+        "spending_private_key": "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+        "viewing_private_key": "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+        "ephemeral_private_key": "0x0000000000000000000000000000000000000000000000000000000000000001"
+      },
+      "expected": {
+        "note": "n-1 is the maximum valid scalar"
+      },
+      "valid": true
+    },
+    {
+      "id": "stealth-error-001",
+      "description": "Invalid meta-address - missing prefix",
+      "input": {
+        "meta_address": "ethereum:0x02...:0x03..."
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0200",
+        "type": "INVALID_STEALTH_META_ADDRESS"
+      },
+      "valid": false
+    },
+    {
+      "id": "stealth-error-002",
+      "description": "Invalid meta-address - malformed keys",
+      "input": {
+        "meta_address": "sip:ethereum:invalid:keys"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0200",
+        "type": "INVALID_STEALTH_META_ADDRESS"
+      },
+      "valid": false
+    },
+    {
+      "id": "stealth-error-003",
+      "description": "Invalid public key - not on curve",
+      "input": {
+        "spending_public_key": "0x020000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0201",
+        "type": "INVALID_PUBLIC_KEY"
+      },
+      "valid": false
+    },
+    {
+      "id": "stealth-error-004",
+      "description": "Invalid private key - zero",
+      "input": {
+        "spending_private_key": "0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0100",
+        "type": "INVALID_INPUT"
+      },
+      "valid": false
+    },
+    {
+      "id": "stealth-error-005",
+      "description": "Invalid private key - exceeds curve order",
+      "input": {
+        "spending_private_key": "0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+      },
+      "expected_error": {
+        "code": "SIP_ERR_0100",
+        "type": "INVALID_INPUT"
+      },
+      "valid": false
+    }
+  ]
+}
