@@ -1,0 +1,73 @@
+[project]
+name = "sip-protocol"
+version = "0.1.0"
+description = "SIP Protocol SDK - Privacy standard for Web3"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "SIP Protocol", email = "rector@rectorspace.com" }
+]
+requires-python = ">=3.9"
+keywords = ["privacy", "web3", "blockchain", "stealth-addresses", "pedersen-commitments"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security :: Cryptography",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "py_ecc>=7.0.0",
+    "pycryptodome>=3.19.0",
+    "coincurve>=19.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.7.0",
+    "ruff>=0.1.6",
+]
+
+[project.urls]
+Homepage = "https://sip-protocol.org"
+Documentation = "https://docs.sip-protocol.org"
+Repository = "https://github.com/sip-protocol/sip-protocol"
+Issues = "https://github.com/sip-protocol/sip-protocol/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/sip_protocol",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["sip_protocol"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --cov=sip_protocol --cov-report=term-missing"

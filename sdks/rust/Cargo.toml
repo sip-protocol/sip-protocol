@@ -1,0 +1,54 @@
+[package]
+name = "sip-protocol"
+version = "0.1.0"
+edition = "2021"
+authors = ["SIP Protocol <rector@rectorspace.com>"]
+description = "SIP Protocol SDK - Privacy standard for Web3"
+license = "MIT"
+repository = "https://github.com/sip-protocol/sip-protocol"
+homepage = "https://sip-protocol.org"
+documentation = "https://docs.sip-protocol.org"
+readme = "README.md"
+keywords = ["privacy", "web3", "blockchain", "stealth-addresses", "pedersen"]
+categories = ["cryptography", "web-programming"]
+
+[lib]
+name = "sip_protocol"
+path = "src/lib.rs"
+
+[features]
+default = ["std"]
+std = []
+wasm = ["wasm-bindgen", "getrandom/js"]
+
+[dependencies]
+# Elliptic curves (noble-curves compatible)
+k256 = { version = "0.13", features = ["arithmetic", "ecdh"] }
+sha2 = "0.10"
+sha3 = "0.10"
+hmac = "0.12"
+rand = "0.8"
+hex = "0.4"
+thiserror = "2"
+lazy_static = "1.5"
+
+# Encryption
+chacha20poly1305 = "0.10"
+
+# WASM support (optional)
+wasm-bindgen = { version = "0.2", optional = true }
+getrandom = { version = "0.2", optional = true }
+
+# Serialization
+serde = { version = "1", features = ["derive"], optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "commitment"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
