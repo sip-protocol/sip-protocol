@@ -302,7 +302,7 @@ export class ProofAggregator {
     const { proofs, getProvider, onProgress, abortSignal, verifyBefore, linkProofs } = options
     const stepResults: AggregationStepResult[] = []
     const totalSteps = proofs.length
-    let retryStats = { attempted: 0, succeeded: 0, failed: 0 }
+    const retryStats = { attempted: 0, succeeded: 0, failed: 0 }
 
     // Emit start event
     this.emitEvent({
@@ -462,7 +462,7 @@ export class ProofAggregator {
     const startTime = Date.now()
     const { proofs, getProvider, onProgress, abortSignal, maxConcurrent, verifyBefore } = options
     const stepResults: AggregationStepResult[] = new Array(proofs.length)
-    let retryStats = { attempted: 0, succeeded: 0, failed: 0 }
+    const retryStats = { attempted: 0, succeeded: 0, failed: 0 }
     let completedCount = 0
 
     if (this._config.verbose) {
@@ -613,7 +613,7 @@ export class ProofAggregator {
     const startTime = Date.now()
     const { proofs, getProvider, targetSystem, maxDepth, onProgress, abortSignal } = options
     const stepResults: AggregationStepResult[] = []
-    let retryStats = { attempted: 0, succeeded: 0, failed: 0 }
+    const retryStats = { attempted: 0, succeeded: 0, failed: 0 }
 
     if (this._config.verbose) {
       console.log(`[Aggregator] Recursive aggregation of ${proofs.length} proofs (target: ${targetSystem}, maxDepth: ${maxDepth})`)
@@ -774,7 +774,7 @@ export class ProofAggregator {
   ): Promise<DetailedAggregationResult> {
     const startTime = Date.now()
     const stepResults: AggregationStepResult[] = []
-    let retryStats = { attempted: 0, succeeded: 0, failed: 0 }
+    const retryStats = { attempted: 0, succeeded: 0, failed: 0 }
 
     if (this._config.verbose) {
       console.log(`[Aggregator] Batch aggregation of ${proofs.length} proofs`)
