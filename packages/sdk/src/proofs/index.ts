@@ -526,3 +526,21 @@ export type {
   IWorkStealingScheduler,
   IParallelExecutor,
 } from './parallel'
+
+// ─── Browser Proof Composition (M20-19) ──────────────────────────────────────
+
+// Browser-compatible proof composer
+// NOTE: This is designed for browser environments but can be used in Node.js
+// with the forceInitialize option. For server-side only, prefer BaseProofComposer.
+export {
+  BrowserProofComposer,
+  createBrowserComposer,
+  createAutoComposer,
+} from './browser-composer'
+
+export type {
+  BrowserProofComposerConfig,
+  BrowserComposeOptions,
+  CompositionProgress,
+  CompositionProgressCallback,
+} from './browser-composer'
