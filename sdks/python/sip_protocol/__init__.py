@@ -61,6 +61,24 @@ from .types import (
     ViewingKey,
 )
 
+from .optimizations import (
+    ChainFamily,
+    OptimizationProfile,
+    ChainCharacteristics,
+    SolanaComputeBudget,
+    EvmGasConfig,
+    OptimizationResult,
+    detect_chain_family,
+    get_chain_characteristics,
+    calculate_solana_budget,
+    estimate_solana_privacy_cu,
+    calculate_evm_gas,
+    estimate_evm_privacy_gas,
+    select_optimal_config,
+    compare_chain_costs,
+    recommend_cheapest_chain,
+)
+
 __all__ = [
     # Version
     "__version__",
@@ -99,4 +117,20 @@ __all__ = [
     "StealthAddressRecovery",
     "PedersenCommitment",
     "ViewingKey",
+    # Optimizations
+    "ChainFamily",
+    "OptimizationProfile",
+    "ChainCharacteristics",
+    "SolanaComputeBudget",
+    "EvmGasConfig",
+    "OptimizationResult",
+    "detect_chain_family",
+    "get_chain_characteristics",
+    "calculate_solana_budget",
+    "estimate_solana_privacy_cu",
+    "calculate_evm_gas",
+    "estimate_evm_privacy_gas",
+    "select_optimal_config",
+    "compare_chain_costs",
+    "recommend_cheapest_chain",
 ]

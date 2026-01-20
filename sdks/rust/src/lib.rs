@@ -25,6 +25,7 @@
 pub mod commitment;
 pub mod crypto;
 pub mod error;
+pub mod optimizations;
 pub mod privacy;
 pub mod stealth;
 pub mod types;

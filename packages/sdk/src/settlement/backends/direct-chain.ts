@@ -118,6 +118,7 @@ const DEFAULT_GAS_FEES: Record<ChainId, bigint> = {
   celestia: 5000n, // 0.005 TIA in utia
   sei: 5000n, // 0.005 SEI in usei
   dydx: 5000n, // 0.000005 DYDX in dydx (18 decimals)
+  bsc: 21000n * 5n * 1000000000n, // 21k gas * 5 gwei = 0.000105 BNB
 }
 
 /**

@@ -40,6 +40,7 @@ export const NATIVE_TOKENS: Record<ChainId, Asset> = {
   celestia: { chain: 'celestia', symbol: 'TIA', address: null, decimals: 6 },
   sei: { chain: 'sei', symbol: 'SEI', address: null, decimals: 6 },
   dydx: { chain: 'dydx', symbol: 'DYDX', address: null, decimals: 18 },
+  bsc: { chain: 'bsc', symbol: 'BNB', address: null, decimals: 18 },
 }
 
 /**

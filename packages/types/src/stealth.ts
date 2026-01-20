@@ -67,6 +67,7 @@ export type ChainId =
   | 'celestia'
   | 'sei'
   | 'dydx'
+  | 'bsc'
 
 /**
  * Registry entry for a stealth meta-address

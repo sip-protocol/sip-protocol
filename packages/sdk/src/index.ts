@@ -1493,3 +1493,34 @@ export {
   SyncManager,
   createSyncManager,
 } from './sync'
+
+// ─── Chain-Specific Optimizations (M20-29) ──────────────────────────────────
+
+// Provides optimized configurations for different blockchains:
+// - Solana: Compute unit budgeting, priority fees, ALT recommendations
+// - Ethereum/EVM: Gas optimization, L2 strategies, EIP-4844 blob support
+// - BNB Chain: PancakeSwap routing, cross-chain cost comparison
+// - Auto-selection: Smart chain detection and configuration selection
+export {
+  // Namespaced chain-specific modules
+  solanaOptimizations,
+  evmOptimizations,
+  bnbOptimizations,
+  // Chain detection and characteristics
+  detectChainFamily,
+  getChainCharacteristics,
+  // Auto-selection
+  selectOptimalConfig,
+  // Cost comparison
+  compareCrossChainCosts,
+  recommendCheapestChain,
+  recommendProfile,
+} from './optimizations'
+
+export type {
+  // Common types
+  ChainFamily,
+  UnifiedOptimizationProfile,
+  ChainCharacteristics,
+  UnifiedOptimizationResult,
+} from './optimizations'

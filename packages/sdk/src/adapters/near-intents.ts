@@ -210,6 +210,7 @@ const CHAIN_BLOCKCHAIN_MAP: Record<ChainId, string> = {
   celestia: 'cosmos',
   sei: 'cosmos',
   dydx: 'cosmos',
+  bsc: 'evm',
 }
 
 /**
