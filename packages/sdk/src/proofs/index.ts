@@ -112,6 +112,25 @@ export type {
   DetailedAggregationResult,
 } from './aggregator'
 
+// Verification Pipeline
+export {
+  VerificationPipeline,
+  createVerificationPipeline,
+  DEFAULT_PIPELINE_CONFIG,
+} from './verifier'
+
+export type {
+  VerificationPipelineConfig,
+  ProofDependency,
+  VerificationOrder,
+  DetailedVerificationResult,
+  LinkValidationResult,
+  SystemVerificationStats,
+  VerificationProgressEvent,
+  VerificationProgressCallback,
+  VerifyOptions,
+} from './verifier'
+
 // Composer interfaces and errors
 export {
   type ComposableProofProvider,
