@@ -43,6 +43,7 @@ import { ed25519PublicKeyToAptosAddress } from '../move/aptos'
 import { ed25519PublicKeyToSuiAddress } from '../move/sui'
 import { ValidationError } from '../errors'
 import { isAddressValidForChain, getChainAddressType } from '../validation'
+import { FeeCalculator, DEFAULT_CHAIN_FEES } from '../fees/calculator'
 
 /**
  * Swap request parameters (simplified interface for adapter)
@@ -82,6 +83,8 @@ export interface PreparedSwap {
   curve?: StealthCurve
   /** Native recipient address (converted from stealth public key) */
   nativeRecipientAddress?: string
+  /** Estimated fee disclosure */
+  estimatedFees?: SwapFeeDisclosure
 }
 
 /**
@@ -108,6 +111,26 @@ export interface SwapResult {
   stealthRecipient?: string
   /** Ephemeral public key (for recipient to derive stealth key) */
   ephemeralPublicKey?: string
+  /** Fee disclosure (if fees enabled) */
+  fees?: SwapFeeDisclosure
+}
+
+/**
+ * Fee disclosure in swap results
+ */
+export interface SwapFeeDisclosure {
+  /** Protocol fee amount in source token */
+  protocolFee: bigint
+  /** Protocol fee in USD */
+  protocolFeeUsd: number
+  /** Fee rate in basis points */
+  feeBps: number
+  /** Fee tier (if tiered pricing) */
+  tierName?: string
+  /** Discount applied (if viewing key disclosed) */
+  discountBps: number
+  /** Treasury account receiving fee */
+  treasuryAccount: string
 }
 
 /**
@@ -126,6 +149,17 @@ export interface NEARIntentsAdapterConfig {
   defaultDeadlineOffset?: number
   /** Custom asset mappings (merged with defaults) */
   assetMappings?: Record<string, DefuseAssetId>
+  /** Enable fee collection (default: true) */
+  enableFees?: boolean
+  /** Custom fee configuration */
+  feeConfig?: {
+    /** Override base fee in basis points */
+    baseBps?: number
+    /** Disable viewing key discount */
+    disableViewingKeyDiscount?: boolean
+    /** Custom treasury account */
+    treasuryAccount?: string
+  }
 }
 
 /**
@@ -247,6 +281,9 @@ export class NEARIntentsAdapter {
   private readonly defaultSlippage: number
   private readonly defaultDeadlineOffset: number
   private readonly assetMappings: Record<string, DefuseAssetId>
+  private readonly feesEnabled: boolean
+  private readonly feeCalculator: FeeCalculator
+  private readonly treasuryAccount: string
 
   constructor(config: NEARIntentsAdapterConfig = {}) {
     this.client = config.client ?? new OneClickClient({
@@ -259,6 +296,25 @@ export class NEARIntentsAdapter {
       ...DEFAULT_ASSET_MAPPINGS,
       ...config.assetMappings,
     }
+
+    // Fee configuration
+    this.feesEnabled = config.enableFees ?? true
+    this.treasuryAccount = config.feeConfig?.treasuryAccount ?? 'treasury.sip-protocol.near'
+
+    // Initialize fee calculator with custom config if provided
+    const chainConfigs = config.feeConfig?.baseBps
+      ? {
+          near: {
+            ...DEFAULT_CHAIN_FEES.near,
+            baseBps: config.feeConfig.baseBps,
+            viewingKeyDiscountBps: config.feeConfig.disableViewingKeyDiscount
+              ? 0
+              : DEFAULT_CHAIN_FEES.near.viewingKeyDiscountBps,
+          },
+        }
+      : undefined
+
+    this.feeCalculator = new FeeCalculator({ chainConfigs })
   }
 
   /**
@@ -504,6 +560,30 @@ export class NEARIntentsAdapter {
     // Build quote request
     const quoteRequest = this.buildQuoteRequest(request, recipientAddress, refundAddress)
 
+    // Calculate estimated fees
+    let estimatedFees: SwapFeeDisclosure | undefined
+    if (this.feesEnabled) {
+      // Estimate USD value (simplified - would use price oracle in production)
+      const amountUsd = Number(request.inputAmount) / 1e18 * 1 // Assume $1 per token for estimation
+      const isPrivate = request.privacyLevel !== PrivacyLevel.TRANSPARENT
+      const feeResult = this.feeCalculator.calculate({
+        amount: request.inputAmount,
+        amountUsd,
+        sourceChain: request.inputAsset.chain,
+        destinationChain: request.outputAsset.chain,
+        viewingKeyDisclosed: isPrivate, // Privacy modes get discount
+      })
+
+      estimatedFees = {
+        protocolFee: feeResult.protocolFee,
+        protocolFeeUsd: feeResult.protocolFeeUsd,
+        feeBps: feeResult.appliedBps,
+        tierName: feeResult.tierName,
+        discountBps: feeResult.discountBps,
+        treasuryAccount: this.treasuryAccount,
+      }
+    }
+
     return {
       request,
       quoteRequest,
@@ -511,6 +591,7 @@ export class NEARIntentsAdapter {
       sharedSecret,
       curve,
       nativeRecipientAddress,
+      estimatedFees,
     }
   }
 
@@ -614,7 +695,60 @@ export class NEARIntentsAdapter {
       status: OneClickSwapStatus.PENDING_DEPOSIT,
       stealthRecipient: prepared.stealthAddress?.address,
       ephemeralPublicKey: prepared.stealthAddress?.ephemeralPublicKey,
+      fees: prepared.estimatedFees,
     }
+  }
+
+  // ─── Fee Estimation ──────────────────────────────────────────────────────────
+
+  /**
+   * Estimate fees for a swap (for UI display)
+   *
+   * @param amountUsd - Swap amount in USD
+   * @param sourceChain - Source chain
+   * @param isPrivate - Whether privacy mode is enabled
+   * @returns Fee estimate
+   */
+  estimateFees(
+    amountUsd: number,
+    sourceChain: ChainId = 'near',
+    isPrivate = true
+  ): SwapFeeDisclosure | null {
+    if (!this.feesEnabled) {
+      return null
+    }
+
+    const amount = BigInt(Math.floor(amountUsd * 1e18))
+    const feeResult = this.feeCalculator.calculate({
+      amount,
+      amountUsd,
+      sourceChain,
+      destinationChain: sourceChain,
+      viewingKeyDisclosed: isPrivate,
+    })
+
+    return {
+      protocolFee: feeResult.protocolFee,
+      protocolFeeUsd: feeResult.protocolFeeUsd,
+      feeBps: feeResult.appliedBps,
+      tierName: feeResult.tierName,
+      discountBps: feeResult.discountBps,
+      treasuryAccount: this.treasuryAccount,
+    }
+  }
+
+  /**
+   * Check if fees are enabled
+   */
+  areFeesEnabled(): boolean {
+    return this.feesEnabled
+  }
+
+  /**
+   * Get the fee calculator instance
+   */
+  getFeeCalculator(): FeeCalculator {
+    return this.feeCalculator
   }
 
   // ─── Asset Mapping ────────────────────────────────────────────────────────────
