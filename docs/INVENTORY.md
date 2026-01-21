@@ -25,15 +25,15 @@ gh issue list --search "EPIC" --state open    # Active milestones
 
 | Package | Version | Description | Tests |
 |---------|---------|-------------|-------|
-| `@sip-protocol/sdk` | 0.7.3 | Core SDK for shielded intents | 3,988 |
+| `@sip-protocol/sdk` | 0.7.3 | Core SDK for shielded intents | 6,603 |
 | `@sip-protocol/types` | 0.2.1 | TypeScript type definitions | - |
 | `@sip-protocol/react` | 0.1.0 | React hooks | 82 |
 | `@sip-protocol/cli` | 0.2.0 | CLI tool | 10 |
 | `@sip-protocol/api` | 0.1.0 | REST API wrapper | 18 |
 | `@sip-protocol/react-native` | 0.1.1 | iOS/Android SDK | 10 |
-| `circuits` | - | Noir ZK circuits | - |
+| `circuits` | - | Noir ZK circuits (external repo) | 19 |
 
-**Total tests: 4,108+**
+**Total tests: 6,661+ (monorepo) + 19 (circuits)**
 
 ### Solana Programs
 
@@ -101,39 +101,44 @@ contracts/sip-ethereum/src/
 ## 2. sip-protocol/sip-app
 
 **Version:** 0.1.0
-**Stack:** Next.js 14, React 18, Tailwind, Zustand
-**Deployment:** app.sip-protocol.org (port 5005)
+**Stack:** Next.js 16, React 19, Tailwind 4, Zustand 5
+**Deployment:** app.sip-protocol.org (port 5004 blue / 5005 green)
+**Tests:** 25 test suites
 
-### App Routes
+### App Routes (14 total)
 
-| Route | Description |
-|-------|-------------|
-| `/(dex)/` | Private DEX with Jupiter integration |
-| `/(payments)/` | Private payments (hackathon focus) |
-| `/(wallet)/` | Wallet interface |
-| `/(enterprise)/` | Compliance dashboard |
-| `/(tools)/` | Developer tools |
-| `/api/` | API routes |
+| Route | Description | Status |
+|-------|-------------|--------|
+| `/` | Hub dashboard | Live |
+| `/(payments)/payments/*` | Private payments (send, receive, scan, history, disclose) | Live |
+| `/(tools)/privacy-score` | Wallet surveillance analyzer | Live |
+| `/(wallet)/wallet/*` | Wallet interface | Scaffolded |
+| `/(dex)/dex/*` | Private DEX with Jupiter | Scaffolded |
+| `/(enterprise)/enterprise/*` | Compliance dashboard | Scaffolded |
 
 ---
 
 ## 3. sip-protocol/sip-website
 
 **Version:** 0.0.1
-**Stack:** Next.js 14, React 18, Tailwind
+**Stack:** Next.js 15, React 19, Tailwind 4
 **Deployment:** sip-protocol.org (port 5000)
+**Tests:** 157 tests
 
-### Pages
+### Active Pages (13)
 
 | Route | Description |
 |-------|-------------|
+| `/` | Landing page |
 | `/about` | About page |
 | `/features` | Feature showcase |
 | `/sdk` | SDK documentation |
 | `/roadmap` | Public roadmap |
 | `/pitch-deck` | Investor pitch |
+| `/grants/*` | Superteam & Solana Foundation grants |
+| `/privacy`, `/terms`, `/license`, `/security` | Legal pages |
 
-**Note:** Demo pages deprecated, migrated to sip-app.
+**Note:** Demo pages removed with 301 redirects to sip-app.
 
 ---
 
@@ -160,10 +165,10 @@ contracts/sip-ethereum/src/
 ## 5. sip-protocol/blog-sip
 
 **Version:** 0.0.1
-**Stack:** Astro 4, MDX, Tailwind
+**Stack:** Astro 5, MDX, Tailwind 4
 **Deployment:** blog.sip-protocol.org (port 5004)
 
-**Posts:** 26 articles
+**Posts:** 25 published articles (M16 target: 12 — exceeded)
 
 ### Topics
 
@@ -177,15 +182,16 @@ contracts/sip-ethereum/src/
 
 ## 6. sip-protocol/circuits
 
-**Stack:** Noir, Barretenberg, Nargo CLI
+**Stack:** Noir 1.0.0-beta.15, Barretenberg (UltraHonk), Nargo CLI
+**Tests:** 19 tests passing
 
-### Circuits
+### Circuits (Implemented)
 
-| Circuit | Description |
-|---------|-------------|
-| Funding Proof | Prove balance >= minimum |
-| Validity Proof | Prove intent authorization |
-| Fulfillment Proof | Prove fulfillment correctness |
+| Circuit | Purpose | ACIR Opcodes | Tests |
+|---------|---------|--------------|-------|
+| funding_proof | Prove balance >= minimum | 972 | 5 |
+| validity_proof | Prove intent authorization | 1113 | 6 |
+| fulfillment_proof | Prove fulfillment correctness | 1691 | 8 |
 
 ---
 
@@ -208,7 +214,7 @@ contracts/sip-ethereum/src/
 | sip-website | 5000 | sip-website | sip-protocol.org |
 | sip-docs | 5003 | sip-docs | docs.sip-protocol.org |
 | sip-blog | 5004 | sip-blog | blog.sip-protocol.org |
-| sip-app | 5005 | sip-app | app.sip-protocol.org |
+| sip-app | 5004/5005 | sip-app-blue/green | app.sip-protocol.org |
 
 ---
 
@@ -228,8 +234,9 @@ contracts/sip-ethereum/src/
 
 | Date | Change |
 |------|--------|
+| 2026-01-21 | Updated test counts (6,661+), circuits status, app routes |
 | 2026-01-18 | Initial inventory, M16 complete |
 
 ---
 
-*Last updated: January 18, 2026*
+*Last updated: January 21, 2026*

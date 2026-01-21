@@ -16,12 +16,12 @@
 
 | Repo | Purpose | Tech Stack | Version |
 |------|---------|------------|---------|
-| `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.6.0 |
-| `sip-protocol/sip-app` | **App** - Privacy applications (payments, wallet, DEX) | Next.js 14, Tailwind | v0.0.1 |
-| `sip-protocol/sip-website` | Marketing site (demo deprecated → sip-app) | Next.js 14, Tailwind | v0.1.0 |
-| `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro, MDX | v0.0.1 |
-| `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro, MDX, Tailwind | v0.0.1 |
-| `sip-protocol/circuits` | Noir ZK circuits | Noir, Barretenberg | - |
+| `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.7.3 |
+| `sip-protocol/sip-app` | **App** - Privacy applications (payments, wallet, DEX) | Next.js 16, Tailwind | v0.1.0 |
+| `sip-protocol/sip-website` | Marketing site (demo deprecated → sip-app) | Next.js 15, Tailwind | v0.0.1 |
+| `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro 5, MDX | v0.0.0 |
+| `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro 5, MDX, Tailwind | v0.0.1 |
+| `sip-protocol/circuits` | Noir ZK circuits (3 circuits, 19 tests) | Noir 1.0.0-beta.15 | - |
 | `sip-protocol/.github` | Org configs, profile | YAML | - |
 
 **Organization Mission:** Become THE privacy standard for Web3 — same-chain and cross-chain
@@ -84,7 +84,7 @@ Quick reference for navigating between SIP Protocol repositories.
 **Key Commands:**
 ```bash
 pnpm install                    # Install dependencies
-pnpm test -- --run              # Run all tests (5,584+ tests)
+pnpm test -- --run              # Run all tests (6,661+ tests)
 pnpm typecheck                  # Type check
 pnpm build                      # Build all packages
 ```
@@ -99,51 +99,53 @@ pnpm build                      # Build all packages
 
 ---
 
-### 2. sip-app (NEW)
+### 2. sip-app
 
 **Purpose:** World-class privacy applications (payments, wallet, DEX, enterprise)
-**Tech Stack:** Next.js 14, React 18, Tailwind CSS, Zustand, Vitest
+**Tech Stack:** Next.js 16, React 19, Tailwind CSS 4, Zustand 5, Vitest
 **Key Commands:**
 ```bash
 pnpm dev                        # Dev server (localhost:3000)
-pnpm test -- --run              # Run tests
+pnpm test -- --run              # Run tests (25 test suites)
 pnpm build                      # Build for production
 pnpm typecheck                  # Type check
 ```
-**App Routes:**
-- `/payments` - Private payments (hackathon focus)
-- `/wallet` - Wallet interface
-- `/dex` - Private DEX (replaces sip-website /demo)
-- `/enterprise` - Enterprise compliance dashboard
+**App Routes (14 total):**
+- `/` - Hub dashboard with app cards
+- `/payments/*` - Private payments (send, receive, scan, history, disclose)
+- `/privacy-score` - Wallet surveillance analyzer
+- `/wallet/*` - Wallet interface (scaffolded)
+- `/dex/*` - Private DEX with Jupiter (scaffolded)
+- `/enterprise/*` - Compliance dashboard (scaffolded)
 
-**Deployment:** app.sip-protocol.org (Docker + GHCR, port 5004)
+**Deployment:** app.sip-protocol.org (Docker + GHCR, port 5004 blue / 5005 green)
 **CLAUDE.md:** [sip-app/CLAUDE.md](https://github.com/sip-protocol/sip-app/blob/main/CLAUDE.md)
 
 ---
 
 ### 3. sip-website
 
-**Purpose:** Marketing website (demo pages deprecated → sip-app)
-**Tech Stack:** Next.js 14, React 18, Tailwind CSS, Zustand, Vitest
+**Purpose:** Marketing website (demo pages removed, redirects to sip-app)
+**Tech Stack:** Next.js 15, React 19, Tailwind CSS 4, Zustand, Vitest
 **Key Commands:**
 ```bash
 pnpm dev                        # Dev server (localhost:3000)
-pnpm test -- --run              # Run tests (126 tests)
+pnpm test -- --run              # Run tests (157 tests)
 pnpm build                      # Build for production
 pnpm typecheck                  # Type check
 ```
-**Key Files:**
-- `src/app/` - Next.js app router pages
-- `src/components/` - React components
-- `src/hooks/` - Custom hooks (useSwap, useQuote)
-- `src/stores/` - Zustand stores (wallet, toast)
-- `tests/` - Test suites
+**Active Pages (13):**
+- `/` - Landing page
+- `/about`, `/features`, `/roadmap` - Marketing pages
+- `/sdk`, `/pitch-deck` - SDK showcase, investor deck
+- `/grants/*` - Superteam & Solana Foundation grant pitches
+- `/privacy`, `/terms`, `/license`, `/security` - Legal pages
 
 **Features:** SDK showcase, grants pitch pages, about, roadmap
-**Deployment:** sip-protocol.org (Docker + GHCR)
+**Deployment:** sip-protocol.org (Docker + GHCR, port 5000)
 **CLAUDE.md:** [sip-website/CLAUDE.md](https://github.com/sip-protocol/sip-website/blob/main/CLAUDE.md)
 
-**DEPRECATED PAGES (migrating to sip-app):**
+**DEPRECATED PAGES (removed, 301 redirects active):**
 - `/demo` → `app.sip-protocol.org/dex`
 - `/claim` → `app.sip-protocol.org/payments/receive`
 - `/phantom-poc` → `app.sip-protocol.org/wallet`
@@ -175,18 +177,20 @@ npm run preview                 # Preview build
 ### 5. circuits
 
 **Purpose:** Noir ZK circuits for privacy proofs
-**Tech Stack:** Noir, Barretenberg, Nargo CLI
+**Tech Stack:** Noir 1.0.0-beta.15, Barretenberg (UltraHonk), Nargo CLI
 **Key Commands:**
 ```bash
 nargo compile                   # Compile circuit
-nargo test                      # Run tests
+nargo test                      # Run tests (19 tests total)
 nargo prove                     # Generate proof
 nargo verify                    # Verify proof
 ```
-**Circuits (Planned):**
-- Funding Proof - Prove balance >= minimum without revealing balance
-- Validity Proof - Prove intent authorization without revealing sender
-- Fulfillment Proof - Prove fulfillment correctness
+**Circuits (Implemented):**
+| Circuit | Purpose | ACIR Opcodes | Tests |
+|---------|---------|--------------|-------|
+| funding_proof | Prove balance >= minimum | 972 | 5 |
+| validity_proof | Prove intent authorization | 1113 | 6 |
+| fulfillment_proof | Prove fulfillment correctness | 1691 | 8 |
 
 **Specs:** See `docs/specs/` in sip-protocol repo
 **CLAUDE.md:** [circuits/CLAUDE.md](https://github.com/sip-protocol/circuits/blob/main/CLAUDE.md)
@@ -196,7 +200,7 @@ nargo verify                    # Verify proof
 ### 6. blog-sip
 
 **Purpose:** Official blog for technical deep-dives and ecosystem updates
-**Tech Stack:** Astro 4, MDX, Tailwind CSS
+**Tech Stack:** Astro 5, MDX, Tailwind CSS 4
 **Key Commands:**
 ```bash
 pnpm dev                        # Dev server (localhost:4321)
@@ -204,13 +208,13 @@ pnpm build                      # Build for production
 pnpm preview                    # Preview build
 ```
 **Key Files:**
-- `src/content/blog/` - MDX blog posts
+- `src/content/blog/` - MDX blog posts (25 published)
 - `src/components/` - Astro components (TLDRBox, Callout, CodeBlock)
 - `src/layouts/` - Page layouts (BaseLayout, PostLayout)
 
 **Features:** SEO optimization, LLMO (LLM discoverability), RSS feed, JSON-LD structured data
-**Deployment:** blog.sip-protocol.org (Docker + GHCR)
-**Issues:** [47 issues across 5 milestones](https://github.com/sip-protocol/blog-sip/issues)
+**Content:** 25 published posts (M16 target: 12 — exceeded)
+**Deployment:** blog.sip-protocol.org (Docker + GHCR, port 5004)
 **CLAUDE.md:** [blog-sip/CLAUDE.md](https://github.com/sip-protocol/blog-sip/blob/main/CLAUDE.md)
 
 ---
@@ -265,7 +269,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **SIP (Shielded Intents Protocol)** is the privacy standard for Web3 — like HTTPS for the internet. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Status:** M16 Complete | 5,584+ tests (SDK: 5,076, React: 291, CLI: 45, API: 162, RN: 10) | Live at sip-protocol.org
+**Status:** M16 Complete | 6,661+ tests (SDK: 6,603, React: 82, CLI: 10, API: 18, RN: 10) | Live at sip-protocol.org
 
 **🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | Dec 2025 | #14 of 88 | 3 Tracks | [Devfolio](https://devfolio.co/projects/sip-protocol-2026)
 
@@ -373,10 +377,10 @@ const payments = await scanForPayments({
 # Install dependencies
 pnpm install
 
-# Run all tests (5,584+ tests)
+# Run all tests (6,661+ tests)
 pnpm test -- --run
 
-# Run E2E tests only (128 tests)
+# Run E2E tests only (30 tests)
 pnpm test -- tests/e2e --run
 
 # Type check
@@ -391,44 +395,31 @@ pnpm build
 
 ---
 
-## Test Suite (5,584+ total tests)
+## Test Suite (6,661+ total tests)
 
 ### Package Test Counts
 
-| Package | Tests | Location |
-|---------|-------|----------|
-| @sip-protocol/sdk | 5,076 | `packages/sdk/tests/` |
-| @sip-protocol/react | 291 | `packages/react/tests/` |
-| @sip-protocol/cli | 45 | `packages/cli/tests/` |
-| @sip-protocol/api | 162 | `packages/api/tests/` |
-| @sip-protocol/react-native | 10 | `packages/react-native/tests/` |
+| Package | Version | Tests | Location |
+|---------|---------|-------|----------|
+| @sip-protocol/sdk | 0.7.3 | 6,603 | `packages/sdk/tests/` |
+| @sip-protocol/react | 0.1.0 | 82 | `packages/react/tests/` |
+| @sip-protocol/cli | 0.2.0 | 10 | `packages/cli/tests/` |
+| @sip-protocol/api | 0.1.0 | 18 | `packages/api/tests/` |
+| @sip-protocol/react-native | 0.1.1 | 10 | `packages/react-native/tests/` |
 
-### SDK Test Breakdown
+### SDK Test Categories
 
-| Suite | Count | Location |
-|-------|-------|----------|
-| Crypto unit tests | ~50 | `packages/sdk/tests/crypto.test.ts` |
-| Stealth address tests | ~40 | `packages/sdk/tests/stealth.test.ts` |
-| Privacy/encryption tests | ~30 | `packages/sdk/tests/privacy.test.ts` |
-| Validation tests | ~60 | `packages/sdk/tests/validation.test.ts` |
-| Integration tests | ~100 | `packages/sdk/tests/integration/` |
-| E2E tests | 128 | `packages/sdk/tests/e2e/` |
-| Multi-curve/chain tests | ~200 | `packages/sdk/tests/multi-*.test.ts` |
-| NEAR privacy tests | ~600 | `packages/sdk/tests/chains/near/` |
-| NEAR wallet tests | ~400 | `packages/sdk/tests/wallet/near-*.test.ts` |
-
-### React Package Tests
-
-| Suite | Count | Location |
-|-------|-------|----------|
-| useSIP hook | 17 | `packages/react/tests/hooks/use-sip.test.tsx` |
-| useStealthAddress hook | 12 | `packages/react/tests/use-stealth-address.test.tsx` |
-| usePrivateSwap hook | 16 | `packages/react/tests/hooks/use-private-swap.test.tsx` |
-| useViewingKey hook | 14 | `packages/react/tests/hooks/use-viewing-key.test.tsx` |
-| PrivacyToggle component | 41 | `packages/react/tests/components/privacy-toggle.test.tsx` |
-| StealthAddressDisplay | 46 | `packages/react/tests/components/stealth-address-display.test.tsx` |
-| TransactionTracker | 53 | `packages/react/tests/components/transaction-tracker.test.tsx` |
-| ViewingKeyManager | 51 | `packages/react/tests/components/viewing-key-manager.test.tsx` |
+| Category | Description |
+|----------|-------------|
+| Crypto unit tests | Pedersen commitments, hashing, encryption |
+| Stealth address tests | EIP-5564, secp256k1, ed25519 |
+| Privacy/encryption tests | Viewing keys, XChaCha20-Poly1305 |
+| Validation tests | Input validation, error handling |
+| Integration tests | Multi-component flows |
+| E2E tests | Cross-chain swap flows |
+| Multi-curve/chain tests | 15+ chain support |
+| Solana privacy tests | Same-chain privacy, Helius integration |
+| NEAR privacy tests | Intents, wallet adapters |
 
 ---
 
@@ -527,7 +518,7 @@ See `~/.claude/sip-protocol/STRATEGY.md` for detailed strategy (private).
 ```
 sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 ├── packages/
-│   ├── sdk/                  # @sip-protocol/sdk - Core SDK (2,474 tests)
+│   ├── sdk/                  # @sip-protocol/sdk v0.7.3 - Core SDK (6,603 tests)
 │   │   ├── src/
 │   │   │   ├── adapters/     # NEAR, wallet, settlement adapters
 │   │   │   ├── proofs/       # ZK proof providers (Mock, Noir, Browser)
@@ -537,11 +528,15 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 │   │   │   ├── intent.ts     # Intent builder
 │   │   │   └── sip.ts        # Main client
 │   │   └── tests/            # Test suites
-│   ├── types/                # @sip-protocol/types
-│   ├── react/                # @sip-protocol/react - React hooks (57 tests)
-│   ├── cli/                  # @sip-protocol/cli - CLI tool (33 tests)
-│   └── api/                  # @sip-protocol/api - REST API (67 tests)
-└── docs/                     # Documentation
+│   ├── types/                # @sip-protocol/types v0.2.1
+│   ├── react/                # @sip-protocol/react v0.1.0 - React hooks (82 tests)
+│   ├── cli/                  # @sip-protocol/cli v0.2.0 - CLI tool (10 tests)
+│   ├── api/                  # @sip-protocol/api v0.1.0 - REST API (18 tests)
+│   └── react-native/         # @sip-protocol/react-native v0.1.1 (10 tests)
+├── programs/                 # Solana Anchor program
+├── contracts/                # Ethereum Solidity contracts
+├── examples/                 # 11 integration examples
+└── docs/                     # Documentation & specs
 ```
 
 ---
@@ -587,11 +582,11 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | M14: Developer Experience | React, CLI, API packages | ✅ |
 | M15: Application Layer | Hardware wallets, WalletConnect | ✅ |
 
-### Phase 4: Same-Chain Expansion (Q1-Q2 2026) 🎯 NEXT
+### Phase 4: Same-Chain Expansion (Q1-Q2 2026) 🎯 ACTIVE
 | Milestone | Focus | Status |
 |-----------|-------|--------|
-| M16: Narrative Capture | Content, community, position vs PrivacyCash | 🎯 |
-| M17: Solana Same-Chain | Native Solana privacy SDK + Jupiter DEX | 🔲 |
+| M16: Narrative Capture | Content, community, position vs PrivacyCash | ✅ |
+| M17: Solana Same-Chain | Native Solana privacy SDK + Jupiter DEX | 🎯 |
 | M18: Ethereum Same-Chain | EVM privacy + L2 support | 🔲 |
 
 ### Phase 5: Technical Moat (Q3-Q4 2026) 🔲
@@ -623,7 +618,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | sip-website | 5000 | sip-website | sip-protocol.org |
 | sip-docs | 5003 | sip-docs | docs.sip-protocol.org |
 | sip-blog | 5004 | sip-blog | blog.sip-protocol.org |
-| sip-app | 5005 | sip-app | app.sip-protocol.org |
+| sip-app | 5004/5005 | sip-app-blue/green | app.sip-protocol.org |
 
 ### Deployment Flow
 
@@ -671,4 +666,4 @@ ssh core  # Admin user for nginx/system config
 ---
 
 **Last Updated:** 2026-01-21
-**Status:** M16 Complete | Phase 4 Active (M17-M18) | 5,584+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #14/88, 3 tracks)
+**Status:** M16 Complete | Phase 4 Active (M17) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #14/88, 3 tracks)
