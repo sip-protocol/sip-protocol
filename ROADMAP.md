@@ -1379,7 +1379,7 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 
 ### Achievements
 
-- 🏆 **Zypherpunk Hackathon NEAR Track Winner** ($4,000) — Dec 2025
+- 🏆 **Zypherpunk Hackathon Winner — 3 Tracks** ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) — Dec 2025
 - 📦 **npm packages published** — @sip-protocol/sdk v0.6.0
 - 🌐 **Live sites** — sip-protocol.org, docs.sip-protocol.org
 - ✅ **Phase 1-3 complete** — M1-M15 done (2,757 tests)

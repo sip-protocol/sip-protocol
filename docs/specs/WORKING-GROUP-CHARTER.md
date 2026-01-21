@@ -328,7 +328,7 @@ and viewing keys for compliant privacy across any chain.
 - Optional: contribute to implementation
 
 **Recent Achievements:**
-- Zypherpunk Hackathon Winner ($4,500, #14 of 88)
+- Zypherpunk Hackathon Winner ($6,500, #14 of 88, 3 tracks)
 - 5,500+ tests, production SDK
 - Multi-chain support (Ethereum, Solana, NEAR, Cosmos)
 

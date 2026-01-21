@@ -298,7 +298,7 @@ Demo 2: Solana Verification
 
 SIP Protocol is built by privacy enthusiasts committed to making Web3 private and compliant.
 
-**Previous Achievement**: Winner of Zypherpunk Hackathon 2025 ($4,500)
+**Previous Achievement**: Winner of Zypherpunk Hackathon 2025 ($6,500, 3 tracks)
 
 ---
 

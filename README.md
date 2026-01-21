@@ -28,7 +28,7 @@
 [![pnpm](https://img.shields.io/badge/pnpm-Monorepo-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($4,500: NEAR $4,000 + Tachyon $500) | #14 of 88**
+**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | #14 of 88 | 3 Tracks**
 
 </div>
 
@@ -598,7 +598,7 @@ SIP builds on the shoulders of giants:
 
 <div align="center">
 
-**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($4,500) | #14 of 88**
+**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500) | #14 of 88 | 3 Tracks**
 
 *Privacy is not a feature. It's a right.*
 
