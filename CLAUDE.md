@@ -271,7 +271,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **Status:** M16 Complete | 6,661+ tests (SDK: 6,603, React: 82, CLI: 10, API: 18, RN: 10) | Live at sip-protocol.org
 
-**🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | Dec 2025 | #14 of 88 | 3 Tracks | [Devfolio](https://devfolio.co/projects/sip-protocol-2026)
+**🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | Dec 2025 | #9 of 93 | 3 Tracks | [Devfolio](https://devfolio.co/projects/sip-protocol-2026)
 
 **Endgame:** Privacy middleware between applications and blockchains. Chain-agnostic. Settlement-agnostic. The universal privacy layer.
 
@@ -666,4 +666,4 @@ ssh core  # Admin user for nginx/system config
 ---
 
 **Last Updated:** 2026-01-21
-**Status:** M16 Complete | Phase 4 Active (M17) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #14/88, 3 tracks)
+**Status:** M16 Complete | Phase 4 Active (M17) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks)
