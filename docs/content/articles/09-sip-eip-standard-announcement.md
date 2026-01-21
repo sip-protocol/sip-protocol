@@ -15,7 +15,7 @@ Today we're announcing **SIP-EIP**, a proposed Ethereum Improvement Proposal tha
 - ⚖️ **Compliance-ready**: Selective disclosure for auditors and regulators
 - 🔗 **Chain-agnostic**: Works on Ethereum, Solana, NEAR, and 15+ chains
 - 📦 **Production-ready**: 5,584+ tests, TypeScript SDK, React hooks
-- 🏆 **Battle-tested**: Zypherpunk Hackathon winner ($4,500)
+- 🏆 **Battle-tested**: Zypherpunk Hackathon winner ($6,500, 3 tracks)
 
 [Read the full SIP-EIP specification →](#)
 
@@ -617,8 +617,8 @@ Not vaporware. Working code.
 **11/15**
 Battle tested:
 
-🏆 Zypherpunk Hackathon Winner
-💰 $4,500 prize
+🏆 Zypherpunk Hackathon Winner (3 tracks)
+💰 $6,500 prize
 📊 #14 of 88 projects
 
 Judges included @zoaborake @aaborakeMoney @balaboraaji and more.

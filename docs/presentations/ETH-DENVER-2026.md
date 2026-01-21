@@ -44,7 +44,7 @@ In this talk, I'll demonstrate how SIP enables:
 
 I'll show a live demo of integrating SIP into a DEX in under 10 minutes, transforming a public swap into a private one. We'll walk through the cryptography (don't worry, it's visual!), the SDK architecture, and the path to becoming an Ethereum standard (SIP-EIP).
 
-SIP won the Zypherpunk Hackathon ($4,500, #14 of 88 projects) by solving the "privacy vs compliance" dilemma. With 5,500+ tests and production-ready SDKs, it's ready for prime time.
+SIP won the Zypherpunk Hackathon ($6,500, #14 of 88 projects, 3 tracks) by solving the "privacy vs compliance" dilemma. With 5,500+ tests and production-ready SDKs, it's ready for prime time.
 
 Whether you're building a wallet, DEX, DAO, or enterprise application, you'll leave with practical knowledge to add privacy to your stack. The future of Web3 is private by default — let's build it together.
 
@@ -52,7 +52,7 @@ Whether you're building a wallet, DEX, DAO, or enterprise application, you'll le
 
 [Your Name] is a senior engineer and the creator of SIP (Shielded Intents Protocol), the privacy standard for Web3. With a background in cryptography and distributed systems, they've spent the past two years building privacy infrastructure that bridges the gap between anonymity and compliance.
 
-SIP won the Zypherpunk Hackathon (Dec 2025, $4,500, ranked #14 of 88), earning recognition from judges including Zooko Wilcox-O'Hearn (Zcash founder), Anatoly Yakovenko (Solana co-founder), and Balaji Srinivasan.
+SIP won the Zypherpunk Hackathon (Dec 2025, $6,500, ranked #14 of 88, 3 tracks), earning recognition from judges including Zooko Wilcox-O'Hearn (Zcash founder), Anatoly Yakovenko (Solana co-founder), and Balaji Srinivasan.
 
 Previously, [they] contributed to [previous work/projects]. [They] believe privacy is a fundamental right and that the next billion users won't onboard to Web3 until transactions are as private as WhatsApp messages.
 
@@ -375,7 +375,7 @@ console.log(txData)
 ### Slide 23: Traction
 **Momentum**
 
-- 🏆 **Zypherpunk Hackathon Winner** ($4,500, #14/88)
+- 🏆 **Zypherpunk Hackathon Winner** ($6,500, #14/88, 3 tracks)
 - 📦 **5,584+ tests** across 5 packages
 - 🌐 **Multi-chain** (Ethereum, Solana, NEAR, 15+ chains)
 - 📄 **SIP-EIP Draft** in preparation
@@ -556,7 +556,7 @@ A: SIP with viewing keys is more compliant than cash. You can't audit $100 bills
 │                                                            │
 │   ─────────────────────────────────────────────────────    │
 │                                                            │
-│   🏆 Zypherpunk Hackathon Winner ($4,500)                  │
+│   🏆 Zypherpunk Hackathon Winner ($6,500, 3 tracks)        │
 │   📊 5,584+ Tests | 15+ Chains | Production Ready          │
 │                                                            │
 │   [QR CODE]                                                │

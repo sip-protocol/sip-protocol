@@ -507,7 +507,7 @@ stealth addresses + viewing keys for compliance.
 
 Quick context:
 • 5,584+ tests, production-ready SDK
-• Won Zypherpunk Hackathon ($4,500)
+• Won Zypherpunk Hackathon ($6,500, 3 tracks)
 • SIP-EIP standardization in progress
 
 I'd love to explore a partnership with [DEX]. The integration
