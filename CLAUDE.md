@@ -484,10 +484,16 @@ interface Commitment {
 - Viewing keys (compliance) vs No compliance option
 - No amount correlation attacks vs Vulnerable to statistical analysis
 
-**Grant Strategy:**
-- Superteam Microgrant ($10K) → Jan 2026 (narrative capture, M16)
-- SIP Labs, Inc. → Feb 2026 (legal entity for fundraising)
-- Solana Foundation ($100K) → Feb-Mar 2026 (same-chain privacy, M17)
+**Grant Status:**
+| Grant | Amount | Status | Date |
+|-------|--------|--------|------|
+| Superteam Indonesia | $10,000 USDC | ✅ **APPROVED** | Jan 22, 2026 |
+| Solana Audit Subsidy V | Up to $50K | ⏳ Pending | Feb 7, 2026 deadline |
+| SIP Labs, Inc. | — | 📋 Planned | Feb 2026 |
+| Solana Foundation | $100K | 📋 Planned | Feb-Mar 2026 |
+
+**Superteam Deliverables:** Native Solana Privacy SDK, Jupiter DEX Integration, Production App, Developer Resources
+**Tranches:** T1 $3,000 (pending KYC) → T2 $3,000 → T3 $4,000 | Deadline: Mar 31, 2026
 
 **Multi-Foundation Approach:** Chain-agnostic = loved by all = funded by all
 - Solana Foundation (same-chain privacy for SOL users)
@@ -670,5 +676,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2026-01-21
-**Status:** M16 Complete | Phase 4 Active (M17) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks)
+**Last Updated:** 2026-01-22
+**Status:** M16 Complete | Phase 4 Active (M17) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
