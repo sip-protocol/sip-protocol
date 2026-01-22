@@ -498,6 +498,11 @@ interface Commitment {
 
 See `~/.claude/sip-protocol/STRATEGY.md` for detailed strategy (private).
 
+**Grants Tracking:** `~/.claude/sip-protocol/grants/` (private)
+- `GRANTS.md` — Dashboard (all grants overview)
+- `{grant-name}/TRACKER.md` — Weekly progress, KPIs
+- `{grant-name}/reports/` — Milestone completion reports
+
 ---
 
 ## Core-Specific AI Guidelines
