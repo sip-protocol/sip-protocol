@@ -306,3 +306,32 @@ export {
   type BuiltTransaction,
   type SerializedTransaction,
 } from './transaction-builder'
+
+// @solana/kit Compatibility Bridge (Issue #931)
+// Utilities for bridging between @solana/web3.js and @solana/kit types
+export {
+  toAddress,
+  toPublicKey,
+  createAddress,
+  toKeyPair,
+  toKitInstruction,
+  toKitTransaction,
+  createDualRpcClient,
+  toKitCommitment,
+  createBlockhash,
+  toBlockhashInfo,
+  LAMPORTS_PER_SOL as KIT_LAMPORTS_PER_SOL,
+  solToLamports,
+  lamportsToSol,
+  isAddress,
+  isPublicKey,
+  normalizeAddress,
+  RpcHelpers,
+  type DualRpcClient,
+  type Address,
+  type Rpc,
+  type RpcSubscriptions,
+  type SolanaRpcApi,
+  type SolanaRpcSubscriptionsApi,
+  type Blockhash as KitBlockhash,
+} from './kit-compat'

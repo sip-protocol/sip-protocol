@@ -2,6 +2,7 @@
  * Solana RPC Client Tests
  *
  * Tests for the RPC client with retry logic and failover.
+ * Now includes mocks for both @solana/web3.js and @solana/kit.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -15,7 +16,61 @@ import {
   type RPCClientConfig,
 } from '../../../src/chains/solana/rpc-client'
 
-// Mock the Connection class
+// Create mock RPC object factory
+const createMockRpc = () => ({
+  getVersion: vi.fn().mockReturnValue({
+    send: vi.fn().mockResolvedValue({ 'solana-core': '1.14.0', 'feature-set': 1234 }),
+  }),
+  getLatestBlockhash: vi.fn().mockReturnValue({
+    send: vi.fn().mockResolvedValue({
+      value: {
+        blockhash: 'GHtXQBsoZHVnNFa9YevAzFr17DJjgHXk3ycTKD5xD3Zi',
+        lastValidBlockHeight: 1000n,
+      },
+      context: { slot: 12345n },
+    }),
+  }),
+  getBalance: vi.fn().mockReturnValue({
+    send: vi.fn().mockResolvedValue({
+      value: 1_000_000_000n,
+      context: { slot: 12345n },
+    }),
+  }),
+  getAccountInfo: vi.fn().mockReturnValue({
+    send: vi.fn().mockResolvedValue({
+      value: null,
+      context: { slot: 12345n },
+    }),
+  }),
+  sendTransaction: vi.fn().mockReturnValue({
+    send: vi.fn().mockResolvedValue('mockSignature123'),
+  }),
+  getSignatureStatuses: vi.fn().mockReturnValue({
+    send: vi.fn().mockResolvedValue({
+      value: [{ confirmationStatus: 'confirmed', err: null }],
+      context: { slot: 12345n },
+    }),
+  }),
+  getRecentPrioritizationFees: vi.fn().mockReturnValue({
+    send: vi.fn().mockResolvedValue([
+      { slot: 100n, prioritizationFee: 1000n },
+      { slot: 101n, prioritizationFee: 2000n },
+      { slot: 102n, prioritizationFee: 1500n },
+    ]),
+  }),
+})
+
+// Mock @solana/kit
+vi.mock('@solana/kit', async () => {
+  const actual = await vi.importActual<typeof import('@solana/kit')>('@solana/kit')
+  return {
+    ...actual,
+    createSolanaRpc: vi.fn().mockImplementation(() => createMockRpc()),
+    createSolanaRpcSubscriptions: vi.fn().mockImplementation(() => ({})),
+  }
+})
+
+// Mock the Connection class from @solana/web3.js
 vi.mock('@solana/web3.js', async () => {
   const actual = await vi.importActual<typeof import('@solana/web3.js')>('@solana/web3.js')
   return {

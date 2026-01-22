@@ -9,9 +9,23 @@
  * - Transaction confirmation tracking
  * - Error classification and handling
  *
+ * Migrated to @solana/kit while maintaining backward-compatible public API.
+ *
  * @module chains/solana/rpc-client
  */
 
+import {
+  createSolanaRpc,
+  createSolanaRpcSubscriptions,
+  type Address,
+  type Rpc,
+  type RpcSubscriptions,
+  type SolanaRpcApi,
+  type SolanaRpcSubscriptionsApi,
+  type Commitment as KitCommitment,
+  type Base64EncodedWireTransaction,
+  type Signature,
+} from '@solana/kit'
 import {
   Connection,
   PublicKey,
@@ -23,6 +37,10 @@ import {
   type TransactionSignature,
   type SignatureResult,
 } from '@solana/web3.js'
+import {
+  toAddress,
+  toPublicKey,
+} from './kit-compat'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -202,10 +220,21 @@ export interface ClassifiedRPCError {
   originalError: Error
 }
 
+// ─── Internal Types ──────────────────────────────────────────────────────────
+
+interface RpcEndpoint {
+  rpc: Rpc<SolanaRpcApi>
+  rpcSubscriptions: RpcSubscriptions<SolanaRpcSubscriptionsApi>
+  legacyConnection: Connection
+  endpoint: string
+}
+
 // ─── SolanaRPCClient Class ────────────────────────────────────────────────────
 
 /**
  * Robust Solana RPC client for privacy transactions
+ *
+ * Migrated to @solana/kit while maintaining full backward compatibility.
  *
  * @example Basic usage
  * ```typescript
@@ -237,8 +266,8 @@ export interface ClassifiedRPCError {
  * ```
  */
 export class SolanaRPCClient {
-  private connections: Connection[] = []
-  private currentConnectionIndex: number = 0
+  private endpoints: RpcEndpoint[] = []
+  private currentEndpointIndex: number = 0
   private commitment: Commitment
   private maxRetries: number
   private retryBaseDelay: number
@@ -248,20 +277,13 @@ export class SolanaRPCClient {
   private debug: boolean
 
   constructor(config: RPCClientConfig) {
-    // Create primary connection
-    const primaryConnection = new Connection(config.endpoint, {
-      commitment: config.commitment ?? 'confirmed',
-      confirmTransactionInitialTimeout: config.timeout ?? 30000,
-    })
-    this.connections.push(primaryConnection)
+    // Create primary endpoint
+    this.endpoints.push(this.createEndpoint(config.endpoint, config.commitment ?? 'confirmed', config.timeout ?? 30000))
 
-    // Create fallback connections
+    // Create fallback endpoints
     if (config.fallbackEndpoints) {
       for (const endpoint of config.fallbackEndpoints) {
-        this.connections.push(new Connection(endpoint, {
-          commitment: config.commitment ?? 'confirmed',
-          confirmTransactionInitialTimeout: config.timeout ?? 30000,
-        }))
+        this.endpoints.push(this.createEndpoint(endpoint, config.commitment ?? 'confirmed', config.timeout ?? 30000))
       }
     }
 
@@ -274,35 +296,82 @@ export class SolanaRPCClient {
     this.debug = config.debug ?? false
   }
 
+  /**
+   * Create an endpoint with both kit and legacy clients
+   */
+  private createEndpoint(endpoint: string, commitment: Commitment, timeout: number): RpcEndpoint {
+    const wsEndpoint = this.deriveWsEndpoint(endpoint)
+
+    return {
+      rpc: createSolanaRpc(endpoint),
+      rpcSubscriptions: createSolanaRpcSubscriptions(wsEndpoint),
+      legacyConnection: new Connection(endpoint, {
+        commitment,
+        confirmTransactionInitialTimeout: timeout,
+        wsEndpoint,
+      }),
+      endpoint,
+    }
+  }
+
+  /**
+   * Derive WebSocket endpoint from HTTP endpoint
+   */
+  private deriveWsEndpoint(httpEndpoint: string): string {
+    try {
+      const url = new URL(httpEndpoint)
+      url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
+      return url.toString()
+    } catch {
+      // Fallback for malformed URLs
+      return httpEndpoint.replace(/^http/, 'ws')
+    }
+  }
+
   // ─── Connection Management ──────────────────────────────────────────────────
 
   /**
-   * Get the current active connection
+   * Get the current active kit RPC client
+   */
+  getRpc(): Rpc<SolanaRpcApi> {
+    return this.endpoints[this.currentEndpointIndex].rpc
+  }
+
+  /**
+   * Get the current active kit RPC subscriptions client
+   */
+  getRpcSubscriptions(): RpcSubscriptions<SolanaRpcSubscriptionsApi> {
+    return this.endpoints[this.currentEndpointIndex].rpcSubscriptions
+  }
+
+  /**
+   * Get the current active legacy Connection (for backward compatibility)
    */
   getConnection(): Connection {
-    return this.connections[this.currentConnectionIndex]
+    return this.endpoints[this.currentEndpointIndex].legacyConnection
   }
 
   /**
-   * Get all configured connections
+   * Get all configured legacy connections
+   * @deprecated Use getRpc() for new code
    */
   getConnections(): Connection[] {
-    return [...this.connections]
+    return this.endpoints.map(e => e.legacyConnection)
   }
 
   /**
-   * Switch to the next available connection (failover)
+   * Switch to the next available endpoint (failover)
    */
-  private switchConnection(): boolean {
-    if (this.connections.length <= 1) {
+  private switchEndpoint(): boolean {
+    if (this.endpoints.length <= 1) {
       return false
     }
 
-    const previousIndex = this.currentConnectionIndex
-    this.currentConnectionIndex = (this.currentConnectionIndex + 1) % this.connections.length
+    const previousIndex = this.currentEndpointIndex
+    this.currentEndpointIndex = (this.currentEndpointIndex + 1) % this.endpoints.length
 
     if (this.debug) {
-      console.log(`[RPC] Switching from endpoint ${previousIndex} to ${this.currentConnectionIndex}`)
+      console.log(`[RPC] Switching from endpoint ${previousIndex} to ${this.currentEndpointIndex}`)
     }
 
     return true
@@ -339,14 +408,21 @@ export class SolanaRPCClient {
     }
 
     return this.withRetry(async () => {
-      const connection = this.getConnection()
+      const rpc = this.getRpc()
       const serialized = txToSend.serialize()
+      // Cast to branded type (safe: we're encoding valid serialized transaction)
+      const base64Encoded = Buffer.from(serialized).toString('base64') as unknown as Base64EncodedWireTransaction
 
-      return connection.sendRawTransaction(serialized, {
+      // Use kit RPC for sending
+      const signature = await rpc.sendTransaction(base64Encoded, {
+        encoding: 'base64',
         skipPreflight: sendOptions.skipPreflight ?? false,
-        preflightCommitment: sendOptions.preflightCommitment ?? this.commitment,
-        maxRetries: sendOptions.maxRetries ?? 0, // We handle retries ourselves
-      })
+        preflightCommitment: (sendOptions.preflightCommitment ?? this.commitment) as KitCommitment,
+        maxRetries: BigInt(sendOptions.maxRetries ?? 0), // We handle retries ourselves
+      }).send()
+
+      // Cast signature back to legacy type
+      return signature as unknown as TransactionSignature
     })
   }
 
@@ -400,23 +476,46 @@ export class SolanaRPCClient {
     commitment: Commitment = this.commitment
   ): Promise<{ context: { slot: number }; value: SignatureResult }> {
     return this.withRetry(async () => {
-      const connection = this.getConnection()
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+      const rpc = this.getRpc()
 
-      const result = await connection.confirmTransaction(
-        {
-          signature,
-          blockhash,
-          lastValidBlockHeight,
-        },
-        commitment
-      )
+      // Get latest blockhash for confirmation
+      const { value: latestBlockhash } = await rpc.getLatestBlockhash({
+        commitment: commitment as KitCommitment,
+      }).send()
 
-      if (result.value.err) {
-        throw new Error(`Transaction failed: ${JSON.stringify(result.value.err)}`)
+      // Poll for signature status using kit RPC
+      // Cast to branded Signature type (safe: signature comes from sendTransaction)
+      const { value: statuses, context } = await rpc.getSignatureStatuses([signature as unknown as Signature]).send()
+      const status = statuses[0]
+
+      if (status === null) {
+        // Transaction not found yet, need to poll
+        // For now, use legacy connection for confirmation as kit doesn't have built-in polling
+        const connection = this.getConnection()
+        const result = await connection.confirmTransaction(
+          {
+            signature,
+            blockhash: latestBlockhash.blockhash,
+            lastValidBlockHeight: Number(latestBlockhash.lastValidBlockHeight),
+          },
+          commitment
+        )
+
+        if (result.value.err) {
+          throw new Error(`Transaction failed: ${JSON.stringify(result.value.err)}`)
+        }
+
+        return result
       }
 
-      return result
+      if (status.err) {
+        throw new Error(`Transaction failed: ${JSON.stringify(status.err)}`)
+      }
+
+      return {
+        context: { slot: Number(context.slot) },
+        value: { err: null },
+      }
     })
   }
 
@@ -432,15 +531,14 @@ export class SolanaRPCClient {
     transaction: Transaction
   ): Promise<PriorityFeeEstimate> {
     try {
-      const connection = this.getConnection()
+      const rpc = this.getRpc()
 
       // Get accounts involved in transaction
-      const accountKeys = transaction.compileMessage().accountKeys.map(k => k.toBase58())
+      const accountKeys = transaction.compileMessage().accountKeys.map(k => toAddress(k))
 
-      // Get recent priority fees
-      const recentFees = await connection.getRecentPrioritizationFees({
-        lockedWritableAccounts: accountKeys.slice(0, 5).map(k => new PublicKey(k)),
-      })
+      // Get recent priority fees using kit RPC
+      // Kit API takes array directly, not wrapped in object
+      const recentFees = await rpc.getRecentPrioritizationFees(accountKeys.slice(0, 5)).send()
 
       if (recentFees.length === 0) {
         return {
@@ -452,7 +550,7 @@ export class SolanaRPCClient {
 
       // Sort by priority fee and get percentile
       const sortedFees = recentFees
-        .map(f => f.prioritizationFee)
+        .map(f => Number(f.prioritizationFee))
         .sort((a, b) => a - b)
 
       const percentileIndex = Math.floor(sortedFees.length * (this.priorityFeePercentile / 100))
@@ -642,7 +740,7 @@ export class SolanaRPCClient {
         if (classified.type === RPCErrorType.NETWORK ||
             classified.type === RPCErrorType.RATE_LIMIT ||
             classified.type === RPCErrorType.NODE_BEHIND) {
-          this.switchConnection()
+          this.switchEndpoint()
         }
 
         // Calculate delay with exponential backoff
@@ -681,29 +779,60 @@ export class SolanaRPCClient {
     lastValidBlockHeight: number
   }> {
     return this.withRetry(async () => {
-      const connection = this.getConnection()
-      return connection.getLatestBlockhash(this.commitment)
+      const rpc = this.getRpc()
+      const { value } = await rpc.getLatestBlockhash({
+        commitment: this.commitment as KitCommitment,
+      }).send()
+
+      return {
+        blockhash: value.blockhash,
+        lastValidBlockHeight: Number(value.lastValidBlockHeight),
+      }
     })
   }
 
   /**
    * Get balance with retry logic
+   *
+   * @param publicKey - PublicKey or Address to check balance
    */
-  async getBalance(publicKey: PublicKey): Promise<bigint> {
+  async getBalance(publicKey: PublicKey | Address): Promise<bigint> {
     return this.withRetry(async () => {
-      const connection = this.getConnection()
-      const balance = await connection.getBalance(publicKey, this.commitment)
-      return BigInt(balance)
+      const rpc = this.getRpc()
+      const addr = typeof publicKey === 'string' ? publicKey : toAddress(publicKey)
+      const { value } = await rpc.getBalance(addr, {
+        commitment: this.commitment as KitCommitment,
+      }).send()
+      return value
     })
   }
 
   /**
    * Get account info with retry logic
+   *
+   * @param publicKey - PublicKey or Address to get info for
    */
-  async getAccountInfo(publicKey: PublicKey) {
+  async getAccountInfo(publicKey: PublicKey | Address) {
     return this.withRetry(async () => {
-      const connection = this.getConnection()
-      return connection.getAccountInfo(publicKey, this.commitment)
+      const rpc = this.getRpc()
+      const addr = typeof publicKey === 'string' ? publicKey : toAddress(publicKey)
+      const { value } = await rpc.getAccountInfo(addr, {
+        commitment: this.commitment as KitCommitment,
+        encoding: 'base64',
+      }).send()
+
+      if (value === null) {
+        return null
+      }
+
+      // Convert to legacy format for backward compatibility
+      // Note: rentEpoch is deprecated and not returned by kit
+      return {
+        executable: value.executable,
+        owner: toPublicKey(value.owner),
+        lamports: Number(value.lamports),
+        data: Buffer.from(value.data[0], 'base64'),
+      }
     })
   }
 
@@ -712,8 +841,8 @@ export class SolanaRPCClient {
    */
   async isHealthy(): Promise<boolean> {
     try {
-      const connection = this.getConnection()
-      const version = await connection.getVersion()
+      const rpc = this.getRpc()
+      const version = await rpc.getVersion().send()
       return version !== null
     } catch {
       return false
@@ -724,7 +853,7 @@ export class SolanaRPCClient {
    * Get current RPC endpoint
    */
   getCurrentEndpoint(): string {
-    return this.getConnection().rpcEndpoint
+    return this.endpoints[this.currentEndpointIndex].endpoint
   }
 }
 
