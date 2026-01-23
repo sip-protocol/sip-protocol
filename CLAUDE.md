@@ -12,6 +12,8 @@
 
 **Current Focus:** Solana Same-Chain Privacy (M17) — beating PrivacyCash with cryptographic privacy + viewing keys.
 
+**Progress Tracker:** `~/.claude/sip-protocol/M17-MOBILE-TRACKER.md` (14-week M17 + Mobile EPIC implementation plan)
+
 ### Related Repositories
 
 | Repo | Purpose | Tech Stack | Version |
@@ -493,7 +495,7 @@ interface Commitment {
 | Solana Foundation | $100K | 📋 Planned | Feb-Mar 2026 |
 
 **Superteam Deliverables:** Native Solana Privacy SDK, Jupiter DEX Integration, Production App, Developer Resources
-**Tranches:** T1 $3,000 (pending KYC) → T2 $3,000 → T3 $4,000 | Deadline: Mar 31, 2026
+**Tranches:** T1 $3,000 (KYC done, payment by Jan 30) → T2 $3,000 → T3 $4,000 | Deadline: Mar 31, 2026
 
 **Multi-Foundation Approach:** Chain-agnostic = loved by all = funded by all
 - Solana Foundation (same-chain privacy for SOL users)
