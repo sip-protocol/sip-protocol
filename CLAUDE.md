@@ -20,6 +20,7 @@
 |------|---------|------------|---------|
 | `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.7.3 |
 | `sip-protocol/sip-app` | **App** - Privacy applications (payments, wallet, DEX) | Next.js 16, Tailwind | v0.1.0 |
+| `sip-protocol/sip-mobile` | **Mobile** - Native iOS/Android/Seeker privacy wallet | Expo 52, NativeWind | v0.1.0 |
 | `sip-protocol/sip-website` | Marketing site (demo deprecated → sip-app) | Next.js 15, Tailwind | v0.0.1 |
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro 5, MDX | v0.0.0 |
 | `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro 5, MDX, Tailwind | v0.0.1 |
@@ -125,7 +126,32 @@ pnpm typecheck                  # Type check
 
 ---
 
-### 3. sip-website
+### 3. sip-mobile
+
+**Purpose:** Native mobile app for SIP Protocol — privacy on iOS, Android & Solana Mobile
+**Tech Stack:** Expo SDK 52, React Native, NativeWind 4.0, Zustand 5
+**Key Commands:**
+```bash
+pnpm install              # Install dependencies
+npx expo start            # Dev server (iOS + Android)
+pnpm typecheck            # Type check
+eas build --platform ios  # Build iOS
+eas build --platform android  # Build Android
+```
+**Tab Structure (5 tabs):**
+- Home - Dashboard, balances, quick actions
+- Send - Send shielded payments
+- Receive - Generate stealth addresses, QR
+- Swap - Jupiter DEX with privacy toggle
+- Settings - Wallet, privacy, network config
+
+**Wallet Strategy:** Privy (embedded), MWA (Android), Phantom deeplinks (iOS)
+**Target Stores:** iOS App Store, Google Play, Solana dApp Store (Seeker)
+**CLAUDE.md:** [sip-mobile/CLAUDE.md](https://github.com/sip-protocol/sip-mobile/blob/main/CLAUDE.md)
+
+---
+
+### 4. sip-website
 
 **Purpose:** Marketing website (demo pages removed, redirects to sip-app)
 **Tech Stack:** Next.js 15, React 19, Tailwind CSS 4, Zustand, Vitest
@@ -156,7 +182,7 @@ pnpm typecheck                  # Type check
 
 ---
 
-### 4. docs-sip
+### 5. docs-sip
 
 **Purpose:** Official documentation website
 **Tech Stack:** Astro 5, Starlight, MDX
@@ -176,7 +202,7 @@ npm run preview                 # Preview build
 
 ---
 
-### 5. circuits
+### 6. circuits
 
 **Purpose:** Noir ZK circuits for privacy proofs
 **Tech Stack:** Noir 1.0.0-beta.15, Barretenberg (UltraHonk), Nargo CLI
@@ -199,7 +225,7 @@ nargo verify                    # Verify proof
 
 ---
 
-### 6. blog-sip
+### 7. blog-sip
 
 **Purpose:** Official blog for technical deep-dives and ecosystem updates
 **Tech Stack:** Astro 5, MDX, Tailwind CSS 4
@@ -221,7 +247,7 @@ pnpm preview                    # Preview build
 
 ---
 
-### 7. .github
+### 8. .github
 
 **Purpose:** Organization-wide GitHub configuration
 **Key Files:**
