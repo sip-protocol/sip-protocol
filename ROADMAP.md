@@ -330,8 +330,8 @@ PHASE 1: FOUNDATION     PHASE 2: STANDARD      PHASE 3: ECOSYSTEM     PHASE 4: E
 └─────────┘            └─────────┘            └─────────┘            └─────────┘          └─────────┘
      │                      │                      │                      │                    │
 • SDK ✅                • Stable Core ✅       • Compliance ✅       • M16 Complete ✅  • Zcash route
-• NEAR adapter ✅       • ZK Production ✅     • React/CLI/API ✅    • M17 Active 🎯   • Proof compo
-• App ✅                • Multi-Settlement ✅  • Hardware wallets ✅ • Solana Anchor   • SIP-EIP
+• NEAR adapter ✅       • ZK Production ✅     • React/CLI/API ✅    • M17 Complete ✅  • Proof compo
+• App ✅                • Multi-Settlement ✅  • Hardware wallets ✅ • M18 Active 🎯   • SIP-EIP
 • Noir circuits ✅      • Multi-Chain ✅       • WalletConnect ✅    • ETH Solidity    • $5B vol
 • 6,661+ tests ✅       • 15+ chains ✅        • 157 new tests ✅    • Full privacy    • Industry std
 ```
@@ -762,7 +762,7 @@ Established SIP as "the right way to do privacy" — cryptographic vs pool mixin
 
 ---
 
-#### M17: Solana Same-Chain Privacy (Anchor Program) 🎯 Active (Q1-Q2 2026)
+#### M17: Solana Same-Chain Privacy (Anchor Program) ✅ Complete (Jan 2026)
 
 **SIP Solana Program** — On-chain privacy using Anchor smart contracts.
 
@@ -1398,8 +1398,9 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 - 💰 **Superteam Indonesia Grant — APPROVED** ($10,000 USDC) — Jan 2026
 - 📦 **npm packages published** — @sip-protocol/sdk v0.7.3 (7 packages total)
 - 🌐 **Live sites** — sip-protocol.org, docs.sip-protocol.org, app.sip-protocol.org, blog.sip-protocol.org
-- ✅ **Phase 1-3 complete** — M1-M16 done (6,661+ tests)
+- ✅ **Phase 1-3 complete** — M1-M17 done (6,661+ tests)
 - 📝 **M16 Narrative Capture** — 25 blog posts (exceeded 12 target)
+- 🔐 **M17 Solana Privacy** — Full SDK implementation, 25 issues closed
 
 ---
 
@@ -1408,14 +1409,14 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Current focus areas:**
-- M17: Solana same-chain privacy module — Active development
-- Jupiter DEX integration (#454)
-- Helius RPC provider integration (#446)
+- M18: Ethereum same-chain privacy module — Active development
+- Base L2 deployment (highest priority)
 - Superteam T1-T3 deliverables (deadline: Mar 31, 2026)
 - Solana Foundation grant application (Feb-Mar 2026)
+- Production hardening & audit preparation
 
 ---
 
-*Last updated: January 23, 2026*
-*M16 Complete | M17 Active | Superteam Grant APPROVED ($10K)*
+*Last updated: January 24, 2026*
+*M16-M17 Complete | M18 Active | Superteam Grant APPROVED ($10K)*
 *6,661+ tests | 7 packages | app.sip-protocol.org live*

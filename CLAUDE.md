@@ -10,7 +10,7 @@
 
 **SIP (Shielded Intents Protocol)** is the privacy standard for Web3. Privacy middleware for same-chain and cross-chain transactions using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Current Focus:** Solana Same-Chain Privacy (M17) — beating PrivacyCash with cryptographic privacy + viewing keys.
+**Current Focus:** Ethereum Same-Chain Privacy (M18) — M17 Solana implementation complete.
 
 **Progress Tracker:** `~/.claude/sip-protocol/M17-MOBILE-TRACKER.md` (14-week M17 + Mobile EPIC implementation plan)
 
@@ -731,4 +731,4 @@ solana program deploy target/deploy/sip_privacy.so --program-id /tmp/program-id.
 ---
 
 **Last Updated:** 2026-01-24
-**Status:** M16 Complete | Phase 4 Active (M17) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Status:** M17 Complete | Phase 4 Active (M18) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
