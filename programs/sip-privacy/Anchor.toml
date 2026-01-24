@@ -7,10 +7,13 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-sip_privacy = "SiPpRiv4cyYhWDqPdBqhUVrBBGhSKzjnV9hQYmzQPLA"
+sip_privacy = "S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at"
 
 [programs.devnet]
-sip_privacy = "SiPpRiv4cyYhWDqPdBqhUVrBBGhSKzjnV9hQYmzQPLA"
+sip_privacy = "S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at"
+
+[programs.mainnet]
+sip_privacy = "S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at"
 
 [registry]
 url = "https://api.apr.dev"

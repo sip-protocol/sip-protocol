@@ -52,7 +52,7 @@ anchor deploy --provider.cluster mainnet
 ## Program ID
 
 ```
-SiPpRiv4cyYhWDqPdBqhUVrBBGhSKzjnV9hQYmzQPLA
+S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at
 ```
 
 ## Instructions

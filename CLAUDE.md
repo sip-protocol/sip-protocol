@@ -694,6 +694,27 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
+## Keypair Storage
+
+**Location:** `~/.claude/sip-protocol/keys/` (age-encrypted, never commit)
+
+| Key | Address | Usage |
+|-----|---------|-------|
+| `solana/program-id.json.age` | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | Anchor program |
+| `solana/authority.json.age` | `S1P6j1yeTm6zkewQVeihrTZvmfoHABRkHDhabWTuWMd` | Deploy authority |
+| `solana/treasury.json.age` | `S1P9WhBSbAGGatvrVE4TRBZfWpbG96U26zksy2TQj8q` | Treasury |
+| `solana/dapp-store.json.age` | `S1PSkwV3YZD6exNiUEdfTJadyUJ1CDDUgwmQaWB5yie` | Solana dApp Store |
+| `ethereum/evm.json.age` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | ETH/Base/Arb/OP |
+
+```bash
+# Decrypt → deploy → clean
+./sip-keys.sh decrypt solana/program-id.json.age
+anchor deploy --provider.cluster devnet --program-keypair /tmp/sip-key-decrypted.json
+./sip-keys.sh clean
+```
+
+---
+
 ## Code Style
 
 - 2-space indent, no semicolons
@@ -704,5 +725,5 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-**Last Updated:** 2026-01-22
+**Last Updated:** 2026-01-24
 **Status:** M16 Complete | Phase 4 Active (M17) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved

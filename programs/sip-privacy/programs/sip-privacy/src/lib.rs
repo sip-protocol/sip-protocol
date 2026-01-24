@@ -43,7 +43,7 @@ pub mod zk_verifier;
 use commitment::{verify_commitment_format, SCALAR_SIZE};
 use zk_verifier::{deserialize_proof, verify_proof, ZkVerifyError};
 
-declare_id!("SiPpRiv4cyYhWDqPdBqhUVrBBGhSKzjnV9hQYmzQPLA");
+declare_id!("S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
