@@ -307,6 +307,17 @@ export {
   type SerializedTransaction,
 } from './transaction-builder'
 
+// Anchor Shielded Transfer (Issue #781)
+// Uses the SIP Privacy Anchor program for on-chain privacy
+export {
+  shieldedTransfer,
+  SIP_PRIVACY_PROGRAM_ID,
+  CONFIG_PDA,
+  FEE_COLLECTOR,
+  type AnchorShieldedTransferParams,
+  type AnchorShieldedTransferResult,
+} from './anchor-transfer'
+
 // @solana/kit Compatibility Bridge (Issue #931)
 // Utilities for bridging between @solana/web3.js and @solana/kit types
 export {
