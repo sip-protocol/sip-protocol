@@ -35,7 +35,7 @@
 //! ```
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer as SplTransfer};
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
 pub mod commitment;
 pub mod zk_verifier;
@@ -272,7 +272,7 @@ pub mod sip_privacy {
         let transfer_amount = actual_amount.checked_sub(fee_amount).ok_or(SipError::MathOverflow)?;
 
         // Transfer tokens to stealth token account
-        let cpi_accounts = SplTransfer {
+        let cpi_accounts = Transfer {
             from: ctx.accounts.sender_token_account.to_account_info(),
             to: ctx.accounts.stealth_token_account.to_account_info(),
             authority: ctx.accounts.sender.to_account_info(),
@@ -283,7 +283,7 @@ pub mod sip_privacy {
 
         // Transfer fee tokens (if any)
         if fee_amount > 0 {
-            let fee_accounts = SplTransfer {
+            let fee_accounts = Transfer {
                 from: ctx.accounts.sender_token_account.to_account_info(),
                 to: ctx.accounts.fee_token_account.to_account_info(),
                 authority: ctx.accounts.sender.to_account_info(),
@@ -604,7 +604,7 @@ pub mod sip_privacy {
             // Transfer tokens from stealth to recipient
             // This requires the stealth account owner to be a PDA we control
             // For now, we use a signed CPI from the stealth account
-            let cpi_accounts = SplTransfer {
+            let cpi_accounts = Transfer {
                 from: ctx.accounts.stealth_token_account.to_account_info(),
                 to: ctx.accounts.recipient_token_account.to_account_info(),
                 authority: ctx.accounts.stealth_authority.to_account_info(),
@@ -726,7 +726,7 @@ pub struct ShieldedTokenTransfer<'info> {
     pub sender: Signer<'info>,
 
     /// The token mint
-    pub token_mint: Account<'info, anchor_spl::token::Mint>,
+    pub token_mint: Account<'info, Mint>,
 
     /// Sender's token account
     #[account(
@@ -857,6 +857,12 @@ pub struct ClaimTokenTransfer<'info> {
         bump,
     )]
     pub stealth_authority: UncheckedAccount<'info>,
+
+    /// The token mint
+    #[account(
+        constraint = token_mint.key() == stealth_token_account.mint,
+    )]
+    pub token_mint: Account<'info, Mint>,
 
     /// Stealth token account holding the tokens
     #[account(
