@@ -707,6 +707,7 @@ ssh core  # Admin user for nginx/system config
 | `ethereum/evm.json.age` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | ETH/Base/Arb/OP |
 
 **Devnet Deployment:** `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` (2026-01-24)
+**Config PDA:** `BVawZkppFewygA5nxdrLma4ThKx8Th7bW4KTCkcWTZwZ` (fee: 50 bps, authority: S1P6j1y...)
 
 ```bash
 # Deploy to devnet (requires ~2.5 SOL in authority wallet)
