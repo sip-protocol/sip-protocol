@@ -274,10 +274,11 @@ export {
   type ViewingKeyStorage,
 } from './viewing-key'
 
-// RPC Client (Issue #280)
+// RPC Client (Issue #280) + Network Privacy (Issue #798)
 export {
   SolanaRPCClient,
   createRPCClient,
+  createPrivateRPCClient,
   createClusterClient,
   RPC_ENDPOINTS,
   RPCErrorType,

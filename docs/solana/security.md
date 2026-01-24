@@ -269,6 +269,86 @@ if (!confirmed) return
 3. Consider generating new identity if privacy is paramount
 4. Viewing key cannot be used to spend
 
+## Network Privacy (Tor/SOCKS5)
+
+On-chain privacy hides transaction details, but network metadata can still leak:
+- **IP address** connects to RPC (correlation with wallet activity)
+- **Timing patterns** between requests
+- **Request fingerprinting** (unique request patterns)
+
+### Using Tor for Network Privacy
+
+```typescript
+import { createPrivateRPCClient } from '@sip-protocol/sdk'
+
+// Route all RPC calls through Tor
+const client = await createPrivateRPCClient({
+  endpoint: 'https://api.mainnet-beta.solana.com',
+  networkPrivacy: {
+    proxy: 'tor',           // Auto-detect local Tor
+    rotateCircuit: true,    // New identity per operation
+    torControlPassword: process.env.TOR_PASSWORD,
+  },
+})
+
+// All RPC calls now go through Tor
+const balance = await client.getBalance(publicKey)
+
+// Rotate circuit for unlinkability between operations
+await client.rotateTorCircuit()
+```
+
+### Privacy Level Matrix
+
+| Level | On-Chain | Network | Use Case |
+|-------|----------|---------|----------|
+| Basic | ✅ Stealth addresses | ❌ IP visible | Low-value, low-sensitivity |
+| Standard | ✅ Stealth + commitments | ❌ IP visible | Most users |
+| **Full** | ✅ Complete privacy | ✅ Tor/SOCKS5 | High-value, high-sensitivity |
+
+### Setting Up Tor
+
+```bash
+# macOS
+brew install tor
+tor  # Starts on port 9050
+
+# Ubuntu/Debian
+sudo apt install tor
+sudo systemctl start tor
+
+# With control port (for circuit rotation)
+# Edit /etc/tor/torrc:
+#   ControlPort 9051
+#   HashedControlPassword <your-hash>
+```
+
+### Using Custom SOCKS5 Proxy
+
+```typescript
+const client = await createPrivateRPCClient({
+  endpoint: 'https://api.mainnet-beta.solana.com',
+  networkPrivacy: {
+    proxy: 'socks5://127.0.0.1:1080',
+  },
+})
+```
+
+### Environment Variable Configuration
+
+```bash
+# Set proxy globally
+export SIP_PROXY=tor
+# or
+export SIP_PROXY=socks5://127.0.0.1:1080
+```
+
+### Network Privacy Limitations
+
+- Browser: SOCKS5 not directly supported (use browser extension/system proxy)
+- Performance: ~2-5x slower through Tor (acceptable for privacy-critical operations)
+- Reliability: Tor circuits may fail; use fallback endpoints
+
 ## Security Checklist
 
 - [ ] Spending keys stored in secure enclave / hardware wallet
@@ -280,6 +360,7 @@ if (!confirmed) return
 - [ ] Random delays on claims (anti-timing)
 - [ ] XSS protection (CSP headers, input sanitization)
 - [ ] Regular dependency updates
+- [ ] **Network privacy enabled for sensitive operations (Tor/SOCKS5)**
 
 ## Reporting Vulnerabilities
 

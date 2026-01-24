@@ -41,6 +41,9 @@ import {
   toAddress,
   toPublicKey,
 } from './kit-compat'
+import type { NetworkPrivacyConfig } from '../../network/proxy'
+import { createNetworkPrivacyClient, rotateCircuit as rotateProxyCircuit } from '../../network/proxy'
+import type { Agent } from 'http'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -105,6 +108,34 @@ export interface RPCClientConfig {
    * @default false
    */
   debug?: boolean
+
+  /**
+   * Network privacy configuration (Tor/SOCKS5 proxy)
+   *
+   * Routes all RPC traffic through the specified proxy for IP privacy.
+   *
+   * @example Using Tor
+   * ```typescript
+   * const client = createRPCClient({
+   *   endpoint: 'https://api.mainnet-beta.solana.com',
+   *   networkPrivacy: {
+   *     proxy: 'tor',
+   *     rotateCircuit: true,
+   *   },
+   * })
+   * ```
+   *
+   * @example Using custom SOCKS5
+   * ```typescript
+   * const client = createRPCClient({
+   *   endpoint: 'https://api.mainnet-beta.solana.com',
+   *   networkPrivacy: {
+   *     proxy: 'socks5://127.0.0.1:1080',
+   *   },
+   * })
+   * ```
+   */
+  networkPrivacy?: NetworkPrivacyConfig
 }
 
 /**
@@ -275,8 +306,23 @@ export class SolanaRPCClient {
   private usePriorityFees: boolean
   private priorityFeePercentile: number
   private debug: boolean
+  private proxyAgent?: Agent
+  private networkPrivacyConfig?: NetworkPrivacyConfig
+  private torControlPort?: number
+  private torControlPassword?: string
 
   constructor(config: RPCClientConfig) {
+    this.commitment = config.commitment ?? 'confirmed'
+    this.maxRetries = config.maxRetries ?? 3
+    this.retryBaseDelay = config.retryBaseDelay ?? 500
+    this.retryMaxDelay = config.retryMaxDelay ?? 5000
+    this.usePriorityFees = config.usePriorityFees ?? false
+    this.priorityFeePercentile = config.priorityFeePercentile ?? 75
+    this.debug = config.debug ?? false
+    this.networkPrivacyConfig = config.networkPrivacy
+    this.torControlPort = config.networkPrivacy?.torControlPort
+    this.torControlPassword = config.networkPrivacy?.torControlPassword
+
     // Create primary endpoint
     this.endpoints.push(this.createEndpoint(config.endpoint, config.commitment ?? 'confirmed', config.timeout ?? 30000))
 
@@ -286,14 +332,63 @@ export class SolanaRPCClient {
         this.endpoints.push(this.createEndpoint(endpoint, config.commitment ?? 'confirmed', config.timeout ?? 30000))
       }
     }
+  }
 
-    this.commitment = config.commitment ?? 'confirmed'
-    this.maxRetries = config.maxRetries ?? 3
-    this.retryBaseDelay = config.retryBaseDelay ?? 500
-    this.retryMaxDelay = config.retryMaxDelay ?? 5000
-    this.usePriorityFees = config.usePriorityFees ?? false
-    this.priorityFeePercentile = config.priorityFeePercentile ?? 75
-    this.debug = config.debug ?? false
+  /**
+   * Create an RPC client with network privacy (async initialization)
+   *
+   * Use this factory method when you need Tor or SOCKS5 proxy support.
+   * The proxy agent is initialized before creating the client.
+   *
+   * @param config - Client configuration with network privacy settings
+   * @returns Configured RPC client with proxy support
+   *
+   * @example Using Tor
+   * ```typescript
+   * const client = await SolanaRPCClient.withNetworkPrivacy({
+   *   endpoint: 'https://api.mainnet-beta.solana.com',
+   *   networkPrivacy: {
+   *     proxy: 'tor',
+   *     rotateCircuit: true,
+   *     torControlPassword: 'my-password',
+   *   },
+   * })
+   *
+   * // All RPC calls now go through Tor
+   * const balance = await client.getBalance(publicKey)
+   * ```
+   */
+  static async withNetworkPrivacy(config: RPCClientConfig): Promise<SolanaRPCClient> {
+    const client = new SolanaRPCClient(config)
+
+    if (config.networkPrivacy?.proxy) {
+      const networkClient = await createNetworkPrivacyClient({
+        proxy: config.networkPrivacy.proxy,
+        timeout: config.timeout ?? 30000,
+        fallbackToDirect: config.networkPrivacy.fallbackToDirect,
+      })
+
+      client.proxyAgent = networkClient.agent
+
+      // Recreate endpoints with proxy agent
+      client.endpoints = []
+      client.endpoints.push(
+        client.createEndpoint(config.endpoint, config.commitment ?? 'confirmed', config.timeout ?? 30000)
+      )
+      if (config.fallbackEndpoints) {
+        for (const endpoint of config.fallbackEndpoints) {
+          client.endpoints.push(
+            client.createEndpoint(endpoint, config.commitment ?? 'confirmed', config.timeout ?? 30000)
+          )
+        }
+      }
+
+      if (client.debug) {
+        console.log(`[RPC] Network privacy enabled: ${networkClient.status.type}`)
+      }
+    }
+
+    return client
   }
 
   /**
@@ -302,14 +397,29 @@ export class SolanaRPCClient {
   private createEndpoint(endpoint: string, commitment: Commitment, timeout: number): RpcEndpoint {
     const wsEndpoint = this.deriveWsEndpoint(endpoint)
 
+    // Connection options with optional proxy agent
+    const connectionOptions: {
+      commitment: Commitment
+      confirmTransactionInitialTimeout: number
+      wsEndpoint: string
+      httpAgent?: Agent
+      httpsAgent?: Agent
+    } = {
+      commitment,
+      confirmTransactionInitialTimeout: timeout,
+      wsEndpoint,
+    }
+
+    // Add proxy agent if configured (for Node.js)
+    if (this.proxyAgent) {
+      connectionOptions.httpAgent = this.proxyAgent
+      connectionOptions.httpsAgent = this.proxyAgent
+    }
+
     return {
       rpc: createSolanaRpc(endpoint),
       rpcSubscriptions: createSolanaRpcSubscriptions(wsEndpoint),
-      legacyConnection: new Connection(endpoint, {
-        commitment,
-        confirmTransactionInitialTimeout: timeout,
-        wsEndpoint,
-      }),
+      legacyConnection: new Connection(endpoint, connectionOptions),
       endpoint,
     }
   }
@@ -855,6 +965,78 @@ export class SolanaRPCClient {
   getCurrentEndpoint(): string {
     return this.endpoints[this.currentEndpointIndex].endpoint
   }
+
+  // ─── Network Privacy Methods ─────────────────────────────────────────────────
+
+  /**
+   * Check if network privacy is enabled
+   *
+   * @returns True if RPC calls go through a proxy
+   */
+  isNetworkPrivacyEnabled(): boolean {
+    return this.proxyAgent !== undefined
+  }
+
+  /**
+   * Get network privacy configuration
+   *
+   * @returns Current network privacy config or undefined
+   */
+  getNetworkPrivacyConfig(): NetworkPrivacyConfig | undefined {
+    return this.networkPrivacyConfig
+  }
+
+  /**
+   * Rotate Tor circuit for new identity
+   *
+   * Requests a new circuit from the Tor control port (NEWNYM signal).
+   * This provides unlinkability between subsequent requests.
+   *
+   * Requires:
+   * - Tor control port enabled (default: 9051)
+   * - Control port password if configured
+   *
+   * @returns True if circuit rotation succeeded
+   *
+   * @example
+   * ```typescript
+   * const client = await SolanaRPCClient.withNetworkPrivacy({
+   *   endpoint: 'https://api.mainnet-beta.solana.com',
+   *   networkPrivacy: {
+   *     proxy: 'tor',
+   *     torControlPassword: 'my-password',
+   *   },
+   * })
+   *
+   * // Send first transaction
+   * await client.sendTransaction(tx1)
+   *
+   * // Rotate circuit for unlinkability
+   * await client.rotateTorCircuit()
+   *
+   * // Send second transaction through new circuit
+   * await client.sendTransaction(tx2)
+   * ```
+   */
+  async rotateTorCircuit(): Promise<boolean> {
+    if (!this.networkPrivacyConfig?.proxy) {
+      if (this.debug) {
+        console.log('[RPC] Circuit rotation skipped: no proxy configured')
+      }
+      return false
+    }
+
+    const success = await rotateProxyCircuit(
+      this.torControlPort ?? 9051,
+      this.torControlPassword
+    )
+
+    if (this.debug) {
+      console.log(`[RPC] Circuit rotation: ${success ? 'success' : 'failed'}`)
+    }
+
+    return success
+  }
 }
 
 // ─── Factory Function ─────────────────────────────────────────────────────────
@@ -886,6 +1068,46 @@ export class SolanaRPCClient {
  */
 export function createRPCClient(config: RPCClientConfig): SolanaRPCClient {
   return new SolanaRPCClient(config)
+}
+
+/**
+ * Create an RPC client with network privacy support (async)
+ *
+ * Use this factory when you need Tor or SOCKS5 proxy support.
+ * The proxy agent is initialized before creating the client.
+ *
+ * @param config - Client configuration with network privacy settings
+ * @returns Configured RPC client with proxy support
+ *
+ * @example Using Tor
+ * ```typescript
+ * const client = await createPrivateRPCClient({
+ *   endpoint: 'https://api.mainnet-beta.solana.com',
+ *   networkPrivacy: {
+ *     proxy: 'tor',
+ *     rotateCircuit: true,
+ *   },
+ * })
+ *
+ * // All RPC calls go through Tor
+ * const balance = await client.getBalance(publicKey)
+ *
+ * // Rotate circuit between sensitive operations
+ * await client.rotateTorCircuit()
+ * ```
+ *
+ * @example Using custom SOCKS5
+ * ```typescript
+ * const client = await createPrivateRPCClient({
+ *   endpoint: 'https://api.mainnet-beta.solana.com',
+ *   networkPrivacy: {
+ *     proxy: 'socks5://127.0.0.1:1080',
+ *   },
+ * })
+ * ```
+ */
+export async function createPrivateRPCClient(config: RPCClientConfig): Promise<SolanaRPCClient> {
+  return SolanaRPCClient.withNetworkPrivacy(config)
 }
 
 // ─── Utility Functions ────────────────────────────────────────────────────────
