@@ -694,7 +694,7 @@ ssh core  # Admin user for nginx/system config
 
 ---
 
-## Keypair Storage
+## Keypair Storage & Deployments
 
 **Location:** `~/.claude/sip-protocol/keys/` (age-encrypted, never commit)
 
@@ -706,10 +706,14 @@ ssh core  # Admin user for nginx/system config
 | `solana/dapp-store.json.age` | `S1PSkwV3YZD6exNiUEdfTJadyUJ1CDDUgwmQaWB5yie` | Solana dApp Store |
 | `ethereum/evm.json.age` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | ETH/Base/Arb/OP |
 
+**Devnet Deployment:** `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` (2026-01-24)
+
 ```bash
-# Decrypt → deploy → clean
-./sip-keys.sh decrypt solana/program-id.json.age
-anchor deploy --provider.cluster devnet --program-keypair /tmp/sip-key-decrypted.json
+# Deploy to devnet (requires ~2.5 SOL in authority wallet)
+cd ~/.claude/sip-protocol/keys
+./sip-keys.sh decrypt solana/authority.json.age && mv /tmp/sip-key-decrypted.json /tmp/sip-authority.json
+./sip-keys.sh decrypt solana/program-id.json.age && mv /tmp/sip-key-decrypted.json /tmp/program-id.json
+solana program deploy target/deploy/sip_privacy.so --program-id /tmp/program-id.json --keypair /tmp/sip-authority.json --url devnet
 ./sip-keys.sh clean
 ```
 
