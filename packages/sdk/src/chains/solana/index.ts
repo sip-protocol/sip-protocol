@@ -346,3 +346,16 @@ export {
   type SolanaRpcSubscriptionsApi,
   type Blockhash as KitBlockhash,
 } from './kit-compat'
+
+// Sunspot ZK Verifier (Issue #779)
+export {
+  SunspotVerifier,
+  ProofType,
+  createVerifyInstructionData,
+  formatFundingInputs,
+  formatOwnershipInputs,
+  type SunspotVerifierConfig,
+  type VerifyProofParams,
+  type VerifyProofResult,
+  type Groth16Proof,
+} from './sunspot-verifier'

@@ -1,0 +1,12 @@
+# Sunspot artifacts (large binary files)
+keys/*.ccs
+keys/*.pk
+keys/*.vk
+proofs/*.proof
+verifier/*.so
+verifier/*-keypair.json
+
+# Keep directories
+!keys/.gitkeep
+!proofs/.gitkeep
+!verifier/.gitkeep
