@@ -128,7 +128,7 @@ pnpm typecheck                  # Type check
 
 ### 3. sip-mobile
 
-**Purpose:** Native mobile app for SIP Protocol — privacy on iOS, Android & Solana Mobile
+**Purpose:** Privacy-first Solana wallet — native key management + shielded payments on iOS, Android & Seeker
 **Tech Stack:** Expo SDK 52, React Native, NativeWind 4.0, Zustand 5
 **Key Commands:**
 ```bash
@@ -143,9 +143,10 @@ eas build --platform android  # Build Android
 - Send - Send shielded payments
 - Receive - Generate stealth addresses, QR
 - Swap - Jupiter DEX with privacy toggle
-- Settings - Wallet, privacy, network config
+- Settings - Wallet, keys, privacy, network config
 
-**Wallet Strategy:** Privy (embedded), MWA (Android), Phantom deeplinks (iOS)
+**Wallet Strategy:** Native key storage (SecureStore + Seed Vault), optional external wallet integration (MWA, Phantom)
+**Positioning:** Standalone privacy wallet (not a layer on top of other wallets)
 **Target Stores:** iOS App Store, Google Play, Solana dApp Store (Seeker)
 **CLAUDE.md:** [sip-mobile/CLAUDE.md](https://github.com/sip-protocol/sip-mobile/blob/main/CLAUDE.md)
 
