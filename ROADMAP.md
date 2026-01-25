@@ -791,36 +791,36 @@ Established SIP as "the right way to do privacy" — cryptographic vs pool mixin
 
 | Issue | Description | Priority | Status |
 |-------|-------------|----------|--------|
-| [#401](../../issues/401) | [EPIC] SIP Solana Program (Anchor) | - | 🔲 Planned |
-| [#399](../../issues/399) | Anchor program: shielded_transfer instruction | Critical | 🔲 Planned |
-| [#400](../../issues/400) | Anchor program: claim_transfer instruction | Critical | 🔲 Planned |
-| [#402](../../issues/402) | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
-| [#403](../../issues/403) | On-chain ZK proof verifier (Noir→Solana) | Critical | 🔲 Planned |
-| [#262](../../issues/262) | Ed25519 stealth address scanning | Critical | 🔲 Planned |
-| [#479](../../issues/479) | Viewing key disclosure mechanism | High | 🔲 Planned |
-| [#374](../../issues/374) | SDK API: `sip.shieldedTransfer(solana, ...)` | High | 🔲 Planned |
-| [#454](../../issues/454) | Jupiter DEX integration (private swaps via Dark AMMs) | High | 🔲 Planned |
-| [#421](../../issues/421) | **Jito relayer integration** (gas abstraction) | High | 🔲 Planned |
-| [#404](../../issues/404) | Anchor program audit preparation | High | 🔲 Planned |
-| [#379](../../issues/379) | Same-chain test suite (100+ tests) | High | 🔲 Planned |
-| [#377](../../issues/377) | Developer documentation | Medium | 🔲 Planned |
-| [#441](../../issues/441) | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | 🔲 Planned |
-| [#493](../../issues/493) | **SolanaRPCProvider interface** (unified provider abstraction) | High | 🔲 Planned |
-| [#446](../../issues/446) | **Helius DAS adapter** (token queries via DAS API) | High | 🔲 Planned |
-| [#494](../../issues/494) | **QuickNode adapter** (Yellowstone gRPC streams) | Medium | 🔲 Planned |
-| [#495](../../issues/495) | **Triton adapter** (Geyser plugin integration) | Medium | 🔲 Planned |
-| [#496](../../issues/496) | **Generic RPC adapter** (standard RPC fallback) | High | 🔲 Planned |
-| [#456](../../issues/456) | **Helius Enhanced Transactions** (better UX) | Medium | 🔲 Planned |
-| [#447](../../issues/447) | **Helius Webhooks** (real-time payment notifications) | Medium | 🔲 Planned |
-| [#457](../../issues/457) | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | 🔲 Planned |
-| [#445](../../issues/445) | **Devnet deployment** (verifier.so + reference app) | Critical | 🔲 Planned |
-| [#480](../../issues/480) | **PrivacyCash Adapter** (pool mixing backend) | High | 🔲 Planned |
-| [#481](../../issues/481) | **Arcium Adapter** (MPC compute privacy) | Medium | 🔲 Planned |
-| [#482](../../issues/482) | **Inco Adapter** (FHE compute privacy) | Medium | 🔲 Planned |
-| [#483](../../issues/483) | **PrivacyBackend interface** (unified backend abstraction) | High | 🔲 Planned |
-| [#487](../../issues/487) | **SmartRouter v2** (backend selection logic) | Medium | 🔲 Planned |
-| [#489](../../issues/489) | **Network Privacy** (Tor/SOCKS5 proxy support) | Medium | 🔲 Planned |
-| [#472](../../issues/472) | **app.sip-protocol.org** (dedicated app subdomain) | High | 🔲 Planned |
+| [#401](../../issues/401) | [EPIC] SIP Solana Program (Anchor) | - | ✅ Complete |
+| [#399](../../issues/399) | Anchor program: shielded_transfer instruction | Critical | ✅ Complete |
+| [#400](../../issues/400) | Anchor program: claim_transfer instruction | Critical | ✅ Complete |
+| [#402](../../issues/402) | On-chain Pedersen commitment verification | Critical | ✅ Complete |
+| [#403](../../issues/403) | On-chain ZK proof verifier (Noir→Solana) | Critical | ✅ Complete |
+| [#262](../../issues/262) | Ed25519 stealth address scanning | Critical | ✅ Complete |
+| [#479](../../issues/479) | Viewing key disclosure mechanism | High | ✅ Complete |
+| [#374](../../issues/374) | SDK API: `sip.shieldedTransfer(solana, ...)` | High | ✅ Complete |
+| [#454](../../issues/454) | Jupiter DEX integration (private swaps via Dark AMMs) | High | ✅ Complete |
+| [#421](../../issues/421) | **Jito relayer integration** (gas abstraction) | High | ✅ Complete |
+| [#404](../../issues/404) | Anchor program audit preparation | High | ✅ Complete |
+| [#379](../../issues/379) | Same-chain test suite (100+ tests) | High | ✅ Complete |
+| [#377](../../issues/377) | Developer documentation | Medium | ✅ Complete |
+| [#441](../../issues/441) | **[OPT] Winternitz Vault integration** (quantum-resistant storage) | Medium | ✅ Complete |
+| [#493](../../issues/493) | **SolanaRPCProvider interface** (unified provider abstraction) | High | ✅ Complete |
+| [#446](../../issues/446) | **Helius DAS adapter** (token queries via DAS API) | High | ✅ Complete |
+| [#494](../../issues/494) | **QuickNode adapter** (Yellowstone gRPC streams) | Medium | ✅ Complete |
+| [#495](../../issues/495) | **Triton adapter** (Geyser plugin integration) | Medium | ✅ Complete |
+| [#496](../../issues/496) | **Generic RPC adapter** (standard RPC fallback) | High | ✅ Complete |
+| [#456](../../issues/456) | **Helius Enhanced Transactions** (better UX) | Medium | ✅ Complete |
+| [#447](../../issues/447) | **Helius Webhooks** (real-time payment notifications) | Medium | ✅ Complete |
+| [#457](../../issues/457) | **Sunspot pipeline** (Noir → ACIR → Groth16 → Solana verifier) | Critical | ✅ Complete |
+| [#445](../../issues/445) | **Devnet deployment** (verifier.so + reference app) | Critical | ✅ Complete |
+| [#480](../../issues/480) | **PrivacyCash Adapter** (pool mixing backend) | High | ✅ Complete |
+| [#481](../../issues/481) | **Arcium Adapter** (MPC compute privacy) | Medium | ✅ Complete |
+| [#482](../../issues/482) | **Inco Adapter** (FHE compute privacy) | Medium | ✅ Complete |
+| [#483](../../issues/483) | **PrivacyBackend interface** (unified backend abstraction) | High | ✅ Complete |
+| [#487](../../issues/487) | **SmartRouter v2** (backend selection logic) | Medium | ✅ Complete |
+| [#489](../../issues/489) | **Network Privacy** (Tor/SOCKS5 proxy support) | Medium | ✅ Complete |
+| [#472](../../issues/472) | **app.sip-protocol.org** (dedicated app subdomain) | High | ✅ Complete |
 
 **Relayer Strategy:** Use Jito for gas abstraction — no dedicated infrastructure needed. User signs shielded tx → Jito relayer submits → Pays gas → Gets fee from commitment. Relayer is gas-only (not asset movement) = lower regulatory risk.
 

@@ -28,7 +28,7 @@
 [![pnpm](https://img.shields.io/badge/pnpm-Monorepo-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | #14 of 88 | 3 Tracks**
+**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | #9 of 93 | 3 Tracks**
 
 </div>
 
@@ -377,7 +377,7 @@ User Input → Privacy Layer → Intent Creation → Solver Network → Executio
 
 | Package | Version | Description | Tests |
 |---------|---------|-------------|-------|
-| [`@sip-protocol/sdk`](packages/sdk) | 0.7.3 | Core SDK for shielded intents | 3,988 |
+| [`@sip-protocol/sdk`](packages/sdk) | 0.7.3 | Core SDK for shielded intents | 6,603 |
 | [`@sip-protocol/types`](packages/types) | 0.2.1 | TypeScript type definitions | - |
 | [`@sip-protocol/react`](packages/react) | 0.1.0 | React hooks for SIP | 82 |
 | [`@sip-protocol/cli`](packages/cli) | 0.2.0 | CLI tool | 10 |
@@ -443,13 +443,13 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking.
 - ✅ ZK proof system (Noir circuits, browser proving)
 - ✅ NEAR Intents + Zcash integration
 - ✅ React, CLI, API packages
-- ✅ 4,108+ tests
+- ✅ 6,661+ tests
 
 ### Phase 4: Same-Chain Expansion 🎯 **Active** (M16-M18)
 
 - ✅ M16: Narrative capture (content, community, positioning)
-- 🔲 M17: Solana same-chain privacy (Anchor program)
-- 🔲 M18: Ethereum same-chain privacy (Solidity contracts)
+- ✅ M17: Solana same-chain privacy (Complete - Jan 2026)
+- 🎯 M18: Ethereum same-chain privacy (Active)
 
 ### Phase 5: Technical Moat 🔲 **Planned** (M19-M22)
 
@@ -500,7 +500,7 @@ pnpm dev
 ```bash
 pnpm dev              # Start development server
 pnpm build            # Build all packages
-pnpm test -- --run    # Run all tests (4,108+)
+pnpm test -- --run    # Run all tests (6,661+)
 pnpm lint             # Lint code
 pnpm typecheck        # Type check
 ```
@@ -598,7 +598,7 @@ SIP builds on the shoulders of giants:
 
 <div align="center">
 
-**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500) | #14 of 88 | 3 Tracks**
+**🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500) | #9 of 93 | 3 Tracks**
 
 *Privacy is not a feature. It's a right.*
 
