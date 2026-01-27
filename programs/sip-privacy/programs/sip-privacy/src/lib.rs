@@ -209,11 +209,8 @@ pub mod sip_privacy {
             transfer_id: transfer_record.key(),
         });
 
-        msg!(
-            "Shielded transfer complete. Record: {}, Stealth: {}",
-            transfer_record.key(),
-            stealth_pubkey
-        );
+        // Minimal log for privacy
+        msg!("Shielded transfer complete");
 
         Ok(())
     }
@@ -310,11 +307,8 @@ pub mod sip_privacy {
             transfer_id: transfer_record.key(),
         });
 
-        msg!(
-            "Shielded token transfer complete. Record: {}, Mint: {}",
-            transfer_record.key(),
-            ctx.accounts.token_mint.key()
-        );
+        // Minimal log for privacy
+        msg!("Shielded token transfer complete");
 
         Ok(())
     }
@@ -556,12 +550,8 @@ pub mod sip_privacy {
             timestamp: nullifier_record.claimed_at,
         });
 
-        // Note: Don't log amount to preserve privacy
-        msg!(
-            "Claim complete. Transfer: {}, Recipient: {}",
-            transfer_record.key(),
-            ctx.accounts.recipient.key()
-        );
+        // Minimal log for privacy - no identifying info
+        msg!("Claim complete");
 
         Ok(())
     }
@@ -636,11 +626,8 @@ pub mod sip_privacy {
             timestamp: nullifier_record.claimed_at,
         });
 
-        msg!(
-            "Token claim complete. Transfer: {}, Amount: {}",
-            transfer_record.key(),
-            stealth_balance
-        );
+        // Minimal log for privacy
+        msg!("Token claim complete");
 
         Ok(())
     }
