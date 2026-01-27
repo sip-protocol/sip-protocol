@@ -536,13 +536,17 @@ pub mod sip_privacy {
         let transfer_amount = stealth_balance.saturating_sub(rent);
 
         if transfer_amount > 0 {
-            // Transfer using raw lamport manipulation since we control the stealth account
-            **ctx.accounts.stealth_account.try_borrow_mut_lamports()? =
-                ctx.accounts.stealth_account.lamports().checked_sub(transfer_amount)
-                    .ok_or(SipError::MathOverflow)?;
-            **ctx.accounts.recipient.try_borrow_mut_lamports()? =
-                ctx.accounts.recipient.lamports().checked_add(transfer_amount)
-                    .ok_or(SipError::MathOverflow)?;
+            // Transfer SOL from stealth account to recipient using System Program CPI
+            // The stealth account is a signer (via derived private key), so this works
+            // Note: Raw lamport manipulation doesn't work because stealth_account is system-owned
+            let cpi_context = CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: ctx.accounts.stealth_account.to_account_info(),
+                    to: ctx.accounts.recipient.to_account_info(),
+                },
+            );
+            anchor_lang::system_program::transfer(cpi_context, transfer_amount)?;
         }
 
         // Emit claim event

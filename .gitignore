@@ -44,6 +44,11 @@ docs/reference/
 *.pem
 *.key
 
+# Secrets directory (decrypted keys for deployment)
+secrets/*
+!secrets/README.md
+*.secret.json
+
 # ----------------------------------------
 # IDE & Editor
 # ----------------------------------------
