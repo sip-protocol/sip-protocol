@@ -529,16 +529,15 @@ pub mod sip_privacy {
         let transfer_record = &mut ctx.accounts.transfer_record;
         transfer_record.claimed = true;
 
-        // Transfer SOL from stealth account to recipient
+        // Transfer ALL SOL from stealth account to recipient (fully drain)
         // Note: This requires the stealth account to be a signer (stealth_privkey)
+        // We transfer ALL lamports - the account will be garbage collected when empty
         let stealth_balance = ctx.accounts.stealth_account.lamports();
-        let rent = Rent::get()?.minimum_balance(0);
-        let transfer_amount = stealth_balance.saturating_sub(rent);
 
-        if transfer_amount > 0 {
-            // Transfer SOL from stealth account to recipient using System Program CPI
+        if stealth_balance > 0 {
+            // Transfer all SOL from stealth account to recipient using System Program CPI
             // The stealth account is a signer (via derived private key), so this works
-            // Note: Raw lamport manipulation doesn't work because stealth_account is system-owned
+            // Account will be automatically closed (garbage collected) when balance hits 0
             let cpi_context = CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
                 anchor_lang::system_program::Transfer {
@@ -546,7 +545,7 @@ pub mod sip_privacy {
                     to: ctx.accounts.recipient.to_account_info(),
                 },
             );
-            anchor_lang::system_program::transfer(cpi_context, transfer_amount)?;
+            anchor_lang::system_program::transfer(cpi_context, stealth_balance)?;
         }
 
         // Emit claim event
@@ -557,11 +556,11 @@ pub mod sip_privacy {
             timestamp: nullifier_record.claimed_at,
         });
 
+        // Note: Don't log amount to preserve privacy
         msg!(
-            "Claim complete. Transfer: {}, Recipient: {}, Amount: {} lamports",
+            "Claim complete. Transfer: {}, Recipient: {}",
             transfer_record.key(),
-            ctx.accounts.recipient.key(),
-            transfer_amount
+            ctx.accounts.recipient.key()
         );
 
         Ok(())
