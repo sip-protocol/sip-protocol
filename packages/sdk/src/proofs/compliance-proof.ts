@@ -1,41 +1,54 @@
 /**
  * Compliance Proof Module
  *
- * Generates ZK proofs for regulatory compliance without revealing sensitive data.
- * This is the "Non-Financial ZK Use Case" for the Aztec/Noir bounty.
+ * USER-SIDE tool for generating ZK proofs for regulatory compliance.
+ *
+ * ## IMPORTANT: Protocol Neutrality
+ *
+ * **This module is for USERS to prove compliance — NOT protocol-level enforcement.**
+ *
+ * SIP Protocol follows the Zcash model:
+ * - Protocol is neutral infrastructure (like TCP/IP)
+ * - Protocol does NOT screen, block, or filter transactions
+ * - Users CHOOSE to generate compliance proofs when they need them
+ * - Compliance is voluntary, not mandatory
+ *
+ * This is why Zcash avoided OFAC sanctions while Tornado Cash was sanctioned:
+ * Zcash provides compliance TOOLS (viewing keys), not enforcement.
  *
  * ## Use Cases
  *
- * 1. **Viewing Key Disclosure**: Prove to auditor that you can decrypt a transaction
+ * 1. **Viewing Key Disclosure**: User proves to auditor they can decrypt a transaction
  *    without revealing the transaction details
  *
- * 2. **Sanctions Screening**: Prove that sender/recipient are not on sanctions list
- *    without revealing their identities
+ * 2. **Sanctions Self-Check**: User proves they checked sanctions list (their choice)
+ *    — NOT protocol blocking sanctioned addresses
  *
- * 3. **Balance Attestation**: Prove sufficient funds without revealing exact balance
+ * 3. **Balance Attestation**: User proves sufficient funds without revealing balance
  *
- * 4. **Tax Compliance**: Prove transaction history is complete without revealing amounts
+ * 4. **Tax Compliance**: User proves transaction history is complete for tax filing
  *
  * ## Architecture
  *
  * ```
  * ┌─────────────────────────────────────────────────────────────┐
- * │  COMPLIANCE PROOFS (Non-Financial ZK)                       │
+ * │  USER-SIDE COMPLIANCE PROOFS                                │
+ * │  (Protocol remains neutral — user generates proofs by choice)
  * │                                                             │
  * │  ┌─────────────────┐    ┌─────────────────┐                │
- * │  │ Viewing Key     │    │ Auditor's       │                │
- * │  │ Holder          │───►│ Verification    │                │
- * │  │ (Prove access)  │    │ (No data leak)  │                │
+ * │  │ User            │    │ Auditor/        │                │
+ * │  │ (generates      │───►│ Regulator       │                │
+ * │  │  proof)         │    │ (verifies)      │                │
  * │  └─────────────────┘    └─────────────────┘                │
  * │                                                             │
- * │  What's proven:                                             │
+ * │  What user can prove:                                       │
  * │  ✓ Transaction exists and is valid                         │
- * │  ✓ Viewing key holder has access                           │
- * │  ✓ No sanctions violations                                 │
+ * │  ✓ User has viewing key access                             │
+ * │  ✓ User checked sanctions list (voluntary)                 │
  * │                                                             │
- * │  What's hidden:                                             │
+ * │  What remains hidden:                                       │
  * │  ✗ Actual transaction amount                               │
- * │  ✗ Sender/recipient identities                             │
+ * │  ✗ Sender/recipient identities (unless user discloses)     │
  * │  ✗ Transaction path                                        │
  * └─────────────────────────────────────────────────────────────┘
  * ```

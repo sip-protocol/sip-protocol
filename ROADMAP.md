@@ -189,7 +189,20 @@ fn main(
 }
 ```
 
-### Compliance: Viewing Keys + CipherOwl
+### Protocol Neutrality Principle
+
+> **SIP Protocol is neutral infrastructure — like TCP/IP or HTTPS.**
+> The protocol itself does NOT screen, block, or filter transactions.
+> Users choose their own compliance strategy.
+
+This is the **Zcash regulatory moat**: Zcash has operated 8+ years without OFAC sanctions because:
+1. **Protocol is neutral** — Blockchain infrastructure, not a mixer application
+2. **Viewing keys enable compliance** — Users CAN prove transaction history (their choice)
+3. **Active regulatory dialogue** — Zcash Foundation engages with regulators
+
+Tornado Cash was sanctioned because it was an **application** (smart contract mixer) with **no compliance mechanism**. SIP is **infrastructure** (privacy middleware) with **viewing keys for user-choice compliance**.
+
+### Compliance: Viewing Keys (The Zcash Model)
 
 **Q: Does SIP's approach solve Tornado Cash regulatory risk?**
 
@@ -202,21 +215,21 @@ fn main(
 │                                                                             │
 │   TORNADO CASH (SANCTIONED)                                                 │
 │   ─────────────────────────                                                 │
-│   • No compliance mechanism                                                 │
-│   • Operators cannot assist law enforcement                                 │
+│   • Application layer (smart contract mixer)                                │
+│   • No compliance mechanism — operators CANNOT help                         │
 │   • Cannot prove funds are clean                                            │
 │   • OFAC rationale: "Facilitates money laundering without safeguards"       │
 │                                                                             │
 │   SIP PROTOCOL (COMPLIANCE-READY)                                           │
 │   ───────────────────────────────                                           │
-│   • Viewing keys = selective disclosure                                     │
+│   • Infrastructure layer (privacy middleware)                               │
+│   • Viewing keys = user-choice selective disclosure                         │
 │   • Users CAN prove transaction history to regulators                       │
-│   • Compliant mode: Viewing key shared with auditor at tx time              │
-│   • CipherOwl integration: Real-time compliance oracle                      │
+│   • Protocol is neutral; compliance is user's choice                        │
 │                                                                             │
 │   KEY DIFFERENCE:                                                           │
-│   Tornado Cash: "We CAN'T help you trace this"                              │
-│   SIP Protocol: "We CAN help you trace this IF the user consents"           │
+│   Tornado Cash: "We CAN'T help you trace this" (no mechanism exists)        │
+│   SIP Protocol: "Users CAN prove anything IF they choose to" (viewing keys) │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -227,34 +240,38 @@ fn main(
 3. **Legal defense** — "I can prove where these funds came from"
 4. **Voluntary disclosure** — Privacy by default, transparency by choice
 
-**CipherOwl Adds:**
-1. **Real-time screening** — Check if recipient is sanctioned BEFORE transfer
-2. **Compliance oracle** — On-chain verification of regulatory status
-3. **Audit trail** — Timestamped proof of compliance check
+**Range SAS Integration (Attestation-Gated Disclosure):**
+- Users can grant viewing key access to **verified auditors** via Range SAS attestations
+- Auditor identity verified on-chain before receiving viewing key
+- Creates trust anchor for institutional compliance workflows
 
-**Combined (Viewing Keys + CipherOwl):**
+**Example: Compliant Shielded Transfer**
 ```typescript
-// User sends compliant shielded transfer
+// User sends shielded transfer with viewing key for compliance
 const result = await sip.shieldedTransfer({
   recipient: stealthAddress,
   amount: '1.5',
   privacyLevel: 'compliant',  // Generates viewing key disclosure
-  complianceCheck: true,       // Queries CipherOwl oracle
 })
 
 // Result includes:
 // - Shielded transfer (private)
-// - Viewing key disclosure record (auditable)
-// - CipherOwl attestation (proof of compliance check)
+// - Viewing key disclosure record (auditable by user's chosen parties)
 ```
 
-**Regulatory Position:**
+**Protocol Philosophy:**
 - **Privacy is a right** — Users deserve financial privacy
-- **Compliance is optional** — For those who need it (institutions, regulated entities)
+- **Compliance is user's choice** — Protocol doesn't enforce, users decide
 - **Not a mixer** — Funds are cryptographically hidden, not pooled with strangers
 - **Auditability preserved** — With viewing keys, full transparency is possible
 
-> **This is the Zcash model** — privacy by default, viewing keys for compliance. Zcash has operated for 8+ years without sanctions because they provide compliance tools.
+> **This is the Zcash model** — privacy by default, viewing keys for compliance. Zcash has operated for 8+ years without sanctions because viewing keys make compliance POSSIBLE (not mandatory).
+
+**Third-Party Compliance Tools (NOT Protocol-Level):**
+Institutions who need sanctions screening can use external oracles like CipherOwl on their own systems:
+- These are **user/institution-side tools**, not protocol integrations
+- SIP protocol remains neutral — doesn't block or screen transactions
+- Institutions can build whatever compliance layer they need on top of SIP
 
 ---
 
