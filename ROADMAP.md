@@ -69,6 +69,195 @@
 
 ---
 
+## Full Privacy Architecture: The Path to 100% Privacy
+
+**Current State (M17):** ~30% Privacy Score
+
+SIP's current implementation provides partial privacy due to the **claim linkability problem**:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 CURRENT PRIVACY ANALYSIS (M17 Complete)                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   SEND PHASE (~60% Private):                                                │
+│   ├── ✅ Recipient: Hidden (stealth address)                                │
+│   ├── ✅ Amount: Hidden (Pedersen commitment + encrypted)                   │
+│   ├── ❌ Sender: VISIBLE (transaction signer)                               │
+│   └── ❌ Intent: VISIBLE (shielded_transfer instruction)                    │
+│                                                                             │
+│   CLAIM PHASE (~0% Private):                                                │
+│   ├── ❌ Stealth→Recipient link: VISIBLE (CPI transfer on-chain)            │
+│   ├── ❌ Amount: VISIBLE (transfer amount in CPI)                           │
+│   ├── ❌ Timing: Correlatable (deposit→claim timing analysis)               │
+│   └── ❌ Complete trace: Observer can link entire flow                      │
+│                                                                             │
+│   OVERALL: ~30% PRIVATE                                                     │
+│   An observer can trace: Sender → Stealth → Recipient → Full amount         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Why Current Claim is Linkable:**
+
+```
+Current Architecture (M17):
+═══════════════════════════════════════════════════════════════════════════════
+Alice → [shielded_transfer] → Stealth PDA (unique per payment)
+                                    │
+                                    │  ON-CHAIN CPI (visible!)
+                                    │  "Transfer 1.5 SOL from 9ZdZ...ipCB to 68tL...oD9h"
+                                    ▼
+                               Bob's Wallet
+
+Observer sees: "9ZdZ...ipCB sent 1.5 SOL to 68tL...oD9h" — FULLY LINKABLE
+═══════════════════════════════════════════════════════════════════════════════
+```
+
+### Target Architecture (M19-M20): 100% Privacy
+
+The solution requires **Pool PDA + ZK Claim Proofs**:
+
+```
+Target Architecture (M19-M20):
+═══════════════════════════════════════════════════════════════════════════════
+
+SEND PHASE (unchanged):
+Alice ─┬─> Pool PDA ◄── Central escrow (like Tornado Cash pool)
+Bob   ─┤                 All deposits blend together
+Carol ─┘
+
+CLAIM PHASE (ZK proof required):
+                    ┌─────────────────────────────────────┐
+                    │         ZK CLAIM PROOF              │
+                    │  "I know a nullifier that:          │
+                    │   1. Corresponds to a valid deposit │
+                    │   2. Has not been spent before      │
+                    │   3. I own the stealth private key" │
+                    │                                     │
+                    │  REVEALS: Nothing about which       │
+                    │           deposit is being claimed  │
+                    └─────────────────────────────────────┘
+                                    │
+                                    ▼
+Pool PDA ───────────────────────> Bob's Wallet
+         "Transfer from Pool to Recipient"
+         (No link to specific deposit!)
+
+Observer sees: "Pool sent X SOL to 68tL...oD9h"
+Observer CANNOT determine: Which deposit? Who was the sender?
+═══════════════════════════════════════════════════════════════════════════════
+```
+
+### Privacy Score Progression
+
+| Phase | Privacy Score | What's Hidden | What's Exposed |
+|-------|--------------|---------------|----------------|
+| **M17 (Current)** | ~30% | Recipient (send), Amount (send) | Sender, Claim link, Claim amount |
+| **M19 (Pool PDA)** | ~60% | + Deposit blending | Sender still visible |
+| **M20 (ZK Claims)** | ~90% | + Claim unlinkability | Timing correlation (weak) |
+| **M21 (Full)** | ~100% | + Batched claims + Delays | Nothing meaningful |
+
+### ZK Claim Circuit (Noir)
+
+```noir
+// circuits/claim_proof/src/main.nr
+fn main(
+    // Public inputs
+    nullifier: pub Field,           // Unique per deposit (prevents double-spend)
+    pool_root: pub Field,           // Merkle root of all deposits
+    recipient: pub Field,           // Where funds go
+
+    // Private inputs (never revealed)
+    stealth_private_key: Field,     // Proves ownership
+    deposit_commitment: Field,       // Which deposit (hidden)
+    merkle_path: [Field; 20],       // Path in deposit tree
+    amount: Field,                  // How much (hidden)
+) {
+    // 1. Verify deposit exists in pool
+    let computed_root = compute_merkle_root(deposit_commitment, merkle_path);
+    assert(computed_root == pool_root);
+
+    // 2. Verify nullifier is correctly derived (prevents double-spend)
+    let expected_nullifier = hash([stealth_private_key, deposit_commitment]);
+    assert(nullifier == expected_nullifier);
+
+    // 3. Verify ownership (stealth key matches deposit)
+    let stealth_pubkey = derive_public_key(stealth_private_key);
+    let expected_commitment = pedersen_commit(amount, stealth_pubkey);
+    assert(deposit_commitment == expected_commitment);
+}
+```
+
+### Compliance: Viewing Keys + CipherOwl
+
+**Q: Does SIP's approach solve Tornado Cash regulatory risk?**
+
+**A: Yes, viewing keys fundamentally change the regulatory calculus.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              TORNADO CASH vs SIP: REGULATORY COMPARISON                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   TORNADO CASH (SANCTIONED)                                                 │
+│   ─────────────────────────                                                 │
+│   • No compliance mechanism                                                 │
+│   • Operators cannot assist law enforcement                                 │
+│   • Cannot prove funds are clean                                            │
+│   • OFAC rationale: "Facilitates money laundering without safeguards"       │
+│                                                                             │
+│   SIP PROTOCOL (COMPLIANCE-READY)                                           │
+│   ───────────────────────────────                                           │
+│   • Viewing keys = selective disclosure                                     │
+│   • Users CAN prove transaction history to regulators                       │
+│   • Compliant mode: Viewing key shared with auditor at tx time              │
+│   • CipherOwl integration: Real-time compliance oracle                      │
+│                                                                             │
+│   KEY DIFFERENCE:                                                           │
+│   Tornado Cash: "We CAN'T help you trace this"                              │
+│   SIP Protocol: "We CAN help you trace this IF the user consents"           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Viewing Keys Solve:**
+1. **User compliance** — Users can prove their transaction history to auditors/regulators
+2. **Institutional adoption** — Custodians can monitor client activity
+3. **Legal defense** — "I can prove where these funds came from"
+4. **Voluntary disclosure** — Privacy by default, transparency by choice
+
+**CipherOwl Adds:**
+1. **Real-time screening** — Check if recipient is sanctioned BEFORE transfer
+2. **Compliance oracle** — On-chain verification of regulatory status
+3. **Audit trail** — Timestamped proof of compliance check
+
+**Combined (Viewing Keys + CipherOwl):**
+```typescript
+// User sends compliant shielded transfer
+const result = await sip.shieldedTransfer({
+  recipient: stealthAddress,
+  amount: '1.5',
+  privacyLevel: 'compliant',  // Generates viewing key disclosure
+  complianceCheck: true,       // Queries CipherOwl oracle
+})
+
+// Result includes:
+// - Shielded transfer (private)
+// - Viewing key disclosure record (auditable)
+// - CipherOwl attestation (proof of compliance check)
+```
+
+**Regulatory Position:**
+- **Privacy is a right** — Users deserve financial privacy
+- **Compliance is optional** — For those who need it (institutions, regulated entities)
+- **Not a mixer** — Funds are cryptographically hidden, not pooled with strangers
+- **Auditability preserved** — With viewing keys, full transparency is possible
+
+> **This is the Zcash model** — privacy by default, viewing keys for compliance. Zcash has operated for 8+ years without sanctions because they provide compliance tools.
+
+---
+
 ## Privacy Paths & Trade-offs
 
 Understanding what privacy SIP provides in each settlement path:
@@ -1055,55 +1244,67 @@ Phase 5: Long-tail   → Blast, Mantle, Mode, Taiko (completeness)
 
 ---
 
-#### M19: Mina Integration & Proof Research 🔲 Q3 2026
+#### M19: Full Privacy Architecture & Mina Integration 🔲 Q3 2026
 
-**Why Mina?** Mina sponsored Zypherpunk hackathon (where SIP won). Privacy-native ZK. Kimchi proof system aligns with our proof composition plans.
+**Primary Goal:** Solve the **claim linkability problem** — the #1 privacy gap in current implementation.
 
-Three parallel tracks: **Mina integration** (relationship leverage), **Zcash cross-chain route** (immediate value), and **proof composition research** (long-term moat).
+**Why This Matters:** Current M17 implementation is ~30% private. Claims are fully linkable on-chain. This milestone delivers **true unlinkability** via Pool PDA + ZK claim proofs.
+
+Four parallel tracks: **ZK Claim Proofs** (critical path), **Pool PDA Architecture** (foundation), **Mina integration** (relationship leverage), and **proof composition research** (long-term moat).
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      M19: MINA + CROSS-CHAIN FULL PRIVACY                    │
+│               M19: FULL PRIVACY ARCHITECTURE + MINA INTEGRATION              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   Track A: Mina Protocol Integration (Relationship Leverage)                │
+│   Track A: ZK Claim Proofs (CRITICAL PATH — Solves Claim Linkability)       │
+│   ─────────────────────────────────────────────────────────────────         │
+│   • Noir circuit: claim_proof (nullifier + merkle proof + ownership)        │
+│   • On-chain verifier (Solana + EVM)                                        │
+│   • SDK integration: sip.privateClaim({ proof: ... })                       │
+│   • Privacy score: 30% → 90%                                                │
+│                                                                             │
+│   Track B: Pool PDA Architecture (Foundation for Unlinkability)             │
+│   ──────────────────────────────────────────────────────────────            │
+│   • Single Pool PDA for all shielded transfers (deposit blending)           │
+│   • Merkle tree of deposits (nullifier tracking)                            │
+│   • Deposit/withdrawal accounting (prevents pool drain attacks)             │
+│   • Migration path from per-payment stealth PDAs                            │
+│                                                                             │
+│   Track C: Mina Protocol Integration (Relationship Leverage)                │
 │   ──────────────────────────────────────────────────────────                │
 │   • Mina Kimchi proofs for succinct verification                            │
 │   • Explore SIP as native Mina zkApp                                        │
 │   • Mina Foundation grant opportunity ($50-100K)                            │
 │                                                                             │
-│   Track B: Zcash Cross-Chain Route (Immediate Value)                        │
-│   ─────────────────────────────────────────────────                         │
-│   For users who need FULL cross-chain privacy (not just stealth addresses) │
-│                                                                             │
-│   Flow: SOL → ZEC (shielded) → NEAR                                         │
-│   Trade-off: Slower (2 hops) but FULL privacy (sender, amount, recipient)   │
-│                                                                             │
-│   Track C: Proof Composition Research (Long-term Moat)                      │
-│   ────────────────────────────────────────────────────                      │
-│   • Zcash Halo2 → Privacy execution                                         │
-│   • Mina Kimchi → Succinct verification                                     │
-│   • Noir → Validity proofs                                                  │
-│                                                                             │
-│   Target: Single proof that combines privacy + light client verification   │
+│   Track D: Zcash Cross-Chain Route (Full Cross-Chain Privacy)               │
+│   ─────────────────────────────────────────────────────────                 │
+│   • Flow: SOL → ZEC (shielded) → NEAR                                       │
+│   • Trade-off: Slower (2 hops) but FULL privacy                             │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 | Issue | Description | Track | Status |
 |-------|-------------|-------|--------|
-| - | [EPIC] Mina + Cross-Chain Full Privacy | - | 🔲 Future |
-| - | **Mina Kimchi integration** | A | 🔲 Future |
-| - | **Mina zkApp exploration** | A | 🔲 Future |
-| - | Zcash shielded pool integration | B | 🔲 Future |
-| - | SOL → ZEC → NEAR routing | B | 🔲 Future |
-| - | Cross-chain bridge selection (LayerZero) | B | 🔲 Future |
-| - | SDK API: `sip.crossChainPrivate(...)` | B | 🔲 Future |
-| - | Halo2 + Kimchi compatibility analysis | C | 🔲 Future |
-| - | **Halo2 IPA Verifier Research** (Tachyon-informed) | C | 🔲 Future |
-| - | **PCD Wallet State Architecture** (Tachyon-informed) | C | 🔲 Future |
-| - | Proof composition architecture design | C | 🔲 Future |
-| - | Prototype: Zcash privacy + Mina verification | C | 🔲 Future |
+| [#825](../../issues/825) | [EPIC] Full Privacy Architecture + Mina Integration | - | 🔲 Planned |
+| [#940](../../issues/940) | **ZK claim_proof circuit (Noir)** — Nullifier + Merkle + ownership | A | 🔲 **CRITICAL** |
+| [#943](../../issues/943) | **Solana claim verifier** — On-chain ZK proof verification | A | 🔲 **CRITICAL** |
+| [#944](../../issues/944) | **EVM claim verifier** — Solidity verifier contract | A | 🔲 **CRITICAL** |
+| [#941](../../issues/941) | **Pool PDA architecture** — Single escrow for all deposits | B | 🔲 **CRITICAL** |
+| [#942](../../issues/942) | **Merkle tree for deposits** — Tracking nullifiers + commitments | B | 🔲 **CRITICAL** |
+| [#945](../../issues/945) | **SDK privateClaim API** — `sip.privateClaim({ proof })` | A | 🔲 Planned |
+| [#827](../../issues/827) | Mina zkApp exploration | C | 🔲 Planned |
+| [#828](../../issues/828) | Mina Foundation grant application | C | 🔲 Planned |
+| [#829](../../issues/829) | Zcash shielded pool integration | D | 🔲 Planned |
+| [#830](../../issues/830) | SOL → ZEC → NEAR routing | D | 🔲 Planned |
+| [#831](../../issues/831) | Cross-chain bridge selection (LayerZero) | D | 🔲 Planned |
+| [#832](../../issues/832) | SDK API: `sip.crossChainPrivate(...)` | D | 🔲 Planned |
+| [#833](../../issues/833) | Halo2 + Kimchi compatibility analysis | C | 🔲 Research |
+| [#834](../../issues/834) | Halo2 IPA Verifier Research (Tachyon-informed) | C | 🔲 Research |
+| [#835](../../issues/835) | PCD Wallet State Architecture (Tachyon-informed) | C | 🔲 Research |
+| [#836](../../issues/836) | Proof composition architecture design | C | 🔲 Research |
+| [#837](../../issues/837) | Prototype: Zcash privacy + Mina verification | C | 🔲 Research |
 
 > **Note:** Track C items informed by [Project Tachyon](https://seanbowe.com/blog/tachyon-scaling-zcash-oblivious-synchronization/) — Zcash's scaling roadmap by Sean Bowe. Tachyon's Proof-Carrying Data (PCD) model and oblivious synchronization approach align with SIP's architecture and validate our stealth address design.
 
@@ -1120,22 +1321,48 @@ Three parallel tracks: **Mina integration** (relationship leverage), **Zcash cro
 
 ---
 
-#### M20: Technical Moat Building 🔲 Q4 2026
+#### M20: Technical Moat Building + Privacy Hardening 🔲 Q4 2026
 
-Build unique capabilities that create defensible advantage.
+Build unique capabilities that create defensible advantage. Complete the **100% privacy** implementation.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    M20: PRIVACY HARDENING + TECHNICAL MOAT                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   Privacy Hardening (90% → 100%):                                           │
+│   ──────────────────────────────                                            │
+│   • Batched claim aggregation (multiple claims in one tx)                   │
+│   • Randomized claim delays (break timing correlation)                      │
+│   • Fixed denomination pools (optional, stronger anonymity)                 │
+│   • Relayer network (hide claimer IP + wallet)                              │
+│                                                                             │
+│   Technical Moat:                                                           │
+│   ─────────────                                                             │
+│   • Proof composition v1 (Zcash + Mina)                                     │
+│   • Quantum-resistant storage (Winternitz vaults)                           │
+│   • Multi-language SDKs (Python, Rust, Go)                                  │
+│   • Protocol revenue (NEAR fee contract)                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| - | [EPIC] Technical Moat Building | 🔲 Future |
-| - | Proof composition v1 (if feasible) | 🔲 Future |
-| - | **Oblivious Sync Service** (Tachyon-inspired privacy during sync) | 🔲 Future |
-| - | **Quantum-Resistant Storage** (Winternitz WOTS vaults) | 🔲 Future |
-| [#491](../../issues/491) | **WOTS+ Post-Quantum Signatures** (stealth address signing) | 🔲 Future |
-| - | **BNB Chain support** (4.32M daily wallets, Asia market) | 🔲 Future |
-| - | Multi-language SDK (Python, Rust) | 🔲 Future |
-| - | Chain-specific optimizations | 🔲 Future |
-| - | NEAR fee contract (protocol revenue) | 🔲 Future |
-| - | Governance token design | 🔲 Future |
+| [#839](../../issues/839) | [EPIC] Technical Moat Building | 🔲 Planned |
+| [#946](../../issues/946) | **Batched claim aggregation** — Multiple claims in one tx | 🔲 **CRITICAL** |
+| [#947](../../issues/947) | **Randomized claim delays** — Break timing correlation | 🔲 Planned |
+| [#948](../../issues/948) | **Fixed denomination pools** — Optional stronger anonymity | 🔲 Planned |
+| [#949](../../issues/949) | **Relayer network** — Hide claimer IP + wallet | 🔲 Planned |
+| [#840](../../issues/840) | Proof composition v1 (if feasible) | 🔲 Research |
+| [#842](../../issues/842) | **Oblivious Sync Service** (Tachyon-inspired privacy during sync) | 🔲 Future |
+| [#843](../../issues/843) | **Quantum-Resistant Storage** (Winternitz WOTS vaults) | 🔲 Future |
+| [#844](../../issues/844) | **WOTS+ Post-Quantum Signatures** (stealth address signing) | 🔲 Future |
+| [#845](../../issues/845) | **BNB Chain support** (4.32M daily wallets, Asia market) | 🔲 Future |
+| [#848](../../issues/848)-[#850](../../issues/850) | Multi-language SDK (Python, Rust, Go) | 🔲 Future |
+| [#847](../../issues/847) | Chain-specific optimizations | 🔲 Future |
+| [#851](../../issues/851) | NEAR fee contract (protocol revenue) | 🔲 Future |
+| [#852](../../issues/852) | Governance token design | 🔲 Future |
 
 **Quantum-Resistant Storage (Winternitz Vaults):**
 
@@ -1417,6 +1644,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: January 24, 2026*
+*Last updated: January 28, 2026*
 *M16-M17 Complete | M18 Active | Superteam Grant APPROVED ($10K)*
-*6,661+ tests | 7 packages | app.sip-protocol.org live*
+*6,661+ tests | 7 packages | Full Privacy Architecture documented (M19-M20)*
+*New issues: #940-#949 (ZK claim proofs, Pool PDA, Privacy hardening)*
