@@ -21,6 +21,7 @@
 | `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.7.3 |
 | `sip-protocol/sip-app` | **App** - Privacy applications (payments, wallet, DEX) | Next.js 16, Tailwind | v0.1.0 |
 | `sip-protocol/sip-mobile` | **Mobile** - Native iOS/Android/Seeker privacy wallet | Expo 52, NativeWind | v0.1.0 |
+| `sip-protocol/sip-arcium-program` | **Arcium** - MPC program for confidential DeFi | Rust, Anchor, Arcium SDK | - |
 | `sip-protocol/sip-website` | Marketing site (demo deprecated → sip-app) | Next.js 15, Tailwind | v0.0.1 |
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro 5, MDX | v0.0.0 |
 | `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro 5, MDX, Tailwind | v0.0.1 |
@@ -248,7 +249,38 @@ pnpm preview                    # Preview build
 
 ---
 
-### 8. .github
+### 8. sip-arcium-program
+
+**Purpose:** Arcium MPC program for confidential DeFi on Solana
+**Tech Stack:** Rust, Anchor, Arcium SDK (Arcis circuits)
+**Key Commands:**
+```bash
+anchor build                    # Build program + circuits
+anchor test                     # Run tests
+anchor deploy --provider.cluster devnet  # Deploy to devnet
+npx ts-node scripts/init-comp-defs.ts    # Initialize computation definitions
+```
+**Key Files:**
+- `programs/sip_arcium_transfer/src/lib.rs` - Anchor program (queue computations, callbacks)
+- `encrypted-ixs/src/lib.rs` - Arcis MPC circuits
+
+**MPC Circuits:**
+| Circuit | Purpose | Inputs | Outputs |
+|---------|---------|--------|---------|
+| `private_transfer` | Validate encrypted balance transfer | sender_balance, amount, min_balance | is_valid, new_balance |
+| `check_balance` | Threshold check without revealing | balance, minimum | meets_minimum |
+| `validate_swap` | Confidential DEX swap validation | input_balance, input_amount, min_output, actual_output | is_valid, new_balance, slippage_ok |
+
+**Deployment (Devnet):**
+- Program ID: `S1P5q5497A6oRCUutUFb12LkNQynTNoEyRyUvotmcX9`
+- MXE Account: `5qy4Njk4jCJE4QgZ5dsg8uye3vzFypFTV7o7RRSQ8vr4`
+- Cluster Offset: 456 (Arcium devnet v0.6.3)
+
+**CLAUDE.md:** [sip-arcium-program/CLAUDE.md](https://github.com/sip-protocol/sip-arcium-program/blob/main/CLAUDE.md)
+
+---
+
+### 9. .github
 
 **Purpose:** Organization-wide GitHub configuration
 **Key Files:**
