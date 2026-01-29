@@ -41,6 +41,24 @@
 | Dependency audit | ✅ | DEPENDENCY-AUDIT.md |
 | Hacken prep guide | ✅ | HACKEN-PREP.md |
 
+### ✅ End-to-End Private DeFi (Arcium) — $10,000
+
+| Requirement | Status | Notes |
+|-------------|--------|-------|
+| Arcium MPC program | ✅ | github.com/sip-protocol/sip-arcium-program |
+| Program deployed | ✅ | `S1P5q5497A6oRCUutUFb12LkNQynTNoEyRyUvotmcX9` (devnet) |
+| Mobile integration | ✅ | ArciumAdapter in sip-mobile |
+| Real MXE encryption | ✅ | Proper x25519 ECDH with MXE public key |
+| Real Jupiter swaps | ✅ | No mocks, real on-chain txs |
+| Stealth addresses | ✅ | SIP Native integration |
+| 632 tests passing | ✅ | sip-mobile test suite |
+| Submission writeup | ✅ | arcium-private-defi.md |
+
+**Prizes:**
+- Best Overall App: $5,000
+- Best Integration into Existing App: $3,000
+- Most \<encrypted\> Potential: 2 × $1,000
+
 ---
 
 ## Submission Materials
@@ -89,7 +107,7 @@ pnpm build
 
 # Run tests
 pnpm test -- --run
-# Expected: 2,631 tests pass
+# Expected: 6,661+ tests pass
 
 # Type check
 pnpm typecheck
