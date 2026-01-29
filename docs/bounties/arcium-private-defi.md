@@ -6,27 +6,27 @@
 | **Sponsor** | Arcium |
 | **Prize Pool** | $10,000 |
 | **Project** | SIP Protocol |
-| **Tagline** | Full-Stack Privacy: C-SPL + Arcium MPC + Stealth Addresses |
+| **Tagline** | Full-Stack Privacy: Arcium MPC + Jupiter DEX + Stealth Addresses |
 
 ---
 
 ## Executive Summary
 
-SIP Protocol delivers **true end-to-end private DeFi** by combining three privacy layers:
+SIP Protocol delivers **true end-to-end private DeFi** by combining:
 
-1. **C-SPL** — Encrypted token amounts (Token-2022 Confidential Transfers)
-2. **Arcium MPC** — Confidential swap validation (no plaintext exposure)
+1. **Arcium MPC** — Confidential swap validation (no plaintext exposure)
+2. **Jupiter DEX** — Real swaps with best routes
 3. **Stealth Addresses** — Hidden sender and recipient
 
-This isn't just "private swaps" — it's a **full privacy stack** where amounts, logic, AND participants are all encrypted.
+This isn't just "private swaps" — it's a **full privacy stack** where logic AND participants are encrypted, with real on-chain transactions.
 
 ### Why SIP Wins
 
 | Feature | SIP + Arcium | Single-Layer Solutions |
 |---------|--------------|------------------------|
-| **Hidden Amounts** | ✅ C-SPL encrypted balances | ⚠️ Often visible |
 | **Hidden Logic** | ✅ Arcium MPC validation | ❌ On-chain exposure |
 | **Hidden Participants** | ✅ Stealth addresses | ❌ Public addresses |
+| **Real Swaps** | ✅ Jupiter DEX integration | ⚠️ Simulated/demo only |
 | **Compliance Ready** | ✅ Viewing keys for auditors | ❌ All-or-nothing |
 | **Production App** | ✅ sip-mobile (iOS/Android) | ⚠️ CLI/demo only |
 
@@ -57,21 +57,22 @@ Problem: Observers can still:
 
 ## 2. The Solution: Full Privacy Stack
 
-SIP Protocol combines three complementary technologies:
+SIP Protocol combines complementary technologies for real private DeFi:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  FULL PRIVACY DEFI (SIP Protocol)                           │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  Layer 1: C-SPL (Token-2022 Confidential Transfers)         │
-│  └── Encrypts token amounts using Twisted ElGamal           │
-│  └── Balances hidden on-chain                               │
-│                                                             │
-│  Layer 2: Arcium MPC                                        │
+│  Layer 1: Arcium MPC                                        │
 │  └── Validates swaps on encrypted data                      │
-│  └── No node sees plaintext amounts                         │
-│  └── Threshold decryption for results                       │
+│  └── No MPC node sees plaintext amounts                     │
+│  └── Threshold decryption for results only                  │
+│                                                             │
+│  Layer 2: Jupiter DEX                                       │
+│  └── Real swap execution with best routes                   │
+│  └── Actual on-chain transactions                           │
+│  └── No mock data or simulations                            │
 │                                                             │
 │  Layer 3: SIP Native (Stealth Addresses)                    │
 │  └── One-time recipient addresses                           │
@@ -79,9 +80,11 @@ SIP Protocol combines three complementary technologies:
 │  └── Viewing keys for compliance                            │
 │                                                             │
 ├─────────────────────────────────────────────────────────────┤
-│  Result: Amount ✓ Logic ✓ Sender ✓ Recipient ✓ ALL HIDDEN   │
+│  Result: Logic ✓ Sender ✓ Recipient ✓ ALL HIDDEN            │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+> **Note on C-SPL:** Token-2022 Confidential Transfers (C-SPL) are implemented as a separate adapter in SIP Protocol. However, Solana has temporarily disabled the ZK ElGamal program required for confidential transfers. The C-SPL adapter is ready and will activate when Solana re-enables this feature.
 
 ---
 
@@ -145,19 +148,28 @@ src/hooks/
 **Full Privacy Flow:**
 
 ```typescript
-// usePrivateDeFi.ts - Orchestrates all three layers
+// usePrivateDeFi.ts - Orchestrates real private swaps
+const { quote: jupiterQuote } = useQuote({
+  inputMint: SOL_MINT,
+  outputMint: USDC_MINT,
+  amount: parseUnits("1.0", 9),
+})
+
 const result = await privateSwap({
-  inputToken: "SOL",
-  outputToken: "USDC",
+  inputToken: SOL_TOKEN,
+  outputToken: USDC_TOKEN,
   amount: "1.0",
   recipient: "sip:solana:...", // Stealth meta-address
   slippageBps: 50,
+  jupiterQuote,  // Real Jupiter quote (required)
+  quote: parsedQuote,
 })
 
-// Flow:
-// 1. Wrap SOL → C-SOL (encrypted balance)
+// Flow (no mocks, all real):
+// 1. Get real quote from Jupiter API
 // 2. Validate swap via Arcium MPC (encrypted compute)
-// 3. Send USDC to stealth address (hidden recipient)
+// 3. Execute swap via Jupiter (real on-chain tx)
+// 4. Send output to stealth address (hidden recipient)
 ```
 
 ### 3.3 Privacy Provider Architecture
@@ -166,15 +178,15 @@ SIP integrates Arcium alongside 6 other privacy providers:
 
 | Provider | Technology | Status |
 |----------|------------|--------|
-| **Arcium** | MPC | ✅ Deployed |
-| C-SPL | Token-2022 | ✅ Complete |
-| SIP Native | Stealth + Pedersen | ✅ Complete |
+| **Arcium** | MPC | ✅ Deployed (real txs) |
+| SIP Native | Stealth + Pedersen | ✅ Complete (real txs) |
+| C-SPL | Token-2022 | ⏸️ Ready (blocked by Solana) |
 | Privacy Cash | Pool mixing | ✅ Complete |
 | ShadowWire | Bulletproofs | ✅ Complete |
 | MagicBlock | TEE | ✅ Complete |
 | Inco | FHE/TEE | ✅ Complete |
 
-**Why this matters:** Users can choose Arcium for MPC-based privacy while SIP adds viewing keys for compliance on top.
+**Why this matters:** Users can choose Arcium for MPC-based privacy while SIP adds viewing keys for compliance on top. The private DeFi flow uses **real Jupiter swaps** and **real Arcium program calls** — no mocked or simulated transactions.
 
 ---
 
@@ -210,24 +222,37 @@ pub fn validate_swap(
 - Swap amounts encrypted throughout
 - Only boolean results exposed (valid/invalid)
 
-### 4.2 C-SPL Integration
+### 4.2 Jupiter DEX Integration
 
 ```typescript
-// src/privacy-providers/cspl.ts
+// src/hooks/usePrivateDeFi.ts - Real swap execution
 
-async wrapToken(params: WrapParams): Promise<WrapResult> {
-  // 1. Get or create confidential token account
-  const account = await this.service.getOrCreateAccount(mint, owner)
+async function executeJupiterSwap(
+  jupiterQuote: JupiterQuoteResponse,
+  walletAddress: string,
+  signTransaction: (tx: Uint8Array) => Promise<Uint8Array | null>
+): Promise<{ success: boolean; signature?: string }> {
+  // 1. Get swap transaction from Jupiter API
+  const swapResponse = await fetch("https://quote-api.jup.ag/v6/swap", {
+    method: "POST",
+    body: JSON.stringify({
+      quoteResponse: jupiterQuote,
+      userPublicKey: walletAddress,
+      wrapAndUnwrapSol: true,
+    }),
+  })
+  const { swapTransaction } = await swapResponse.json()
 
-  // 2. Encrypt amount using Twisted ElGamal
-  const encrypted = await this.service.encryptAmount(amount)
+  // 2. Sign and send real transaction
+  const txBuffer = Buffer.from(swapTransaction, "base64")
+  const signedTx = await signTransaction(new Uint8Array(txBuffer))
+  const signature = await connection.sendRawTransaction(signedTx)
 
-  // 3. Deposit to confidential balance
-  const signature = await this.service.deposit(mint, amount, owner)
-
-  return { success: true, csplMint: account.mint }
+  return { success: true, signature }
 }
 ```
+
+> **Note:** This is real code from our implementation — no mocks or simulations. The swap transaction is signed by the user's wallet and executed on-chain.
 
 ### 4.3 Stealth Address Generation
 
@@ -253,9 +278,9 @@ const payments = await scanForPayments(viewingKey)
 
 | Criteria | SIP Protocol |
 |----------|--------------|
-| **Fully Confidential DeFi** | ✅ Amounts + Logic + Participants all hidden |
+| **Fully Confidential DeFi** | ✅ Logic + Participants hidden via MPC + Stealth |
 | **Production App** | ✅ sip-mobile on iOS/Android/Seeker |
-| **Multiple Privacy Layers** | ✅ C-SPL + Arcium + Stealth combined |
+| **Real Transactions** | ✅ No mocks — real Jupiter swaps, real Arcium MPC |
 | **Real Integration** | ✅ 7 privacy providers, 632 tests |
 
 ### Best Integration into Existing App ($3,000)
@@ -271,7 +296,7 @@ const payments = await scanForPayments(viewingKey)
 
 | Criteria | SIP Protocol |
 |----------|--------------|
-| **Novel Combination** | ✅ First to combine C-SPL + Arcium + Stealth |
+| **Novel Combination** | ✅ First to combine Arcium MPC + Jupiter + Stealth |
 | **Expandable** | ✅ Architecture supports any privacy backend |
 | **Compliance Layer** | ✅ Viewing keys work across all providers |
 | **Ecosystem Value** | ✅ SDK usable by other Solana apps |
@@ -311,18 +336,23 @@ cd sip-arcium-program && anchor build && anchor test
 SIP Protocol positions Arcium as the **MPC layer** in a complete privacy stack:
 
 ```
-Future State:
+Current State (Production):
 ┌─────────────────────────────────────────────────────────────┐
-│  ANY SOLANA APP                                             │
-│  └── import { SIP } from '@sip-protocol/sdk'                │
+│  SIP MOBILE APP                                             │
+│  └── usePrivateDeFi() hook                                  │
 ├─────────────────────────────────────────────────────────────┤
 │  SIP PROTOCOL (Privacy Middleware)                          │
 │  ├── Stealth Addresses (hidden participants)                │
 │  ├── Viewing Keys (compliance)                              │
-│  └── Backend Router                                         │
+│  └── Provider Router                                        │
 ├─────────────────────────────────────────────────────────────┤
-│  ARCIUM MPC        │  C-SPL         │  Other Backends       │
-│  (encrypted compute)│ (encrypted amt)│  (ZK, TEE, etc.)     │
+│  ARCIUM MPC        │  JUPITER DEX   │  SIP NATIVE           │
+│  (encrypted compute)│ (real swaps)  │  (stealth transfer)   │
+└─────────────────────────────────────────────────────────────┘
+
+Future State (when Solana enables ZK ElGamal):
+├─────────────────────────────────────────────────────────────┤
+│  ARCIUM MPC │ C-SPL (encrypted amt) │ More Backends...      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
