@@ -19,7 +19,7 @@
 | Working demo | ✅ | app.sip-protocol.org |
 | GitHub repo | ✅ | github.com/sip-protocol/sip-protocol |
 | Documentation | ✅ | docs.sip-protocol.org |
-| Demo video | ⏳ | 3 min max |
+| Demo video | ✅ | 3 min max (handled manually) |
 | Submission writeup | ✅ | light-protocol-open-track.md |
 
 ### ✅ Open Source Tooling (QuickNode) — $3,000
@@ -69,10 +69,10 @@
 ```
 
 **Technical requirements:**
-- [ ] 3 minutes max
-- [ ] 1080p minimum
-- [ ] Audio narration
-- [ ] Show code + UI
+- [x] 3 minutes max
+- [x] 1080p minimum
+- [x] Audio narration
+- [x] Show code + UI
 
 ---
 
