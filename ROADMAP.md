@@ -1042,10 +1042,12 @@ SIP is a **Privacy Aggregator** — one SDK that integrates ALL privacy approach
 │   TRANSACTION PRIVACY (Who sends what to whom):                             │
 │   ──────────────────────────────────────────────                            │
 │   • SIP Native — Stealth addresses + Pedersen commitments                   │
-│   • PrivacyCash — Pool mixing (integrated as backend)                       │
+│   • PrivacyCash — Pool mixing (break tx links)                              │
+│   • ShadowWire — Bulletproofs (sender anonymity)                            │
 │                                                                             │
 │   COMPUTE PRIVACY (What happens inside contracts):                          │
 │   ────────────────────────────────────────────────                          │
+│   • MagicBlock — TEE (Intel TDX, fast + composable)                         │
 │   • Arcium — MPC (Multi-Party Computation)                                  │
 │   • Inco — FHE (Fully Homomorphic Encryption)                               │
 │                                                                             │
@@ -1054,12 +1056,14 @@ SIP is a **Privacy Aggregator** — one SDK that integrates ALL privacy approach
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Privacy Backend Comparison:**
+**Privacy Backend Comparison (6 Providers):**
 
 | Backend | Type | Amount Hidden | Sender Hidden | Compute Hidden | Compliance | Best For |
 |---------|------|---------------|---------------|----------------|------------|----------|
 | **SIP Native** | ZK + Stealth | ✅ Pedersen | ✅ Stealth | ❌ | ✅ Viewing keys | Compliant payments |
 | **PrivacyCash** | Pool Mixing | ❌ Visible | ✅ Pool | ❌ | ❌ | Anonymity set |
+| **ShadowWire** | Bulletproofs | ✅ ZK proof | ✅ Anon | ❌ | ❌ | Sender anonymity |
+| **MagicBlock** | TEE (TDX) | ✅ In TEE | ✅ In TEE | ✅ TEE | ⚠️ Limited | Fast + composable |
 | **Arcium** | MPC | ✅ In compute | ❌ | ✅ MPC | ⚠️ Limited | Private DeFi logic |
 | **Inco** | FHE | ✅ Encrypted | ❌ | ✅ FHE | ⚠️ Limited | Encrypted state |
 
@@ -1357,6 +1361,7 @@ Build unique capabilities that create defensible advantage. Complete the **100% 
 │   Technical Moat:                                                           │
 │   ─────────────                                                             │
 │   • Proof composition v1 (Zcash + Mina)                                     │
+│   • **Inco custom FHE program** (complex encrypted operations)              │
 │   • Quantum-resistant storage (Winternitz vaults)                           │
 │   • Multi-language SDKs (Python, Rust, Go)                                  │
 │   • Protocol revenue (NEAR fee contract)                                    │
@@ -1372,6 +1377,7 @@ Build unique capabilities that create defensible advantage. Complete the **100% 
 | [#948](../../issues/948) | **Fixed denomination pools** — Optional stronger anonymity | 🔲 Planned |
 | [#949](../../issues/949) | **Relayer network** — Hide claimer IP + wallet | 🔲 Planned |
 | [#840](../../issues/840) | Proof composition v1 (if feasible) | 🔲 Research |
+| - | **Inco custom FHE program** (encrypted balance aggregation, multi-party disclosure) | 🔲 Future |
 | [#842](../../issues/842) | **Oblivious Sync Service** (Tachyon-inspired privacy during sync) | 🔲 Future |
 | [#843](../../issues/843) | **Quantum-Resistant Storage** (Winternitz WOTS vaults) | 🔲 Future |
 | [#844](../../issues/844) | **WOTS+ Post-Quantum Signatures** (stealth address signing) | 🔲 Future |
