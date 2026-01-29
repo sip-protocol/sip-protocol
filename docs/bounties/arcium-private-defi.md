@@ -115,18 +115,39 @@ SIP Protocol combines complementary technologies for real private DeFi:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  CLIENT (sip-mobile)                                        │
-│  └── Encrypt inputs with x25519 keypair                     │
+│  ├── Fetch MXE x25519 public key from chain                 │
+│  ├── Generate ephemeral x25519 keypair                      │
+│  ├── Derive shared secret via ECDH (our priv + MXE pub)     │
+│  └── Encrypt inputs with RescueCipher                       │
 ├─────────────────────────────────────────────────────────────┤
 │  ANCHOR PROGRAM (sip-arcium-program)                        │
+│  ├── Receive encrypted inputs + our public key + nonce      │
 │  ├── Queue computation to Arcium MXE                        │
-│  ├── Await callback with encrypted result                   │
 │  └── Emit events with encrypted outputs                     │
 ├─────────────────────────────────────────────────────────────┤
 │  ARCIUM MXE CLUSTER                                         │
+│  ├── Derive same shared secret (MXE priv + our pub)         │
 │  ├── Decrypt inputs (threshold MPC)                         │
 │  ├── Execute circuit (no single node sees plaintext)        │
 │  └── Encrypt outputs with requester's key                   │
 └─────────────────────────────────────────────────────────────┘
+```
+
+**x25519 Key Exchange:**
+```typescript
+// 1. Fetch MXE's x25519 public key (from chain via getMXEPublicKey)
+const mxePublicKey = await getMXEPublicKey(provider, PROGRAM_ID)
+
+// 2. Generate ephemeral keypair
+const privateKey = x25519.utils.randomSecretKey()
+const publicKey = x25519.getPublicKey(privateKey)
+
+// 3. Derive shared secret (ECDH)
+const sharedSecret = x25519.getSharedSecret(privateKey, mxePublicKey)
+
+// 4. Encrypt with RescueCipher
+const cipher = new RescueCipher(sharedSecret)
+const ciphertext = cipher.encrypt([amount], nonce)
 ```
 
 ### 3.2 Mobile App Integration (sip-mobile)
@@ -254,7 +275,35 @@ async function executeJupiterSwap(
 
 > **Note:** This is real code from our implementation — no mocks or simulations. The swap transaction is signed by the user's wallet and executed on-chain.
 
-### 4.3 Stealth Address Generation
+### 4.3 Arcium Encryption (Proper MXE Integration)
+
+```typescript
+// src/privacy-providers/arcium.ts - Real MXE encryption
+
+private async encryptU64(value: bigint): Promise<{ ciphertext: Uint8Array; nonce: Uint8Array }> {
+  // Ensure we have MXE public key (fetched from chain)
+  if (!this.mxePublicKey) {
+    this.mxePublicKey = await this.fetchMXEPublicKey()
+  }
+
+  // Create shared secret with MXE cluster (ECDH: our private key + MXE public key)
+  const sharedSecret = this.sdk.x25519.getSharedSecret(this.privateKey, this.mxePublicKey)
+  const cipher = new this.sdk.RescueCipher(sharedSecret)
+  const nonce = this.sdk.randomBytes(16)
+
+  const ciphertexts = cipher.encrypt([value], nonce)
+  // ... pack into 32 bytes
+  return { ciphertext, nonce }
+}
+```
+
+**Why this matters:**
+- Uses **real MXE public key** fetched from chain (not placeholder)
+- Proper **x25519 ECDH** key exchange with MXE cluster
+- MXE can derive same shared secret using **their private key + our public key**
+- **RescueCipher** encryption matches Arcium's expected format
+
+### 4.4 Stealth Address Generation
 
 ```typescript
 // Recipient generates stealth meta-address
@@ -281,6 +330,7 @@ const payments = await scanForPayments(viewingKey)
 | **Fully Confidential DeFi** | ✅ Logic + Participants hidden via MPC + Stealth |
 | **Production App** | ✅ sip-mobile on iOS/Android/Seeker |
 | **Real Transactions** | ✅ No mocks — real Jupiter swaps, real Arcium MPC |
+| **Proper MXE Integration** | ✅ Real x25519 ECDH with MXE cluster public key |
 | **Real Integration** | ✅ 7 privacy providers, 632 tests |
 
 ### Best Integration into Existing App ($3,000)
