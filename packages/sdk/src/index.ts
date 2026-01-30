@@ -1254,6 +1254,9 @@ export {
   defaultRegistry,
   // Backends
   SIPNativeBackend,
+  // C-SPL (Confidential SPL Tokens)
+  CSPLClient,
+  CSPLTokenService,
   // Router
   SmartRouter as PrivacySmartRouter,
 } from './privacy-backends'
@@ -1276,6 +1279,16 @@ export type {
   RegisteredBackend,
   // Backend config
   SIPNativeBackendConfig,
+  // C-SPL types
+  CSPLClientConfig,
+  CSPLTokenServiceConfig,
+  WrapParams,
+  WrapResult,
+  UnwrapParams,
+  UnwrapResult,
+  ApproveParams,
+  ApproveResult,
+  CSPLServiceStatus,
 } from './privacy-backends'
 
 // Surveillance Analysis (Privacy Scoring)
