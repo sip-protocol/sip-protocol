@@ -739,16 +739,24 @@ ssh core  # Admin user for nginx/system config
 | `solana/dapp-store.json.age` | `S1PSkwV3YZD6exNiUEdfTJadyUJ1CDDUgwmQaWB5yie` | Solana dApp Store |
 | `ethereum/evm.json.age` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | ETH/Base/Arb/OP |
 
-**Devnet Deployment:** `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` (2026-01-24)
-**Config PDA:** `BVawZkppFewygA5nxdrLma4ThKx8Th7bW4KTCkcWTZwZ` (fee: 50 bps, authority: S1P6j1y...)
+### Program Deployments
+
+| Network | Program ID | Config PDA | Date |
+|---------|------------|------------|------|
+| **Mainnet-Beta** | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | `BVawZkppFewygA5nxdrLma4ThKx8Th7bW4KTCkcWTZwZ` | 2026-01-31 |
+| **Devnet** | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | `BVawZkppFewygA5nxdrLma4ThKx8Th7bW4KTCkcWTZwZ` | 2026-01-24 |
+
+**Config:** Fee 50 bps, Authority `S1P6j1yeTm6zkewQVeihrTZvmfoHABRkHDhabWTuWMd`
+
+**Mainnet Deploy TX:** [`2akhczwV...iFe8R`](https://solscan.io/tx/2akhczwV94LJ8HL3xbAmNddBSACZTbYMAoow4LmgjkeVS1hu1H7DTKHFfZrm8DHZ6BBrVn93AjiAQUZjg78iFe8R)
 
 ```bash
-# Deploy to devnet (requires ~2.5 SOL in authority wallet)
-cd ~/.claude/sip-protocol/keys
-./sip-keys.sh decrypt solana/authority.json.age && mv /tmp/sip-key-decrypted.json /tmp/sip-authority.json
-./sip-keys.sh decrypt solana/program-id.json.age && mv /tmp/sip-key-decrypted.json /tmp/program-id.json
-solana program deploy target/deploy/sip_privacy.so --program-id /tmp/program-id.json --keypair /tmp/sip-authority.json --url devnet
-./sip-keys.sh clean
+# Deploy (keys in sip-protocol/secrets/ or decrypt from ~/.claude/sip-protocol/keys/)
+solana program deploy target/deploy/sip_privacy.so \
+  --program-id secrets/sip-native-program-id.json \
+  --keypair secrets/authority.json \
+  --url mainnet-beta \
+  --with-compute-unit-price 10000
 ```
 
 ---
@@ -763,5 +771,5 @@ solana program deploy target/deploy/sip_privacy.so --program-id /tmp/program-id.
 
 ---
 
-**Last Updated:** 2026-01-24
-**Status:** M17 Complete | Phase 4 Active (M18) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Last Updated:** 2026-01-31
+**Status:** M17 Complete (Mainnet Live) | Phase 4 Active (M18) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
