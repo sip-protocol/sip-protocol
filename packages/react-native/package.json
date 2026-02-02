@@ -64,7 +64,7 @@
     "@testing-library/react-native": "^12.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
-    "@types/react-native": "^0.72.0",
+    "@types/react-native": "^0.73.0",
     "react": "^18.2.0",
     "react-native": "^0.83.1",
     "tsup": "^8.0.0",
