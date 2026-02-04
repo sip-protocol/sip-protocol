@@ -314,8 +314,8 @@ importers:
         specifier: ^0.4.2
         version: 0.4.9(@langchain/core@0.3.80)(ws@7.5.10)
       '@magicblock-labs/ephemeral-rollups-sdk':
-        specifier: ^0.8.0
-        version: 0.8.0(fastestsmallesttextencoderdecoder@1.0.22)
+        specifier: ^0.8.5
+        version: 0.8.5(fastestsmallesttextencoderdecoder@1.0.22)
       '@noble/ciphers':
         specifier: ^2.1.1
         version: 2.1.1
@@ -1685,8 +1685,8 @@ packages:
     resolution: {integrity: sha512-4+qRW2Pc8V+btL0QEmdB2X+uyx0kOWMWE1/LWsq5sZy3Q5tpi4eItJS6mB0XL3wGW59RQ+8bchNQQ1OW/va8Og==}
     dev: true
 
-  /@magicblock-labs/ephemeral-rollups-sdk@0.8.0(fastestsmallesttextencoderdecoder@1.0.22):
-    resolution: {integrity: sha512-Eelgua6ub0+8sB+YgwceW5PNLTNCkJVE66QeEUwkxjVl3ulUu8iCbPQk0E4huHLGlSeoG9UxDypAIhdlmimuyQ==}
+  /@magicblock-labs/ephemeral-rollups-sdk@0.8.5(fastestsmallesttextencoderdecoder@1.0.22):
+    resolution: {integrity: sha512-W+k38iQ6XSllc4xV0kehTyWSx+j4juozfTxcA3tmZQD61lWzYm9n0m2iyclSxF/KEi3phUwF73Z0+ZE2aIpy1Q==}
     dependencies:
       '@phala/dcap-qvl-web': 0.2.7
       '@solana/spl-token': 0.4.14(@solana/web3.js@1.98.4)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.9.3)
@@ -6076,7 +6076,7 @@ packages:
   /glob@8.1.0:
     resolution: {integrity: sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==}
     engines: {node: '>=12'}
-    deprecated: Glob versions prior to v9 are no longer supported
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     dependencies:
       fs.realpath: 1.0.0
       inflight: 1.0.6
@@ -9062,6 +9062,7 @@ packages:
   /tar@7.5.6:
     resolution: {integrity: sha512-xqUeu2JAIJpXyvskvU3uvQW8PAmHrtXp2KDuMJwQqW8Sqq0CaZBAQ+dKS3RBXVhU4wC5NjAdKrmh84241gO9cA==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
