@@ -36,6 +36,7 @@ import {
   isSentryEnabled,
   metricsMiddleware,
 } from './monitoring'
+import { webhookDeliveryService } from './services/webhook-delivery'
 
 // Initialize Sentry early (before Express)
 initSentry()
@@ -108,6 +109,10 @@ app.get('/', (req, res) => {
       quote: 'POST /api/v1/quote',
       swap: 'POST /api/v1/swap',
       swapStatus: 'GET /api/v1/swap/:id/status',
+      webhookRegister: 'POST /api/v1/webhooks/register',
+      webhookUnregister: 'DELETE /api/v1/webhooks/:id',
+      webhookList: 'GET /api/v1/webhooks',
+      heliusIngest: 'POST /api/v1/webhooks/internal/helius',
     },
     security: {
       authentication: isAuthEnabled() ? 'enabled' : 'disabled',
@@ -175,6 +180,10 @@ if (require.main === module) {
 
   // Setup graceful shutdown
   setupGracefulShutdown(server, async () => {
+    // Drain pending webhook deliveries
+    logger.info('Draining webhook deliveries...')
+    await webhookDeliveryService.drainPending()
+
     // Flush Sentry events before shutdown
     if (isSentryEnabled()) {
       logger.info('Flushing Sentry events...')

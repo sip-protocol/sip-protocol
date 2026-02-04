@@ -17,7 +17,7 @@ import { timingSafeEqual } from 'crypto'
 const API_KEYS = (process.env.API_KEYS || '').split(',').filter(Boolean)
 const NODE_ENV = process.env.NODE_ENV || 'development'
 const AUTH_ENABLED = process.env.AUTH_ENABLED !== 'false' && NODE_ENV === 'production'
-const SKIP_PATHS = (process.env.AUTH_SKIP_PATHS || '/health,/').split(',').map(p => p.trim())
+const SKIP_PATHS = (process.env.AUTH_SKIP_PATHS || '/health,/,/webhooks/internal/helius').split(',').map(p => p.trim())
 
 /**
  * Timing-safe comparison of API keys

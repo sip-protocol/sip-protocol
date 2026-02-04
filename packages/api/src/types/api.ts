@@ -139,3 +139,51 @@ export interface SwapStatusResponse {
   updatedAt: string
   error?: string
 }
+
+/**
+ * Webhook registration request
+ */
+export interface RegisterWebhookRequest {
+  url: string
+  viewingPrivateKey: HexString
+  spendingPublicKey: HexString
+}
+
+/**
+ * Webhook registration response (secret shown once only)
+ */
+export interface RegisterWebhookResponse {
+  id: string
+  url: string
+  secret: string
+  createdAt: string
+}
+
+/**
+ * Webhook list item (never exposes keys or secret)
+ */
+export interface WebhookListItem {
+  id: string
+  url: string
+  active: boolean
+  createdAt: string
+}
+
+/**
+ * Webhook delivery payload sent to agent URLs
+ */
+export interface WebhookDeliveryPayload {
+  event: 'payment.received'
+  webhookId: string
+  timestamp: string
+  data: {
+    txSignature: string
+    stealthAddress: string
+    ephemeralPublicKey: string
+    amount: string
+    mint: string
+    tokenSymbol?: string
+    slot: number
+    blockTime: number
+  }
+}

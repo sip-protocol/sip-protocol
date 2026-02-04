@@ -75,6 +75,20 @@ export const env = cleanEnv(process.env, {
     default: 'true',
     desc: 'Enable Prometheus metrics endpoint',
   }),
+
+  // Webhook configuration
+  HELIUS_WEBHOOK_SECRET: str({
+    default: '',
+    desc: 'Helius webhook HMAC secret for signature verification (optional)',
+  }),
+  WEBHOOK_DELIVERY_MAX_RETRIES: num({
+    default: 3,
+    desc: 'Maximum delivery attempts for webhook notifications',
+  }),
+  WEBHOOK_STORE_MAX_SIZE: num({
+    default: 1000,
+    desc: 'Maximum number of registered webhooks',
+  }),
 })
 
 /**
