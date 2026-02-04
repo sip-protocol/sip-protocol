@@ -26,6 +26,7 @@
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro 5, MDX | v0.0.0 |
 | `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro 5, MDX, Tailwind | v0.0.1 |
 | `sip-protocol/circuits` | Noir ZK circuits (3 circuits, 19 tests) | Noir 1.0.0-beta.15 | - |
+| `sip-protocol/sipher` | **Sipher** - Privacy-as-a-Skill REST API for Solana Agents | Express 5, TypeScript | v0.1.0 |
 | `sip-protocol/.github` | Org configs, profile | YAML | - |
 
 **Organization Mission:** Become THE privacy standard for Web3 — same-chain and cross-chain
@@ -88,7 +89,7 @@ Quick reference for navigating between SIP Protocol repositories.
 **Key Commands:**
 ```bash
 pnpm install                    # Install dependencies
-pnpm test -- --run              # Run all tests (6,661+ tests)
+pnpm test -- --run              # Run all tests (6,841+ tests)
 pnpm typecheck                  # Type check
 pnpm build                      # Build all packages
 ```
@@ -280,7 +281,32 @@ npx ts-node scripts/init-comp-defs.ts    # Initialize computation definitions
 
 ---
 
-### 9. .github
+### 9. sipher
+
+**Purpose:** Privacy-as-a-Skill REST API for Solana Agents (Colosseum Agent Hackathon)
+**Tech Stack:** Express 5, TypeScript, @sip-protocol/sdk, Vitest
+**Key Commands:**
+```bash
+pnpm install                    # Install dependencies
+pnpm dev                        # Dev server (localhost:5006)
+pnpm test -- --run              # Run tests (39 tests)
+pnpm build                      # Build for production
+pnpm typecheck                  # Type check
+```
+**Endpoints (13):**
+- Stealth: generate, derive, check
+- Transfer: shield (unsigned tx), claim (signed)
+- Scan: payments
+- Commitment: create, verify
+- Viewing Key: generate, disclose
+- Meta: health, root, skill.md
+
+**Deployment:** sipher.sip-protocol.org (Docker + GHCR, port 5006)
+**CLAUDE.md:** [sipher/CLAUDE.md](https://github.com/sip-protocol/sipher/blob/main/CLAUDE.md)
+
+---
+
+### 10. .github
 
 **Purpose:** Organization-wide GitHub configuration
 **Key Files:**
@@ -330,7 +356,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **SIP (Shielded Intents Protocol)** is the privacy standard for Web3 — like HTTPS for the internet. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Status:** M16 Complete | 6,661+ tests (SDK: 6,603, React: 82, CLI: 10, API: 18, RN: 10) | Live at sip-protocol.org
+**Status:** M16 Complete | 6,841+ tests (SDK: 6,603, React: 82, CLI: 10, API: 198, RN: 10) | Live at sip-protocol.org
 
 **🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | Dec 2025 | #9 of 93 | 3 Tracks | [Devfolio](https://devfolio.co/projects/sip-protocol-2026)
 
@@ -438,7 +464,7 @@ const payments = await scanForPayments({
 # Install dependencies
 pnpm install
 
-# Run all tests (6,661+ tests)
+# Run all tests (6,841+ tests)
 pnpm test -- --run
 
 # Run E2E tests only (30 tests)
@@ -456,7 +482,7 @@ pnpm build
 
 ---
 
-## Test Suite (6,661+ total tests)
+## Test Suite (6,841+ total tests)
 
 ### Package Test Counts
 
@@ -465,7 +491,7 @@ pnpm build
 | @sip-protocol/sdk | 0.7.3 | 6,603 | `packages/sdk/tests/` |
 | @sip-protocol/react | 0.1.0 | 82 | `packages/react/tests/` |
 | @sip-protocol/cli | 0.2.0 | 10 | `packages/cli/tests/` |
-| @sip-protocol/api | 0.1.0 | 18 | `packages/api/tests/` |
+| @sip-protocol/api | 0.1.0 | 198 | `packages/api/tests/` |
 | @sip-protocol/react-native | 0.1.1 | 10 | `packages/react-native/tests/` |
 
 ### SDK Test Categories
@@ -603,7 +629,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 │   ├── types/                # @sip-protocol/types v0.2.1
 │   ├── react/                # @sip-protocol/react v0.1.0 - React hooks (82 tests)
 │   ├── cli/                  # @sip-protocol/cli v0.2.0 - CLI tool (10 tests)
-│   ├── api/                  # @sip-protocol/api v0.1.0 - REST API (18 tests)
+│   ├── api/                  # @sip-protocol/api v0.1.0 - REST API (198 tests)
 │   └── react-native/         # @sip-protocol/react-native v0.1.1 (10 tests)
 ├── programs/                 # Solana Anchor program
 ├── contracts/                # Ethereum Solidity contracts
@@ -772,4 +798,4 @@ solana program deploy target/deploy/sip_privacy.so \
 ---
 
 **Last Updated:** 2026-01-31
-**Status:** M17 Complete (Mainnet Live) | Phase 4 Active (M18) | 6,661+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Status:** M17 Complete (Mainnet Live) | Phase 4 Active (M18) | 6,841+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
