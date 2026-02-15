@@ -136,6 +136,7 @@ pnpm typecheck                  # Type check
 ```bash
 pnpm install              # Install dependencies
 npx expo start            # Dev server (iOS + Android)
+pnpm test -- --run        # Run tests (34 suites, 672 tests)
 pnpm typecheck            # Type check
 eas build --platform ios  # Build iOS
 eas build --platform android  # Build Android
