@@ -89,7 +89,7 @@ Quick reference for navigating between SIP Protocol repositories.
 **Key Commands:**
 ```bash
 pnpm install                    # Install dependencies
-pnpm test -- --run              # Run all tests (6,841+ tests)
+pnpm test -- --run              # Run all tests (7,504+ tests)
 pnpm typecheck                  # Type check
 pnpm build                      # Build all packages
 ```
@@ -356,7 +356,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 
 **SIP (Shielded Intents Protocol)** is the privacy standard for Web3 — like HTTPS for the internet. One toggle to shield sender, amount, and recipient using stealth addresses, Pedersen commitments, and viewing keys for compliance.
 
-**Status:** M16 Complete | 6,841+ tests (SDK: 6,603, React: 82, CLI: 10, API: 198, RN: 10) | Live at sip-protocol.org
+**Status:** M16 Complete | 7,504+ tests (SDK: 6,691, React: 543, CLI: 62, API: 198, RN: 10) | Live at sip-protocol.org
 
 **🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | Dec 2025 | #9 of 93 | 3 Tracks | [Devfolio](https://devfolio.co/projects/sip-protocol-2026)
 
@@ -464,7 +464,7 @@ const payments = await scanForPayments({
 # Install dependencies
 pnpm install
 
-# Run all tests (6,841+ tests)
+# Run all tests (7,504+ tests)
 pnpm test -- --run
 
 # Run E2E tests only (30 tests)
@@ -482,15 +482,15 @@ pnpm build
 
 ---
 
-## Test Suite (6,841+ total tests)
+## Test Suite (7,504+ total tests)
 
 ### Package Test Counts
 
 | Package | Version | Tests | Location |
 |---------|---------|-------|----------|
-| @sip-protocol/sdk | 0.7.3 | 6,603 | `packages/sdk/tests/` |
-| @sip-protocol/react | 0.1.0 | 82 | `packages/react/tests/` |
-| @sip-protocol/cli | 0.2.0 | 10 | `packages/cli/tests/` |
+| @sip-protocol/sdk | 0.7.3 | 6,691 | `packages/sdk/tests/` |
+| @sip-protocol/react | 0.1.0 | 543 | `packages/react/tests/` |
+| @sip-protocol/cli | 0.2.0 | 62 | `packages/cli/tests/` |
 | @sip-protocol/api | 0.1.0 | 198 | `packages/api/tests/` |
 | @sip-protocol/react-native | 0.1.1 | 10 | `packages/react-native/tests/` |
 
@@ -616,7 +616,7 @@ See `~/.claude/sip-protocol/STRATEGY.md` for detailed strategy (private).
 ```
 sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 ├── packages/
-│   ├── sdk/                  # @sip-protocol/sdk v0.7.3 - Core SDK (6,603 tests)
+│   ├── sdk/                  # @sip-protocol/sdk v0.7.3 - Core SDK (6,691 tests)
 │   │   ├── src/
 │   │   │   ├── adapters/     # NEAR, wallet, settlement adapters
 │   │   │   ├── proofs/       # ZK proof providers (Mock, Noir, Browser)
@@ -627,8 +627,8 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 │   │   │   └── sip.ts        # Main client
 │   │   └── tests/            # Test suites
 │   ├── types/                # @sip-protocol/types v0.2.1
-│   ├── react/                # @sip-protocol/react v0.1.0 - React hooks (82 tests)
-│   ├── cli/                  # @sip-protocol/cli v0.2.0 - CLI tool (10 tests)
+│   ├── react/                # @sip-protocol/react v0.1.0 - React hooks (543 tests)
+│   ├── cli/                  # @sip-protocol/cli v0.2.0 - CLI tool (62 tests)
 │   ├── api/                  # @sip-protocol/api v0.1.0 - REST API (198 tests)
 │   └── react-native/         # @sip-protocol/react-native v0.1.1 (10 tests)
 ├── programs/                 # Solana Anchor program
@@ -798,4 +798,4 @@ solana program deploy target/deploy/sip_privacy.so \
 ---
 
 **Last Updated:** 2026-01-31
-**Status:** M17 Complete (Mainnet Live) | Phase 4 Active (M18) | 6,841+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Status:** M17 Complete (Mainnet Live) | Phase 4 Active (M18) | 7,504+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved

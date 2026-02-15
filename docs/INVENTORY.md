@@ -25,15 +25,15 @@ gh issue list --search "EPIC" --state open    # Active milestones
 
 | Package | Version | Description | Tests |
 |---------|---------|-------------|-------|
-| `@sip-protocol/sdk` | 0.7.3 | Core SDK for shielded intents | 6,603 |
+| `@sip-protocol/sdk` | 0.7.3 | Core SDK for shielded intents | 6,691 |
 | `@sip-protocol/types` | 0.2.1 | TypeScript type definitions | - |
-| `@sip-protocol/react` | 0.1.0 | React hooks | 82 |
-| `@sip-protocol/cli` | 0.2.0 | CLI tool | 10 |
-| `@sip-protocol/api` | 0.1.0 | REST API wrapper | 18 |
+| `@sip-protocol/react` | 0.1.0 | React hooks | 543 |
+| `@sip-protocol/cli` | 0.2.0 | CLI tool | 62 |
+| `@sip-protocol/api` | 0.1.0 | REST API wrapper | 198 |
 | `@sip-protocol/react-native` | 0.1.1 | iOS/Android SDK | 10 |
 | `circuits` | - | Noir ZK circuits (external repo) | 19 |
 
-**Total tests: 6,661+ (monorepo) + 19 (circuits)**
+**Total tests: 7,504+ (monorepo) + 19 (circuits)**
 
 ### Solana Programs
 
