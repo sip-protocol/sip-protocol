@@ -103,7 +103,7 @@ contracts/sip-ethereum/src/
 **Version:** 0.1.0
 **Stack:** Next.js 16, React 19, Tailwind 4, Zustand 5
 **Deployment:** app.sip-protocol.org (port 5004 blue / 5005 green)
-**Tests:** 25 test suites
+**Tests:** 90 test suites, 807 tests
 
 ### App Routes (14 total)
 
