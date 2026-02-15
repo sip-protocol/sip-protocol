@@ -31,9 +31,9 @@ gh issue list --search "EPIC" --state open    # Active milestones
 | `@sip-protocol/cli` | 0.2.0 | CLI tool | 62 |
 | `@sip-protocol/api` | 0.1.0 | REST API wrapper | 198 |
 | `@sip-protocol/react-native` | 0.1.1 | iOS/Android SDK | 10 |
-| `circuits` | - | Noir ZK circuits (external repo) | 19 |
+| `circuits` | - | Noir ZK circuits (external repo) | 18 |
 
-**Total tests: 7,504+ (monorepo) + 19 (circuits)**
+**Total tests: 7,504+ (monorepo) + 18 (circuits)**
 
 ### Solana Programs
 

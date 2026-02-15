@@ -25,7 +25,7 @@
 | `sip-protocol/sip-website` | Marketing site (demo deprecated → sip-app) | Next.js 15, Tailwind | v0.0.1 |
 | `sip-protocol/docs-sip` | Documentation (Astro Starlight) | Astro 5, MDX | v0.0.0 |
 | `sip-protocol/blog-sip` | **Blog** - Technical deep-dives, ecosystem updates | Astro 5, MDX, Tailwind | v0.0.1 |
-| `sip-protocol/circuits` | Noir ZK circuits (3 circuits, 19 tests) | Noir 1.0.0-beta.15 | - |
+| `sip-protocol/circuits` | Noir ZK circuits (3 circuits, 18 tests) | Noir 1.0.0-beta.15 | - |
 | `sip-protocol/sipher` | **Sipher** - Privacy-as-a-Skill REST API for Solana Agents | Express 5, TypeScript | v0.1.0 |
 | `sip-protocol/.github` | Org configs, profile | YAML | - |
 
@@ -213,14 +213,14 @@ npm run preview                 # Preview build
 **Key Commands:**
 ```bash
 nargo compile                   # Compile circuit
-nargo test                      # Run tests (19 tests total)
+nargo test                      # Run tests (18 tests total)
 nargo prove                     # Generate proof
 nargo verify                    # Verify proof
 ```
 **Circuits (Implemented):**
 | Circuit | Purpose | ACIR Opcodes | Tests |
 |---------|---------|--------------|-------|
-| funding_proof | Prove balance >= minimum | 972 | 5 |
+| funding_proof | Prove balance >= minimum | 972 | 4 |
 | validity_proof | Prove intent authorization | 1113 | 6 |
 | fulfillment_proof | Prove fulfillment correctness | 1691 | 8 |
 
