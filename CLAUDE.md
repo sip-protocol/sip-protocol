@@ -289,17 +289,11 @@ npx ts-node scripts/init-comp-defs.ts    # Initialize computation definitions
 ```bash
 pnpm install                    # Install dependencies
 pnpm dev                        # Dev server (localhost:5006)
-pnpm test -- --run              # Run tests (39 tests)
+pnpm test -- --run              # Run tests (36 suites, 573 tests)
 pnpm build                      # Build for production
 pnpm typecheck                  # Type check
 ```
-**Endpoints (13):**
-- Stealth: generate, derive, check
-- Transfer: shield (unsigned tx), claim (signed)
-- Scan: payments
-- Commitment: create, verify
-- Viewing Key: generate, disclose
-- Meta: health, root, skill.md
+**Endpoints (71):** Stealth, Transfer, Commitment, Viewing Key, Multi-chain (17 chains), Demo, Meta
 
 **Deployment:** sipher.sip-protocol.org (Docker + GHCR, port 5006)
 **CLAUDE.md:** [sipher/CLAUDE.md](https://github.com/sip-protocol/sipher/blob/main/CLAUDE.md)
