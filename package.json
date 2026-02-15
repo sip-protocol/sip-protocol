@@ -53,7 +53,8 @@
   "pnpm": {
     "overrides": {
       "esbuild": ">=0.25.0",
-      "qs": ">=6.14.1",
+      "qs": ">=6.14.2",
+      "langsmith": ">=0.4.6",
       "bigint-buffer": "npm:bigint-buffer-fixed@^1.1.6",
       "tar": ">=6.2.2"
     }
