@@ -62,7 +62,7 @@
     "@solana/spl-token": "^0.4.0",
     "@solana/web3.js": "^1.87.0",
     "@testing-library/react-native": "^13.3.3",
-    "@types/node": "^20.0.0",
+    "@types/node": "^25.2.3",
     "@types/react": "^18.2.0",
     "@types/react-native": "^0.72.0",
     "react": "^18.2.0",
