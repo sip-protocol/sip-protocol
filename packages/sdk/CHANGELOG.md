@@ -1,5 +1,34 @@
 # @sip-protocol/sdk
 
+## 0.8.0
+
+### Minor Changes
+
+- feat: Solana same-chain privacy with shielded transfers via Anchor program
+  - `shieldedTransfer` API for native SOL privacy transfers
+  - CSPLTokenService and CSPLClient exported from main entry
+  - Migrated Solana RPC client to `@solana/kit`
+- feat: Sunspot ZK verifier pipeline for Noir proof verification on Solana
+- feat: Network privacy layer (Tor/SOCKS5 proxy support) for Solana RPC calls
+- feat: Winternitz vault integration for quantum-resistant key storage
+- feat: Browser-compatible proof composition (Halo2 + Kimchi exports)
+- feat: BNB Chain (BSC) support for multi-chain stealth addresses
+- feat: Oblivious Sync Service interface for private state synchronization
+- feat: NEAR fee contract integration for protocol revenue
+- feat: Chain-specific optimizations for Solana, EVM, and BNB
+
+### Patch Changes
+
+- fix: Use workspace protocol for types dependency
+- fix: Relax NEAR benchmark thresholds for CI runners
+- chore: Bump ephemeral-rollups-sdk to 0.8.5
+
+## 0.7.4
+
+### Patch Changes
+
+- chore: Version bump with types dependency alignment
+
 ## 0.2.2
 
 ### Patch Changes

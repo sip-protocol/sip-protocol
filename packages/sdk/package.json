@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/sdk",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "description": "Core SDK for Shielded Intents Protocol - Privacy layer for cross-chain transactions",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",
