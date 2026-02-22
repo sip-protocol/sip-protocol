@@ -111,7 +111,7 @@ pnpm build                      # Build all packages
 **Key Commands:**
 ```bash
 pnpm dev                        # Dev server (localhost:3000)
-pnpm test -- --run              # Run tests (90 test suites, 807 tests)
+pnpm test -- --run              # Run tests (122 test suites, 1,184 tests)
 pnpm build                      # Build for production
 pnpm typecheck                  # Type check
 ```
@@ -120,8 +120,8 @@ pnpm typecheck                  # Type check
 - `/payments/*` - Private payments (send, receive, scan, history, disclose)
 - `/privacy-score` - Wallet surveillance analyzer
 - `/wallet/*` - Wallet interface (scaffolded)
-- `/dex/*` - Private DEX with Jupiter (scaffolded)
-- `/enterprise/*` - Compliance dashboard (scaffolded)
+- `/dex/*` - Private DEX with Jupiter (real swap execution, stealth routing)
+- `/enterprise/*` - Compliance dashboard (audit trail, viewing keys, export)
 
 **Deployment:** app.sip-protocol.org (Docker + GHCR, port 5004 blue / 5005 green)
 **CLAUDE.md:** [sip-app/CLAUDE.md](https://github.com/sip-protocol/sip-app/blob/main/CLAUDE.md)
