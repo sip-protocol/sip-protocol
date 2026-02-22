@@ -18,7 +18,7 @@
 
 | Repo | Purpose | Tech Stack | Version |
 |------|---------|------------|---------|
-| `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.7.3 |
+| `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.8.0 |
 | `sip-protocol/sip-app` | **App** - Privacy applications (payments, wallet, DEX) | Next.js 16, Tailwind | v0.1.0 |
 | `sip-protocol/sip-mobile` | **Mobile** - Native iOS/Android/Seeker privacy wallet | Expo 52, NativeWind | v0.1.0 |
 | `sip-protocol/sip-arcium-program` | **Arcium** - MPC program for confidential DeFi | Rust, Anchor, Arcium SDK | - |
@@ -483,7 +483,7 @@ pnpm build
 
 | Package | Version | Tests | Location |
 |---------|---------|-------|----------|
-| @sip-protocol/sdk | 0.7.3 | 6,691 | `packages/sdk/tests/` |
+| @sip-protocol/sdk | 0.8.0 | 6,691 | `packages/sdk/tests/` |
 | @sip-protocol/react | 0.1.0 | 543 | `packages/react/tests/` |
 | @sip-protocol/cli | 0.2.0 | 62 | `packages/cli/tests/` |
 | @sip-protocol/api | 0.1.0 | 198 | `packages/api/tests/` |
@@ -611,7 +611,7 @@ See `~/.claude/sip-protocol/STRATEGY.md` for detailed strategy (private).
 ```
 sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 ├── packages/
-│   ├── sdk/                  # @sip-protocol/sdk v0.7.3 - Core SDK (6,691 tests)
+│   ├── sdk/                  # @sip-protocol/sdk v0.8.0 - Core SDK (6,691 tests)
 │   │   ├── src/
 │   │   │   ├── adapters/     # NEAR, wallet, settlement adapters
 │   │   │   ├── proofs/       # ZK proof providers (Mock, Noir, Browser)
