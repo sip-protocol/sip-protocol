@@ -111,7 +111,8 @@ pnpm build                      # Build all packages
 **Key Commands:**
 ```bash
 pnpm dev                        # Dev server (localhost:3000)
-pnpm test -- --run              # Run tests (122 test suites, 1,184 tests)
+pnpm test -- --run              # Run unit tests (122 test suites, 1,184 tests)
+pnpm test:e2e                   # Run E2E tests (27 Playwright tests, 13 tracks + showcase)
 pnpm build                      # Build for production
 pnpm typecheck                  # Type check
 ```
