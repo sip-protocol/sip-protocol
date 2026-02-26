@@ -680,7 +680,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | Milestone | Focus | Status |
 |-----------|-------|--------|
 | M16: Narrative Capture | Content, community, position vs PrivacyCash | ✅ |
-| M17: Solana Same-Chain | Native Solana privacy SDK + Jupiter DEX | 🎯 |
+| M17: Solana Same-Chain | Native Solana privacy SDK + Jupiter DEX | ✅ |
 | M18: Ethereum Same-Chain | EVM privacy + L2 support | 🔲 |
 
 ### Phase 5: Technical Moat (Q3-Q4 2026) 🔲

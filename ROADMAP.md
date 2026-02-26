@@ -1159,7 +1159,8 @@ const payments = await scanForPayments({
 > **Philosophy:** SIP doesn't lock developers to one RPC provider — we provide a unified interface that leverages each provider's unique moats. Use Helius DAS for efficient queries, QuickNode for real-time streams, or your own node.
 
 **Success Metrics:**
-- Anchor program deployed to devnet
+- **Program:** `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` (devnet + mainnet-beta)
+- **Mainnet TX:** [`2akhczwV...iFe8R`](https://solscan.io/tx/2akhczwV94LJ8HL3xbAmNddBSACZTbYMAoow4LmgjkeVS1hu1H7DTKHFfZrm8DHZ6BBrVn93AjiAQUZjg78iFe8R) (Jan 31, 2026)
 - 100+ test cases passing
 - Developer preview released
 - 3 dApp integration POCs
@@ -1197,22 +1198,32 @@ const payments = await scanForPayments({
 
 | Issue | Description | Priority | Status |
 |-------|-------------|----------|--------|
-| [#405](../../issues/405) | [EPIC] SIP Ethereum Contract (Solidity) | - | 🔲 Planned |
-| [#406](../../issues/406) | Solidity contract: shieldedTransfer function | Critical | 🔲 Planned |
-| [#407](../../issues/407) | Solidity contract: claimTransfer function | Critical | 🔲 Planned |
-| [#408](../../issues/408) | On-chain Pedersen commitment verification | Critical | 🔲 Planned |
-| [#409](../../issues/409) | On-chain ZK proof verifier (Noir→EVM) | Critical | 🔲 Planned |
-| [#410](../../issues/410) | EIP-5564 stealth address implementation | Critical | 🔲 Planned |
-| [#382](../../issues/382) | Viewing key disclosure mechanism | High | 🔲 Planned |
-| [#382](../../issues/382) | SDK API: `sip.shieldedTransfer(ethereum, ...)` | High | 🔲 Planned |
-| [#422](../../issues/422) | **Gelato/ERC-4337 relayer** (gas abstraction) | High | 🔲 Planned |
-| [#458](../../issues/458) | **L2 Priority 1: Base** (Coinbase compliance alignment) | Critical | 🔲 Planned |
-| - | **L2 Priority 2: Arbitrum** (largest TVL, DeFi ecosystem) | Critical | 🔲 Planned |
-| - | **L2 Priority 3: Optimism** (OP Stack, Superchain) | High | 🔲 Planned |
-| - | L2 Tier 2: zkSync Era, Linea, Scroll | Medium | 🔲 Planned |
-| - | L2 Tier 3: Blast, Mantle, Mode, Taiko | Low | 🔲 Planned |
-| - | Gas optimization (batching, storage packing) | Medium | 🔲 Planned |
-| [#459](../../issues/459) | Integration examples (Uniswap, 1inch) | Medium | 🔲 Planned |
+| [#800](../../issues/800) | [EPIC] Ethereum Same-Chain Privacy Implementation | - | 🔲 Planned |
+| [#801](../../issues/801) | Solidity contract scaffolding | Critical | 🔲 Planned |
+| [#802](../../issues/802) | shieldedTransfer function (Solidity) | Critical | 🔲 Planned |
+| [#803](../../issues/803) | claimTransfer function (Solidity) | Critical | 🔲 Planned |
+| [#804](../../issues/804) | On-chain Pedersen verification (EVM) | Critical | 🔲 Planned |
+| [#805](../../issues/805) | Noir→EVM ZK verifier deployment | Critical | 🔲 Planned |
+| [#806](../../issues/806) | EIP-5564 stealth address implementation | Critical | 🔲 Planned |
+| [#807](../../issues/807) | SDK shieldedTransfer API for Ethereum | High | 🔲 Planned |
+| [#808](../../issues/808) | Secp256k1 stealth address scanning (EVM) | High | 🔲 Planned |
+| [#809](../../issues/809) | EVM viewing key disclosure mechanism | High | 🔲 Planned |
+| [#810](../../issues/810) | **Gelato/ERC-4337 relayer integration** (gas abstraction) | High | 🔲 Planned |
+| [#811](../../issues/811) | Uniswap integration for private swaps | Medium | 🔲 Planned |
+| [#812](../../issues/812) | 1inch aggregator integration | Medium | 🔲 Planned |
+| [#813](../../issues/813) | **Base L2 deployment** (Coinbase compliance alignment) | Critical | 🔲 Planned |
+| [#814](../../issues/814) | **Arbitrum deployment** (largest TVL, DeFi) | Critical | 🔲 Planned |
+| [#815](../../issues/815) | **Optimism deployment** (OP Stack reuse) | High | 🔲 Planned |
+| [#816](../../issues/816) | Sepolia testnet deployment | Critical | 🔲 Planned |
+| [#817](../../issues/817) | E2E test suite for EVM (80+ tests) | High | 🔲 Planned |
+| [#818](../../issues/818) | Solidity audit preparation | High | 🔲 Planned |
+| [#819](../../issues/819) | Gas optimization (target < 200K) | Medium | 🔲 Planned |
+| [#820](../../issues/820) | EVM developer documentation | Medium | 🔲 Planned |
+| [#821](../../issues/821) | zkSync Era deployment | Medium | 🔲 Planned |
+| [#822](../../issues/822) | Linea deployment | Medium | 🔲 Planned |
+| [#823](../../issues/823) | Scroll deployment | Medium | 🔲 Planned |
+| [#824](../../issues/824) | Long-tail L2 deployments (Blast, Mantle, Mode) | Low | 🔲 Planned |
+| [#944](../../issues/944) | EVM Claim Verifier — Solidity ZK proof verification (M19 cross-ref) | Critical | 🔲 Planned |
 
 **L2 Prioritization Strategy (Jan 2026):**
 
@@ -1372,20 +1383,24 @@ Build unique capabilities that create defensible advantage. Complete the **100% 
 | Issue | Description | Status |
 |-------|-------------|--------|
 | [#839](../../issues/839) | [EPIC] Technical Moat Building | 🔲 Planned |
-| [#946](../../issues/946) | **Batched claim aggregation** — Multiple claims in one tx | 🔲 **CRITICAL** |
-| [#947](../../issues/947) | **Randomized claim delays** — Break timing correlation | 🔲 Planned |
-| [#948](../../issues/948) | **Fixed denomination pools** — Optional stronger anonymity | 🔲 Planned |
-| [#949](../../issues/949) | **Relayer network** — Hide claimer IP + wallet | 🔲 Planned |
-| [#840](../../issues/840) | Proof composition v1 (if feasible) | 🔲 Research |
-| - | **Inco custom FHE program** (encrypted balance aggregation, multi-party disclosure) | 🔲 Future |
-| [#842](../../issues/842) | **Oblivious Sync Service** (Tachyon-inspired privacy during sync) | 🔲 Future |
-| [#843](../../issues/843) | **Quantum-Resistant Storage** (Winternitz WOTS vaults) | 🔲 Future |
-| [#844](../../issues/844) | **WOTS+ Post-Quantum Signatures** (stealth address signing) | 🔲 Future |
-| [#845](../../issues/845) | **BNB Chain support** (4.32M daily wallets, Asia market) | 🔲 Future |
-| [#848](../../issues/848)-[#850](../../issues/850) | Multi-language SDK (Python, Rust, Go) | 🔲 Future |
-| [#847](../../issues/847) | Chain-specific optimizations | 🔲 Future |
-| [#851](../../issues/851) | NEAR fee contract (protocol revenue) | 🔲 Future |
-| [#852](../../issues/852) | Governance token design | 🔲 Future |
+| [#840](../../issues/840) | Proof composition v1 implementation | 🔲 Research |
+| [#841](../../issues/841) | Composed proof benchmarks | 🔲 Planned |
+| [#842](../../issues/842) | **Oblivious Sync Service** (Tachyon-inspired) | 🔲 Planned |
+| [#843](../../issues/843) | **Quantum-Resistant Storage** (Winternitz Vaults) | 🔲 Planned |
+| [#844](../../issues/844) | **WOTS+ Post-Quantum Signatures** for stealth addresses | 🔲 Planned |
+| [#845](../../issues/845) | **BNB Chain support** (4.32M daily wallets, Asia market) | 🔲 Planned |
+| [#846](../../issues/846) | PancakeSwap integration | 🔲 Planned |
+| [#847](../../issues/847) | Chain-specific optimizations | 🔲 Planned |
+| [#848](../../issues/848) | Python SDK | 🔲 Planned |
+| [#849](../../issues/849) | Rust SDK | 🔲 Planned |
+| [#850](../../issues/850) | Go SDK | 🔲 Planned |
+| [#851](../../issues/851) | NEAR fee contract (protocol revenue) | 🔲 Planned |
+| [#852](../../issues/852) | Governance token design | 🔲 Planned |
+| [#853](../../issues/853) | Fee distribution mechanism | 🔲 Planned |
+| [#946](../../issues/946) | **Batched Claim Aggregation** — Multiple claims in one tx | 🔲 Planned |
+| [#947](../../issues/947) | **Randomized Claim Delays** — Break timing correlation | 🔲 Planned |
+| [#948](../../issues/948) | **Fixed Denomination Pools** — Stronger anonymity sets | 🔲 Planned |
+| [#949](../../issues/949) | **Relayer Network** — Hide claimer IP + wallet | 🔲 Planned |
 
 **Quantum-Resistant Storage (Winternitz Vaults):**
 
@@ -1411,11 +1426,22 @@ Formalize SIP as an industry standard.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| - | [EPIC] Standard Proposal | 🔲 Future |
-| - | SIP-EIP formal specification | 🔲 Future |
-| - | Cross-chain privacy standard proposal | 🔲 Future |
-| - | Compliance framework documentation | 🔲 Future |
-| - | Industry working group formation | 🔲 Future |
+| [#854](../../issues/854) | [EPIC] Standard Proposal (SIP-EIP) | 🔲 Planned |
+| [#855](../../issues/855) | SIP-EIP formal specification | 🔲 Planned |
+| [#856](../../issues/856) | Cross-chain privacy standard proposal | 🔲 Planned |
+| [#857](../../issues/857) | Reference implementation documentation | 🔲 Planned |
+| [#858](../../issues/858) | Compliance framework documentation | 🔲 Planned |
+| [#859](../../issues/859) | Audit trail specification | 🔲 Planned |
+| [#860](../../issues/860) | Viewing key disclosure standard | 🔲 Planned |
+| [#861](../../issues/861) | Industry working group formation | 🔲 Planned |
+| [#862](../../issues/862) | Ethereum Magicians forum submission | 🔲 Planned |
+| [#863](../../issues/863) | ETH Denver 2026 presentation | 🔲 Planned |
+| [#864](../../issues/864) | Wallet provider outreach | 🔲 Planned |
+| [#865](../../issues/865) | DEX partnership strategy | 🔲 Planned |
+| [#866](../../issues/866) | SIP standard announcement blog post | 🔲 Planned |
+| [#867](../../issues/867) | SIP-EIP explainer video | 🔲 Planned |
+| [#868](../../issues/868) | Adoption metrics framework | 🔲 Planned |
+| [#869](../../issues/869) | Wallet SDK integration specification | 🔲 Planned |
 
 **Target**: SIP recognized as the privacy standard for Web3.
 
@@ -1455,17 +1481,25 @@ Enterprise adoption through custody integration + AI agent compliance (a16z "Kno
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-| Issue | Description | Status |
-|-------|-------------|--------|
-| - | [EPIC] Institutional + Agent Custody | 🔲 Future |
-| - | Fireblocks viewing key API integration | 🔲 Future |
-| - | Anchorage compliance dashboard | 🔲 Future |
-| - | BitGo multi-sig + viewing keys | 🔲 Future |
-| - | Coinbase Prime exploration | 🔲 Future |
-| - | Compliance REST API | 🔲 Future |
-| - | Time-bound viewing key delegation | 🔲 Future |
-| - | **Agent viewing key delegation API** | 🔲 Future |
-| - | **Agent credential standard ("Know Your Agent")** | 🔲 Future |
+| Issue | Description | Category | Status |
+|-------|-------------|----------|--------|
+| [#870](../../issues/870) | [EPIC] Institutional + Agent Custody | - | 🔲 Planned |
+| [#871](../../issues/871) | Fireblocks viewing key API integration | Institutional | 🔲 Planned |
+| [#872](../../issues/872) | Anchorage compliance dashboard integration | Institutional | 🔲 Planned |
+| [#873](../../issues/873) | BitGo multi-sig + viewing keys integration | Institutional | 🔲 Planned |
+| [#874](../../issues/874) | Coinbase Prime exploration | Institutional | 🔲 Planned |
+| [#875](../../issues/875) | Compliance REST API | Institutional | 🔲 Planned |
+| [#876](../../issues/876) | Time-bound viewing key delegation | Institutional | 🔲 Planned |
+| [#877](../../issues/877) | Audit report generation | Institutional | 🔲 Planned |
+| [#878](../../issues/878) | Compliance dashboard UI | Institutional | 🔲 Planned |
+| [#879](../../issues/879) | **Agent viewing key delegation API** | Agent | 🔲 Planned |
+| [#880](../../issues/880) | **Agent credential standard (Know Your Agent)** | Agent | 🔲 Planned |
+| [#881](../../issues/881) | Scoped agent permissions | Agent | 🔲 Planned |
+| [#882](../../issues/882) | Agent audit trail | Agent | 🔲 Planned |
+| [#883](../../issues/883) | Agent identity verification | Agent | 🔲 Planned |
+| [#884](../../issues/884) | Enterprise SSO integration | Enterprise | 🔲 Planned |
+| [#885](../../issues/885) | Multi-tenant architecture | Enterprise | 🔲 Planned |
+| [#886](../../issues/886) | SLA & support documentation | Enterprise | 🔲 Planned |
 
 **Target**: Viewing key integration with top 3 institutional custodians + agent compliance framework.
 
@@ -1646,9 +1680,10 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 
 - 🏆 **Zypherpunk Hackathon Winner — #9/93, 3 Tracks** ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) — Dec 2025
 - 💰 **Superteam Indonesia Grant — APPROVED** ($10,000 USDC) — Jan 2026
-- 📦 **npm packages published** — @sip-protocol/sdk v0.7.3 (7 packages total)
-- 🌐 **Live sites** — sip-protocol.org, docs.sip-protocol.org, app.sip-protocol.org, blog.sip-protocol.org
-- ✅ **Phase 1-3 complete** — M1-M17 done (6,661+ tests)
+- 📦 **npm packages published** — @sip-protocol/sdk v0.8.1 (7 packages total)
+- 🌐 **Live sites** — sip-protocol.org, docs.sip-protocol.org, app.sip-protocol.org, blog.sip-protocol.org, sipher.sip-protocol.org
+- ✅ **Phase 1-3 complete** — M1-M17 done (7,504+ tests)
+- 🚀 **Mainnet deployed** — `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` (Jan 31, 2026)
 - 📝 **M16 Narrative Capture** — 25 blog posts (exceeded 12 target)
 - 🔐 **M17 Solana Privacy** — Full SDK implementation, 25 issues closed
 
