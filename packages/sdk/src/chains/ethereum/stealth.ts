@@ -21,6 +21,7 @@ import type {
   StealthAddressRecovery,
   HexString,
 } from '@sip-protocol/types'
+import { secp256k1 } from '@noble/curves/secp256k1'
 import {
   generateSecp256k1StealthMetaAddress,
   generateSecp256k1StealthAddress,
@@ -28,6 +29,8 @@ import {
   checkSecp256k1StealthAddress,
   publicKeyToEthAddress,
 } from '../../stealth/secp256k1'
+import { sha256, hexToBytes, bytesToHex } from '../../stealth/utils'
+import { isValidPrivateKey } from '../../validation'
 import { ValidationError } from '../../errors'
 import { SECP256K1_SCHEME_ID } from './constants'
 
@@ -378,32 +381,80 @@ export function checkEthereumStealthAddress(
 }
 
 /**
- * Quick view tag check for efficient scanning
+ * Check if an Ethereum stealth address matches by ETH address comparison
  *
- * Before doing the full elliptic curve check, verify the view tag matches.
- * This is ~256x faster for non-matching addresses.
+ * Used when the announcement only contains the 20-byte ETH address (not the
+ * full 33-byte compressed public key). Derives the expected stealth public key,
+ * converts it to an ETH address, and compares.
  *
- * @param _announcement - The announcement to check (unused, for API compatibility)
- * @param _viewingPrivateKey - Recipient's viewing private key (unused)
- * @param _spendingPublicKey - Sender's spending public key (unused)
- * @returns True if view tag matches (address *might* be ours)
- *
- * @deprecated Use checkEthereumStealthAddress instead which handles everything
+ * @param ethAddress - The ETH address from the announcement (20 bytes)
+ * @param ephemeralPublicKey - Ephemeral public key from the announcement
+ * @param viewTag - View tag from the announcement
+ * @param spendingPublicKey - Recipient's spending public key
+ * @param viewingPrivateKey - Recipient's viewing private key
+ * @returns True if the address belongs to this recipient
  */
-export function checkViewTag(
-  _announcement: { ephemeralPublicKey: HexString; viewTag: number },
-  _viewingPrivateKey: HexString,
-  _spendingPublicKey: HexString
-): boolean {
-  // This is a simplified check - the full implementation would compute
-  // the shared secret and compare the first byte with the view tag.
-  // For efficiency, the secp256k1.checkSecp256k1StealthAddress already
-  // does the view tag check first, so we delegate to it with a minimal
-  // StealthAddress object.
+export function checkEthereumStealthByEthAddress(
+  ethAddress: HexString,
+  ephemeralPublicKey: HexString,
+  viewTag: number,
+  spendingPrivateKey: HexString,
+  viewingPrivateKey: HexString,
+): HexString | null {
+  if (!isValidPrivateKey(spendingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'spendingPrivateKey'
+    )
+  }
+  if (!isValidPrivateKey(viewingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'viewingPrivateKey'
+    )
+  }
 
-  // Note: This function is provided for API completeness but in practice,
-  // users should call checkEthereumStealthAddress which handles everything.
-  return true // Placeholder - actual implementation in checkEthereumStealthAddress
+  const spendingPrivBytes = hexToBytes(spendingPrivateKey.slice(2))
+  const viewingPrivBytes = hexToBytes(viewingPrivateKey.slice(2))
+  const ephemeralPubBytes = hexToBytes(ephemeralPublicKey.slice(2))
+
+  try {
+    // Compute shared secret: S = spendingPrivateKey * ephemeralPublicKey
+    // Mirrors generation: S = ephemeralPrivate * spendingPublic
+    const sharedSecretPoint = secp256k1.getSharedSecret(
+      spendingPrivBytes,
+      ephemeralPubBytes,
+    )
+    const sharedSecretHash = sha256(sharedSecretPoint)
+
+    // Quick view tag check
+    if (sharedSecretHash[0] !== viewTag) {
+      return null
+    }
+
+    // Derive stealth private key: viewingPriv + hash(S) mod n
+    // Mirrors generation: stealth = viewingPub + hash(S)*G
+    const viewingScalar = BigInt('0x' + bytesToHex(viewingPrivBytes))
+    const hashScalar = BigInt('0x' + bytesToHex(sharedSecretHash))
+    const stealthPrivScalar = (viewingScalar + hashScalar) % secp256k1.CURVE.n
+
+    // Compute expected public key from derived private key
+    const stealthPrivHex = stealthPrivScalar.toString(16).padStart(64, '0')
+    const stealthPrivKeyBytes = hexToBytes(stealthPrivHex)
+    const expectedPubKey = secp256k1.getPublicKey(stealthPrivKeyBytes, true)
+
+    // Convert to ETH address
+    const expectedPubKeyHex = ('0x' + bytesToHex(expectedPubKey)) as HexString
+    const expectedEthAddress = publicKeyToEthAddress(expectedPubKeyHex)
+
+    // Compare addresses (case-insensitive)
+    if (expectedEthAddress.toLowerCase() === ethAddress.toLowerCase()) {
+      return ('0x' + stealthPrivHex) as HexString
+    }
+    return null
+  } catch {
+    return null
+  }
 }
 
 // ─── Address Conversion ─────────────────────────────────────────────────────

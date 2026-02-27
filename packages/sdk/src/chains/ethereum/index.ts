@@ -39,6 +39,7 @@ export {
   isL2Network,
   isValidEthAddress,
   sanitizeUrl,
+  SIP_CONTRACT_ADDRESSES,
 } from './constants'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -83,7 +84,7 @@ export {
   generateEthereumStealthAddress,
   deriveEthereumStealthPrivateKey,
   checkEthereumStealthAddress,
-  checkViewTag,
+  checkEthereumStealthByEthAddress,
   stealthPublicKeyToEthAddress,
   extractPublicKeys,
   createMetaAddressFromPublicKeys,

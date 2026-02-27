@@ -423,11 +423,12 @@ describe('Ethereum Privacy Adapter Integration', () => {
 
   describe('Payment Scanning', () => {
     it('should add and remove scan recipients', () => {
-      const { metaAddress, viewingPrivateKey } = adapter.generateMetaAddress()
+      const { metaAddress, viewingPrivateKey, spendingPrivateKey } = adapter.generateMetaAddress()
 
       adapter.addScanRecipient({
         viewingPrivateKey,
         spendingPublicKey: metaAddress.spendingKey,
+        spendingPrivateKey,
         label: 'Test Wallet',
       })
 
@@ -439,16 +440,15 @@ describe('Ethereum Privacy Adapter Integration', () => {
       expect(adapter.getScanRecipients()).toHaveLength(0)
     })
 
-    // NOTE: Skipped due to adapter design mismatch - announcement stores ethAddress
-    // but checkEthereumStealthAddress expects secp256k1 public key
-    it.skip('should detect payments to registered recipients (requires adapter fix)', () => {
-      const { metaAddress, viewingPrivateKey } =
+    it('should detect payments to registered recipients', () => {
+      const { metaAddress, viewingPrivateKey, spendingPrivateKey } =
         adapter.generateMetaAddress()
 
       // Register as scan recipient
       adapter.addScanRecipient({
         viewingPrivateKey,
         spendingPublicKey: metaAddress.spendingKey,
+        spendingPrivateKey,
         label: 'My Wallet',
       })
 
@@ -470,8 +470,7 @@ describe('Ethereum Privacy Adapter Integration', () => {
       expect(results[0].recipient.label).toBe('My Wallet')
     })
 
-    // NOTE: Skipped due to adapter design mismatch
-    it.skip('should not detect payments for non-registered recipients (requires adapter fix)', () => {
+    it('should not detect payments for non-registered recipients', () => {
       const { metaAddress } = adapter.generateMetaAddress()
 
       // Generate payment without registering recipient
@@ -703,6 +702,7 @@ describe('Ethereum Privacy Adapter Integration', () => {
       tempAdapter.addScanRecipient({
         viewingPrivateKey: '0x' + '1'.repeat(64) as HexString,
         spendingPublicKey: '0x02' + '1'.repeat(64) as HexString,
+        spendingPrivateKey: '0x' + '2'.repeat(64) as HexString,
         label: 'Test',
       })
 
@@ -717,13 +717,7 @@ describe('Ethereum Privacy Adapter Integration', () => {
 
   // ─── Full Flow Tests ────────────────────────────────────────────────────────
   // NOTE: These tests are skipped because the current adapter design has a mismatch:
-  // - EthereumAnnouncement.stealthAddress stores the Ethereum address (20 bytes)
-  // - checkEthereumStealthAddress expects stealthAddress.address to be a secp256k1 public key (33 bytes)
-  // TODO: Fix in privacy-adapter.ts by either:
-  // 1. Storing the stealth public key in announcements
-  // 2. Or updating the check function to accept ethAddress
-
-  describe.skip('Full Privacy Flow (requires adapter fix)', () => {
+  describe('Full Privacy Flow', () => {
     it('should complete full send -> announce -> scan -> claim flow', () => {
       // 1. Bob generates meta-address
       const { metaAddress, viewingPrivateKey, spendingPrivateKey } =
@@ -733,6 +727,7 @@ describe('Ethereum Privacy Adapter Integration', () => {
       adapter.addScanRecipient({
         viewingPrivateKey,
         spendingPublicKey: metaAddress.spendingKey,
+        spendingPrivateKey,
         label: 'Bob Wallet',
       })
 
@@ -761,13 +756,14 @@ describe('Ethereum Privacy Adapter Integration', () => {
       expect(detectedPayments[0].payment.stealthEthAddress).toBe(build.stealthEthAddress)
       expect(detectedPayments[0].recipient.label).toBe('Bob Wallet')
 
-      // 6. Bob builds claim transaction
+      // 6. Bob builds claim transaction using pre-derived stealth private key from scanning
       const destinationAddress = '0xbob1234567890123456789012345678901234567890' as HexString
       const claimBuild = adapter.buildClaimTransaction({
         stealthAddress: detectedPayments[0].payment.stealthAddress,
         ephemeralPublicKey: detectedPayments[0].payment.stealthAddress.ephemeralPublicKey,
         viewingPrivateKey,
         spendingPrivateKey,
+        stealthPrivateKey: detectedPayments[0].stealthPrivateKey,
         destinationAddress,
         amount: ONE_ETH,
       })
@@ -778,11 +774,12 @@ describe('Ethereum Privacy Adapter Integration', () => {
     })
 
     it('should handle multiple payments to same recipient', () => {
-      const { metaAddress, viewingPrivateKey } = adapter.generateMetaAddress()
+      const { metaAddress, viewingPrivateKey, spendingPrivateKey } = adapter.generateMetaAddress()
 
       adapter.addScanRecipient({
         viewingPrivateKey,
         spendingPublicKey: metaAddress.spendingKey,
+        spendingPrivateKey,
         label: 'Recipient',
       })
 
@@ -818,11 +815,13 @@ describe('Ethereum Privacy Adapter Integration', () => {
       adapter.addScanRecipient({
         viewingPrivateKey: alice.viewingPrivateKey,
         spendingPublicKey: alice.metaAddress.spendingKey,
+        spendingPrivateKey: alice.spendingPrivateKey,
         label: 'Alice',
       })
       adapter.addScanRecipient({
         viewingPrivateKey: bob.viewingPrivateKey,
         spendingPublicKey: bob.metaAddress.spendingKey,
+        spendingPrivateKey: bob.spendingPrivateKey,
         label: 'Bob',
       })
 

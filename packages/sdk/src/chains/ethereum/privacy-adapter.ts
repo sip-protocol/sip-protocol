@@ -8,6 +8,8 @@
  */
 
 import type { StealthMetaAddress, HexString, StealthAddress } from '@sip-protocol/types'
+import { secp256k1 } from '@noble/curves/secp256k1'
+import { hexToBytes, bytesToHex } from '@noble/hashes/utils'
 import {
   generateEthereumStealthMetaAddress,
   generateEthereumStealthAddress,
@@ -15,6 +17,8 @@ import {
   encodeEthereumStealthMetaAddress,
   deriveEthereumStealthPrivateKey,
   checkEthereumStealthAddress,
+  checkEthereumStealthByEthAddress,
+  stealthPublicKeyToEthAddress,
   type EthereumStealthMetaAddress,
   type EthereumStealthAddress,
 } from './stealth'
@@ -582,20 +586,17 @@ export class EthereumPrivacyAdapter {
 
       // Check each recipient
       for (const recipient of this.scanRecipients.values()) {
-        const isOwner = checkEthereumStealthAddress(
-          stealthAddress,
-          recipient.spendingPublicKey, // Note: need spending PRIVATE key for full check
-          recipient.viewingPrivateKey
+        // Use ETH address comparison since announcements store 20-byte addresses
+        // Returns the stealth private key if match found, null otherwise
+        const stealthPrivateKey = checkEthereumStealthByEthAddress(
+          announcement.stealthAddress,
+          announcement.ephemeralPublicKey,
+          announcement.viewTag,
+          recipient.spendingPrivateKey,
+          recipient.viewingPrivateKey,
         )
 
-        if (isOwner) {
-          // Derive stealth private key for claiming
-          const recovery = deriveEthereumStealthPrivateKey(
-            stealthAddress,
-            recipient.spendingPublicKey, // This should be spending PRIVATE key
-            recipient.viewingPrivateKey
-          )
-
+        if (stealthPrivateKey) {
           results.push({
             payment: {
               stealthAddress,
@@ -606,7 +607,7 @@ export class EthereumPrivacyAdapter {
               timestamp: announcement.timestamp,
             },
             recipient,
-            stealthPrivateKey: recovery.privateKey,
+            stealthPrivateKey,
           })
           break // Found owner, no need to check other recipients
         }
@@ -641,12 +642,26 @@ export class EthereumPrivacyAdapter {
    * @returns Built claim transaction
    */
   buildClaimTransaction(params: EthereumClaimParams): EthereumClaimBuild {
-    // Derive stealth private key
-    const recovery = deriveEthereumStealthPrivateKey(
-      params.stealthAddress,
-      params.spendingPrivateKey,
-      params.viewingPrivateKey
-    )
+    // Use pre-derived key if available (e.g. from scanning flow), otherwise derive
+    let stealthPrivateKey: HexString
+    let stealthEthAddress: HexString
+
+    if (params.stealthPrivateKey) {
+      stealthPrivateKey = params.stealthPrivateKey
+      stealthEthAddress = stealthPublicKeyToEthAddress(
+        ('0x' + bytesToHex(
+          secp256k1.getPublicKey(hexToBytes(params.stealthPrivateKey.slice(2)), true)
+        )) as HexString
+      )
+    } else {
+      const recovery = deriveEthereumStealthPrivateKey(
+        params.stealthAddress,
+        params.spendingPrivateKey,
+        params.viewingPrivateKey
+      )
+      stealthPrivateKey = recovery.privateKey
+      stealthEthAddress = recovery.ethAddress
+    }
 
     // Build transaction
     const amount = params.amount ?? 0n // Full balance if not specified
@@ -673,8 +688,8 @@ export class EthereumPrivacyAdapter {
     }
 
     return {
-      stealthEthAddress: recovery.ethAddress,
-      stealthPrivateKey: recovery.privateKey,
+      stealthEthAddress,
+      stealthPrivateKey,
       destinationAddress: params.destinationAddress,
       amount,
       tx,

@@ -129,7 +129,7 @@ export const ETHEREUM_TOKEN_CONTRACTS = {
   /** Tether USD */
   USDT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
   /** Dai Stablecoin */
-  DAI: '0x6B175474E89094C44Da98b954EescdeCB5bE3d830',
+  DAI: '0x6B175474E89094C44Da98b954EeDeAC495271d0F',
   /** Chainlink */
   LINK: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
   /** Uniswap */
@@ -236,6 +236,38 @@ export const EIP5564_ANNOUNCER_ADDRESS = '0x55649E01B5Df198D18D95b5cc5051630cfD4
  * EIP-5564 Stealth Meta-Address Registry contract address
  */
 export const EIP5564_REGISTRY_ADDRESS = '0x6538E6bf4B0eBd30A8Ea10e318b7AEb51A8E4b5c'
+
+// ─── SIP Deployed Contract Addresses ──────────────────────────────────────────
+
+/**
+ * SIP Privacy contract addresses per network
+ * Deployed via Foundry Deploy.s.sol
+ */
+export const SIP_CONTRACT_ADDRESSES: Partial<Record<EthereumNetwork, {
+  sipPrivacy: string
+  pedersenVerifier: string
+  zkVerifier: string
+  stealthAddressRegistry: string
+}>> = {
+  sepolia: {
+    sipPrivacy: '0x0B0d06D6B5136d63Bd0817414E2D318999e50339',
+    pedersenVerifier: '0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db',
+    zkVerifier: '0x26988D988684627084e6ae113e0354f6bc56b126',
+    stealthAddressRegistry: '0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99',
+  },
+  'optimism-sepolia': {
+    sipPrivacy: '0x0B0d06D6B5136d63Bd0817414E2D318999e50339',
+    pedersenVerifier: '0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db',
+    zkVerifier: '0x26988D988684627084e6ae113e0354f6bc56b126',
+    stealthAddressRegistry: '0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99',
+  },
+  'base-sepolia': {
+    sipPrivacy: '0x0B0d06D6B5136d63Bd0817414E2D318999e50339',
+    pedersenVerifier: '0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db',
+    zkVerifier: '0x26988D988684627084e6ae113e0354f6bc56b126',
+    stealthAddressRegistry: '0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99',
+  },
+}
 
 /**
  * SIP announcement event signature (for log filtering)

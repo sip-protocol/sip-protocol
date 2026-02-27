@@ -224,6 +224,8 @@ export interface EthereumClaimParams {
   spendingPrivateKey: HexString
   /** Destination address to receive funds */
   destinationAddress: HexString
+  /** Pre-derived stealth private key (skips derivation if provided, e.g. from scanning) */
+  stealthPrivateKey?: HexString
   /** Network */
   network?: EthereumNetwork
   /** RPC URL (overrides default) */
@@ -439,6 +441,8 @@ export interface EthereumScanRecipient {
   viewingPrivateKey: HexString
   /** Spending public key */
   spendingPublicKey: HexString
+  /** Spending private key (required for scanning and key derivation) */
+  spendingPrivateKey: HexString
   /** Optional label */
   label?: string
 }
