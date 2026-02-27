@@ -92,7 +92,7 @@
   },
   "devDependencies": {
     "@grpc/grpc-js": "^1.14.3",
-    "@types/node": "^20.10.0",
+    "@types/node": "^25.2.3",
     "@vitest/coverage-v8": "1.6.1",
     "fast-check": "^4.5.3",
     "https-proxy-agent": "^7.0.0",
