@@ -681,7 +681,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 |-----------|-------|--------|
 | M16: Narrative Capture | Content, community, position vs PrivacyCash | ✅ |
 | M17: Solana Same-Chain | Native Solana privacy SDK + Jupiter DEX | ✅ |
-| M18: Ethereum Same-Chain | EVM privacy + L2 support | 🔲 |
+| M18: Ethereum Same-Chain | EVM privacy + L2 support | 🔄 In Progress |
 
 ### Phase 5: Technical Moat (Q3-Q4 2026) 🔲
 | Milestone | Focus | Status |
@@ -761,7 +761,7 @@ ssh core  # Admin user for nginx/system config
 | `solana/dapp-store.json.age` | `S1PSkwV3YZD6exNiUEdfTJadyUJ1CDDUgwmQaWB5yie` | Solana dApp Store |
 | `ethereum/evm.json.age` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | ETH/Base/Arb/OP |
 
-### Program Deployments
+### Solana Program Deployments
 
 | Network | Program ID | Config PDA | Date |
 |---------|------------|------------|------|
@@ -781,6 +781,27 @@ solana program deploy target/deploy/sip_privacy.so \
   --with-compute-unit-price 10000
 ```
 
+### EVM Contract Deployments (M18)
+
+Deployer: `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee: 50 bps | All addresses deterministic (same nonce)
+
+| Contract | Address |
+|----------|---------|
+| SIPPrivacy | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` |
+| PedersenVerifier | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` |
+| ZKVerifier | `0x26988D988684627084e6ae113e0354f6bc56b126` |
+| StealthAddressRegistry | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` |
+
+| Network | Status | Date |
+|---------|--------|------|
+| Sepolia (11155111) | ✅ Deployed + Verified | 2026-02-27 |
+| Base Sepolia (84532) | ✅ Deployed | 2026-02-27 |
+| OP Sepolia (11155420) | ✅ Deployed | 2026-02-27 |
+| Arbitrum Sepolia (421614) | 🔲 Pending funds | — |
+| Mainnets | 🔲 Planned | — |
+
+See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas report.
+
 ---
 
 ## Code Style
@@ -793,5 +814,5 @@ solana program deploy target/deploy/sip_privacy.so \
 
 ---
 
-**Last Updated:** 2026-01-31
-**Status:** M17 Complete (Mainnet Live) | Phase 4 Active (M18) | 7,504+ Tests | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Last Updated:** 2026-02-27
+**Status:** M17 Complete (Mainnet Live) | M18 In Progress (15/21 done) | 7,504+ Tests + 105 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved

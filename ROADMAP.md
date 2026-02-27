@@ -538,8 +538,8 @@ PHASE 1: FOUNDATION     PHASE 2: STANDARD      PHASE 3: ECOSYSTEM     PHASE 4: E
 • SDK ✅                • Stable Core ✅       • Compliance ✅       • M16 Complete ✅  • Zcash route
 • NEAR adapter ✅       • ZK Production ✅     • React/CLI/API ✅    • M17 Complete ✅  • Proof compo
 • App ✅                • Multi-Settlement ✅  • Hardware wallets ✅ • M18 Active 🎯   • SIP-EIP
-• Noir circuits ✅      • Multi-Chain ✅       • WalletConnect ✅    • ETH Solidity    • $5B vol
-• 6,661+ tests ✅       • 15+ chains ✅        • 157 new tests ✅    • Full privacy    • Industry std
+• Noir circuits ✅      • Multi-Chain ✅       • WalletConnect ✅    • ETH Contracts ✅ • $5B vol
+• 6,661+ tests ✅       • 15+ chains ✅        • 157 new tests ✅    • L2 Deployed ✅   • Industry std
 ```
 
 ---
@@ -1169,7 +1169,7 @@ const payments = await scanForPayments({
 
 ---
 
-#### M18: Ethereum Same-Chain Privacy (Solidity Contract) 🔲 Q2 2026
+#### M18: Ethereum Same-Chain Privacy (Solidity Contract) 🔄 Q1 2026
 
 **SIP Ethereum Contract** — On-chain privacy using Solidity smart contracts.
 
@@ -1198,32 +1198,32 @@ const payments = await scanForPayments({
 
 | Issue | Description | Priority | Status |
 |-------|-------------|----------|--------|
-| [#800](../../issues/800) | [EPIC] Ethereum Same-Chain Privacy Implementation | - | 🔲 Planned |
-| [#801](../../issues/801) | Solidity contract scaffolding | Critical | 🔲 Planned |
-| [#802](../../issues/802) | shieldedTransfer function (Solidity) | Critical | 🔲 Planned |
-| [#803](../../issues/803) | claimTransfer function (Solidity) | Critical | 🔲 Planned |
-| [#804](../../issues/804) | On-chain Pedersen verification (EVM) | Critical | 🔲 Planned |
-| [#805](../../issues/805) | Noir→EVM ZK verifier deployment | Critical | 🔲 Planned |
-| [#806](../../issues/806) | EIP-5564 stealth address implementation | Critical | 🔲 Planned |
-| [#807](../../issues/807) | SDK shieldedTransfer API for Ethereum | High | 🔲 Planned |
-| [#808](../../issues/808) | Secp256k1 stealth address scanning (EVM) | High | 🔲 Planned |
-| [#809](../../issues/809) | EVM viewing key disclosure mechanism | High | 🔲 Planned |
+| [#800](../../issues/800) | [EPIC] Ethereum Same-Chain Privacy Implementation | - | 🔄 In Progress |
+| [#801](../../issues/801) | Solidity contract scaffolding | Critical | ✅ Complete |
+| [#802](../../issues/802) | shieldedTransfer function (Solidity) | Critical | ✅ Complete |
+| [#803](../../issues/803) | claimTransfer function (Solidity) | Critical | ✅ Complete |
+| [#804](../../issues/804) | On-chain Pedersen verification (EVM) | Critical | ✅ Complete |
+| [#805](../../issues/805) | Noir→EVM ZK verifier deployment | Critical | 🔲 Deferred (M19) |
+| [#806](../../issues/806) | EIP-5564 stealth address implementation | Critical | ✅ Complete |
+| [#807](../../issues/807) | SDK shieldedTransfer API for Ethereum | High | ✅ Complete |
+| [#808](../../issues/808) | Secp256k1 stealth address scanning (EVM) | High | ✅ Complete |
+| [#809](../../issues/809) | EVM viewing key disclosure mechanism | High | ✅ Complete |
 | [#810](../../issues/810) | **Gelato/ERC-4337 relayer integration** (gas abstraction) | High | 🔲 Planned |
 | [#811](../../issues/811) | Uniswap integration for private swaps | Medium | 🔲 Planned |
 | [#812](../../issues/812) | 1inch aggregator integration | Medium | 🔲 Planned |
-| [#813](../../issues/813) | **Base L2 deployment** (Coinbase compliance alignment) | Critical | 🔲 Planned |
-| [#814](../../issues/814) | **Arbitrum deployment** (largest TVL, DeFi) | Critical | 🔲 Planned |
-| [#815](../../issues/815) | **Optimism deployment** (OP Stack reuse) | High | 🔲 Planned |
-| [#816](../../issues/816) | Sepolia testnet deployment | Critical | 🔲 Planned |
-| [#817](../../issues/817) | E2E test suite for EVM (80+ tests) | High | 🔲 Planned |
-| [#818](../../issues/818) | Solidity audit preparation | High | 🔲 Planned |
-| [#819](../../issues/819) | Gas optimization (target < 200K) | Medium | 🔲 Planned |
-| [#820](../../issues/820) | EVM developer documentation | Medium | 🔲 Planned |
+| [#813](../../issues/813) | **Base L2 deployment** (Coinbase compliance alignment) | Critical | ✅ Complete |
+| [#814](../../issues/814) | **Arbitrum deployment** (largest TVL, DeFi) | Critical | 🔲 Pending funds |
+| [#815](../../issues/815) | **Optimism deployment** (OP Stack reuse) | High | ✅ Complete |
+| [#816](../../issues/816) | Sepolia testnet deployment | Critical | ✅ Complete |
+| [#817](../../issues/817) | E2E test suite for EVM (80+ tests) | High | ✅ Complete (125 tests) |
+| [#818](../../issues/818) | Solidity audit preparation | High | ✅ Complete |
+| [#819](../../issues/819) | Gas optimization (target < 200K) | Medium | ✅ Profiled |
+| [#820](../../issues/820) | EVM developer documentation | Medium | ✅ Complete |
 | [#821](../../issues/821) | zkSync Era deployment | Medium | 🔲 Planned |
 | [#822](../../issues/822) | Linea deployment | Medium | 🔲 Planned |
 | [#823](../../issues/823) | Scroll deployment | Medium | 🔲 Planned |
 | [#824](../../issues/824) | Long-tail L2 deployments (Blast, Mantle, Mode) | Low | 🔲 Planned |
-| [#944](../../issues/944) | EVM Claim Verifier — Solidity ZK proof verification (M19 cross-ref) | Critical | 🔲 Planned |
+| [#944](../../issues/944) | EVM Claim Verifier — Solidity ZK proof verification (M19 cross-ref) | Critical | 🔲 Deferred (M19) |
 
 **L2 Prioritization Strategy (Jan 2026):**
 
@@ -1702,7 +1702,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: January 28, 2026*
-*M16-M17 Complete | M18 Active | Superteam Grant APPROVED ($10K)*
-*6,661+ tests | 7 packages | Full Privacy Architecture documented (M19-M20)*
-*New issues: #940-#949 (ZK claim proofs, Pool PDA, Privacy hardening)*
+*Last updated: February 27, 2026*
+*M16-M17 Complete | M18 In Progress (15/21 issues done) | Superteam Grant APPROVED ($10K)*
+*7,504+ tests | 7 packages | Full Privacy Architecture documented (M19-M20)*
+*M18: 105 Foundry tests, 20 E2E tests, deployed on Sepolia + Base Sepolia + OP Sepolia*
