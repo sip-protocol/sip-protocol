@@ -45,9 +45,6 @@ contract DeployScript is Script {
     uint256 public feeBps;
 
     function setUp() public virtual {
-        // Load from environment or use deployer as default
-        owner = vm.envOr("OWNER_ADDRESS", msg.sender);
-        feeCollector = vm.envOr("FEE_COLLECTOR", msg.sender);
         feeBps = vm.envOr("FEE_BPS", uint256(100)); // Default 1%
     }
 
@@ -55,6 +52,10 @@ contract DeployScript is Script {
         // Get deployer private key
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
         address deployer = vm.addr(deployerKey);
+
+        // Default owner/feeCollector to deployer (not msg.sender which is Foundry default)
+        owner = vm.envOr("OWNER_ADDRESS", deployer);
+        feeCollector = vm.envOr("FEE_COLLECTOR", deployer);
 
         console.log("==============================================");
         console.log("SIP Privacy Contract Deployment");

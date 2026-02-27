@@ -176,23 +176,35 @@ function run() external {
 }
 ```
 
-## Gas Estimation by Network
+## Gas Report (Measured — Feb 2026)
 
-| Operation | Ethereum | Base | Arbitrum | Optimism |
-|-----------|----------|------|----------|----------|
-| Deploy SIPPrivacy | ~2.5M | ~2.5M | ~2.5M | ~2.5M |
-| shieldedTransfer (ETH) | ~150K | ~150K | ~150K | ~150K |
-| shieldedTransfer (ERC20) | ~200K | ~200K | ~200K | ~200K |
-| claimTransfer | ~80K | ~80K | ~80K | ~80K |
+| Operation | Gas (median) | Gas (max) |
+|-----------|-------------|-----------|
+| Deploy SIPPrivacy | 1,511,178 | — |
+| Deploy StealthAddressRegistry | 1,175,000 | — |
+| Deploy PedersenVerifier | 374,000 | — |
+| Deploy ZKVerifier | 368,000 | — |
+| shieldedTransfer (ETH) | 315,240 | 315,264 |
+| shieldedTokenTransfer (ERC20) | 322,918 | 322,920 |
+| claimTransfer (ETH) | 38,702 | 63,459 |
+| claimTokenTransfer (ERC20) | 49,992 | 49,992 |
+| registerStealthMetaAddress | 135,615 | 144,502 |
+| announce | 46,462 | 57,256 |
+| announceAndTransfer | 82,306 | 82,306 |
 
-### Cost Comparison (Dec 2025 estimates)
+**Notes:**
+- `shieldedTransfer` ~315K gas — higher than initial 200K target due to commitment validation, event emission, and fee logic. Acceptable for L2s where gas is cheap.
+- `claimTransfer` ~39K gas — well under 100K target.
+- Gas costs on L2s are 100-1000x cheaper than L1.
 
-| Network | Deploy Cost | Transfer Cost |
-|---------|-------------|---------------|
-| Ethereum | ~$500 | ~$15 |
-| Base | ~$0.50 | ~$0.01 |
-| Arbitrum | ~$2 | ~$0.05 |
-| Optimism | ~$1 | ~$0.03 |
+### Cost Comparison (Feb 2026, ETH ~$2,034)
+
+| Network | Deploy Cost | Transfer Cost | Claim Cost |
+|---------|-------------|---------------|------------|
+| Ethereum L1 | ~$150 | ~$30 | ~$4 |
+| Base | ~$0.15 | ~$0.03 | ~$0.004 |
+| Arbitrum | ~$0.50 | ~$0.10 | ~$0.01 |
+| Optimism | ~$0.30 | ~$0.06 | ~$0.008 |
 
 ## Contract Verification
 
@@ -340,11 +352,24 @@ Before mainnet deployment:
 
 ### Testnets
 
-| Network | SIPPrivacy | Registry | Updated |
-|---------|------------|----------|---------|
-| Base Sepolia | `0x...` | `0x...` | TBD |
-| Arbitrum Sepolia | `0x...` | `0x...` | TBD |
-| Optimism Sepolia | `0x...` | `0x...` | TBD |
+#### Sepolia (Chain ID: 11155111)
+
+| Contract | Address | Deployer |
+|----------|---------|----------|
+| SIPPrivacy | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| PedersenVerifier | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| ZKVerifier | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| StealthAddressRegistry | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+
+**Config:** Owner `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee 50 bps | Deployed 2026-02-27
+
+#### L2 Testnets
+
+| Network | SIPPrivacy | PedersenVerifier | ZKVerifier | Registry | Updated |
+|---------|------------|------------------|------------|----------|---------|
+| Base Sepolia | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | 2026-02-27 |
+| Arbitrum Sepolia | `0x...` | `0x...` | `0x...` | `0x...` | TBD |
+| Optimism Sepolia | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | 2026-02-27 |
 
 ### Mainnets
 

@@ -448,10 +448,10 @@ contract SIPPrivacy is ReentrancyGuard {
         if (nullifier == bytes32(0)) revert InvalidNullifier();
 
         // Verify proof if verifier is set
-        // Proof should demonstrate knowledge of stealth private key
         if (address(zkVerifier) != address(0) && proof.length > 0) {
-            // TODO: Implement claim proof verification
-            // This would verify: stealth_privkey where stealth_pubkey = stealth_privkey * G
+            if (!zkVerifier.verifyProof(record.commitment, proof)) {
+                revert InvalidProof();
+            }
         }
 
         // Mark nullifier as used
@@ -489,7 +489,9 @@ contract SIPPrivacy is ReentrancyGuard {
 
         // Verify proof if verifier is set
         if (address(zkVerifier) != address(0) && proof.length > 0) {
-            // TODO: Implement claim proof verification
+            if (!zkVerifier.verifyProof(record.commitment, proof)) {
+                revert InvalidProof();
+            }
         }
 
         // Mark nullifier as used
@@ -589,15 +591,20 @@ contract SIPPrivacy is ReentrancyGuard {
      * @param commitment The commitment bytes32
      * @return True if valid format
      *
-     * @dev For a compressed secp256k1 point stored in bytes32:
-     * - First byte should be 0x02 (even y) or 0x03 (odd y)
-     * - We only have 32 bytes, so we check the high byte pattern
+     * @dev The commitment is a 32-byte identifier derived from the Pedersen
+     * commitment point (v*G + r*H). Full cryptographic verification of the
+     * commitment is delegated to PedersenVerifier and the ZK proof system.
+     * This function performs basic format validation only.
+     *
+     * The high byte encodes the compressed point prefix (0x02 even y, 0x03 odd y)
+     * so we validate that along with non-zero.
      */
     function _isValidCommitment(bytes32 commitment) internal pure returns (bool) {
-        // For a bytes32 commitment, we expect it to be a hash or compressed representation
-        // In the simplest case, we just check it's not zero
-        // Full validation would require the full 33-byte compressed point
-        return commitment != bytes32(0);
+        if (commitment == bytes32(0)) return false;
+
+        // Validate high byte is a valid compressed point prefix (0x02 or 0x03)
+        uint8 prefix = uint8(uint256(commitment) >> 248);
+        return prefix == 0x02 || prefix == 0x03;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

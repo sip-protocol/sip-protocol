@@ -140,6 +140,7 @@ contract StealthAddressRegistry {
     error InvalidEphemeralPubKey();
     error NotRegistered();
     error ZeroAddress();
+    error ZeroValue();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // External Functions - Registration (EIP-6538 style)
@@ -256,7 +257,7 @@ contract StealthAddressRegistry {
         if (schemeId == 0 || schemeId > 2) revert InvalidSchemeId();
         if (stealthAddress == address(0)) revert ZeroAddress();
         if (!_isValidCompressedPubKey(ephemeralPubKey)) revert InvalidEphemeralPubKey();
-        if (msg.value == 0) revert ZeroAddress(); // Reusing error for zero value
+        if (msg.value == 0) revert ZeroValue();
 
         // Transfer ETH
         (bool success,) = stealthAddress.call{value: msg.value}("");
