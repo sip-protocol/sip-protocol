@@ -1680,7 +1680,7 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 
 - 🏆 **Zypherpunk Hackathon Winner — #9/93, 3 Tracks** ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) — Dec 2025
 - 💰 **Superteam Indonesia Grant — APPROVED** ($10,000 USDC) — Jan 2026
-- 📦 **npm packages published** — @sip-protocol/sdk v0.8.1 (7 packages total)
+- 📦 **npm packages published** — @sip-protocol/sdk v0.9.0 (7 packages total)
 - 🌐 **Live sites** — sip-protocol.org, docs.sip-protocol.org, app.sip-protocol.org, blog.sip-protocol.org, sipher.sip-protocol.org
 - ✅ **Phase 1-3 complete** — M1-M17 done (7,504+ tests)
 - 🚀 **Mainnet deployed** — `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` (Jan 31, 2026)

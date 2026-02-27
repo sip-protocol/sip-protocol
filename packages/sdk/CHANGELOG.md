@@ -1,5 +1,21 @@
 # @sip-protocol/sdk
 
+## 0.9.0
+
+### Minor Changes
+
+- feat: Ethereum same-chain privacy with shielded transfers via Solidity contracts
+  - Fix `scanAnnouncements()` scanning with correct spending private key
+  - Add `checkEthereumStealthByEthAddress()` for ETH address-based stealth matching
+  - Add Base Sepolia and OP Sepolia contract addresses
+  - Add `spendingPrivateKey` to `EthereumScanRecipient` type
+
+### Patch Changes
+
+- fix: DAI mainnet address invalid hex characters
+- fix: Remove deprecated `checkViewTag()` stub
+- chore: Update `@sip-protocol/types` dependency to `^0.2.2`
+
 ## 0.8.0
 
 ### Minor Changes
