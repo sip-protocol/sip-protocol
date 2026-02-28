@@ -141,6 +141,20 @@ contract ZKVerifierAdminTest is Test {
     zk.transferOwnership(attacker);
   }
 
+  function test_transferOwnership_revertsOnZeroAddress() public {
+    vm.prank(owner);
+    vm.expectRevert(ZKVerifier.Unauthorized.selector);
+    zk.transferOwnership(address(0));
+  }
+
+  function test_transferOwnership_emitsEvent() public {
+    address newOwner = makeAddr("newOwner");
+    vm.prank(owner);
+    vm.expectEmit(true, true, false, false);
+    emit ZKVerifier.OwnershipTransferred(owner, newOwner);
+    zk.transferOwnership(newOwner);
+  }
+
   function test_transferOwnership_newOwnerCanAct() public {
     address newOwner = makeAddr("newOwner");
     vm.prank(owner);
@@ -263,6 +277,17 @@ contract ZKVerifierFundingProofTest is Test {
       bytes32(uint256(0)),
       hex"aa"
     );
+  }
+
+  function test_verifyFundingProof_propagatesFalse() public {
+    mock.setResult(false);
+    bool result = zk.verifyFundingProof(
+      bytes32(uint256(1)),
+      100,
+      bytes32(uint256(0)),
+      hex"aa"
+    );
+    assertFalse(result, "Should propagate false from verifier");
   }
 
   function test_verifyFundingProof_emitsEvent() public {

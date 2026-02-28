@@ -61,6 +61,9 @@ contract ZKVerifier is IZKVerifier {
   /// @notice Emitted after successful proof verification
   event ProofVerified(string indexed proofType, bool valid);
 
+  /// @notice Emitted when ownership is transferred
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
   // ═══════════════════════════════════════════════════════════════════════════
   // Errors
   // ═══════════════════════════════════════════════════════════════════════════
@@ -183,8 +186,11 @@ contract ZKVerifier is IZKVerifier {
   }
 
   /// @notice Transfer contract ownership
-  /// @param _newOwner New owner address
+  /// @param _newOwner New owner address (cannot be zero)
   function transferOwnership(address _newOwner) external onlyOwner {
+    if (_newOwner == address(0)) revert Unauthorized();
+    address previousOwner = owner;
     owner = _newOwner;
+    emit OwnershipTransferred(previousOwner, _newOwner);
   }
 }
