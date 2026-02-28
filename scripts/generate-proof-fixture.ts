@@ -24,14 +24,10 @@
  *   contracts/sip-ethereum/test/fixtures/funding-proof.json
  */
 
-import { Noir } from '@noir-lang/noir_js'
 import { Barretenberg } from '@aztec/bb.js'
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { execSync } from 'node:child_process'
-
-// Use the circuit that matches the Solidity verifier (packages/circuits/)
-import circuitArtifact from '../packages/circuits/funding_proof/target/funding_proof.json'
 
 const FIXTURE_PATH = resolve(
   import.meta.dirname ?? __dirname,
