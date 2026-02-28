@@ -80,8 +80,8 @@
 
 | Endpoint | Type | Expected Response | Check Interval |
 |----------|------|-------------------|----------------|
-| `http://176.222.53.185:5002` | HTTP | 200 OK | 10 minutes |
-| `http://176.222.53.185:5003` | HTTP | 200 OK | 10 minutes |
+| `http://151.245.137.75:5002` | HTTP | 200 OK | 10 minutes |
+| `http://151.245.137.75:5003` | HTTP | 200 OK | 10 minutes |
 
 **Note:** Staging monitors are optional but useful for catching issues before production deployment.
 
@@ -339,7 +339,7 @@ When you receive an uptime alert:
 1. **Verify Issue:**
    - Check if it's a real outage or false positive
    - Visit the endpoint in browser
-   - Check VPS status: `ssh core@176.222.53.185`
+   - Check VPS status: `ssh core@151.245.137.75`
 
 2. **Diagnose:**
    - Check Docker containers: `docker ps`
@@ -406,7 +406,7 @@ Consider paid plans when you need:
 
 ### Private Endpoints
 
-For staging/internal endpoints (e.g., `http://176.222.53.185:5002`):
+For staging/internal endpoints (e.g., `http://151.245.137.75:5002`):
 
 1. **Option 1:** Monitor from VPS itself using local monitoring (cron + curl)
 2. **Option 2:** Use VPN or IP whitelist for external monitoring

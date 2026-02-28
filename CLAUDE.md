@@ -703,7 +703,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ---
 
-## VPS Deployment (176.222.53.185)
+## VPS Deployment (151.245.137.75 — reclabs3)
 
 ### SIP Services on VPS
 
@@ -712,7 +712,9 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | sip-website | 5000 | sip-website | sip-protocol.org |
 | sip-docs | 5003 | sip-docs | docs.sip-protocol.org |
 | sip-blog | 5004 | sip-blog | blog.sip-protocol.org |
-| sip-app | 5004/5005 | sip-app-blue/green | app.sip-protocol.org |
+| sip-app | 5005 | sip-app-blue | app.sip-protocol.org |
+| sipher | 5006 | sipher + sipher-redis | sipher.sip-protocol.org |
+| sip-umami | 5010 | sip-umami + sip-umami-db | analytics.sip-protocol.org |
 
 ### Deployment Flow
 
@@ -737,8 +739,9 @@ services:
 ### SSH Access
 
 ```bash
-ssh sip   # User: sip, has sudo
-ssh core  # Admin user for nginx/system config
+ssh reclabs3  # Root access
+ssh sip       # SIP services user
+ssh core      # Admin user for nginx/system config
 ```
 
 ### Key Files on VPS

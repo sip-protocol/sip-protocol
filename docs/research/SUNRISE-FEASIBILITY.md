@@ -349,7 +349,7 @@ await client.extractYield()
 - **Backend:** Extend Sipher API (existing SIP REST API)
 - **Frontend:** Next.js (reuse sip-app components)
 - **SDK:** `@sunrisestake/client` + `@sip-protocol/sdk`
-- **Deployment:** VPS (176.222.53.185) with Docker
+- **Deployment:** VPS (151.245.137.75) with Docker
 
 ---
 
