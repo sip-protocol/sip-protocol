@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - M18 Ethereum Same-Chain Privacy
+
+### Added - Noir→EVM ZK Verifier (Phase A: funding_proof)
+
+#### On-Chain ZK Verification
+- **FundingVerifier.sol** — BB-generated UltraHonk Solidity verifier from Noir `funding_proof` circuit
+- **IHonkVerifier.sol** — Interface for BB-generated Honk verifiers
+- **ZKVerifier.sol** — Rewritten from mock to production router pattern (delegates to HonkVerifier instances)
+- **DeployVerifier.s.sol** — Deployment script with EIP-170 workaround documentation
+
+#### Tests (+43 new, 148 total Foundry tests)
+- **FundingVerifier.t.sol** — 7 tests: deployment, empty/garbage proof rejection
+- **ZKVerifier.t.sol** — 31 tests: router pattern, admin, ownership, backwards compat, funding/validity routing
+- **FundingVerifierE2E.t.sol** — 5 tests: real Noir proof verified on-chain (~2.13M gas)
+
+#### Infrastructure
+- **generate-proof-fixture.ts** — Proof fixture generator (BB WASM + nargo + bb CLI pipeline)
+- **funding-proof.json** — Real proof fixture (8,640 bytes, 3 public inputs)
+
+#### Deployments (Sepolia v2 — real ZK verifier)
+- SIPPrivacy: `0x1FED19684dC108304960db2818CF5a961d28405E`
+- ZKVerifier: `0x4994c799dF5B47C564cAafe7FdF415c2c2c66436`
+- FundingVerifier (HonkVerifier): `0x8Ee5F3FC477C308224f58766540A5E7E049B0ECf`
+- ZKTranscriptLib: `0x588849033F79F3b13f8BF696c1f61C27dE056df4`
+
+### Changed
+- Solidity compiler upgraded from 0.8.24 to 0.8.28 (BB-generated code requires ^0.8.27)
+- `code_size_limit = 32768` in foundry.toml (BB verifiers exceed EIP-170 with via_ir)
+- `fs_permissions` added for proof fixture reading in tests
+
+### Issues
+- Closes #805: Noir→EVM ZK verifier deployment (Phase A complete)
+
+---
+
 ## [0.6.0] - 2025-12-03
 
 ### Added - M14: Developer Experience

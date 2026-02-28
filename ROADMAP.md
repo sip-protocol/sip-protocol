@@ -1203,7 +1203,7 @@ const payments = await scanForPayments({
 | [#802](../../issues/802) | shieldedTransfer function (Solidity) | Critical | ✅ Complete |
 | [#803](../../issues/803) | claimTransfer function (Solidity) | Critical | ✅ Complete |
 | [#804](../../issues/804) | On-chain Pedersen verification (EVM) | Critical | ✅ Complete |
-| [#805](../../issues/805) | Noir→EVM ZK verifier deployment | Critical | 🔲 Deferred (M19) |
+| [#805](../../issues/805) | Noir→EVM ZK verifier deployment | Critical | ✅ Complete (Phase A) |
 | [#806](../../issues/806) | EIP-5564 stealth address implementation | Critical | ✅ Complete |
 | [#807](../../issues/807) | SDK shieldedTransfer API for Ethereum | High | ✅ Complete |
 | [#808](../../issues/808) | Secp256k1 stealth address scanning (EVM) | High | ✅ Complete |
@@ -1215,7 +1215,7 @@ const payments = await scanForPayments({
 | [#814](../../issues/814) | **Arbitrum deployment** (largest TVL, DeFi) | Critical | 🔲 Pending funds |
 | [#815](../../issues/815) | **Optimism deployment** (OP Stack reuse) | High | ✅ Complete |
 | [#816](../../issues/816) | Sepolia testnet deployment | Critical | ✅ Complete |
-| [#817](../../issues/817) | E2E test suite for EVM (80+ tests) | High | ✅ Complete (125 tests) |
+| [#817](../../issues/817) | E2E test suite for EVM (80+ tests) | High | ✅ Complete (148 tests) |
 | [#818](../../issues/818) | Solidity audit preparation | High | ✅ Complete |
 | [#819](../../issues/819) | Gas optimization (target < 200K) | Medium | ✅ Profiled |
 | [#820](../../issues/820) | EVM developer documentation | Medium | ✅ Complete |
@@ -1702,7 +1702,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
-*Last updated: February 27, 2026*
-*M16-M17 Complete | M18 In Progress (15/21 issues done) | Superteam Grant APPROVED ($10K)*
+*Last updated: February 28, 2026*
+*M16-M17 Complete | M18 In Progress (16/21 issues done) | Superteam Grant APPROVED ($10K)*
 *7,504+ tests | 7 packages | Full Privacy Architecture documented (M19-M20)*
-*M18: 105 Foundry tests, 20 E2E tests, deployed on Sepolia + Base Sepolia + OP Sepolia*
+*M18: 148 Foundry tests, deployed on Sepolia (v2 with real ZK verifier) + Base Sepolia + OP Sepolia*
