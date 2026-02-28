@@ -145,36 +145,45 @@ forge script script/Deploy.s.sol:DeployScript \
 Deploy contracts in this order:
 
 1. **PedersenVerifier.sol** - No dependencies
-2. **ZKVerifier.sol** - No dependencies
+2. **ZKVerifier.sol** - No dependencies (owner required)
 3. **StealthAddressRegistry.sol** - No dependencies
 4. **SIPPrivacy.sol** - Depends on all above
+5. **FundingVerifier (HonkVerifier)** - Registered in ZKVerifier
 
-```solidity
-// script/Deploy.s.sol
-function run() external {
-    vm.startBroadcast();
+Steps 1-4 use `script/Deploy.s.sol`. Step 5 requires a separate compilation
+(see `script/DeployVerifier.s.sol` for details).
 
-    // 1. Deploy verifiers
-    PedersenVerifier pedersen = new PedersenVerifier();
-    ZKVerifier zkVerifier = new ZKVerifier(msg.sender);
+### Base Contracts (steps 1-4)
 
-    // 2. Deploy registry
-    StealthAddressRegistry registry = new StealthAddressRegistry();
-
-    // 3. Deploy main contract
-    SIPPrivacy privacy = new SIPPrivacy(
-        msg.sender,           // owner
-        feeCollector,         // fee recipient
-        100                   // 1% fee (100 bps)
-    );
-
-    // 4. Link verifiers
-    privacy.setPedersenVerifier(address(pedersen));
-    privacy.setZkVerifier(address(zkVerifier));
-
-    vm.stopBroadcast();
-}
+```bash
+source .env
+forge script script/Deploy.s.sol:DeployTestnetScript \
+  --rpc-url $SEPOLIA_RPC_URL --broadcast
 ```
+
+### FundingVerifier (step 5 -- EIP-170 workaround)
+
+BB-generated UltraHonk verifiers are ~28KB with `via_ir=true`, exceeding the
+24,576 byte EIP-170 limit. The workaround is to compile in a separate workspace
+without `via_ir` (optimizer_runs=1), which produces ~23.7KB bytecode.
+
+```bash
+# 1. Create temp workspace with via_ir=false, optimizer_runs=1
+# 2. Deploy ZKTranscriptLib library
+forge create src/FundingVerifier.sol:ZKTranscriptLib \
+  --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast
+
+# 3. Deploy HonkVerifier with library linked
+forge create src/FundingVerifier.sol:HonkVerifier \
+  --private-key $PRIVATE_KEY --rpc-url $RPC_URL --broadcast \
+  --libraries src/FundingVerifier.sol:ZKTranscriptLib:$LIB_ADDRESS
+
+# 4. Register in ZKVerifier
+cast send $ZK_VERIFIER_ADDRESS "setFundingVerifier(address)" $VERIFIER_ADDRESS \
+  --private-key $PRIVATE_KEY --rpc-url $RPC_URL
+```
+
+See `script/DeployVerifier.s.sol` for full step-by-step instructions.
 
 ## Gas Report (Measured — Feb 2026)
 
@@ -352,23 +361,38 @@ Before mainnet deployment:
 
 ### Testnets
 
-#### Sepolia (Chain ID: 11155111)
+#### Sepolia (Chain ID: 11155111) -- v2 (ZKVerifier router rewrite)
 
 | Contract | Address | Deployer |
 |----------|---------|----------|
-| SIPPrivacy | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
-| PedersenVerifier | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
-| ZKVerifier | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
-| StealthAddressRegistry | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| SIPPrivacy | `0x1FED19684dC108304960db2818CF5a961d28405E` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| PedersenVerifier | `0x9AbdaBdaFdc4c0E2eFa389E6C375cdB890b919e2` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| ZKVerifier | `0x4994c799dF5B47C564cAafe7FdF415c2c2c66436` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| StealthAddressRegistry | `0xD62daC6f30541DE477c40B0Fcd7CD43e2248418E` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| ZKTranscriptLib | `0x588849033F79F3b13f8BF696c1f61C27dE056df4` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| FundingVerifier (HonkVerifier) | `0x8Ee5F3FC477C308224f58766540A5E7E049B0ECf` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
 
-**Config:** Owner `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee 50 bps | Deployed 2026-02-27
+**Config:** Owner `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee 50 bps | Deployed 2026-02-28
+**FundingVerifier:** Registered in ZKVerifier via `setFundingVerifier()` | 23,724 bytes (EIP-170 compliant)
+
+<details>
+<summary>v1 addresses (deprecated -- old mock ZKVerifier)</summary>
+
+| Contract | Address |
+|----------|---------|
+| SIPPrivacy | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` |
+| PedersenVerifier | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` |
+| ZKVerifier | `0x26988D988684627084e6ae113e0354f6bc56b126` |
+| StealthAddressRegistry | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` |
+
+</details>
 
 #### L2 Testnets
 
 | Network | SIPPrivacy | PedersenVerifier | ZKVerifier | Registry | Updated |
 |---------|------------|------------------|------------|----------|---------|
 | Base Sepolia | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | 2026-02-27 |
-| Arbitrum Sepolia | `0x...` | `0x...` | `0x...` | `0x...` | TBD |
+| Arbitrum Sepolia | Pending (0 ETH in deployer) | — | — | — | TBD |
 | Optimism Sepolia | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | 2026-02-27 |
 
 ### Mainnets

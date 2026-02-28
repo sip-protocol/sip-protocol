@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {SIPPrivacy} from "../../src/SIPPrivacy.sol";
 import {PedersenVerifier} from "../../src/PedersenVerifier.sol";
 import {ZKVerifier} from "../../src/ZKVerifier.sol";
+import {HonkVerifier} from "../../src/verifiers/FundingVerifier.sol";
 import {StealthAddressRegistry} from "../../src/StealthAddressRegistry.sol";
 import {IERC20} from "../../src/interfaces/IERC20.sol";
 
@@ -50,6 +51,7 @@ abstract contract TestSetup is Test {
     SIPPrivacy public sipPrivacy;
     PedersenVerifier public pedersenVerifier;
     ZKVerifier public zkVerifier;
+    HonkVerifier public fundingVerifier;
     StealthAddressRegistry public registry;
     MockERC20 public token;
 
@@ -79,6 +81,8 @@ abstract contract TestSetup is Test {
         vm.startPrank(owner);
         pedersenVerifier = new PedersenVerifier();
         zkVerifier = new ZKVerifier(owner);
+        fundingVerifier = new HonkVerifier();
+        zkVerifier.setFundingVerifier(address(fundingVerifier));
         registry = new StealthAddressRegistry();
         sipPrivacy = new SIPPrivacy(owner, feeCollector, DEFAULT_FEE_BPS);
 

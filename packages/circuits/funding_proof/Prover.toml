@@ -10,7 +10,7 @@
 # 4. Verify proof with: nargo verify
 
 # Public inputs (known to verifier)
-commitment_hash = "0x0000000000000000000000000000000000000000000000000000000000000000"
+commitment_hash = "0x18ff45f87e2ff8d6e7bb2a21794de36db9b9b682b85bb2b177e1ff32be7f0dd6"
 minimum_required = 50
 asset_id = "0xABCD"
 
