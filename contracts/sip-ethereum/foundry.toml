@@ -7,6 +7,11 @@ optimizer = true
 optimizer_runs = 200
 via_ir = true
 evm_version = "cancun"
+# BB-generated UltraHonk verifiers exceed EIP-170 (28KB vs 24KB limit) when
+# compiled with via_ir=true. Raised to 32KB so local tests pass.
+# For production deployment, compile verifiers separately without via_ir
+# (optimizer_runs=1) — see script/DeployVerifier.s.sol for details.
+code_size_limit = 32768
 fs_permissions = [{ access = "read", path = "test/fixtures" }]
 
 [profile.default.fmt]

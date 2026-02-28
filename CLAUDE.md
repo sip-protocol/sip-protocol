@@ -786,7 +786,20 @@ solana program deploy target/deploy/sip_privacy.so \
 
 ### EVM Contract Deployments (M18)
 
-Deployer: `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee: 50 bps | All addresses deterministic (same nonce)
+Deployer: `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee: 50 bps
+
+**Sepolia v2** (ZKVerifier router rewrite + FundingVerifier, 2026-02-28):
+
+| Contract | Address |
+|----------|---------|
+| SIPPrivacy | `0x1FED19684dC108304960db2818CF5a961d28405E` |
+| PedersenVerifier | `0x9AbdaBdaFdc4c0E2eFa389E6C375cdB890b919e2` |
+| ZKVerifier | `0x4994c799dF5B47C564cAafe7FdF415c2c2c66436` |
+| StealthAddressRegistry | `0xD62daC6f30541DE477c40B0Fcd7CD43e2248418E` |
+| ZKTranscriptLib | `0x588849033F79F3b13f8BF696c1f61C27dE056df4` |
+| FundingVerifier (HonkVerifier) | `0x8Ee5F3FC477C308224f58766540A5E7E049B0ECf` |
+
+**L2 Testnets** (v1 addresses, pre-ZKVerifier rewrite):
 
 | Contract | Address |
 |----------|---------|
@@ -797,10 +810,10 @@ Deployer: `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee: 50 bps | All addre
 
 | Network | Status | Date |
 |---------|--------|------|
-| Sepolia (11155111) | ✅ Deployed + Verified | 2026-02-27 |
-| Base Sepolia (84532) | ✅ Deployed | 2026-02-27 |
-| OP Sepolia (11155420) | ✅ Deployed | 2026-02-27 |
-| Arbitrum Sepolia (421614) | 🔲 Pending funds | — |
+| Sepolia (11155111) | ✅ v2 Deployed (router + FundingVerifier) | 2026-02-28 |
+| Base Sepolia (84532) | ✅ v1 Deployed | 2026-02-27 |
+| OP Sepolia (11155420) | ✅ v1 Deployed | 2026-02-27 |
+| Arbitrum Sepolia (421614) | 🔲 Pending funds (0 ETH in deployer) | — |
 | Mainnets | 🔲 Planned | — |
 
 See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas report.
