@@ -7,7 +7,9 @@ import {PedersenVerifier} from "../../src/PedersenVerifier.sol";
 import {ZKVerifier} from "../../src/ZKVerifier.sol";
 import {HonkVerifier} from "../../src/verifiers/FundingVerifier.sol";
 import {StealthAddressRegistry} from "../../src/StealthAddressRegistry.sol";
+import {SIPSwapRouter} from "../../src/SIPSwapRouter.sol";
 import {IERC20} from "../../src/interfaces/IERC20.sol";
+import {ISwapRouter} from "../../src/interfaces/ISwapRouter.sol";
 
 /// @notice Mock ERC20 token for testing
 contract MockERC20 {
@@ -46,6 +48,103 @@ contract MockERC20 {
     }
 }
 
+/// @notice Mock WETH for testing
+contract MockWETH {
+    string public name = "Wrapped Ether";
+    string public symbol = "WETH";
+    uint8 public decimals = 18;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    function deposit() external payable {
+        balanceOf[msg.sender] += msg.value;
+    }
+
+    function withdraw(uint256 amount) external {
+        require(balanceOf[msg.sender] >= amount, "Insufficient WETH");
+        balanceOf[msg.sender] -= amount;
+        (bool ok,) = msg.sender.call{value: amount}("");
+        require(ok, "ETH transfer failed");
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        return true;
+    }
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        require(balanceOf[from] >= amount, "Insufficient balance");
+        require(allowance[from][msg.sender] >= amount, "Insufficient allowance");
+        allowance[from][msg.sender] -= amount;
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+        return true;
+    }
+
+    receive() external payable {
+        balanceOf[msg.sender] += msg.value;
+    }
+}
+
+/// @notice Mock Uniswap V3 SwapRouter for testing
+contract MockSwapRouter {
+    uint256 public mockAmountOut;
+    bool public shouldRevert;
+
+    function setMockAmountOut(uint256 amount) external {
+        mockAmountOut = amount;
+    }
+
+    function setShouldRevert(bool _revert) external {
+        shouldRevert = _revert;
+    }
+
+    function exactInputSingle(ISwapRouter.ExactInputSingleParams calldata params)
+        external
+        payable
+        returns (uint256)
+    {
+        if (shouldRevert) revert("Swap failed");
+
+        // Pull input tokens from caller
+        IERC20(params.tokenIn).transferFrom(msg.sender, address(this), params.amountIn);
+
+        // Mint output tokens to recipient (simulates Uniswap pool)
+        MockERC20(params.tokenOut).mint(params.recipient, mockAmountOut);
+
+        return mockAmountOut;
+    }
+
+    function exactInput(ISwapRouter.ExactInputParams calldata params)
+        external
+        payable
+        returns (uint256)
+    {
+        if (shouldRevert) revert("Swap failed");
+
+        // Extract tokenIn (first 20 bytes) and tokenOut (last 20 bytes) from path
+        bytes calldata path = params.path;
+        address tokenIn = address(bytes20(path[:20]));
+        address tokenOut = address(bytes20(path[path.length - 20:]));
+
+        // Pull input tokens from caller
+        IERC20(tokenIn).transferFrom(msg.sender, address(this), params.amountIn);
+
+        // Mint output tokens to recipient
+        MockERC20(tokenOut).mint(params.recipient, mockAmountOut);
+
+        return mockAmountOut;
+    }
+}
+
 /// @notice Base test setup for all SIP Ethereum contract tests
 abstract contract TestSetup is Test {
     SIPPrivacy public sipPrivacy;
@@ -53,7 +152,11 @@ abstract contract TestSetup is Test {
     ZKVerifier public zkVerifier;
     HonkVerifier public fundingVerifier;
     StealthAddressRegistry public registry;
+    SIPSwapRouter public sipSwapRouter;
     MockERC20 public token;
+    MockERC20 public outputToken;
+    MockWETH public weth;
+    MockSwapRouter public mockSwapRouter;
 
     address public owner;
     address public feeCollector;
@@ -91,10 +194,27 @@ abstract contract TestSetup is Test {
         sipPrivacy.setZkVerifier(address(zkVerifier));
         vm.stopPrank();
 
-        // Deploy mock token and fund alice
+        // Deploy mock tokens
         token = new MockERC20();
         token.mint(alice, TOKEN_AMOUNT);
         token.mint(bob, TOKEN_AMOUNT);
+
+        outputToken = new MockERC20();
+
+        // Deploy swap router mocks
+        weth = new MockWETH();
+        mockSwapRouter = new MockSwapRouter();
+        mockSwapRouter.setMockAmountOut(2000e6); // Default: 2000 USDC
+
+        // Deploy SIPSwapRouter
+        vm.prank(owner);
+        sipSwapRouter = new SIPSwapRouter(
+            owner,
+            feeCollector,
+            DEFAULT_FEE_BPS,
+            address(mockSwapRouter),
+            address(weth)
+        );
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

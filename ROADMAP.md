@@ -1209,7 +1209,7 @@ const payments = await scanForPayments({
 | [#808](../../issues/808) | Secp256k1 stealth address scanning (EVM) | High | ✅ Complete |
 | [#809](../../issues/809) | EVM viewing key disclosure mechanism | High | ✅ Complete |
 | [#810](../../issues/810) | **Gelato/ERC-4337 relayer integration** (gas abstraction) | High | 🔲 Planned |
-| [#811](../../issues/811) | Uniswap integration for private swaps | Medium | 🔲 Planned |
+| [#811](../../issues/811) | Uniswap integration for private swaps | Medium | ✅ Complete |
 | [#812](../../issues/812) | 1inch aggregator integration | Medium | 🔲 Planned |
 | [#813](../../issues/813) | **Base L2 deployment** (Coinbase compliance alignment) | Critical | ✅ Complete |
 | [#814](../../issues/814) | **Arbitrum deployment** (largest TVL, DeFi) | Critical | ✅ Complete |
@@ -1703,6 +1703,6 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ---
 
 *Last updated: February 28, 2026*
-*M16-M17 Complete | M18 In Progress (17/21 issues done) | Superteam Grant APPROVED ($10K)*
+*M16-M17 Complete | M18 In Progress (18/21 issues done) | Superteam Grant APPROVED ($10K)*
 *7,504+ tests | 7 packages | Full Privacy Architecture documented (M19-M20)*
 *M18: 148 Foundry tests, deployed on Sepolia (v2 with real ZK verifier) + Base Sepolia + OP Sepolia*

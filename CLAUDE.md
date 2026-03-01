@@ -453,6 +453,7 @@ const payments = await scanForPayments({
 | Noir circuits | Done | BrowserNoirProvider for browser, compiled circuits |
 | EVM ZK verifier | Done | BB-generated UltraHonk FundingVerifier on Sepolia |
 | EVM privacy contracts | Done | SIPPrivacy, PedersenVerifier, StealthAddressRegistry |
+| Uniswap private swaps | Done | SIPSwapRouter — stealth output via Uniswap V3 |
 
 ---
 
@@ -487,7 +488,7 @@ pnpm build
 | Package | Version | Tests | Location |
 |---------|---------|-------|----------|
 | @sip-protocol/sdk | 0.9.0 | 6,716 | `packages/sdk/tests/` |
-| contracts/sip-ethereum | - | 151 | `contracts/sip-ethereum/test/` |
+| contracts/sip-ethereum | - | 199 | `contracts/sip-ethereum/test/` |
 | @sip-protocol/react | 0.1.0 | 543 | `packages/react/tests/` |
 | @sip-protocol/cli | 0.2.0 | 62 | `packages/cli/tests/` |
 | @sip-protocol/api | 0.1.0 | 198 | `packages/api/tests/` |
@@ -801,6 +802,7 @@ Deployer: `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee: 50 bps
 | StealthAddressRegistry | `0xD62daC6f30541DE477c40B0Fcd7CD43e2248418E` |
 | ZKTranscriptLib | `0x588849033F79F3b13f8BF696c1f61C27dE056df4` |
 | FundingVerifier (HonkVerifier) | `0x8Ee5F3FC477C308224f58766540A5E7E049B0ECf` |
+| SIPSwapRouter | `0x881e55fd6FB774B06cB093bC0c881e57a3aEcd98` |
 
 **Arbitrum Sepolia v2** (full deployment + FundingVerifier, 2026-03-01):
 
@@ -845,4 +847,4 @@ See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas rep
 ---
 
 **Last Updated:** 2026-03-01
-**Status:** M17 Complete (Mainnet Live) | M18 In Progress (17/24 done) | 7,529+ Tests + 151 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Status:** M17 Complete (Mainnet Live) | M18 In Progress (18/24 done) | 7,529+ Tests + 199 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
