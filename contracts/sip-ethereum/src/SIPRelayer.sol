@@ -2,8 +2,10 @@
 pragma solidity ^0.8.24;
 
 import {GelatoRelayContext} from "@gelatonetwork/relay-context/contracts/GelatoRelayContext.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {SIPPrivacy} from "./SIPPrivacy.sol";
-import {IERC20} from "./interfaces/IERC20.sol";
 
 /**
  * @title SIP Relayer - Gasless Withdrawals via Gelato
@@ -36,7 +38,9 @@ import {IERC20} from "./interfaces/IERC20.sol";
  * └──────────────────────────────────────────────────────────────────────────┘
  * ```
  */
-contract SIPRelayer is GelatoRelayContext {
+contract SIPRelayer is GelatoRelayContext, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     // ═══════════════════════════════════════════════════════════════════════════
     // State Variables
     // ═══════════════════════════════════════════════════════════════════════════
@@ -99,6 +103,7 @@ contract SIPRelayer is GelatoRelayContext {
     error ZeroAddress();
     error InsufficientBalance();
     error TransferFailed();
+    error FeeTokenMismatch();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Modifiers
@@ -151,8 +156,14 @@ contract SIPRelayer is GelatoRelayContext {
         bytes calldata proof,
         address recipient,
         uint256 maxFee
-    ) external onlyGelatoRelay whenNotPaused {
+    ) external onlyGelatoRelay whenNotPaused nonReentrant {
         if (recipient == address(0)) revert ZeroAddress();
+
+        // Validate Gelato fee token is native ETH
+        if (_getFeeToken() != 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE) revert FeeTokenMismatch();
+
+        // Capture fee before paying
+        uint256 gelatoFee = _getFee();
 
         // Record balance before withdrawal
         uint256 balanceBefore = address(this).balance;
@@ -167,7 +178,6 @@ contract SIPRelayer is GelatoRelayContext {
         _transferRelayFeeCapped(maxFee);
 
         // Calculate remaining after fee
-        uint256 gelatoFee = _getFee();
         uint256 remaining = received - gelatoFee;
         if (remaining == 0) revert InsufficientBalance();
 
@@ -196,9 +206,15 @@ contract SIPRelayer is GelatoRelayContext {
         address recipient,
         address token,
         uint256 maxFee
-    ) external onlyGelatoRelay whenNotPaused {
+    ) external onlyGelatoRelay whenNotPaused nonReentrant {
         if (recipient == address(0)) revert ZeroAddress();
         if (token == address(0)) revert ZeroAddress();
+
+        // Validate Gelato fee token matches withdrawal token
+        if (_getFeeToken() != token) revert FeeTokenMismatch();
+
+        // Capture fee before paying
+        uint256 gelatoFee = _getFee();
 
         // Record token balance before withdrawal
         uint256 balanceBefore = IERC20(token).balanceOf(address(this));
@@ -213,12 +229,11 @@ contract SIPRelayer is GelatoRelayContext {
         _transferRelayFeeCapped(maxFee);
 
         // Calculate remaining after fee
-        uint256 gelatoFee = _getFee();
         uint256 remaining = received - gelatoFee;
         if (remaining == 0) revert InsufficientBalance();
 
         // Forward remaining tokens to recipient
-        IERC20(token).transfer(recipient, remaining);
+        IERC20(token).safeTransfer(recipient, remaining);
 
         emit RelayedTokenWithdrawal(transferId, recipient, token, remaining, gelatoFee);
     }
@@ -266,7 +281,7 @@ contract SIPRelayer is GelatoRelayContext {
      */
     function rescueTokens(address token, address to, uint256 amount) external onlyOwner {
         if (to == address(0)) revert ZeroAddress();
-        IERC20(token).transfer(to, amount);
+        IERC20(token).safeTransfer(to, amount);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

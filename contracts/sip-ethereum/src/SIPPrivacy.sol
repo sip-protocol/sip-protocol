@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {IERC20} from "./interfaces/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "./utils/ReentrancyGuard.sol";
 import {IPedersenVerifier} from "./interfaces/IPedersenVerifier.sol";
 import {IZKVerifier} from "./interfaces/IZKVerifier.sol";
@@ -44,6 +45,8 @@ import {IZKVerifier} from "./interfaces/IZKVerifier.sol";
  * ```
  */
 contract SIPPrivacy is ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Constants
     // ═══════════════════════════════════════════════════════════════════════════
@@ -696,11 +699,11 @@ contract SIPPrivacy is ReentrancyGuard {
         depositTokens[transferId] = token;
 
         // Transfer tokens from sender to this contract
-        IERC20(token).transferFrom(msg.sender, address(this), netAmount);
+        IERC20(token).safeTransferFrom(msg.sender, address(this), netAmount);
 
         // Transfer fee to collector
         if (feeAmount > 0) {
-            IERC20(token).transferFrom(msg.sender, feeCollector, feeAmount);
+            IERC20(token).safeTransferFrom(msg.sender, feeCollector, feeAmount);
         }
 
         emit ShieldedDeposit(
@@ -818,13 +821,14 @@ contract SIPPrivacy is ReentrancyGuard {
         // Mark nullifier as used
         nullifiers[nullifier] = true;
 
-        // Mark transfer as claimed and clear deposit balance
+        // Mark transfer as claimed and clear deposit balance + token
         record.claimed = true;
         depositBalances[transferId] = 0;
+        address token = depositTokens[transferId];
+        depositTokens[transferId] = address(0);
 
         // Send tokens to recipient
-        address token = depositTokens[transferId];
-        IERC20(token).transfer(recipient, amount);
+        IERC20(token).safeTransfer(recipient, amount);
 
         emit DepositWithdrawn(transferId, nullifier, recipient, token, amount);
     }
