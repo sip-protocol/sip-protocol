@@ -483,14 +483,14 @@ pnpm build
 
 ---
 
-## Test Suite (7,529+ total tests)
+## Test Suite (7,624+ total tests)
 
 ### Package Test Counts
 
 | Package | Version | Tests | Location |
 |---------|---------|-------|----------|
 | @sip-protocol/sdk | 0.9.0 | 6,716 | `packages/sdk/tests/` |
-| contracts/sip-ethereum | - | 199 | `contracts/sip-ethereum/test/` |
+| contracts/sip-ethereum | - | 294 | `contracts/sip-ethereum/test/` |
 | @sip-protocol/react | 0.1.0 | 543 | `packages/react/tests/` |
 | @sip-protocol/cli | 0.2.0 | 62 | `packages/cli/tests/` |
 | @sip-protocol/api | 0.1.0 | 198 | `packages/api/tests/` |
