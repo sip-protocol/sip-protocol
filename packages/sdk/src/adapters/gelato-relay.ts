@@ -124,12 +124,17 @@ export function functionSelector(signature: string): string {
 
 /** Left-pad a bigint to 32 bytes (64 hex chars) */
 function padUint256(value: bigint): string {
+  if (value < 0n) throw new Error(`uint256 cannot be negative: ${value}`)
+  if (value >= 2n ** 256n) throw new Error(`uint256 overflow: ${value}`)
   return value.toString(16).padStart(64, '0')
 }
 
 /** Left-pad an address to 32 bytes (64 hex chars) */
 function padAddress(addr: string): string {
   const clean = addr.startsWith('0x') ? addr.slice(2) : addr
+  if (clean.length !== 40) {
+    throw new Error(`Invalid address length: expected 40 hex chars, got ${clean.length}`)
+  }
   return clean.toLowerCase().padStart(64, '0')
 }
 
@@ -139,7 +144,7 @@ function padBytes32(value: string): string {
   if (clean.length > 64) {
     throw new Error(`bytes32 value too long: ${clean.length} hex chars (max 64)`)
   }
-  return clean.padStart(64, '0')
+  return clean.padEnd(64, '0')
 }
 
 /**
@@ -148,6 +153,9 @@ function padBytes32(value: string): string {
  */
 function encodeBytes(value: string): string {
   const clean = value.startsWith('0x') ? value.slice(2) : value
+  if (clean.length % 2 !== 0) {
+    throw new Error(`bytes value must have even hex length, got ${clean.length}`)
+  }
   const length = clean.length / 2
   const paddedData = clean.length % 64 === 0
     ? clean
@@ -248,6 +256,9 @@ export class GelatoRelayAdapter {
   async getTaskStatus(taskId: string): Promise<TaskStatusResult> {
     if (!taskId) {
       throw new Error('taskId is required')
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(taskId)) {
+      throw new Error(`Invalid taskId format: ${taskId}`)
     }
 
     const response = await fetch(`${GELATO_RELAY_URL}/tasks/status/${taskId}`)

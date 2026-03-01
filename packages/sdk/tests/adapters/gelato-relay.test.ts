@@ -390,10 +390,9 @@ describe('GelatoRelayAdapter', () => {
       // recipient is at slot 3 (after transferId, nullifier, proofOffset)
       // offset = 10 + 64*3 = 202, length = 64
       const recipientHex = data.slice(202, 266)
-      expect(recipientHex).toBe('000000000000000000000000deadbeefdeadbeefdeadbeefdead' + 'beefdeadbee' + 'f')
-      expect(recipientHex.endsWith('deadbeefdeadbeefdeadbeefdead' + 'beefdeadbee' + 'f')).toBe(true)
-      // Just verify it contains the address lowercase
-      expect(recipientHex).toContain('deadbeefdead')
+      const expected = '0xDeaDbeefdEAdbeefdEadbEEFdeadbeEFdEaDbeeF'
+        .slice(2).toLowerCase().padStart(64, '0')
+      expect(recipientHex).toBe(expected)
     })
   })
 })
