@@ -802,7 +802,18 @@ Deployer: `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee: 50 bps
 | ZKTranscriptLib | `0x588849033F79F3b13f8BF696c1f61C27dE056df4` |
 | FundingVerifier (HonkVerifier) | `0x8Ee5F3FC477C308224f58766540A5E7E049B0ECf` |
 
-**L2 Testnets** (v1 addresses, pre-ZKVerifier rewrite):
+**Arbitrum Sepolia v2** (full deployment + FundingVerifier, 2026-03-01):
+
+| Contract | Address |
+|----------|---------|
+| SIPPrivacy | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` |
+| PedersenVerifier | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` |
+| ZKVerifier | `0x26988D988684627084e6ae113e0354f6bc56b126` |
+| StealthAddressRegistry | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` |
+| ZKTranscriptLib | `0x4994c799dF5B47C564cAafe7FdF415c2c2c66436` |
+| FundingVerifier (HonkVerifier) | `0xD62daC6f30541DE477c40B0Fcd7CD43e2248418E` |
+
+**Base Sepolia + OP Sepolia** (v1 addresses, pre-ZKVerifier rewrite):
 
 | Contract | Address |
 |----------|---------|
@@ -814,9 +825,9 @@ Deployer: `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee: 50 bps
 | Network | Status | Date |
 |---------|--------|------|
 | Sepolia (11155111) | ✅ v2 Deployed (router + FundingVerifier) | 2026-02-28 |
+| Arbitrum Sepolia (421614) | ✅ v2 Deployed (router + FundingVerifier) | 2026-03-01 |
 | Base Sepolia (84532) | ✅ v1 Deployed | 2026-02-27 |
 | OP Sepolia (11155420) | ✅ v1 Deployed | 2026-02-27 |
-| Arbitrum Sepolia (421614) | 🔲 Pending funds (0 ETH in deployer) | — |
 | Mainnets | 🔲 Planned | — |
 
 See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas report.
@@ -834,4 +845,4 @@ See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas rep
 ---
 
 **Last Updated:** 2026-03-01
-**Status:** M17 Complete (Mainnet Live) | M18 In Progress (16/24 done) | 7,529+ Tests + 151 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Status:** M17 Complete (Mainnet Live) | M18 In Progress (17/24 done) | 7,529+ Tests + 151 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
