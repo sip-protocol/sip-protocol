@@ -13,6 +13,22 @@ Comprehensive deployment instructions for SIP Privacy contracts across Ethereum 
 | Arbitrum One | 42161 | L2 (Nitro) | Critical | 44% TVL |
 | Optimism | 10 | L2 (OP Stack) | High | 6% TVL |
 
+### Supported Networks (Tier 2 — ZK Rollups)
+
+| Network | Chain ID | Type | Priority | Market Share |
+|---------|----------|------|----------|--------------|
+| Scroll | 534370 | L2 (ZK) | Medium | Growing |
+| Linea | 59144 | L2 (ZK) | Medium | ConsenSys |
+| zkSync Era | 324 | L2 (ZK) | Medium | ZK narrative |
+
+### Supported Networks (Long-tail)
+
+| Network | Chain ID | Type | Priority |
+|---------|----------|------|----------|
+| Blast | 81457 | L2 (Optimistic) | Low |
+| Mantle | 5000 | L2 (Optimistic) | Low |
+| Mode | 34443 | L2 (OP Stack) | Low |
+
 ### Testnets
 
 | Network | Chain ID | Faucet |
@@ -21,6 +37,12 @@ Comprehensive deployment instructions for SIP Privacy contracts across Ethereum 
 | Base Sepolia | 84532 | [faucet.quicknode.com/base/sepolia](https://faucet.quicknode.com/base/sepolia) |
 | Arbitrum Sepolia | 421614 | [faucet.quicknode.com/arbitrum/sepolia](https://faucet.quicknode.com/arbitrum/sepolia) |
 | Optimism Sepolia | 11155420 | [faucet.quicknode.com/optimism/sepolia](https://faucet.quicknode.com/optimism/sepolia) |
+| Scroll Sepolia | 534351 | Bridge from L1 Sepolia |
+| Linea Sepolia | 59141 | [docs.linea.build/get-testnet-eth](https://docs.linea.build/get-started/how-to/get-testnet-eth) |
+| Mode Sepolia | 919 | Bridge from L1 Sepolia |
+| Blast Sepolia | 168587773 | [faucet.quicknode.com/blast/sepolia](https://faucet.quicknode.com/blast/sepolia) |
+| Mantle Sepolia | 5003 | [faucet.sepolia.mantle.xyz](https://faucet.sepolia.mantle.xyz/) |
+| zkSync Sepolia | 300 | [portal.zksync.io](https://portal.zksync.io/) |
 
 ## Prerequisites
 
@@ -393,13 +415,29 @@ Before mainnet deployment:
 
 </details>
 
-#### L2 Testnets
+#### L2 Testnets — Tier 1 (OP Stack + Nitro)
 
 | Network | SIPPrivacy | PedersenVerifier | ZKVerifier | Registry | Updated |
 |---------|------------|------------------|------------|----------|---------|
-| Base Sepolia | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | 2026-02-27 |
-| Arbitrum Sepolia | Pending (0 ETH in deployer) | — | — | — | TBD |
-| Optimism Sepolia | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | 2026-02-27 |
+| Base Sepolia (84532) | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | 2026-02-27 |
+| Arbitrum Sepolia (421614) | Pending (0 ETH in deployer) | — | — | — | TBD |
+| Optimism Sepolia (11155420) | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | 2026-02-27 |
+
+#### L2 Testnets — ZK Rollups
+
+| Network | SIPPrivacy | PedersenVerifier | ZKVerifier | Registry | SIPRelayer | Updated |
+|---------|------------|------------------|------------|----------|------------|---------|
+| Scroll Sepolia (534351) | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | `0x9AbdaBdaFdc4c0E2eFa389E6C375cdB890b919e2` | 2026-03-01 |
+| Linea Sepolia (59141) | `0x1FED19684dC108304960db2818CF5a961d28405E` | `0x9AbdaBdaFdc4c0E2eFa389E6C375cdB890b919e2` | `0x4994c799dF5B47C564cAafe7FdF415c2c2c66436` | `0xD62daC6f30541DE477c40B0Fcd7CD43e2248418E` | `0x084B990219CC536dd77424D8bB3279f59e4fc7D0` | 2026-03-01 |
+| zkSync Era Sepolia (300) | Pending (needs foundry-zksync) | — | — | — | — | TBD |
+
+#### L2 Testnets — Long-tail
+
+| Network | SIPPrivacy | PedersenVerifier | ZKVerifier | Registry | SIPRelayer | Updated |
+|---------|------------|------------------|------------|----------|------------|---------|
+| Mode Sepolia (919) | `0x0B0d06D6B5136d63Bd0817414E2D318999e50339` | `0xEB14E9022A4c3DEED072DeC6b3858c19a00C87Db` | `0x26988D988684627084e6ae113e0354f6bc56b126` | `0x1f7f3edD264Cf255dD99Fd433eD9FADE427dEF99` | `0x9AbdaBdaFdc4c0E2eFa389E6C375cdB890b919e2` | 2026-03-01 |
+| Blast Sepolia (168587773) | Pending (bridge in transit) | — | — | — | — | TBD |
+| Mantle Sepolia (5003) | Pending (needs MNT faucet) | — | — | — | — | TBD |
 
 ### Mainnets
 

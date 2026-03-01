@@ -1219,10 +1219,10 @@ const payments = await scanForPayments({
 | [#818](../../issues/818) | Solidity audit preparation | High | ✅ Complete |
 | [#819](../../issues/819) | Gas optimization (target < 200K) | Medium | ✅ Profiled |
 | [#820](../../issues/820) | EVM developer documentation | Medium | ✅ Complete |
-| [#821](../../issues/821) | zkSync Era deployment | Medium | 🔲 Planned |
-| [#822](../../issues/822) | Linea deployment | Medium | 🔲 Planned |
-| [#823](../../issues/823) | Scroll deployment | Medium | 🔲 Planned |
-| [#824](../../issues/824) | Long-tail L2 deployments (Blast, Mantle, Mode) | Low | 🔲 Planned |
+| [#821](../../issues/821) | zkSync Era deployment | Medium | 🔄 Blocked (needs foundry-zksync) |
+| [#822](../../issues/822) | Linea deployment | Medium | ✅ Complete |
+| [#823](../../issues/823) | Scroll deployment | Medium | ✅ Complete |
+| [#824](../../issues/824) | Long-tail L2 deployments (Blast, Mantle, Mode) | Low | 🔄 In Progress (Mode ✅, Blast/Mantle pending) |
 | [#944](../../issues/944) | EVM Claim Verifier — Solidity ZK proof verification (M19 cross-ref) | Critical | 🔲 Deferred (M19) |
 
 **L2 Prioritization Strategy (Jan 2026):**
@@ -1703,6 +1703,6 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ---
 
 *Last updated: March 1, 2026*
-*M16-M17 Complete | M18 In Progress (20/24 issues done) | Superteam Grant APPROVED ($10K)*
-*7,504+ tests | 7 packages | Full Privacy Architecture documented (M19-M20)*
-*M18: 294 Foundry tests, deployed on Sepolia (v2 with real ZK verifier) + Base Sepolia + OP Sepolia + Arbitrum Sepolia. SIPRelayer deployed to Sepolia for Gelato gasless withdrawals. GelatoRelayAdapter in SDK (23 tests).*
+*M16-M17 Complete | M18 In Progress (22/24 issues done) | Superteam Grant APPROVED ($10K)*
+*7,624+ tests | 7 packages | Full Privacy Architecture documented (M19-M20)*
+*M18: 294 Foundry tests, deployed on 7 testnets (Sepolia, Base, OP, Arbitrum, Scroll, Linea, Mode). SIPRelayer on 4 chains. GelatoRelayAdapter in SDK (23 tests). Blast/Mantle/zkSync pending.*

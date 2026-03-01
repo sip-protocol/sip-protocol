@@ -836,6 +836,12 @@ Deployer: `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee: 50 bps
 | Arbitrum Sepolia (421614) | ✅ v2 Deployed (router + FundingVerifier) | 2026-03-01 |
 | Base Sepolia (84532) | ✅ v1 Deployed | 2026-02-27 |
 | OP Sepolia (11155420) | ✅ v1 Deployed | 2026-02-27 |
+| Scroll Sepolia (534351) | ✅ v1 Deployed + SIPRelayer | 2026-03-01 |
+| Linea Sepolia (59141) | ✅ v2 Deployed + SIPRelayer | 2026-03-01 |
+| Mode Sepolia (919) | ✅ v1 Deployed + SIPRelayer | 2026-03-01 |
+| Blast Sepolia (168587773) | 🔲 Pending (bridge in transit) | — |
+| Mantle Sepolia (5003) | 🔲 Pending (needs MNT faucet) | — |
+| zkSync Era Sepolia (300) | 🔲 Pending (needs foundry-zksync) | — |
 | Mainnets | 🔲 Planned | — |
 
 See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas report.
