@@ -680,3 +680,477 @@ contract SIPPrivacyFuzzTest is TestSetup {
         }
     }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Deposit Mode Tests — ETH
+// ═══════════════════════════════════════════════════════════════════════════════
+
+contract SIPPrivacyDepositTest is TestSetup {
+    event ShieldedDeposit(
+        uint256 indexed transferId,
+        address indexed sender,
+        address indexed stealthRecipient,
+        address token,
+        bytes32 commitment,
+        bytes32 ephemeralPubKey,
+        uint256 timestamp
+    );
+
+    event DepositWithdrawn(
+        uint256 indexed transferId,
+        bytes32 indexed nullifier,
+        address indexed recipient,
+        address token,
+        uint256 amount
+    );
+
+    event Announcement(
+        uint256 indexed schemeId,
+        address indexed stealthAddress,
+        address indexed caller,
+        bytes ephemeralPubKey,
+        bytes metadata
+    );
+
+    /// @notice Helper: execute a shielded ETH deposit from alice
+    function _doShieldedDeposit(uint256 amount, address stealth) internal returns (uint256 transferId) {
+        bytes32 commitment = _makeCommitment(amount);
+        vm.prank(alice);
+        transferId = sipPrivacy.shieldedDeposit{value: amount}(
+            commitment,
+            stealth,
+            _makeEphemeralKey(1),
+            _makeViewingKeyHash(1),
+            _makeEncryptedAmount(amount),
+            ""
+        );
+    }
+
+    // ─── shieldedDeposit ─────────────────────────────────────────────────────
+
+    function test_shieldedDeposit_success() public {
+        address stealth = makeAddr("stealth");
+        uint256 amount = 1 ether;
+        uint256 feeAmount = (amount * DEFAULT_FEE_BPS) / 10000;
+        uint256 netAmount = amount - feeAmount;
+
+        uint256 contractBalBefore = address(sipPrivacy).balance;
+
+        uint256 id = _doShieldedDeposit(amount, stealth);
+
+        assertEq(id, 0);
+        // Net amount stays in contract
+        assertEq(address(sipPrivacy).balance, contractBalBefore + netAmount);
+        // Deposit balance recorded
+        assertEq(sipPrivacy.depositBalances(id), netAmount);
+        // Stealth EOA receives nothing (deposit mode)
+        assertEq(stealth.balance, 0);
+
+        // Record stored correctly
+        SIPPrivacy.TransferRecord memory record = sipPrivacy.getTransfer(id);
+        assertEq(record.sender, alice);
+        assertEq(record.stealthRecipient, stealth);
+        assertEq(record.token, address(0));
+        assertEq(record.claimed, false);
+    }
+
+    function test_shieldedDeposit_feeCollected() public {
+        address stealth = makeAddr("stealth");
+        uint256 amount = 10 ether;
+        uint256 expectedFee = (amount * DEFAULT_FEE_BPS) / 10000;
+
+        uint256 feeBefore = feeCollector.balance;
+
+        _doShieldedDeposit(amount, stealth);
+
+        assertEq(feeCollector.balance - feeBefore, expectedFee);
+    }
+
+    function test_shieldedDeposit_emitsShieldedDepositEvent() public {
+        address stealth = makeAddr("stealth");
+        bytes32 commitment = _makeCommitment(1 ether);
+        bytes32 ephemeralKey = _makeEphemeralKey(1);
+
+        vm.expectEmit(true, true, true, true);
+        emit ShieldedDeposit(
+            0, alice, stealth, address(0), commitment, ephemeralKey, block.timestamp
+        );
+
+        vm.prank(alice);
+        sipPrivacy.shieldedDeposit{value: 1 ether}(
+            commitment, stealth, ephemeralKey, _makeViewingKeyHash(1),
+            _makeEncryptedAmount(1 ether), ""
+        );
+    }
+
+    function test_shieldedDeposit_emitsAnnouncementEvent() public {
+        address stealth = makeAddr("stealth");
+        bytes32 commitment = _makeCommitment(1 ether);
+        bytes32 ephemeralKey = _makeEphemeralKey(1);
+        bytes32 viewingKeyHash = _makeViewingKeyHash(1);
+        bytes memory encrypted = _makeEncryptedAmount(1 ether);
+
+        uint8 viewTag = uint8(uint256(viewingKeyHash) >> 248);
+        bytes memory expectedMetadata = abi.encodePacked(viewTag, encrypted);
+
+        vm.expectEmit(true, true, true, true);
+        emit Announcement(1, stealth, alice, abi.encodePacked(ephemeralKey), expectedMetadata);
+
+        vm.prank(alice);
+        sipPrivacy.shieldedDeposit{value: 1 ether}(
+            commitment, stealth, ephemeralKey, viewingKeyHash, encrypted, ""
+        );
+    }
+
+    function test_shieldedDeposit_incrementsTransferId() public {
+        address stealth = makeAddr("stealth");
+        uint256 id1 = _doShieldedDeposit(1 ether, stealth);
+        uint256 id2 = _doShieldedDeposit(2 ether, stealth);
+        assertEq(id1, 0);
+        assertEq(id2, 1);
+    }
+
+    function test_shieldedDeposit_revertsOnZeroValue() public {
+        vm.prank(alice);
+        vm.expectRevert(SIPPrivacy.InvalidAmount.selector);
+        sipPrivacy.shieldedDeposit{value: 0}(
+            _makeCommitment(1), makeAddr("stealth"), _makeEphemeralKey(1),
+            _makeViewingKeyHash(1), _makeEncryptedAmount(0), ""
+        );
+    }
+
+    function test_shieldedDeposit_revertsOnZeroRecipient() public {
+        vm.prank(alice);
+        vm.expectRevert(SIPPrivacy.ZeroAddress.selector);
+        sipPrivacy.shieldedDeposit{value: 1 ether}(
+            _makeCommitment(1), address(0), _makeEphemeralKey(1),
+            _makeViewingKeyHash(1), _makeEncryptedAmount(1 ether), ""
+        );
+    }
+
+    function test_shieldedDeposit_revertsOnInvalidCommitment() public {
+        vm.prank(alice);
+        vm.expectRevert(SIPPrivacy.InvalidCommitment.selector);
+        sipPrivacy.shieldedDeposit{value: 1 ether}(
+            _makeInvalidCommitment(1), makeAddr("stealth"), _makeEphemeralKey(1),
+            _makeViewingKeyHash(1), _makeEncryptedAmount(1 ether), ""
+        );
+    }
+
+    function test_shieldedDeposit_revertsWhenPaused() public {
+        vm.prank(owner);
+        sipPrivacy.setPaused(true);
+
+        vm.prank(alice);
+        vm.expectRevert(SIPPrivacy.ContractPaused.selector);
+        sipPrivacy.shieldedDeposit{value: 1 ether}(
+            _makeCommitment(1), makeAddr("stealth"), _makeEphemeralKey(1),
+            _makeViewingKeyHash(1), _makeEncryptedAmount(1 ether), ""
+        );
+    }
+
+    // ─── withdrawDeposit ─────────────────────────────────────────────────────
+
+    function test_withdrawDeposit_success() public {
+        address stealth = makeAddr("stealth");
+        uint256 amount = 1 ether;
+        uint256 feeAmount = (amount * DEFAULT_FEE_BPS) / 10000;
+        uint256 netAmount = amount - feeAmount;
+
+        uint256 id = _doShieldedDeposit(amount, stealth);
+
+        address recipient = makeAddr("recipient");
+        uint256 recipientBalBefore = recipient.balance;
+
+        vm.prank(bob);
+        sipPrivacy.withdrawDeposit(id, _makeNullifier(1), "", recipient);
+
+        // Recipient gets the net amount
+        assertEq(recipient.balance - recipientBalBefore, netAmount);
+        // Deposit balance cleared
+        assertEq(sipPrivacy.depositBalances(id), 0);
+        // Transfer marked claimed
+        assertTrue(sipPrivacy.getTransfer(id).claimed);
+        // Nullifier used
+        assertTrue(sipPrivacy.isNullifierUsed(_makeNullifier(1)));
+    }
+
+    function test_withdrawDeposit_anyoneCanCall() public {
+        address stealth = makeAddr("stealth");
+        uint256 id = _doShieldedDeposit(1 ether, stealth);
+
+        address recipient = makeAddr("recipient");
+
+        // charlie (random third-party) triggers withdrawal — gasless relay pattern
+        vm.prank(charlie);
+        sipPrivacy.withdrawDeposit(id, _makeNullifier(1), "", recipient);
+
+        assertTrue(sipPrivacy.getTransfer(id).claimed);
+        assertTrue(recipient.balance > 0);
+    }
+
+    function test_withdrawDeposit_revertsAlreadyClaimed() public {
+        address stealth = makeAddr("stealth");
+        uint256 id = _doShieldedDeposit(1 ether, stealth);
+
+        vm.prank(bob);
+        sipPrivacy.withdrawDeposit(id, _makeNullifier(1), "", makeAddr("recipient"));
+
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.AlreadyClaimed.selector);
+        sipPrivacy.withdrawDeposit(id, _makeNullifier(2), "", makeAddr("recipient"));
+    }
+
+    function test_withdrawDeposit_revertsNotDeposit() public {
+        // Create a regular shieldedTransfer (not a deposit)
+        address stealth = makeAddr("stealth");
+        uint256 id = _doShieldedTransfer(1 ether, stealth);
+
+        // Try to withdrawDeposit on a regular transfer — should revert NotDeposit
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.NotDeposit.selector);
+        sipPrivacy.withdrawDeposit(id, _makeNullifier(1), "", makeAddr("recipient"));
+    }
+
+    function test_withdrawDeposit_revertsNullifierUsed() public {
+        address stealth = makeAddr("stealth");
+        uint256 id1 = _doShieldedDeposit(1 ether, stealth);
+        uint256 id2 = _doShieldedDeposit(2 ether, stealth);
+
+        bytes32 nullifier = _makeNullifier(1);
+
+        vm.prank(bob);
+        sipPrivacy.withdrawDeposit(id1, nullifier, "", makeAddr("recipient"));
+
+        // Same nullifier on different deposit
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.NullifierUsed.selector);
+        sipPrivacy.withdrawDeposit(id2, nullifier, "", makeAddr("recipient2"));
+    }
+
+    function test_withdrawDeposit_revertsZeroNullifier() public {
+        address stealth = makeAddr("stealth");
+        uint256 id = _doShieldedDeposit(1 ether, stealth);
+
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.InvalidNullifier.selector);
+        sipPrivacy.withdrawDeposit(id, bytes32(0), "", makeAddr("recipient"));
+    }
+
+    function test_withdrawDeposit_revertsTransferNotFound() public {
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.TransferNotFound.selector);
+        sipPrivacy.withdrawDeposit(999, _makeNullifier(1), "", makeAddr("recipient"));
+    }
+
+    function test_withdrawDeposit_revertsWhenPaused() public {
+        address stealth = makeAddr("stealth");
+        uint256 id = _doShieldedDeposit(1 ether, stealth);
+
+        vm.prank(owner);
+        sipPrivacy.setPaused(true);
+
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.ContractPaused.selector);
+        sipPrivacy.withdrawDeposit(id, _makeNullifier(1), "", makeAddr("recipient"));
+    }
+
+    function test_withdrawDeposit_emitsDepositWithdrawnEvent() public {
+        address stealth = makeAddr("stealth");
+        uint256 amount = 1 ether;
+        uint256 feeAmount = (amount * DEFAULT_FEE_BPS) / 10000;
+        uint256 netAmount = amount - feeAmount;
+
+        uint256 id = _doShieldedDeposit(amount, stealth);
+
+        address recipient = makeAddr("recipient");
+        bytes32 nullifier = _makeNullifier(1);
+
+        vm.expectEmit(true, true, true, true);
+        emit DepositWithdrawn(id, nullifier, recipient, address(0), netAmount);
+
+        vm.prank(bob);
+        sipPrivacy.withdrawDeposit(id, nullifier, "", recipient);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Deposit Mode Tests — ERC20
+// ═══════════════════════════════════════════════════════════════════════════════
+
+contract SIPPrivacyTokenDepositTest is TestSetup {
+    event ShieldedDeposit(
+        uint256 indexed transferId,
+        address indexed sender,
+        address indexed stealthRecipient,
+        address token,
+        bytes32 commitment,
+        bytes32 ephemeralPubKey,
+        uint256 timestamp
+    );
+
+    event DepositWithdrawn(
+        uint256 indexed transferId,
+        bytes32 indexed nullifier,
+        address indexed recipient,
+        address token,
+        uint256 amount
+    );
+
+    /// @notice Helper: execute a shielded token deposit from alice
+    function _doShieldedTokenDeposit(uint256 amount, address stealth) internal returns (uint256 transferId) {
+        bytes32 commitment = _makeCommitment(amount);
+        vm.startPrank(alice);
+        token.approve(address(sipPrivacy), amount);
+        transferId = sipPrivacy.shieldedTokenDeposit(
+            address(token),
+            amount,
+            commitment,
+            stealth,
+            _makeEphemeralKey(1),
+            _makeViewingKeyHash(1),
+            _makeEncryptedAmount(amount),
+            ""
+        );
+        vm.stopPrank();
+    }
+
+    // ─── shieldedTokenDeposit ────────────────────────────────────────────────
+
+    function test_shieldedTokenDeposit_success() public {
+        address stealth = makeAddr("stealth");
+        uint256 amount = 1000e18;
+        uint256 feeAmount = (amount * DEFAULT_FEE_BPS) / 10000;
+        uint256 netAmount = amount - feeAmount;
+
+        uint256 contractBalBefore = token.balanceOf(address(sipPrivacy));
+
+        uint256 id = _doShieldedTokenDeposit(amount, stealth);
+
+        assertEq(id, 0);
+        // Net amount held in contract
+        assertEq(token.balanceOf(address(sipPrivacy)) - contractBalBefore, netAmount);
+        // Deposit balance recorded
+        assertEq(sipPrivacy.depositBalances(id), netAmount);
+        // Token address stored
+        assertEq(sipPrivacy.depositTokens(id), address(token));
+        // Stealth EOA receives nothing
+        assertEq(token.balanceOf(stealth), 0);
+
+        // Record stored correctly
+        SIPPrivacy.TransferRecord memory record = sipPrivacy.getTransfer(id);
+        assertEq(record.sender, alice);
+        assertEq(record.stealthRecipient, stealth);
+        assertEq(record.token, address(token));
+        assertEq(record.claimed, false);
+    }
+
+    function test_shieldedTokenDeposit_feeCollected() public {
+        address stealth = makeAddr("stealth");
+        uint256 amount = 5000e18;
+        uint256 expectedFee = (amount * DEFAULT_FEE_BPS) / 10000;
+
+        uint256 feeBefore = token.balanceOf(feeCollector);
+
+        _doShieldedTokenDeposit(amount, stealth);
+
+        assertEq(token.balanceOf(feeCollector) - feeBefore, expectedFee);
+    }
+
+    function test_shieldedTokenDeposit_revertsOnZeroToken() public {
+        vm.prank(alice);
+        vm.expectRevert(SIPPrivacy.ZeroAddress.selector);
+        sipPrivacy.shieldedTokenDeposit(
+            address(0), 100e18, _makeCommitment(1), makeAddr("stealth"),
+            _makeEphemeralKey(1), _makeViewingKeyHash(1),
+            _makeEncryptedAmount(100e18), ""
+        );
+    }
+
+    function test_shieldedTokenDeposit_revertsOnZeroAmount() public {
+        vm.prank(alice);
+        vm.expectRevert(SIPPrivacy.InvalidAmount.selector);
+        sipPrivacy.shieldedTokenDeposit(
+            address(token), 0, _makeCommitment(1), makeAddr("stealth"),
+            _makeEphemeralKey(1), _makeViewingKeyHash(1),
+            _makeEncryptedAmount(0), ""
+        );
+    }
+
+    // ─── withdrawTokenDeposit ────────────────────────────────────────────────
+
+    function test_withdrawTokenDeposit_success() public {
+        address stealth = makeAddr("stealth");
+        uint256 amount = 1000e18;
+        uint256 feeAmount = (amount * DEFAULT_FEE_BPS) / 10000;
+        uint256 netAmount = amount - feeAmount;
+
+        uint256 id = _doShieldedTokenDeposit(amount, stealth);
+
+        address recipient = makeAddr("recipient");
+        bytes32 nullifier = _makeNullifier(1);
+
+        vm.prank(bob);
+        sipPrivacy.withdrawTokenDeposit(id, nullifier, "", recipient);
+
+        // Recipient gets the net amount of tokens
+        assertEq(token.balanceOf(recipient), netAmount);
+        // Deposit balance cleared
+        assertEq(sipPrivacy.depositBalances(id), 0);
+        // Deposit token cleared
+        assertEq(sipPrivacy.depositTokens(id), address(0));
+        // Transfer marked claimed
+        assertTrue(sipPrivacy.getTransfer(id).claimed);
+        // Nullifier used
+        assertTrue(sipPrivacy.isNullifierUsed(nullifier));
+    }
+
+    function test_withdrawTokenDeposit_revertsForETHDeposit() public {
+        // Create an ETH deposit
+        address stealth = makeAddr("stealth");
+        bytes32 commitment = _makeCommitment(1 ether);
+        vm.prank(alice);
+        uint256 id = sipPrivacy.shieldedDeposit{value: 1 ether}(
+            commitment, stealth, _makeEphemeralKey(1), _makeViewingKeyHash(1),
+            _makeEncryptedAmount(1 ether), ""
+        );
+
+        // Try token withdrawal on ETH deposit — should revert InvalidAmount
+        // (record.token == NATIVE_TOKEN check fails)
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.InvalidAmount.selector);
+        sipPrivacy.withdrawTokenDeposit(id, _makeNullifier(1), "", makeAddr("recipient"));
+    }
+
+    function test_withdrawTokenDeposit_clearsDepositTokens() public {
+        address stealth = makeAddr("stealth");
+        uint256 id = _doShieldedTokenDeposit(500e18, stealth);
+
+        // Before withdrawal — token stored
+        assertEq(sipPrivacy.depositTokens(id), address(token));
+
+        vm.prank(bob);
+        sipPrivacy.withdrawTokenDeposit(id, _makeNullifier(1), "", makeAddr("recipient"));
+
+        // After withdrawal — cleared to address(0)
+        assertEq(sipPrivacy.depositTokens(id), address(0));
+    }
+
+    function test_withdrawTokenDeposit_emitsDepositWithdrawnEvent() public {
+        address stealth = makeAddr("stealth");
+        uint256 amount = 1000e18;
+        uint256 feeAmount = (amount * DEFAULT_FEE_BPS) / 10000;
+        uint256 netAmount = amount - feeAmount;
+
+        uint256 id = _doShieldedTokenDeposit(amount, stealth);
+
+        address recipient = makeAddr("recipient");
+        bytes32 nullifier = _makeNullifier(1);
+
+        vm.expectEmit(true, true, true, true);
+        emit DepositWithdrawn(id, nullifier, recipient, address(token), netAmount);
+
+        vm.prank(bob);
+        sipPrivacy.withdrawTokenDeposit(id, nullifier, "", recipient);
+    }
+}
