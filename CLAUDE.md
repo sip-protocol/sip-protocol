@@ -454,6 +454,7 @@ const payments = await scanForPayments({
 | EVM ZK verifier | Done | BB-generated UltraHonk FundingVerifier on Sepolia |
 | EVM privacy contracts | Done | SIPPrivacy, PedersenVerifier, StealthAddressRegistry |
 | Uniswap private swaps | Done | SIPSwapRouter — stealth output via Uniswap V3 |
+| 1inch aggregator swaps | Done | SIPSwapRouter v2 — whitelisted router + calldata validation |
 
 ---
 
@@ -802,7 +803,9 @@ Deployer: `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee: 50 bps
 | StealthAddressRegistry | `0xD62daC6f30541DE477c40B0Fcd7CD43e2248418E` |
 | ZKTranscriptLib | `0x588849033F79F3b13f8BF696c1f61C27dE056df4` |
 | FundingVerifier (HonkVerifier) | `0x8Ee5F3FC477C308224f58766540A5E7E049B0ECf` |
-| SIPSwapRouter | `0x881e55fd6FB774B06cB093bC0c881e57a3aEcd98` |
+| SIPSwapRouter (v2) | `0xB05c2126bFfB9904DA36cDe1816a4902DEc9BEe5` |
+
+**SIPSwapRouter v2:** Uniswap V3 + 1inch aggregator | 1inch Router `0x111111125421cA6dc452d289314280a0f8842A65` (approved) | Deployed 2026-03-01
 
 **Arbitrum Sepolia v2** (full deployment + FundingVerifier, 2026-03-01):
 
@@ -847,4 +850,4 @@ See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas rep
 ---
 
 **Last Updated:** 2026-03-01
-**Status:** M17 Complete (Mainnet Live) | M18 In Progress (18/24 done) | 7,529+ Tests + 199 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Status:** M17 Complete (Mainnet Live) | M18 In Progress (19/24 done) | 7,529+ Tests + 222 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved

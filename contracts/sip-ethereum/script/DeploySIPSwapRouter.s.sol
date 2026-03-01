@@ -65,6 +65,11 @@ contract DeploySIPSwapRouterScript is Script {
 
         console.log("\nSIPSwapRouter deployed at:", address(sipSwapRouter));
 
+        // Approve 1inch V6 aggregator router
+        address oneInchRouter = vm.envOr("ONEINCH_ROUTER", address(0x111111125421cA6dc452d289314280a0f8842A65));
+        sipSwapRouter.setRouterApproval(oneInchRouter, true);
+        console.log("1inch Router approved:", oneInchRouter);
+
         vm.stopBroadcast();
 
         console.log("\n==============================================");

@@ -1210,12 +1210,12 @@ const payments = await scanForPayments({
 | [#809](../../issues/809) | EVM viewing key disclosure mechanism | High | ✅ Complete |
 | [#810](../../issues/810) | **Gelato/ERC-4337 relayer integration** (gas abstraction) | High | 🔲 Planned |
 | [#811](../../issues/811) | Uniswap integration for private swaps | Medium | ✅ Complete |
-| [#812](../../issues/812) | 1inch aggregator integration | Medium | 🔲 Planned |
+| [#812](../../issues/812) | 1inch aggregator integration | Medium | ✅ Complete |
 | [#813](../../issues/813) | **Base L2 deployment** (Coinbase compliance alignment) | Critical | ✅ Complete |
 | [#814](../../issues/814) | **Arbitrum deployment** (largest TVL, DeFi) | Critical | ✅ Complete |
 | [#815](../../issues/815) | **Optimism deployment** (OP Stack reuse) | High | ✅ Complete |
 | [#816](../../issues/816) | Sepolia testnet deployment | Critical | ✅ Complete |
-| [#817](../../issues/817) | E2E test suite for EVM (80+ tests) | High | ✅ Complete (148 tests) |
+| [#817](../../issues/817) | E2E test suite for EVM (80+ tests) | High | ✅ Complete (222 tests) |
 | [#818](../../issues/818) | Solidity audit preparation | High | ✅ Complete |
 | [#819](../../issues/819) | Gas optimization (target < 200K) | Medium | ✅ Profiled |
 | [#820](../../issues/820) | EVM developer documentation | Medium | ✅ Complete |

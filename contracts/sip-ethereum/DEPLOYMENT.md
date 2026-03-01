@@ -371,10 +371,10 @@ Before mainnet deployment:
 | StealthAddressRegistry | `0xD62daC6f30541DE477c40B0Fcd7CD43e2248418E` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
 | ZKTranscriptLib | `0x588849033F79F3b13f8BF696c1f61C27dE056df4` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
 | FundingVerifier (HonkVerifier) | `0x8Ee5F3FC477C308224f58766540A5E7E049B0ECf` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
-| SIPSwapRouter | `0x881e55fd6FB774B06cB093bC0c881e57a3aEcd98` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| SIPSwapRouter (v2) | `0xB05c2126bFfB9904DA36cDe1816a4902DEc9BEe5` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
 
 **Config:** Owner `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee 50 bps | Deployed 2026-02-28
-**SIPSwapRouter:** Uniswap V3 private swaps → stealth addresses | SwapRouter `0xE592427A0AEce92De3Edee1F18E0157C05861564` | WETH `0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9` | Deployed 2026-03-01
+**SIPSwapRouter v2:** Uniswap V3 + 1inch aggregator private swaps → stealth addresses | SwapRouter `0xE592427A0AEce92De3Edee1F18E0157C05861564` | WETH `0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9` | 1inch Router `0x111111125421cA6dc452d289314280a0f8842A65` (approved) | Deployed 2026-03-01
 **FundingVerifier:** Registered in ZKVerifier via `setFundingVerifier()` | 23,724 bytes (EIP-170 compliant)
 
 <details>

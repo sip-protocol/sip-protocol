@@ -46,6 +46,9 @@ contract SIPSwapRouter is ReentrancyGuard {
     /// @notice Native ETH sentinel address
     address public constant NATIVE_TOKEN = address(0);
 
+    /// @notice 1inch swap() function selector
+    bytes4 public constant AGGREGATOR_SWAP_SELECTOR = 0x12aa3caf;
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Immutables
     // ═══════════════════════════════════════════════════════════════════════════
@@ -77,6 +80,9 @@ contract SIPSwapRouter is ReentrancyGuard {
 
     /// @notice Swap records by ID
     mapping(uint256 => SwapRecord) public swaps;
+
+    /// @notice Whitelisted aggregator routers
+    mapping(address => bool) public approvedRouters;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Structs
@@ -127,6 +133,22 @@ contract SIPSwapRouter is ReentrancyGuard {
         uint64 timestamp;
     }
 
+    /// @notice Parameters for a generic aggregator private swap
+    struct AggregatorSwapParams {
+        address router;            // Whitelisted aggregator (e.g., 1inch V6)
+        bytes swapCalldata;        // Pre-built calldata from aggregator API
+        address tokenIn;           // address(0) for ETH
+        address tokenOut;          // Output token for record-keeping
+        uint256 amountIn;          // Input amount (ignored for ETH — uses msg.value)
+        uint256 amountOutMinimum;  // Slippage protection (verified post-swap)
+        address stealthRecipient;  // Must match dstReceiver in calldata
+        bytes32 commitment;
+        bytes32 ephemeralPubKey;
+        bytes32 viewingKeyHash;
+        bytes encryptedAmount;
+        uint256 deadline;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Events
     // ═══════════════════════════════════════════════════════════════════════════
@@ -163,6 +185,9 @@ contract SIPSwapRouter is ReentrancyGuard {
     /// @notice Emitted when ownership is transferred
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
+    /// @notice Emitted when a router's approval status changes
+    event RouterApprovalUpdated(address indexed router, bool approved);
+
     // ═══════════════════════════════════════════════════════════════════════════
     // Errors
     // ═══════════════════════════════════════════════════════════════════════════
@@ -179,6 +204,10 @@ contract SIPSwapRouter is ReentrancyGuard {
     error DeadlineExpired();
     error RefundFailed();
     error TransferFailed();
+    error RouterNotApproved();
+    error InvalidSelector();
+    error RecipientMismatch();
+    error InsufficientOutput();
 
     // ═══════════════════════════════════════════════════════════════════════════
     // Modifiers
@@ -393,6 +422,87 @@ contract SIPSwapRouter is ReentrancyGuard {
         );
     }
 
+    /**
+     * @notice Execute a private swap via a whitelisted DEX aggregator (e.g., 1inch)
+     * @param params Aggregator swap parameters with pre-built calldata
+     * @return swapId Unique swap identifier
+     *
+     * @dev The swapCalldata is generated off-chain by the aggregator's API with
+     *      destReceiver set to the stealth address. This contract verifies the
+     *      recipient matches, deducts the SIP fee, and forwards the calldata.
+     */
+    function privateAggregatorSwap(AggregatorSwapParams calldata params)
+        external
+        payable
+        whenNotPaused
+        nonReentrant
+        returns (uint256 swapId)
+    {
+        _validateSwapParams(
+            params.stealthRecipient,
+            params.commitment,
+            params.encryptedAmount,
+            params.deadline
+        );
+
+        if (!approvedRouters[params.router]) revert RouterNotApproved();
+        _validateAggregatorCalldata(params.swapCalldata, params.stealthRecipient);
+
+        uint256 effectiveDeadline = _effectiveDeadline(params.deadline);
+        if (effectiveDeadline < block.timestamp) revert DeadlineExpired();
+
+        uint256 swapAmount;
+
+        if (params.tokenIn == NATIVE_TOKEN) {
+            if (msg.value == 0) revert InvalidAmount();
+            swapAmount = _deductFeeETH(msg.value);
+        } else {
+            if (params.amountIn == 0) revert InvalidAmount();
+            IERC20(params.tokenIn).transferFrom(msg.sender, address(this), params.amountIn);
+            swapAmount = _deductFeeERC20(params.tokenIn, params.amountIn);
+            _safeApprove(params.tokenIn, params.router, swapAmount);
+        }
+
+        // tokenOut must be ERC20 (balance check uses IERC20.balanceOf)
+        if (params.tokenOut == NATIVE_TOKEN) revert ZeroAddress();
+
+        uint256 balanceBefore = IERC20(params.tokenOut).balanceOf(params.stealthRecipient);
+
+        uint256 ethValue = params.tokenIn == NATIVE_TOKEN ? swapAmount : 0;
+        (bool success, bytes memory returnData) = params.router.call{value: ethValue}(params.swapCalldata);
+        if (!success) {
+            if (returnData.length > 0) {
+                assembly {
+                    revert(add(returnData, 32), mload(returnData))
+                }
+            }
+            revert SwapFailed();
+        }
+
+        uint256 balanceAfter = IERC20(params.tokenOut).balanceOf(params.stealthRecipient);
+        uint256 amountOut = balanceAfter - balanceBefore;
+        if (amountOut < params.amountOutMinimum) revert InsufficientOutput();
+
+        swapId = _recordSwap(
+            params.stealthRecipient,
+            params.tokenIn,
+            params.tokenOut,
+            params.commitment,
+            params.ephemeralPubKey,
+            params.viewingKeyHash,
+            params.encryptedAmount,
+            swapAmount,
+            amountOut
+        );
+
+        _emitAnnouncement(
+            params.stealthRecipient,
+            params.ephemeralPubKey,
+            params.viewingKeyHash,
+            params.encryptedAmount
+        );
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // External — Admin
     // ═══════════════════════════════════════════════════════════════════════════
@@ -432,6 +542,13 @@ contract SIPSwapRouter is ReentrancyGuard {
         } else {
             IERC20(token).transfer(owner, amount);
         }
+    }
+
+    /// @notice Approve or revoke an aggregator router
+    function setRouterApproval(address router, bool approved) external onlyOwner {
+        if (router == address(0)) revert ZeroAddress();
+        approvedRouters[router] = approved;
+        emit RouterApprovalUpdated(router, approved);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -563,6 +680,28 @@ contract SIPSwapRouter is ReentrancyGuard {
             abi.encodePacked(ephemeralPubKey),
             abi.encodePacked(uint8(uint256(viewingKeyHash) >> 248), encryptedAmount)
         );
+    }
+
+    /// @notice Validate aggregator calldata and verify recipient matches stealth address
+    /// @dev 1inch swap() ABI: swap(address executor, (address,address,address,address,uint256,uint256,uint256) desc, bytes permit, bytes data)
+    ///      The SwapDescription tuple is all-static types → encoded inline (not behind offset pointer).
+    ///      Layout after 4-byte selector: executor(32) + srcToken(32) + dstToken(32) + srcReceiver(32) + dstReceiver(32) + ...
+    ///      So dstReceiver is at byte offset 4 + 128 = 132 from calldata start.
+    function _validateAggregatorCalldata(
+        bytes calldata swapCalldata,
+        address expectedRecipient
+    ) internal pure {
+        // Minimum calldata: 4 (selector) + 10 * 32 (executor + 7 desc fields + 2 offsets) = 324 bytes
+        if (swapCalldata.length < 324) revert InvalidSelector();
+        if (bytes4(swapCalldata[:4]) != AGGREGATOR_SWAP_SELECTOR) revert InvalidSelector();
+
+        // dstReceiver is the 4th field of the inline SwapDescription tuple
+        // Offset: 4 (selector) + 32 (executor) + 32 (srcToken) + 32 (dstToken) + 32 (srcReceiver) = 132
+        address dstReceiver;
+        assembly {
+            dstReceiver := calldataload(add(swapCalldata.offset, 132))
+        }
+        if (dstReceiver != expectedRecipient) revert RecipientMismatch();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

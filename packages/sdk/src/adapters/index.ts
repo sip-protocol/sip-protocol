@@ -58,3 +58,12 @@ export type {
   JupiterSwapResult,
   JupiterPrivateSwapResult,
 } from './jupiter'
+
+// 1inch Aggregator (EVM)
+export { OneInchAdapter } from './oneinch'
+
+export type {
+  OneInchQuote,
+  OneInchSwapData,
+  OneInchSwapParams,
+} from './oneinch'

@@ -145,6 +145,49 @@ contract MockSwapRouter {
     }
 }
 
+/// @notice Mock 1inch-style aggregator router for testing
+/// @dev Function signature matches 1inch V5/V6 selector 0x12aa3caf:
+///      swap(address,(address,address,address,address,uint256,uint256,uint256),bytes,bytes)
+contract MockAggregatorRouter {
+    uint256 public mockAmountOut;
+    bool public shouldRevert;
+
+    struct SwapDescription {
+        address srcToken;
+        address dstToken;
+        address srcReceiver;
+        address dstReceiver;
+        uint256 amount;
+        uint256 minReturnAmount;
+        uint256 flags;
+    }
+
+    function setMockAmountOut(uint256 amount) external {
+        mockAmountOut = amount;
+    }
+
+    function setShouldRevert(bool _revert) external {
+        shouldRevert = _revert;
+    }
+
+    /// @notice Mock swap() with selector 0x12aa3caf
+    function swap(
+        address, // executor
+        SwapDescription calldata desc,
+        bytes calldata, // permit
+        bytes calldata  // data
+    ) external payable returns (uint256 returnAmount, uint256 spentAmount) {
+        if (shouldRevert) revert("Aggregator swap failed");
+
+        // Mint output tokens to dstReceiver (simulates aggregated swap)
+        MockERC20(desc.dstToken).mint(desc.dstReceiver, mockAmountOut);
+
+        return (mockAmountOut, desc.amount);
+    }
+
+    receive() external payable {}
+}
+
 /// @notice Base test setup for all SIP Ethereum contract tests
 abstract contract TestSetup is Test {
     SIPPrivacy public sipPrivacy;
@@ -157,6 +200,7 @@ abstract contract TestSetup is Test {
     MockERC20 public outputToken;
     MockWETH public weth;
     MockSwapRouter public mockSwapRouter;
+    MockAggregatorRouter public mockAggregator;
 
     address public owner;
     address public feeCollector;
@@ -206,8 +250,12 @@ abstract contract TestSetup is Test {
         mockSwapRouter = new MockSwapRouter();
         mockSwapRouter.setMockAmountOut(2000e6); // Default: 2000 USDC
 
-        // Deploy SIPSwapRouter
-        vm.prank(owner);
+        // Deploy mock aggregator
+        mockAggregator = new MockAggregatorRouter();
+        mockAggregator.setMockAmountOut(2000e6); // Default: 2000 USDC
+
+        // Deploy SIPSwapRouter + approve mock aggregator
+        vm.startPrank(owner);
         sipSwapRouter = new SIPSwapRouter(
             owner,
             feeCollector,
@@ -215,6 +263,8 @@ abstract contract TestSetup is Test {
             address(mockSwapRouter),
             address(weth)
         );
+        sipSwapRouter.setRouterApproval(address(mockAggregator), true);
+        vm.stopPrank();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
