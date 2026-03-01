@@ -451,6 +451,8 @@ const payments = await scanForPayments({
 | E2E test suite | Done | 128 tests covering all flows |
 | ZK proof specs | Done | Funding, Validity, Fulfillment |
 | Noir circuits | Done | BrowserNoirProvider for browser, compiled circuits |
+| EVM ZK verifier | Done | BB-generated UltraHonk FundingVerifier on Sepolia |
+| EVM privacy contracts | Done | SIPPrivacy, PedersenVerifier, StealthAddressRegistry |
 
 ---
 
@@ -478,13 +480,14 @@ pnpm build
 
 ---
 
-## Test Suite (7,504+ total tests)
+## Test Suite (7,529+ total tests)
 
 ### Package Test Counts
 
 | Package | Version | Tests | Location |
 |---------|---------|-------|----------|
 | @sip-protocol/sdk | 0.9.0 | 6,716 | `packages/sdk/tests/` |
+| contracts/sip-ethereum | - | 151 | `contracts/sip-ethereum/test/` |
 | @sip-protocol/react | 0.1.0 | 543 | `packages/react/tests/` |
 | @sip-protocol/cli | 0.2.0 | 62 | `packages/cli/tests/` |
 | @sip-protocol/api | 0.1.0 | 198 | `packages/api/tests/` |
@@ -622,7 +625,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 │   │   │   ├── intent.ts     # Intent builder
 │   │   │   └── sip.ts        # Main client
 │   │   └── tests/            # Test suites
-│   ├── types/                # @sip-protocol/types v0.2.1
+│   ├── types/                # @sip-protocol/types v0.2.2
 │   ├── react/                # @sip-protocol/react v0.1.0 - React hooks (543 tests)
 │   ├── cli/                  # @sip-protocol/cli v0.2.0 - CLI tool (62 tests)
 │   ├── api/                  # @sip-protocol/api v0.1.0 - REST API (198 tests)
@@ -830,5 +833,5 @@ See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas rep
 
 ---
 
-**Last Updated:** 2026-02-27
-**Status:** M17 Complete (Mainnet Live) | M18 In Progress (16/21 done) | 7,504+ Tests + 148 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Last Updated:** 2026-03-01
+**Status:** M17 Complete (Mainnet Live) | M18 In Progress (16/24 done) | 7,529+ Tests + 151 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
