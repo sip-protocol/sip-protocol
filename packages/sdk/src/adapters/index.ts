@@ -11,6 +11,9 @@
  * ### Solana DEX
  * - **JupiterAdapter** — Jupiter aggregator for private Solana swaps
  *
+ * ### EVM Relay
+ * - **GelatoRelayAdapter** — Gasless claims from stealth addresses via Gelato Relay
+ *
  * @example
  * ```typescript
  * import { JupiterAdapter, NEARIntentsAdapter } from '@sip-protocol/sdk'
@@ -67,3 +70,19 @@ export type {
   OneInchSwapData,
   OneInchSwapParams,
 } from './oneinch'
+
+// Gelato Relay (EVM gasless)
+export {
+  GelatoRelayAdapter,
+  createGelatoRelayAdapter,
+  functionSelector,
+} from './gelato-relay'
+
+export type {
+  GelatoRelayConfig,
+  RelayClaimParams,
+  SyncFeeClaimParams,
+  RelayResult,
+  TaskStatus,
+  TaskStatusResult,
+} from './gelato-relay'
