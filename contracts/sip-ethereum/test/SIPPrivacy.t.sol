@@ -849,6 +849,26 @@ contract SIPPrivacyDepositTest is TestSetup {
         );
     }
 
+    function test_shieldedDeposit_revertsOnEncryptedDataTooLarge() public {
+        bytes memory largeData = new bytes(65); // > MAX_ENCRYPTED_SIZE (64)
+        vm.prank(alice);
+        vm.expectRevert(SIPPrivacy.EncryptedDataTooLarge.selector);
+        sipPrivacy.shieldedDeposit{value: 1 ether}(
+            _makeCommitment(1), makeAddr("stealth"), _makeEphemeralKey(1),
+            _makeViewingKeyHash(1), largeData, ""
+        );
+    }
+
+    function test_shieldedDeposit_revertsOnProofTooLarge() public {
+        bytes memory largeProof = new bytes(4097); // > MAX_PROOF_SIZE (4096)
+        vm.prank(alice);
+        vm.expectRevert(SIPPrivacy.ProofTooLarge.selector);
+        sipPrivacy.shieldedDeposit{value: 1 ether}(
+            _makeCommitment(1), makeAddr("stealth"), _makeEphemeralKey(1),
+            _makeViewingKeyHash(1), _makeEncryptedAmount(1 ether), largeProof
+        );
+    }
+
     // ─── withdrawDeposit ─────────────────────────────────────────────────────
 
     function test_withdrawDeposit_success() public {
@@ -880,13 +900,14 @@ contract SIPPrivacyDepositTest is TestSetup {
         uint256 id = _doShieldedDeposit(1 ether, stealth);
 
         address recipient = makeAddr("recipient");
+        uint256 deposited = sipPrivacy.depositBalances(id);
 
         // charlie (random third-party) triggers withdrawal — gasless relay pattern
         vm.prank(charlie);
         sipPrivacy.withdrawDeposit(id, _makeNullifier(1), "", recipient);
 
         assertTrue(sipPrivacy.getTransfer(id).claimed);
-        assertTrue(recipient.balance > 0);
+        assertEq(recipient.balance, deposited);
     }
 
     function test_withdrawDeposit_revertsAlreadyClaimed() public {
@@ -1077,6 +1098,71 @@ contract SIPPrivacyTokenDepositTest is TestSetup {
         );
     }
 
+    function test_shieldedTokenDeposit_revertsOnZeroRecipient() public {
+        vm.startPrank(alice);
+        token.approve(address(sipPrivacy), 100e18);
+        vm.expectRevert(SIPPrivacy.ZeroAddress.selector);
+        sipPrivacy.shieldedTokenDeposit(
+            address(token), 100e18, _makeCommitment(1), address(0),
+            _makeEphemeralKey(1), _makeViewingKeyHash(1),
+            _makeEncryptedAmount(100e18), ""
+        );
+        vm.stopPrank();
+    }
+
+    function test_shieldedTokenDeposit_revertsOnInvalidCommitment() public {
+        vm.startPrank(alice);
+        token.approve(address(sipPrivacy), 100e18);
+        vm.expectRevert(SIPPrivacy.InvalidCommitment.selector);
+        sipPrivacy.shieldedTokenDeposit(
+            address(token), 100e18, _makeInvalidCommitment(1), makeAddr("stealth"),
+            _makeEphemeralKey(1), _makeViewingKeyHash(1),
+            _makeEncryptedAmount(100e18), ""
+        );
+        vm.stopPrank();
+    }
+
+    function test_shieldedTokenDeposit_revertsWhenPaused() public {
+        vm.prank(owner);
+        sipPrivacy.setPaused(true);
+
+        vm.startPrank(alice);
+        token.approve(address(sipPrivacy), 100e18);
+        vm.expectRevert(SIPPrivacy.ContractPaused.selector);
+        sipPrivacy.shieldedTokenDeposit(
+            address(token), 100e18, _makeCommitment(1), makeAddr("stealth"),
+            _makeEphemeralKey(1), _makeViewingKeyHash(1),
+            _makeEncryptedAmount(100e18), ""
+        );
+        vm.stopPrank();
+    }
+
+    function test_shieldedTokenDeposit_revertsOnEncryptedDataTooLarge() public {
+        bytes memory largeData = new bytes(65); // > MAX_ENCRYPTED_SIZE (64)
+        vm.startPrank(alice);
+        token.approve(address(sipPrivacy), 100e18);
+        vm.expectRevert(SIPPrivacy.EncryptedDataTooLarge.selector);
+        sipPrivacy.shieldedTokenDeposit(
+            address(token), 100e18, _makeCommitment(1), makeAddr("stealth"),
+            _makeEphemeralKey(1), _makeViewingKeyHash(1),
+            largeData, ""
+        );
+        vm.stopPrank();
+    }
+
+    function test_shieldedTokenDeposit_revertsOnProofTooLarge() public {
+        bytes memory largeProof = new bytes(4097); // > MAX_PROOF_SIZE (4096)
+        vm.startPrank(alice);
+        token.approve(address(sipPrivacy), 100e18);
+        vm.expectRevert(SIPPrivacy.ProofTooLarge.selector);
+        sipPrivacy.shieldedTokenDeposit(
+            address(token), 100e18, _makeCommitment(1), makeAddr("stealth"),
+            _makeEphemeralKey(1), _makeViewingKeyHash(1),
+            _makeEncryptedAmount(100e18), largeProof
+        );
+        vm.stopPrank();
+    }
+
     // ─── withdrawTokenDeposit ────────────────────────────────────────────────
 
     function test_withdrawTokenDeposit_success() public {
@@ -1152,5 +1238,138 @@ contract SIPPrivacyTokenDepositTest is TestSetup {
 
         vm.prank(bob);
         sipPrivacy.withdrawTokenDeposit(id, nullifier, "", recipient);
+    }
+
+    function test_withdrawTokenDeposit_revertsAlreadyClaimed() public {
+        address stealth = makeAddr("stealth");
+        uint256 id = _doShieldedTokenDeposit(1000e18, stealth);
+
+        vm.prank(bob);
+        sipPrivacy.withdrawTokenDeposit(id, _makeNullifier(1), "", makeAddr("recipient"));
+
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.AlreadyClaimed.selector);
+        sipPrivacy.withdrawTokenDeposit(id, _makeNullifier(2), "", makeAddr("recipient2"));
+    }
+
+    function test_withdrawTokenDeposit_revertsNullifierUsed() public {
+        address stealth = makeAddr("stealth");
+        uint256 id1 = _doShieldedTokenDeposit(500e18, stealth);
+        uint256 id2 = _doShieldedTokenDeposit(500e18, stealth);
+
+        bytes32 nullifier = _makeNullifier(1);
+
+        vm.prank(bob);
+        sipPrivacy.withdrawTokenDeposit(id1, nullifier, "", makeAddr("recipient"));
+
+        // Same nullifier on different deposit
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.NullifierUsed.selector);
+        sipPrivacy.withdrawTokenDeposit(id2, nullifier, "", makeAddr("recipient2"));
+    }
+
+    function test_withdrawTokenDeposit_revertsZeroNullifier() public {
+        address stealth = makeAddr("stealth");
+        uint256 id = _doShieldedTokenDeposit(1000e18, stealth);
+
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.InvalidNullifier.selector);
+        sipPrivacy.withdrawTokenDeposit(id, bytes32(0), "", makeAddr("recipient"));
+    }
+
+    function test_withdrawTokenDeposit_revertsTransferNotFound() public {
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.TransferNotFound.selector);
+        sipPrivacy.withdrawTokenDeposit(999, _makeNullifier(1), "", makeAddr("recipient"));
+    }
+
+    function test_withdrawTokenDeposit_revertsWhenPaused() public {
+        address stealth = makeAddr("stealth");
+        uint256 id = _doShieldedTokenDeposit(1000e18, stealth);
+
+        vm.prank(owner);
+        sipPrivacy.setPaused(true);
+
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.ContractPaused.selector);
+        sipPrivacy.withdrawTokenDeposit(id, _makeNullifier(1), "", makeAddr("recipient"));
+    }
+
+    function test_withdrawTokenDeposit_revertsNotDeposit() public {
+        // Create a regular shieldedTokenTransfer (not a deposit)
+        address stealth = makeAddr("stealth");
+        vm.startPrank(alice);
+        token.approve(address(sipPrivacy), 100e18);
+        uint256 id = sipPrivacy.shieldedTokenTransfer(
+            address(token), 100e18, _makeCommitment(1), stealth,
+            _makeEphemeralKey(1), _makeViewingKeyHash(1),
+            _makeEncryptedAmount(100e18), ""
+        );
+        vm.stopPrank();
+
+        // Try withdrawTokenDeposit on a regular transfer — should revert NotDeposit
+        vm.prank(bob);
+        vm.expectRevert(SIPPrivacy.NotDeposit.selector);
+        sipPrivacy.withdrawTokenDeposit(id, _makeNullifier(1), "", makeAddr("recipient"));
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Deposit Reentrancy Test
+// ═══════════════════════════════════════════════════════════════════════════════
+
+contract SIPPrivacyDepositReentrancyTest is TestSetup {
+    function test_withdrawDeposit_preventsReentrancy() public {
+        // Deploy reentrancy attacker
+        DepositReentrancyAttacker attacker = new DepositReentrancyAttacker(address(sipPrivacy));
+
+        // Alice deposits 2 ETH (two separate deposits)
+        vm.startPrank(alice);
+        uint256 id0 = sipPrivacy.shieldedDeposit{value: 1 ether}(
+            _makeCommitment(1), makeAddr("stealth1"), _makeEphemeralKey(1),
+            _makeViewingKeyHash(1), _makeEncryptedAmount(1 ether), ""
+        );
+        uint256 id1 = sipPrivacy.shieldedDeposit{value: 1 ether}(
+            _makeCommitment(2), makeAddr("stealth2"), _makeEphemeralKey(2),
+            _makeViewingKeyHash(2), _makeEncryptedAmount(1 ether), ""
+        );
+        vm.stopPrank();
+
+        // Attacker tries to withdraw first deposit with reentrancy
+        bytes32 nullifier1 = _makeNullifier(1);
+        bytes32 nullifier2 = _makeNullifier(2);
+        attacker.setAttackParams(id1, nullifier2);
+
+        vm.expectRevert(); // Should revert with ReentrantCall → TransferFailed
+        attacker.attack(address(sipPrivacy), id0, nullifier1);
+    }
+}
+
+/// @notice Reentrancy attacker targeting withdrawDeposit
+contract DepositReentrancyAttacker {
+    SIPPrivacy public target;
+    uint256 public attackTransferId;
+    bytes32 public attackNullifier;
+    bool public attacked;
+
+    constructor(address _target) {
+        target = SIPPrivacy(payable(_target));
+    }
+
+    function setAttackParams(uint256 _transferId, bytes32 _nullifier) external {
+        attackTransferId = _transferId;
+        attackNullifier = _nullifier;
+    }
+
+    function attack(address _target, uint256 transferId, bytes32 nullifier) external {
+        SIPPrivacy(payable(_target)).withdrawDeposit(transferId, nullifier, "", address(this));
+    }
+
+    receive() external payable {
+        if (!attacked) {
+            attacked = true;
+            // Try to reenter during the ETH transfer callback
+            target.withdrawDeposit(attackTransferId, attackNullifier, "", address(this));
+        }
     }
 }
