@@ -1,0 +1,3 @@
+forge-std/=lib/forge-std/src/
+@gelatonetwork/relay-context/=lib/relay-context-contracts/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
