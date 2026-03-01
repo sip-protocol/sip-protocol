@@ -26,7 +26,10 @@ import "../src/SIPRelayer.sol";
  *   Sepolia:          0x1FED19684dC108304960db2818CF5a961d28405E
  *   Base Sepolia:     0x0B0d06D6B5136d63Bd0817414E2D318999e50339
  *   OP Sepolia:       0x0B0d06D6B5136d63Bd0817414E2D318999e50339
- *   Arbitrum Sepolia: pending deployment
+ *   Arbitrum Sepolia: 0x0B0d06D6B5136d63Bd0817414E2D318999e50339
+ *
+ * Deployed SIPRelayer addresses:
+ *   Sepolia:          0xC71725BCD9D20a58823128f331F64443B194D85A
  */
 contract DeploySIPRelayerScript is Script {
     SIPRelayer public sipRelayer;

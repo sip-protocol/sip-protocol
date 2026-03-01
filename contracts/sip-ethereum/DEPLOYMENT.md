@@ -149,6 +149,8 @@ Deploy contracts in this order:
 3. **StealthAddressRegistry.sol** - No dependencies
 4. **SIPPrivacy.sol** - Depends on all above
 5. **FundingVerifier (HonkVerifier)** - Registered in ZKVerifier
+6. **SIPSwapRouter.sol** - Depends on SIPPrivacy (optional: DEX integration)
+7. **SIPRelayer.sol** - Depends on SIPPrivacy (optional: gasless withdrawals)
 
 Steps 1-4 use `script/Deploy.s.sol`. Step 5 requires a separate compilation
 (see `script/DeployVerifier.s.sol` for details).
@@ -372,9 +374,11 @@ Before mainnet deployment:
 | ZKTranscriptLib | `0x588849033F79F3b13f8BF696c1f61C27dE056df4` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
 | FundingVerifier (HonkVerifier) | `0x8Ee5F3FC477C308224f58766540A5E7E049B0ECf` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
 | SIPSwapRouter (v2) | `0xB05c2126bFfB9904DA36cDe1816a4902DEc9BEe5` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
+| SIPRelayer | `0xC71725BCD9D20a58823128f331F64443B194D85A` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` |
 
 **Config:** Owner `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | Fee 50 bps | Deployed 2026-02-28
 **SIPSwapRouter v2:** Uniswap V3 + 1inch aggregator private swaps → stealth addresses | SwapRouter `0xE592427A0AEce92De3Edee1F18E0157C05861564` | WETH `0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9` | 1inch Router `0x111111125421cA6dc452d289314280a0f8842A65` (approved) | Deployed 2026-03-01
+**SIPRelayer:** Gelato gasless withdrawals via deposit mode | SIPPrivacy `0x1FED19684dC108304960db2818CF5a961d28405E` | Gelato Relay V1 `0xaBcC9b596420A9E9172FD5938620E265a0f9Df92` | Deployed 2026-03-01
 **FundingVerifier:** Registered in ZKVerifier via `setFundingVerifier()` | 23,724 bytes (EIP-170 compliant)
 
 <details>
