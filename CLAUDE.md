@@ -132,15 +132,14 @@ pnpm typecheck                  # Type check
 ### 3. sip-mobile
 
 **Purpose:** Privacy-first Solana wallet — native key management + shielded payments on iOS, Android & Seeker
-**Tech Stack:** Expo SDK 52, React Native, NativeWind 4.0, Zustand 5
+**Tech Stack:** Expo SDK 54, React Native 0.81, NativeWind 4.0, Zustand 5
 **Key Commands:**
 ```bash
 pnpm install              # Install dependencies
 npx expo start            # Dev server (iOS + Android)
-pnpm test -- --run        # Run tests (34 suites, 672 tests)
+pnpm test -- --run        # Run tests (55 suites, 1,205 tests)
 pnpm typecheck            # Type check
-eas build --platform ios  # Build iOS
-eas build --platform android  # Build Android
+eas build --platform android --profile production --local  # Build Android APK
 ```
 **Tab Structure (5 tabs):**
 - Home - Dashboard, balances, quick actions
