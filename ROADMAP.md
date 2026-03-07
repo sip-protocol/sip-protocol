@@ -154,9 +154,17 @@ Observer CANNOT determine: Which deposit? Who was the sender?
 | Phase | Privacy Score | What's Hidden | What's Exposed |
 |-------|--------------|---------------|----------------|
 | **M17 (Current)** | ~30% | Recipient (send), Amount (send) | Sender, Claim link, Claim amount |
+| **M17.1 (Private Swap B)** | ~40% | + Swap output (stealth ATA) | Sender visible, swap TX linkable |
+| **M17.2 (Private Swap C)** | ~55% | + Sender hidden (stealth-as-signer) | Deposit→stealth link (timing) |
 | **M19 (Pool PDA)** | ~60% | + Deposit blending | Sender still visible |
 | **M20 (ZK Claims)** | ~90% | + Claim unlinkability | Timing correlation (weak) |
 | **M21 (Full)** | ~100% | + Batched claims + Delays | Nothing meaningful |
+
+### Private Swap Evolution (M17.1 → M17.2)
+
+**M17.1 — Stealth Output (Option B):** Jupiter swap output routed to a one-time stealth ATA via `destinationTokenAccount`. User claims later via existing scan flow. Balance hiding + recipient unlinkability. Sender still visible (signs swap TX). Design: `sip-mobile/docs/plans/2026-03-07-private-swap-design.md`
+
+**M17.2 — Stealth-as-Signer (Option C):** Full sender privacy. User deposits SOL to stealth address A, then stealth A executes the Jupiter swap (signed with `signWithScalar()`), output to stealth B. User's wallet never appears in the swap TX. Requires: (1) verify scalar signing with VersionedTransaction V0, (2) gas management for stealth signer, (3) two-stealth coordination. ~4-5 days after M17.1 ships.
 
 ### ZK Claim Circuit (Noir)
 
