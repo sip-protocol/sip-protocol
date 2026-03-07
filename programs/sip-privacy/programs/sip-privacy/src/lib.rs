@@ -313,6 +313,77 @@ pub mod sip_privacy {
         Ok(())
     }
 
+    /// Create a transfer announcement (TransferRecord) without moving tokens
+    ///
+    /// Used for private swaps where an external protocol (e.g., Jupiter) handles
+    /// the actual token movement to a stealth ATA. This instruction only creates
+    /// the on-chain announcement so the recipient can scan and claim.
+    ///
+    /// ## Parameters
+    ///
+    /// - `amount_commitment`: Pedersen commitment to the transfer amount
+    /// - `stealth_pubkey`: One-time stealth recipient address
+    /// - `ephemeral_pubkey`: For recipient to derive stealth private key
+    /// - `viewing_key_hash`: Hash of recipient's viewing key (compliance)
+    /// - `encrypted_amount`: Amount encrypted with viewing key
+    /// - `token_mint`: The SPL token mint (stored in record for scanning)
+    pub fn create_transfer_announcement(
+        ctx: Context<CreateTransferAnnouncement>,
+        amount_commitment: [u8; COMMITMENT_SIZE],
+        stealth_pubkey: Pubkey,
+        ephemeral_pubkey: [u8; EPHEMERAL_PUBKEY_SIZE],
+        viewing_key_hash: [u8; VIEWING_KEY_HASH_SIZE],
+        encrypted_amount: Vec<u8>,
+        token_mint: Pubkey,
+    ) -> Result<()> {
+        let config = &ctx.accounts.config;
+
+        // Check program not paused
+        require!(!config.paused, SipError::ProgramPaused);
+
+        // Validate inputs
+        require!(
+            encrypted_amount.len() <= 64,
+            SipError::EncryptedAmountTooLarge
+        );
+        require!(
+            amount_commitment[0] == 0x02 || amount_commitment[0] == 0x03,
+            SipError::InvalidCommitment
+        );
+
+        // Initialize transfer record (announcement only, no token movement)
+        let transfer_record = &mut ctx.accounts.transfer_record;
+        transfer_record.sender = ctx.accounts.sender.key();
+        transfer_record.stealth_recipient = stealth_pubkey;
+        transfer_record.amount_commitment = amount_commitment;
+        transfer_record.ephemeral_pubkey = ephemeral_pubkey;
+        transfer_record.viewing_key_hash = viewing_key_hash;
+        transfer_record.encrypted_amount = encrypted_amount;
+        transfer_record.timestamp = Clock::get()?.unix_timestamp;
+        transfer_record.claimed = false;
+        transfer_record.bump = ctx.bumps.transfer_record;
+        transfer_record.token_mint = Some(token_mint);
+
+        // Update config stats
+        let config = &mut ctx.accounts.config;
+        config.total_transfers = config.total_transfers.saturating_add(1);
+
+        // Emit event for off-chain indexing
+        emit!(ShieldedTransferEvent {
+            sender: ctx.accounts.sender.key(),
+            stealth_recipient: stealth_pubkey,
+            amount_commitment,
+            ephemeral_pubkey,
+            viewing_key_hash,
+            timestamp: transfer_record.timestamp,
+            transfer_id: transfer_record.key(),
+        });
+
+        msg!("Transfer announcement created");
+
+        Ok(())
+    }
+
     /// Pause or unpause the program (admin only)
     pub fn set_paused(ctx: Context<AdminAction>, paused: bool) -> Result<()> {
         let config = &mut ctx.accounts.config;
@@ -741,6 +812,34 @@ pub struct ShieldedTokenTransfer<'info> {
     pub fee_token_account: Account<'info, TokenAccount>,
 
     pub token_program: Program<'info, Token>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreateTransferAnnouncement<'info> {
+    #[account(
+        mut,
+        seeds = [CONFIG_SEED],
+        bump = config.bump,
+    )]
+    pub config: Account<'info, Config>,
+
+    #[account(
+        init,
+        payer = sender,
+        space = 8 + TransferRecord::INIT_SPACE,
+        seeds = [
+            TRANSFER_RECORD_SEED,
+            sender.key().as_ref(),
+            &config.total_transfers.to_le_bytes(),
+        ],
+        bump,
+    )]
+    pub transfer_record: Account<'info, TransferRecord>,
+
+    #[account(mut)]
+    pub sender: Signer<'info>,
+
     pub system_program: Program<'info, System>,
 }
 
