@@ -773,12 +773,14 @@ ssh core      # Admin user for nginx/system config
 
 | Network | Program ID | Config PDA | Date |
 |---------|------------|------------|------|
-| **Mainnet-Beta** | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | `BVawZkppFewygA5nxdrLma4ThKx8Th7bW4KTCkcWTZwZ` | 2026-01-31 |
-| **Devnet** | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | `BVawZkppFewygA5nxdrLma4ThKx8Th7bW4KTCkcWTZwZ` | 2026-01-24 |
+| **Mainnet-Beta** | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | `BVawZkppFewygA5nxdrLma4ThKx8Th7bW4KTCkcWTZwZ` | 2026-03-07 |
+| **Devnet** | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | `BVawZkppFewygA5nxdrLma4ThKx8Th7bW4KTCkcWTZwZ` | 2026-03-07 |
 
 **Config:** Fee 50 bps, Authority `S1P6j1yeTm6zkewQVeihrTZvmfoHABRkHDhabWTuWMd`
 
-**Mainnet Deploy TX:** [`2akhczwV...iFe8R`](https://solscan.io/tx/2akhczwV94LJ8HL3xbAmNddBSACZTbYMAoow4LmgjkeVS1hu1H7DTKHFfZrm8DHZ6BBrVn93AjiAQUZjg78iFe8R)
+**Instructions (8):** `initialize`, `shielded_transfer`, `shielded_token_transfer`, `create_transfer_announcement`, `claim_transfer`, `claim_token_transfer`, `verify_commitment`, `verify_zk_proof`, `set_paused`, `update_fee`
+
+**Latest Mainnet Deploy TX:** [`m5oJybe...qVwv`](https://solscan.io/tx/m5oJybeGj3GVMr8GxCKz817nr28NugasFDduyLHqW74kQTZcWXTWYgRH7VbNCKjezdeXaQDiVqFsqg3LHxdqVwv) (Mar 7, 2026 — added `create_transfer_announcement` for private swaps)
 
 ```bash
 # Deploy (keys in sip-protocol/secrets/ or decrypt from ~/.claude/sip-protocol/keys/)
