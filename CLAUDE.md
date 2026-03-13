@@ -354,6 +354,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed milestone tracking and priorities.
 **Status:** M16 Complete | 7,504+ tests (SDK: 6,691, React: 543, CLI: 62, API: 198, RN: 10) | Live at sip-protocol.org
 
 **🏆 Achievement:** Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | Dec 2025 | #9 of 93 | 3 Tracks | [Devfolio](https://devfolio.co/projects/sip-protocol-2026)
+**🥇 Achievement:** 1st Place — [Solana Graveyard Hackathon](https://solana.com/graveyard-hack) | Torque Sponsor Track ($750) | Mar 2026 | Privacy middleware + Torque SDK integration
 
 **Endgame:** Privacy middleware between applications and blockchains. Chain-agnostic. Settlement-agnostic. The universal privacy layer.
 

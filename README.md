@@ -29,6 +29,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500: NEAR $4,000 + Tachyon $500 + pumpfun $2,000) | #9 of 93 | 3 Tracks**
+**🥇 1st Place — [Solana Graveyard Hackathon](https://solana.com/graveyard-hack) | Torque Sponsor Track ($750)**
 
 </div>
 
@@ -599,6 +600,7 @@ SIP builds on the shoulders of giants:
 <div align="center">
 
 **🏆 Winner — [Zypherpunk Hackathon](https://zypherpunk.xyz) ($6,500) | #9 of 93 | 3 Tracks**
+**🥇 1st Place — [Solana Graveyard Hackathon](https://solana.com/graveyard-hack) | Torque Sponsor Track ($750)**
 
 *Privacy is not a feature. It's a right.*
 
