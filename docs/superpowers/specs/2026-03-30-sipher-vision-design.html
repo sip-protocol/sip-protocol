@@ -1616,9 +1616,110 @@ Budget gates:
     </table>
   </section>
 
-  <!-- 20. Resolved Decisions -->
+  <!-- 20. OpenClaw Patterns -->
   <section>
-    <h2><span class="num">20</span> Resolved Design Decisions</h2>
+    <h2><span class="num">20</span> OpenClaw Patterns Adopted</h2>
+    <p>Key patterns from scanning OpenClaw's production architecture (same Pi SDK stack).</p>
+
+    <h3>Adopted</h3>
+    <table>
+      <thead><tr><th>Pattern</th><th>Sipher Adaptation</th></tr></thead>
+      <tbody>
+        <tr><td>Channel adapter (MsgContext normalization)</td><td>X, Telegram, web all normalize to unified format</td></tr>
+        <tr><td>Pi SDK embedding (AgentSession direct import)</td><td>Full control over session lifecycle</td></tr>
+        <tr><td>Event subscription (async generators)</td><td>Decoupled UI updates across platforms</td></tr>
+        <tr><td>Tool definition normalization</td><td>Bridge Pi tools to SIP SDK functions</td></tr>
+        <tr><td>Provider abstraction (unified Context)</td><td>One streaming handler for all LLM providers</td></tr>
+        <tr><td>System prompt assembly (per-channel)</td><td>Different prompts: web (full) vs X DM (limited) vs public (read-only)</td></tr>
+        <tr><td>Extension hooks (context, tool_call)</td><td>Permission gating, context pruning, wallet verification</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Explicitly NOT Adopted</h3>
+    <table>
+      <thead><tr><th>Anti-Pattern</th><th>Our Alternative</th></tr></thead>
+      <tbody>
+        <tr><td>Config in 4 places (drift)</td><td>Single source of truth</td></tr>
+        <tr><td>Unbounded history (5K &rarr; 150K tokens)</td><td>Proactive limiting + strict context budget</td></tr>
+        <tr><td>Global tool registration</td><td>Scoped per-agent, per-wallet</td></tr>
+        <tr><td>File locking for concurrency</td><td>SQLite WAL mode</td></tr>
+        <tr><td>Naive compaction (context loss)</td><td>Context firewall + tool result sanitization</td></tr>
+        <tr><td>No resource quotas</td><td>Per-session token budgets + platform API caps</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 21. GUARDIAN Squad -->
+  <section>
+    <h2><span class="num">21</span> GUARDIAN Squad</h2>
+
+    <div class="card card-accent">
+      <h4>THE GUARDIAN SQUAD &mdash; "Plug in. Go private."</h4>
+      <p>General Unified Agent for Resilient, Decentralized, Intelligent, Autonomous, Networked privacy.</p>
+    </div>
+
+    <div class="moat-stack">
+      <div class="moat-item"><span class="moat-num" style="background: var(--accent);">S</span> <span><strong>SIPHER</strong> &mdash; Lead Agent. Conversations, commands, user-facing. The brain.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--cyan);">Se</span> <span><strong>SENTINEL</strong> &mdash; Blockchain Monitor. Scans stealth payments, monitors vault, triggers refunds. The eyes.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--green);">C</span> <span><strong>COURIER</strong> &mdash; Scheduled Executor. Drip, recurring, splitSend. Runs on crank timer. The hands.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--yellow);">H</span> <span><strong>HERALD</strong> &mdash; Content Agent. X posts, keywords, engagement. The voice.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--red);">W</span> <span><strong>WATCHER</strong> &mdash; Analytics &amp; Admin. Metrics, dashboard, cost tracking, alerts. The nerve center.</span></div>
+    </div>
+
+    <h3>Task Delegation</h3>
+    <pre><code>User (web/X/Telegram)
+  &rarr; SIPHER receives, classifies intent
+  &rarr; Immediate (send, balance, score): SIPHER handles directly
+  &rarr; Scheduled (drip, recurring): task queue &rarr; COURIER
+  &rarr; Scan needed: scan request &rarr; SENTINEL
+  &rarr; Content/engagement: content brief &rarr; HERALD
+  &rarr; WATCHER monitors all, updates dashboard</code></pre>
+
+    <h3>Repo Structure (Monorepo)</h3>
+    <pre><code>sipher/
+├── packages/
+│   ├── sdk/          &larr; @sipher/sdk (shared)
+│   ├── sipher/       &larr; Lead Agent
+│   ├── sentinel/     &larr; Blockchain Monitor
+│   ├── courier/      &larr; Scheduled Executor
+│   ├── herald/       &larr; Content Agent
+│   └── watcher/      &larr; Analytics
+├── programs/         &larr; PDA vault Solana program
+├── app/              &larr; Web chat UI
+├── src/api/          &larr; Legacy REST API
+└── tests/</code></pre>
+
+    <h3>Deployment Phases</h3>
+    <table>
+      <thead><tr><th>Phase</th><th>Model</th></tr></thead>
+      <tbody>
+        <tr><td>Phase 1</td><td>Single Docker container, all agents as modules</td></tr>
+        <tr><td>Phase 2</td><td>Docker Compose, separate services per agent</td></tr>
+        <tr><td>Phase 3</td><td>Kubernetes-ready (if scale demands)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 22. Docs Update Plan -->
+  <section>
+    <h2><span class="num">22</span> Documentation Update Plan</h2>
+    <table>
+      <thead><tr><th>Document</th><th>Changes</th><th>When</th></tr></thead>
+      <tbody>
+        <tr><td><code>sip-protocol/ROADMAP.md</code></td><td>Sipher pivot, Frontier, Phase 1-4</td><td>After spec approval</td></tr>
+        <tr><td><code>sip-protocol/CLAUDE.md</code></td><td>Sipher: "REST API" &rarr; "Lead Agent"</td><td>After spec approval</td></tr>
+        <tr><td><code>sipher/CLAUDE.md</code></td><td>Full rewrite &mdash; Pi SDK, GUARDIAN squad</td><td>Phase 1 code start</td></tr>
+        <tr><td><code>sipher/README.md</code></td><td>Full rewrite &mdash; new positioning</td><td>Phase 1 code start</td></tr>
+        <tr><td><code>STRATEGY.md</code></td><td>Sipher product strategy</td><td>After spec approval</td></tr>
+        <tr><td>Other repo CLAUDE.md</td><td>Update Sipher reference line</td><td>Batch update</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size: 13px; color: var(--text-muted);"><strong>Rule:</strong> Docs follow code, not precede it.</p>
+  </section>
+
+  <!-- 23. Resolved Decisions -->
+  <section>
+    <h2><span class="num">23</span> Resolved Design Decisions</h2>
     <table>
       <thead><tr><th>#</th><th>Question</th><th>Decision</th></tr></thead>
       <tbody>
@@ -1632,9 +1733,9 @@ Budget gates:
     </table>
   </section>
 
-  <!-- 21. Regulatory Landscape -->
+  <!-- 24. Regulatory Landscape -->
   <section>
-    <h2><span class="num">21</span> Regulatory Landscape (2026)</h2>
+    <h2><span class="num">24</span> Regulatory Landscape (2026)</h2>
 
     <div class="card" style="border-left: 3px solid var(--green);">
       <h4>Tornado Cash &mdash; Sanctions LIFTED (March 2025)</h4>
@@ -1665,9 +1766,9 @@ Budget gates:
     <p><strong>Sipher = Privacy Pools equivalent for Solana.</strong> The only compliant privacy option on Solana.</p>
   </section>
 
-  <!-- 22. References -->
+  <!-- 25. References -->
   <section>
-    <h2><span class="num">22</span> References</h2>
+    <h2><span class="num">25</span> References</h2>
     <ul>
       <li><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364">Privacy Pools paper</a> &mdash; Vitalik Buterin et al.</li>
       <li><a href="https://0xbow.io/">0xbow Privacy Pools</a> &mdash; live implementation, $3.5M funded</li>

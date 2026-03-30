@@ -1176,7 +1176,151 @@ Sipher is a privacy vault, not a helpdesk. The UI should feel like a secure term
 
 ---
 
-## 20. Resolved Design Decisions
+## 20. OpenClaw Patterns Adopted
+
+Key patterns from scanning OpenClaw's production architecture (built on same Pi SDK):
+
+### Adopted for Sipher
+
+| Pattern | OpenClaw Implementation | Sipher Adaptation |
+|---------|------------------------|-------------------|
+| Channel adapter | Normalize platform events into common `MsgContext` | Same — X, Telegram, web all normalize to unified message format |
+| Pi SDK embedding | Import AgentSession directly (not subprocess) | Same — full control over session lifecycle |
+| Event subscription | Async generators with event streams | Same — enables decoupled UI updates across platforms |
+| Tool definition normalization | Adapter wrapping for incompatible tool signatures | Same — bridge between Pi tools and SIP SDK functions |
+| Provider abstraction | Write streaming handler once, works with any LLM | Same — via pi-ai unified Context object |
+| Session persistence | JSONL with tree structure, branching support | Adapted — we use SQLite for structured queries, JSONL for conversation history |
+| Auth rotation | Multi-profile failover with cooldown | Adapted — we use wallet signatures (not API keys) but adopt failover for LLM providers |
+| System prompt assembly | `buildAgentSystemPrompt()` context-aware per channel | Same — different system prompts for web (full tools) vs X DM (limited) vs public (read-only) |
+| Extension hooks | `context`, `tool_call`, `before_agent_start` events | Same — use for permission gating, context pruning, wallet verification |
+
+### Explicitly NOT Adopted
+
+| Anti-Pattern | Why | Our Alternative |
+|-------------|-----|-----------------|
+| Config in 4 places | Drift, inconsistency | Single source of truth (one config file + env vars) |
+| Unbounded history | Token explosion (5K → 150K by round 10) | Proactive history limiting from day 1, strict context budget |
+| Global tool registration | Unintended access | Scoped per-agent and per-wallet session |
+| File locking for concurrency | Bottleneck at scale | SQLite WAL mode (concurrent reads, sequential writes) |
+| Naive compaction | Loses important context | Context firewall + tool result sanitization (Section 12.4) |
+| No resource quotas | Runaway agents exhaust tokens | Per-session LLM token budgets + per-platform API budget caps |
+
+### Key Insight
+
+OpenClaw is a general-purpose multi-agent platform. Sipher is a single-purpose financial agent. We cherry-pick the adapter and session patterns but don't need the queen/worker hierarchy, 100+ agent types, or workspace isolation. Our agents have clear, non-overlapping scopes.
+
+---
+
+## 21. GUARDIAN Squad (Agentic Swarm)
+
+### Overview
+
+Sipher is not one agent — it's a squad of 5 specialized agents called **GUARDIAN** (General Unified Agent for Resilient, Decentralized, Intelligent, Autonomous, Networked privacy).
+
+### Squad Members
+
+```
+THE GUARDIAN SQUAD — "Plug in. Go private."
+
+  SIPHER    — Lead Agent
+              Conversations, commands, user-facing across all platforms.
+              The brain. Delegates to specialists.
+
+  SENTINEL  — Blockchain Monitor
+              Scans for stealth payments, monitors vault state,
+              triggers auto-refunds, detects suspicious activity.
+              The eyes.
+
+  COURIER   — Scheduled Executor
+              Executes scheduled sends, drip distributions,
+              recurring payments. Runs on crank timer.
+              The hands.
+
+  HERALD    — Content Agent
+              Scheduled X posts, keyword monitoring, engagement,
+              thread responses. Separate from SIPHER's DM handling.
+              The voice.
+
+  WATCHER   — Analytics & Admin
+              Aggregates metrics, updates dashboard, cost tracking,
+              alert generation, health monitoring.
+              The nerve center.
+```
+
+### Coordination Model
+
+**Phase 1:** All agents run as modules in one process. Internal separation via code, not infrastructure.
+
+**Phase 2+:** Each agent becomes its own process. Coordination via:
+- Shared SQLite database (all agents read/write)
+- Redis pub/sub (event notifications across agents)
+- Task queue table in SQLite (SIPHER writes tasks, specialists pick up)
+
+**No complex consensus needed.** Each agent has a clear, non-overlapping scope. No two agents ever try to do the same thing.
+
+### Task Delegation Flow
+
+```
+User (via web/X/Telegram)
+  → SIPHER receives message
+  → Classifies intent
+  → If immediate (send, balance, score): SIPHER handles directly
+  → If scheduled (drip, recurring): writes to task queue → COURIER picks up
+  → If scan needed: writes scan request → SENTINEL picks up
+  → If content/engagement: writes content brief → HERALD picks up
+  → WATCHER monitors all activity, updates dashboard
+```
+
+### Repo Structure
+
+All 5 agents live in the sipher repo (monorepo):
+
+```
+sipher/
+├── packages/
+│   ├── sdk/          ← @sipher/sdk (shared: vault ops, SIP tools, types)
+│   ├── sipher/       ← Lead Agent (conversations, commands)
+│   ├── sentinel/     ← Blockchain Monitor (scan, detect, crank)
+│   ├── courier/      ← Scheduled Executor (drip, recurring, splitSend)
+│   ├── herald/       ← Content Agent (X posts, engagement)
+│   └── watcher/      ← Analytics (metrics, dashboard, alerts)
+├── programs/         ← PDA vault Solana program
+├── app/              ← Web chat UI (pi-web-ui fork)
+├── src/
+│   └── api/          ← Legacy REST API (gradual migration)
+└── tests/
+```
+
+**Why one repo:** All agents share @sipher/sdk, database, and config. Separate repos = dependency hell for tightly-coupled agents.
+
+### Deployment
+
+| Phase | Deployment Model |
+|-------|-----------------|
+| Phase 1 | Single Docker container, all agents as modules |
+| Phase 2 | Docker Compose with separate services per agent |
+| Phase 3 | Kubernetes-ready (if scale demands it, unlikely early) |
+
+---
+
+## 22. Documentation Update Plan
+
+Updates to ecosystem docs happen AFTER spec approval, in this order:
+
+| Document | What Changes | When |
+|----------|-------------|------|
+| `sip-protocol/ROADMAP.md` | Add Sipher pivot, Frontier hackathon, Phase 1-4 | After spec approval |
+| `sip-protocol/CLAUDE.md` | Update Sipher section from "REST API" to "Lead Agent" | After spec approval |
+| `sipher/CLAUDE.md` | Full rewrite — new architecture, Pi SDK, GUARDIAN squad | When Phase 1 code starts |
+| `sipher/README.md` | Full rewrite — new product positioning | When Phase 1 code starts |
+| `~/.claude/sip-protocol/STRATEGY.md` | Add Sipher product strategy | After spec approval |
+| Other repo CLAUDE.md files | Minor — update Sipher reference line | Batch update |
+
+**Rule:** Docs follow code, not precede it. Don't update docs before the spec is locked and implementation begins.
+
+---
+
+## 23. Resolved Design Decisions
 
 | # | Question | Decision |
 |---|----------|----------|
@@ -1189,7 +1333,7 @@ Sipher is a privacy vault, not a helpdesk. The UI should feel like a secure term
 
 ---
 
-## 21. Regulatory Landscape (2026)
+## 24. Regulatory Landscape (2026)
 
 ### Tornado Cash — Sanctions LIFTED (March 2025)
 
@@ -1228,7 +1372,7 @@ Sipher = Privacy Pools equivalent for Solana. The only compliant privacy option 
 
 ---
 
-## 22. References
+## 25. References
 
 - [Privacy Pools paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364) — Vitalik Buterin et al.
 - [0xbow Privacy Pools](https://0xbow.io/) — live implementation, $3.5M funded
