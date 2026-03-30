@@ -919,7 +919,152 @@ SQLite table: `user_identities` (encrypted, same DB as scheduled ops and prefere
 
 ---
 
-## 18. Resolved Design Decisions
+## 18. X Agent Architecture
+
+### Core Loop
+
+```
+Event Poller (cron, 30-60s)
+  → Poll: mentions, DMs, keyword matches, replies to our posts
+  |
+  v
+Intent Router
+  → Classify: command | question | engagement | spam | irrelevant
+  → Spam/irrelevant: ignore silently (save credits)
+  |
+  v
+Pi Agent Core (pi-ai + LLM)
+  → Public mentions: read-only tools (privacyScore, threatCheck, advice)
+  → DMs: full tools (prepare TX, generate execution link)
+  → Generate response
+  |
+  v
+Response Gate
+  → Check budget remaining
+  → Check rate limits (max 10 replies/hr, 20 DM responses/hr)
+  → Sanitize: strip sensitive data from public replies
+  → Log to admin dashboard
+  |
+  v
+X API Client (pay-per-use)
+  → Post reply / send DM
+  → Track credit consumption per action type
+```
+
+### Event Types & Priority
+
+| Event | Priority | Action |
+|-------|----------|--------|
+| DM to @sipher | High | Always respond, full tool access |
+| @sipher mention | Medium | Classify → respond if relevant |
+| Reply to our post | Medium | Continue conversation |
+| Quote tweet of Sipher | Medium | Acknowledge, engage |
+| Keyword match (privacy, stealth, mixer) | Low | Engage if high-quality thread |
+| New follower | Low | No auto-DM (anti-spam) |
+
+### Intent Classification
+
+```typescript
+type Intent =
+  | { type: 'command', action: 'send' | 'swap' | 'score' | 'link' | ... }
+  | { type: 'question', topic: 'how-it-works' | 'fees' | 'security' | ... }
+  | { type: 'engagement', tone: 'positive' | 'neutral' | 'negative' }
+  | { type: 'spam' }
+  | { type: 'irrelevant' }
+```
+
+### Personality & Voice
+
+```
+Name: Sipher
+Tone: Confident, technical, slightly cypherpunk.
+      Never corporate. Never "I'm just an AI."
+      Speaks like a privacy engineer who cares.
+
+DO:
+  · Be direct and concise
+  · Use technical terms naturally
+  · Reference SIP Protocol when relevant
+  · Show the product in action
+  · Engage with privacy debates thoughtfully
+
+DO NOT:
+  · Shill aggressively
+  · Reply to every mention (quality > quantity)
+  · Engage with trolls beyond one factual correction
+  · Promise returns or financial outcomes
+  · Reveal any user's wallet activity
+```
+
+### Thread Context
+
+Multi-tweet conversations use X API conversation ID. Context window: last 5 tweets in thread. No cross-thread memory.
+
+### DM Session Flow
+
+```
+User: hey
+Sipher: gm. I'm Sipher — SIP Protocol's privacy agent.
+        Ask about privacy, check exposure, or link your wallet.
+
+User: link my wallet
+Sipher: Which chain? 1. Solana 2. EVM
+
+User: solana
+Sipher: Sign this to prove ownership:
+        "Link wallet to @alice on Sipher [nonce: a7f3]"
+        → sipher.sip-protocol.org/link/a7f3
+
+[After signing]
+Sipher: Wallet 7Kf2...xYz linked. You can now:
+        · "send 100 USDC to 0xAbc privately"
+        · "check my privacy score"
+        · "show my vault balance"
+```
+
+### Scheduled Posts (Autonomous)
+
+| Type | Frequency | Content |
+|------|-----------|---------|
+| Privacy tip | 1/day | Educational, actionable |
+| Vault stats | 1/day | Real on-chain data (never fabricated) |
+| Thread/education | 2-3/week | Deep-dives on stealth, commitments, viewing keys |
+| Engagement/QT | As relevant | Commentary on privacy/crypto news |
+
+### Rate Limiting & Budget Gates
+
+```
+Per-hour: max 10 replies, 20 DM responses, 3 posts/day
+
+Budget gates:
+  < 80%:  normal operation
+  80-95%: reduce keyword polling (60s → 5min), skip low-priority mentions
+  > 95%:  DM-only mode (no public engagement)
+  100%:   pause, notify RECTOR via Telegram
+```
+
+### Process Architecture
+
+The X agent is an adapter, not a separate service:
+
+```
+Sipher Agent (single process)
+├── Web adapter (pi-web-ui)     ← handles web chat
+├── X adapter                   ← handles mentions, DMs, posts
+├── Telegram adapter (Phase 2)
+├── API adapter (Phase 2)
+└── All share:
+    ├── Pi Agent Core (LLM + tools)
+    ├── @sipher/sdk (vault ops)
+    ├── SQLite (identities, scheduled ops)
+    └── @sip-protocol/sdk (privacy engine)
+```
+
+One agent, multiple interfaces. X adapter translates X events into tool calls and responses into tweets/DMs.
+
+---
+
+## 19. Resolved Design Decisions
 
 | # | Question | Decision |
 |---|----------|----------|
@@ -932,7 +1077,7 @@ SQLite table: `user_identities` (encrypted, same DB as scheduled ops and prefere
 
 ---
 
-## 19. Regulatory Landscape (2026)
+## 20. Regulatory Landscape (2026)
 
 ### Tornado Cash — Sanctions LIFTED (March 2025)
 
@@ -971,7 +1116,7 @@ Sipher = Privacy Pools equivalent for Solana. The only compliant privacy option 
 
 ---
 
-## 20. References
+## 21. References
 
 - [Privacy Pools paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364) — Vitalik Buterin et al.
 - [0xbow Privacy Pools](https://0xbow.io/) — live implementation, $3.5M funded

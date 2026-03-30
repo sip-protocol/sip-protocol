@@ -1407,9 +1407,108 @@ Missed Scheduled Ops:
     </ul>
   </section>
 
-  <!-- 18. Resolved Decisions -->
+  <!-- 18. X Agent Architecture -->
   <section>
-    <h2><span class="num">18</span> Resolved Design Decisions</h2>
+    <h2><span class="num">18</span> X Agent Architecture</h2>
+
+    <h3>Core Loop</h3>
+    <div class="arch"><span class="cyan">Event Poller</span> (cron, 30-60s)
+  Poll: mentions, DMs, keywords, replies
+          |
+          v
+<span class="highlight">Intent Router</span>
+  Classify: command | question | engagement | spam
+  Spam/irrelevant → ignore (save credits)
+          |
+          v
+<span class="green">Pi Agent Core</span> (LLM + SIP tools)
+  Public: read-only tools
+  DMs: full tools + execution links
+          |
+          v
+<span class="highlight">Response Gate</span>
+  Check budget, rate limits, sanitize
+  Log to admin dashboard
+          |
+          v
+<span class="cyan">X API Client</span> (pay-per-use)
+  Post reply / send DM / track credits</div>
+
+    <h3>Event Priority</h3>
+    <table>
+      <thead><tr><th>Event</th><th>Priority</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>DM to @sipher</td><td style="color: var(--red);">High</td><td>Always respond, full tools</td></tr>
+        <tr><td>@sipher mention</td><td style="color: var(--yellow);">Medium</td><td>Classify, respond if relevant</td></tr>
+        <tr><td>Reply to our post</td><td style="color: var(--yellow);">Medium</td><td>Continue conversation</td></tr>
+        <tr><td>Keyword match</td><td style="color: var(--text-muted);">Low</td><td>Engage if quality thread</td></tr>
+        <tr><td>New follower</td><td style="color: var(--text-muted);">Low</td><td>No auto-DM (anti-spam)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Personality</h3>
+    <div class="card card-accent">
+      <p><strong>Tone:</strong> Confident, technical, slightly cypherpunk. Never corporate. Never "I'm just an AI." Speaks like a privacy engineer who cares.</p>
+      <p style="margin-top: 8px;"><strong>DO:</strong> Direct, concise, technical terms naturally, show product in action, engage privacy debates.</p>
+      <p><strong>DON'T:</strong> Shill aggressively, reply to everything, engage trolls, reveal user activity, promise returns.</p>
+    </div>
+
+    <h3>DM Session Flow</h3>
+    <div class="chat">
+      <div class="chat-msg">
+        <div class="chat-user human">User (DM)</div>
+        <div class="chat-bubble human-bubble">hey, link my solana wallet</div>
+      </div>
+      <div class="chat-msg">
+        <div class="chat-user agent">Sipher</div>
+        <div class="chat-bubble agent-bubble">
+          gm. Sign this to prove ownership:<br>
+          <code>"Link wallet to @alice on Sipher [nonce: a7f3]"</code><br><br>
+          &rarr; <code>sipher.sip-protocol.org/link/a7f3</code><br><br>
+          After linking, you can DM me commands like:<br>
+          &middot; "send 100 USDC to 0xAbc privately"<br>
+          &middot; "check my privacy score"
+        </div>
+      </div>
+    </div>
+
+    <h3>Scheduled Posts</h3>
+    <table>
+      <thead><tr><th>Type</th><th>Frequency</th><th>Content</th></tr></thead>
+      <tbody>
+        <tr><td>Privacy tip</td><td>1/day</td><td>Educational, actionable</td></tr>
+        <tr><td>Vault stats</td><td>1/day</td><td>Real on-chain data (never fabricated)</td></tr>
+        <tr><td>Thread/education</td><td>2-3/week</td><td>Deep-dives on stealth, commitments, viewing keys</td></tr>
+        <tr><td>Engagement/QT</td><td>As relevant</td><td>Commentary on privacy/crypto news</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Rate Limits & Budget</h3>
+    <pre><code>Per-hour: max 10 replies, 20 DM responses, 3 posts/day
+
+Budget gates:
+  &lt; 80%:  normal operation
+  80-95%: reduce keyword polling (60s &rarr; 5min)
+  &gt; 95%:  DM-only mode
+  100%:   pause, notify RECTOR via Telegram</code></pre>
+
+    <h3>Process Architecture</h3>
+    <div class="arch"><span class="highlight">Sipher Agent</span> (single process)
+  ├── Web adapter (pi-web-ui)     &larr; web chat
+  ├── <span class="cyan">X adapter</span>                   &larr; mentions, DMs, posts
+  ├── Telegram adapter (Phase 2)
+  ├── API adapter (Phase 2)
+  └── All share:
+      ├── Pi Agent Core (LLM + tools)
+      ├── @sipher/sdk (vault ops)
+      ├── SQLite (identities, ops)
+      └── @sip-protocol/sdk (privacy)</div>
+    <p style="font-size: 13px; color: var(--text-muted);">One agent, multiple interfaces. X adapter translates X events into tool calls and responses into tweets/DMs.</p>
+  </section>
+
+  <!-- 19. Resolved Decisions -->
+  <section>
+    <h2><span class="num">19</span> Resolved Design Decisions</h2>
     <table>
       <thead><tr><th>#</th><th>Question</th><th>Decision</th></tr></thead>
       <tbody>
@@ -1423,9 +1522,9 @@ Missed Scheduled Ops:
     </table>
   </section>
 
-  <!-- 19. Regulatory Landscape -->
+  <!-- 20. Regulatory Landscape -->
   <section>
-    <h2><span class="num">19</span> Regulatory Landscape (2026)</h2>
+    <h2><span class="num">20</span> Regulatory Landscape (2026)</h2>
 
     <div class="card" style="border-left: 3px solid var(--green);">
       <h4>Tornado Cash &mdash; Sanctions LIFTED (March 2025)</h4>
@@ -1456,9 +1555,9 @@ Missed Scheduled Ops:
     <p><strong>Sipher = Privacy Pools equivalent for Solana.</strong> The only compliant privacy option on Solana.</p>
   </section>
 
-  <!-- 20. References -->
+  <!-- 21. References -->
   <section>
-    <h2><span class="num">20</span> References</h2>
+    <h2><span class="num">21</span> References</h2>
     <ul>
       <li><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364">Privacy Pools paper</a> &mdash; Vitalik Buterin et al.</li>
       <li><a href="https://0xbow.io/">0xbow Privacy Pools</a> &mdash; live implementation, $3.5M funded</li>
