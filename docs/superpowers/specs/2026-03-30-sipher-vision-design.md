@@ -148,6 +148,21 @@ Sipher depends on SIP, not the other way around.
 +--------------------------------------------------+
 ```
 
+### URL Structure
+
+Base domain: `sipher.sip-protocol.org` (existing, reused with path separation)
+
+| Path | Purpose |
+|------|---------|
+| `/` | Web chat UI (new — agent interface) |
+| `/api/v1/` | REST API (existing, kept running) |
+| `/pay/:id` | Payment links (one-time stealth receive) |
+| `/link/:nonce` | Wallet linking (from X/Telegram DMs) |
+| `/tx/:id` | Execution links (DM-to-web TX signing) |
+| `/admin/` | Command center dashboard (auth-protected) |
+
+No new domain. SSL already configured. Zero breaking changes for existing API consumers.
+
 ### Tech Stack
 
 | Layer | Technology | Rationale |

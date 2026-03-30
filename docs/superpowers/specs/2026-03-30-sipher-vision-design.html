@@ -558,6 +558,21 @@
   Single vault = natural mixer
   Auto-refund &middot; Multi-token &middot; Compliance-ready</div>
 
+    <h3>URL Structure</h3>
+    <p>Base: <code>sipher.sip-protocol.org</code> (existing domain, path separation)</p>
+    <table>
+      <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>/</code></td><td>Web chat UI (agent interface)</td></tr>
+        <tr><td><code>/api/v1/</code></td><td>REST API (existing, kept running)</td></tr>
+        <tr><td><code>/pay/:id</code></td><td>Payment links (stealth receive)</td></tr>
+        <tr><td><code>/link/:nonce</code></td><td>Wallet linking (from X/Telegram)</td></tr>
+        <tr><td><code>/tx/:id</code></td><td>Execution links (DM-to-web signing)</td></tr>
+        <tr><td><code>/admin/</code></td><td>Command center (auth-protected)</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size: 13px; color: var(--text-muted);">No new domain. SSL configured. Zero breaking changes for API consumers.</p>
+
     <h3>Tech Stack</h3>
     <table>
       <thead>
