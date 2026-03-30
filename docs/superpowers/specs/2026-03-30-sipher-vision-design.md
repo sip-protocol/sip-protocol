@@ -802,23 +802,69 @@ All platforms feed into one unified log in the admin dashboard.
 
 ---
 
-## 14. Open Questions
+## 14. Resolved Design Decisions
 
-1. **Fee model finalization** — 0.1% flat vs tiered vs free-tier-then-paid?
-2. **Vault vanity address** — specific vanity pattern? (e.g., `S1PHER...`)
-3. **Privacy Pools timeline** — Phase 3, but should association set research start earlier?
-4. **Token allowlist** — accept ALL SPL tokens from day 1, or curated list?
-5. **Sipher repo structure** — revamp existing `sip-protocol/sipher` repo or new repo?
-6. **Legal review** — at what point do we need a legal opinion on the mixer model?
+| # | Question | Decision |
+|---|----------|----------|
+| 1 | Fee model | Free for first $10K volume per wallet, then 0.1%. Clear, simple, growth-friendly. |
+| 2 | Vault vanity address | Try `S1PHER...` first, fall back to `S1Phr` or `S1P` if grinding takes too long. |
+| 3 | Privacy Pools timeline | Research in Phase 1 (map 0xbow architecture), build in Phase 3. Don't discover mid-build. |
+| 4 | Token allowlist | Jupiter verified token list from day 1. If Jupiter trusts it, we trust it. |
+| 5 | Sipher repo structure | Gradual migration (option B). Keep existing REST API live, build agent alongside in same repo. `/src/agent/` + `/src/api/` coexist. API becomes one of the Agent Plug interfaces in Phase 2. |
+| 6 | Legal review | Budget $500-2K for regulatory opinion letter before mainnet vault launch. Start with self-research (OFAC guidance, Privacy Pools paper, a16z compliance papers) + Superteam legal resources. Risk is lower than initially assessed — see Regulatory Landscape below. |
 
 ---
 
-## 15. References
+## 15. Regulatory Landscape (2026)
+
+### Tornado Cash — Sanctions LIFTED (March 2025)
+
+OFAC removed Tornado Cash from sanctions in March 2025. The Fifth Circuit ruled that immutable smart contracts cannot be classified as "property" under IEEPA. Trump's Treasury delisted it, citing "novel legal and policy issues."
+
+**Implication:** Open-source mixer code is not inherently sanctionable. Regulatory risk for Sipher is significantly lower than 2022-2024 era.
+
+**Caveat:** Roman Storm (co-founder) still faced criminal trial in July 2025. Publishing code may be protected, but operating a service with knowledge of illicit use may not be.
+
+### 0xbow / Privacy Pools — LIVE (Institutional Backing)
+
+- Live on Ethereum since March 2025: $6M volume, 1,500+ users, 1,186 withdrawals
+- $3.5M seed round: Coinbase Ventures, BOOST VC, Starbloom Capital
+- Expanding to BNB Chain (Q1 2026) with Brevis partnership
+- ZK proofs prove deposits aren't from illicit sources
+- **This is the compliance model we adapt for Solana in Phase 3**
+
+### PrivacyCash — Live on Solana (No Compliance)
+
+- Pool-based mixer on Solana (send, swap, bridge)
+- No compliance mechanism (no viewing keys, no association sets)
+- No team info, no regulatory framework
+- Direct Solana competitor — shipping without compliance
+- Vulnerable to the same regulatory actions Tornado Cash faced
+
+### Sipher's Position
+
+| Protocol | Privacy | Compliance | Status |
+|----------|---------|------------|--------|
+| Tornado Cash | Pool mixing | None (delisted, code legal) | Sanctions lifted |
+| 0xbow/Privacy Pools | Pool + ZK association proofs | Full (ASP-based) | Live, funded, expanding |
+| PrivacyCash | Pool mixing | None | Live on Solana, risky |
+| **Sipher** | Stealth + Pedersen + vault | Viewing keys + association sets (Phase 3) | Building |
+
+Sipher = Privacy Pools equivalent for Solana. The only compliant privacy option on Solana.
+
+---
+
+## 16. References
 
 - [Privacy Pools paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364) — Vitalik Buterin et al.
+- [0xbow Privacy Pools](https://0xbow.io/) — live implementation, $3.5M funded
+- [0xbow GitHub](https://github.com/0xbow-io/privacy-pools-core) — open-source core
+- [OFAC Tornado Cash Delisting](https://home.treasury.gov/news/press-releases/sb0057) — March 2025
+- [Venable: Treasury Lifts Sanctions](https://www.venable.com/insights/publications/2025/04/a-legal-whirlwind-settles-treasury-lifts-sanctions) — legal analysis
 - [a16z: Privacy-Protecting Regulatory Solutions](https://a16zcrypto.com/posts/article/privacy-protecting-regulatory-solutions-using-zero-knowledge-proofs-full-paper) — Burleson, Korver, Boneh
 - [a16z: Agency by Design](https://a16zcrypto.com/posts/article/agency-by-design) — agent sovereignty framework
+- [PrivacyCash](https://www.privacycash.org/) — Solana competitor (no compliance)
 - [Pi SDK monorepo](https://github.com/badlogic/pi-mono) — agent framework
 - [How to Build with PI](https://nader.substack.com/p/how-to-build-a-custom-agent-framework) — Nader Dabit
-- [Chainalysis: Tornado Cash Sanctions](https://www.chainalysis.com/) — regulatory context
+- [X API Pay-Per-Use Pricing](https://developer.x.com/#pricing) — credit consumption details
 - [Colosseum Frontier](https://colosseum.com/frontier) — hackathon (Apr 6 - May 11, 2026)

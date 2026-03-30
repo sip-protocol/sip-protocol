@@ -1284,26 +1284,70 @@ Missed Scheduled Ops:
     <p style="font-size: 13px; color: var(--text-muted);">All platforms feed into one unified log in the admin dashboard.</p>
   </section>
 
-  <!-- 14. Open Questions -->
+  <!-- 14. Resolved Decisions -->
   <section>
-    <h2><span class="num">14</span> Open Questions</h2>
-    <div class="question"><strong>1.</strong> Fee model finalization &mdash; 0.1% flat vs tiered vs free-tier-then-paid?</div>
-    <div class="question"><strong>2.</strong> Vault vanity address &mdash; specific vanity pattern? (e.g., <code>S1PHER...</code>)</div>
-    <div class="question"><strong>3.</strong> Privacy Pools timeline &mdash; Phase 3, but should association set research start earlier?</div>
-    <div class="question"><strong>4.</strong> Token allowlist &mdash; accept ALL SPL tokens from day 1, or curated list?</div>
-    <div class="question"><strong>5.</strong> Sipher repo structure &mdash; revamp existing <code>sip-protocol/sipher</code> or new repo?</div>
-    <div class="question"><strong>6.</strong> Legal review &mdash; at what point do we need a legal opinion on the mixer model?</div>
+    <h2><span class="num">14</span> Resolved Design Decisions</h2>
+    <table>
+      <thead><tr><th>#</th><th>Question</th><th>Decision</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Fee model</td><td>Free for first $10K volume per wallet, then 0.1%</td></tr>
+        <tr><td>2</td><td>Vault vanity address</td><td>Try <code>S1PHER...</code> first, fall back to <code>S1P</code></td></tr>
+        <tr><td>3</td><td>Privacy Pools timeline</td><td>Research in Phase 1, build in Phase 3</td></tr>
+        <tr><td>4</td><td>Token allowlist</td><td>Jupiter verified token list from day 1</td></tr>
+        <tr><td>5</td><td>Repo structure</td><td>Gradual migration &mdash; keep REST API, build agent alongside (<code>/src/agent/</code> + <code>/src/api/</code>)</td></tr>
+        <tr><td>6</td><td>Legal review</td><td>Budget $500-2K for opinion letter. Start with self-research + Superteam resources.</td></tr>
+      </tbody>
+    </table>
   </section>
 
-  <!-- 15. References -->
+  <!-- 15. Regulatory Landscape -->
   <section>
-    <h2><span class="num">15</span> References</h2>
+    <h2><span class="num">15</span> Regulatory Landscape (2026)</h2>
+
+    <div class="card" style="border-left: 3px solid var(--green);">
+      <h4>Tornado Cash &mdash; Sanctions LIFTED (March 2025)</h4>
+      <p>OFAC removed Tornado Cash from sanctions. Fifth Circuit ruled immutable smart contracts can't be "property" under IEEPA. Trump's Treasury delisted it. <strong>Open-source mixer code is not inherently sanctionable.</strong></p>
+      <p style="font-size: 13px; color: var(--text-muted);">Caveat: Roman Storm still faced criminal trial. Publishing code may be protected, but operating with knowledge of illicit use may not be.</p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--accent); margin-top: 12px;">
+      <h4>0xbow / Privacy Pools &mdash; LIVE (Institutional Backing)</h4>
+      <p>Live on Ethereum since March 2025. $6M volume, 1,500+ users. $3.5M seed (Coinbase Ventures, BOOST VC). Expanding to BNB Chain Q1 2026. <strong>This is the compliance model we adapt for Solana.</strong></p>
+    </div>
+
+    <div class="card" style="border-left: 3px solid var(--yellow); margin-top: 12px;">
+      <h4>PrivacyCash &mdash; Live on Solana (No Compliance)</h4>
+      <p>Pool-based mixer on Solana. No viewing keys, no association sets, no team info. Direct competitor shipping without compliance. Vulnerable to regulatory action.</p>
+    </div>
+
+    <h3>Competitive Positioning (Updated)</h3>
+    <table>
+      <thead><tr><th>Protocol</th><th>Privacy</th><th>Compliance</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Tornado Cash</td><td>Pool mixing</td><td>None (code legal)</td><td style="color: var(--green);">Sanctions lifted</td></tr>
+        <tr><td>0xbow/Privacy Pools</td><td>Pool + ZK association proofs</td><td>Full (ASP-based)</td><td style="color: var(--green);">Live, funded, expanding</td></tr>
+        <tr><td>PrivacyCash</td><td>Pool mixing</td><td>None</td><td style="color: var(--yellow);">Live on Solana, risky</td></tr>
+        <tr><td><strong>Sipher</strong></td><td>Stealth + Pedersen + vault</td><td>Viewing keys + association sets</td><td style="color: var(--accent);">Building</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Sipher = Privacy Pools equivalent for Solana.</strong> The only compliant privacy option on Solana.</p>
+  </section>
+
+  <!-- 16. References -->
+  <section>
+    <h2><span class="num">16</span> References</h2>
     <ul>
       <li><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364">Privacy Pools paper</a> &mdash; Vitalik Buterin et al.</li>
+      <li><a href="https://0xbow.io/">0xbow Privacy Pools</a> &mdash; live implementation, $3.5M funded</li>
+      <li><a href="https://github.com/0xbow-io/privacy-pools-core">0xbow GitHub</a> &mdash; open-source core</li>
+      <li><a href="https://home.treasury.gov/news/press-releases/sb0057">OFAC Tornado Cash Delisting</a> &mdash; March 2025</li>
+      <li><a href="https://www.venable.com/insights/publications/2025/04/a-legal-whirlwind-settles-treasury-lifts-sanctions">Venable: Treasury Lifts Sanctions</a> &mdash; legal analysis</li>
       <li><a href="https://a16zcrypto.com/posts/article/privacy-protecting-regulatory-solutions-using-zero-knowledge-proofs-full-paper">a16z: Privacy-Protecting Regulatory Solutions</a> &mdash; Burleson, Korver, Boneh</li>
-      <li><a href="https://a16zcrypto.com/posts/article/agency-by-design">a16z: Agency by Design</a> &mdash; agent sovereignty framework</li>
+      <li><a href="https://a16zcrypto.com/posts/article/agency-by-design">a16z: Agency by Design</a> &mdash; agent sovereignty</li>
+      <li><a href="https://www.privacycash.org/">PrivacyCash</a> &mdash; Solana competitor (no compliance)</li>
       <li><a href="https://github.com/badlogic/pi-mono">Pi SDK monorepo</a> &mdash; agent framework</li>
       <li><a href="https://nader.substack.com/p/how-to-build-a-custom-agent-framework">How to Build with PI</a> &mdash; Nader Dabit</li>
+      <li><a href="https://developer.x.com/#pricing">X API Pay-Per-Use Pricing</a> &mdash; credit consumption</li>
       <li><a href="https://colosseum.com/frontier">Colosseum Frontier</a> &mdash; hackathon (Apr 6 - May 11, 2026)</li>
     </ul>
   </section>
