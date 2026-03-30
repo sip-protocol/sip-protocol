@@ -1284,9 +1284,132 @@ Missed Scheduled Ops:
     <p style="font-size: 13px; color: var(--text-muted);">All platforms feed into one unified log in the admin dashboard.</p>
   </section>
 
-  <!-- 14. Resolved Decisions -->
+  <!-- 14. Multi-Chain Strategy -->
   <section>
-    <h2><span class="num">14</span> Resolved Design Decisions</h2>
+    <h2><span class="num">14</span> Multi-Chain Strategy</h2>
+    <div class="card-grid">
+      <div class="card card-accent">
+        <h4>Phase 1-2: Solana Only</h4>
+        <p>Vault program, Jupiter integration, stealth addresses &mdash; all Solana-native. Prove the model on one chain first.</p>
+      </div>
+      <div class="card">
+        <h4>Phase 3: EVM Chains</h4>
+        <p>Via existing SIP EVM contracts (7 testnets deployed). @sipher/sdk abstracts the chain &mdash; user says "send privately", Sipher routes.</p>
+      </div>
+      <div class="card">
+        <h4>Phase 4: Full SIP Vision</h4>
+        <p>Any chain SIP supports (15+). Chain-specific vaults, identical agent interface. Users don't care about chains.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15. Mobile Strategy -->
+  <section>
+    <h2><span class="num">15</span> Mobile Strategy</h2>
+    <div class="card card-accent">
+      <h4>No separate mobile app for Sipher.</h4>
+      <p><strong>Phase 1:</strong> Responsive web (sipher.sip-protocol.org on mobile browser). Connect wallet, chat. Zero friction.</p>
+      <p><strong>Phase 2+:</strong> "Sipher chat" tab inside sip-mobile, if mobile engagement justifies it. Agent runs server-side, mobile is just a chat client.</p>
+    </div>
+  </section>
+
+  <!-- 16. Platform Capabilities -->
+  <section>
+    <h2><span class="num">16</span> Platform Capabilities</h2>
+
+    <h3>X.com Interaction Tiers</h3>
+    <table>
+      <thead><tr><th>Tier</th><th>User Action</th><th>Sipher Can Do</th><th>Limitation</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Public</strong></td><td>@sipher what's my privacy score?</td><td>Read-only: privacyScore, threatCheck, advice</td><td>No sensitive data in public</td></tr>
+        <tr><td><strong>DM</strong></td><td>DM: "send 100 USDC to 0xAbc"</td><td>Prepare full TX, generate signed execution link</td><td>No wallet signing in DMs</td></tr>
+        <tr><td><strong>Web App</strong></td><td>Connect wallet, sign TXs</td><td>All 21 tools, full execution</td><td>None</td></tr>
+      </tbody>
+    </table>
+
+    <h3>DM-to-Web Execution Flow</h3>
+    <div class="chat">
+      <div class="chat-msg">
+        <div class="chat-user human">User (X DM)</div>
+        <div class="chat-bubble human-bubble">Send 500 USDC to 0xAbc privately, split it</div>
+      </div>
+      <div class="chat-msg">
+        <div class="chat-user agent">Sipher</div>
+        <div class="chat-bubble agent-bubble">
+          Got it. I've prepared a split send:<br>
+          &middot; 3 chunks over 4 hours<br>
+          &middot; Stealth relay routing<br><br>
+          Sign and execute here:<br>
+          <code>sipher.sip-protocol.org/tx/a7f3...</code><br>
+          (link expires in 15 min)
+        </div>
+      </div>
+    </div>
+    <p style="font-size: 13px; color: var(--text-muted);">X agent is a funnel to the web app &mdash; builds trust, converts to vault operations. Never post sensitive data publicly.</p>
+  </section>
+
+  <!-- 17. User Identity -->
+  <section>
+    <h2><span class="num">17</span> User Identity &amp; Wallet Linking</h2>
+
+    <h3>Identity Model</h3>
+    <pre><code>User Identity Record (encrypted at rest):
+{
+  id: "usr_a7f3...",
+  platforms: {
+    x:        { handle: "@alice", numericId: "123456789" },
+    telegram: { username: "alice_crypto", chatId: "987654" },
+    discord:  { username: "alice#1234", userId: "111222333" }
+  },
+  wallets: [
+    { chain: "solana", address: "7Kf2...", label: "main" },
+    { chain: "solana", address: "9Bx1...", label: "vault2" },
+    { chain: "evm", address: "0xAbc...", label: "eth" }
+  ]
+}</code></pre>
+
+    <h3>Wallet Linking Flow</h3>
+    <div class="chat">
+      <div class="chat-msg">
+        <div class="chat-user human">User</div>
+        <div class="chat-bubble human-bubble">Link my wallet</div>
+      </div>
+      <div class="chat-msg">
+        <div class="chat-user agent">Sipher</div>
+        <div class="chat-bubble agent-bubble">
+          Sign this message with your wallet to prove ownership:<br>
+          <code>"Link wallet to @alice on Sipher [nonce: a7f3]"</code><br><br>
+          <a href="#">Sign on Web App &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <h3>Management Commands</h3>
+    <table>
+      <thead><tr><th>Command</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><code>"Show my linked wallets"</code></td><td>List all wallets with labels and chains</td></tr>
+        <tr><td><code>"Remove wallet 7Kf2..."</code></td><td>Unlink wallet from identity</td></tr>
+        <tr><td><code>"Set 7Kf2... as default"</code></td><td>Commands use this wallet when unspecified</td></tr>
+        <tr><td><code>"Link my Telegram"</code></td><td>Cross-platform identity verification</td></tr>
+        <tr><td><code>"Delete my account"</code></td><td>Full identity purge (Right to Forget)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Security Rules</h3>
+    <ul>
+      <li>X numeric ID as primary key (handles change, IDs don't)</li>
+      <li>Entire record <strong>encrypted at rest</strong> with SQLCipher</li>
+      <li><strong>Never expose wallet-to-X mapping publicly</strong> &mdash; more sensitive than transactions</li>
+      <li>Wallet link requires cryptographic proof (message signature)</li>
+      <li>Each platform requires separate verification</li>
+      <li>Admin dashboard shows anonymized counts, never identity details</li>
+    </ul>
+  </section>
+
+  <!-- 18. Resolved Decisions -->
+  <section>
+    <h2><span class="num">18</span> Resolved Design Decisions</h2>
     <table>
       <thead><tr><th>#</th><th>Question</th><th>Decision</th></tr></thead>
       <tbody>
@@ -1300,9 +1423,9 @@ Missed Scheduled Ops:
     </table>
   </section>
 
-  <!-- 15. Regulatory Landscape -->
+  <!-- 19. Regulatory Landscape -->
   <section>
-    <h2><span class="num">15</span> Regulatory Landscape (2026)</h2>
+    <h2><span class="num">19</span> Regulatory Landscape (2026)</h2>
 
     <div class="card" style="border-left: 3px solid var(--green);">
       <h4>Tornado Cash &mdash; Sanctions LIFTED (March 2025)</h4>
@@ -1333,9 +1456,9 @@ Missed Scheduled Ops:
     <p><strong>Sipher = Privacy Pools equivalent for Solana.</strong> The only compliant privacy option on Solana.</p>
   </section>
 
-  <!-- 16. References -->
+  <!-- 20. References -->
   <section>
-    <h2><span class="num">16</span> References</h2>
+    <h2><span class="num">20</span> References</h2>
     <ul>
       <li><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364">Privacy Pools paper</a> &mdash; Vitalik Buterin et al.</li>
       <li><a href="https://0xbow.io/">0xbow Privacy Pools</a> &mdash; live implementation, $3.5M funded</li>

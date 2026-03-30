@@ -802,7 +802,124 @@ All platforms feed into one unified log in the admin dashboard.
 
 ---
 
-## 14. Resolved Design Decisions
+## 14. Multi-Chain Strategy
+
+**Phase 1-2:** Solana only. Vault program, Jupiter integration, stealth addresses — all Solana-native. Prove the model works on one chain first.
+
+**Phase 3:** EVM chains via existing SIP EVM contracts (deployed on 7 testnets). @sipher/sdk abstracts the chain — user says "send 100 USDC privately" and Sipher routes to the right chain.
+
+**Phase 4:** Full SIP vision — any chain SIP supports (15+ chains). Vault concept becomes chain-specific (PDA on Solana, smart contract on EVM, account on NEAR), but agent interface is identical.
+
+The agent is the abstraction layer. Users don't care about chains. They talk to Sipher.
+
+---
+
+## 15. Mobile Strategy
+
+**No separate mobile app for Sipher.**
+
+| Option | Approach | Phase |
+|--------|----------|-------|
+| **Responsive web** | sipher.sip-protocol.org on mobile browser. Connect wallet, chat. Zero friction. | Phase 1 |
+| **sip-mobile integration** | "Sipher chat" tab inside sip-mobile. Agent runs server-side, mobile is chat client. | Phase 2+ (if mobile engagement justifies it) |
+
+Don't build a third app. The web chat (pi-web-ui) is responsive by default.
+
+---
+
+## 16. Platform Capabilities Matrix
+
+### X.com Interaction Tiers
+
+| Tier | User Action | Sipher Can Do | Limitation |
+|------|------------|---------------|------------|
+| **Public (timeline)** | @sipher what's my privacy score? | Read-only: `privacyScore`, `threatCheck`, general advice | No sensitive data in public replies |
+| **DM (private)** | DM: "send 100 USDC to 0xAbc" | Prepare full TX, generate signed execution link | No wallet signing in DMs |
+| **Web App (full)** | Connect wallet, sign transactions | All 21 tools, full execution | None |
+
+### DM-to-Web Execution Flow
+
+```
+[X DM]
+User: "Send 500 USDC to 0xAbc privately, split it"
+Sipher: Got it. I've prepared a split send:
+        · 3 chunks over 4 hours
+        · Stealth relay routing
+
+        Sign and execute here:
+        sipher.sip-protocol.org/tx/a7f3...
+        (link expires in 15 min)
+```
+
+Sipher prepares everything conversationally, but wallet signing happens on web. X agent is a funnel to the web app — builds trust and awareness, converts to vault operations.
+
+### Public Timeline Rules
+
+- Privacy score checks on public addresses: allowed (public data)
+- Educational/advisory replies: allowed
+- Never post transaction details, amounts, or wallet associations publicly
+- Never confirm or deny wallet ownership in public replies
+
+---
+
+## 17. User Identity & Wallet Linking
+
+### Identity Model
+
+Users link their platform identities (X, Telegram, Discord) to their wallets. This enables cross-platform commands (e.g., DM on X → execute on linked wallet).
+
+```
+User Identity Record (encrypted at rest):
+{
+  id: "usr_a7f3...",
+  platforms: {
+    x:        { handle: "@alice", numericId: "123456789" },
+    telegram: { username: "alice_crypto", chatId: "987654" },
+    discord:  { username: "alice#1234", userId: "111222333" }
+  },
+  wallets: [
+    { chain: "solana", address: "7Kf2...", label: "main", linked: "2026-04-10" },
+    { chain: "solana", address: "9Bx1...", label: "vault2", linked: "2026-04-15" },
+    { chain: "evm", address: "0xAbc...", label: "eth", linked: "2026-05-01" }
+  ],
+  preferences: { ... },
+  createdAt: "2026-04-10",
+  lastActive: "2026-04-20"
+}
+```
+
+### Wallet Linking Flow
+
+1. User initiates link via DM or web app: `"Link my wallet"`
+2. Sipher generates a unique message: `"Link wallet to @alice on Sipher [nonce: a7f3]"`
+3. User signs the message with their wallet (proves ownership)
+4. Sipher stores the encrypted link
+5. User can now issue commands from X/Telegram referencing this wallet
+
+### Wallet Management
+
+- **Multiple wallets per user** — label them ("main", "trading", "eth")
+- **Multiple chains** — Solana, EVM, future chains
+- **Unlink anytime** — `"Remove wallet 7Kf2... from my account"` via DM or web
+- **Set default** — `"Set 7Kf2... as my default wallet"`
+- **Full deletion** — `"Delete my account"` removes all identity data (Right to Forget)
+
+### Security Rules
+
+- X numeric ID as primary key (handles change, IDs don't)
+- Entire record encrypted at rest with SQLCipher
+- **Never expose wallet-to-X mapping publicly** — this data is more sensitive than transactions
+- Wallet link requires cryptographic proof (message signature)
+- Cross-platform identity links require separate verification per platform
+- Admin dashboard shows anonymized user count, never identity details
+
+### Storage
+
+SQLite table: `user_identities` (encrypted, same DB as scheduled ops and preferences).
+
+---
+
+## 18. Resolved Design Decisions
 
 | # | Question | Decision |
 |---|----------|----------|
@@ -815,7 +932,7 @@ All platforms feed into one unified log in the admin dashboard.
 
 ---
 
-## 15. Regulatory Landscape (2026)
+## 19. Regulatory Landscape (2026)
 
 ### Tornado Cash — Sanctions LIFTED (March 2025)
 
@@ -854,7 +971,7 @@ Sipher = Privacy Pools equivalent for Solana. The only compliant privacy option 
 
 ---
 
-## 16. References
+## 20. References
 
 - [Privacy Pools paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364) — Vitalik Buterin et al.
 - [0xbow Privacy Pools](https://0xbow.io/) — live implementation, $3.5M funded
