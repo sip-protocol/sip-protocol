@@ -211,11 +211,49 @@ A single program-controlled vault (PDA) where all users deposit. The vault acts 
 
 ### Fee Model
 
-- **Recommended:** 0.1% per private transaction (10x cheaper than competitors)
-- **Alternative:** 0% up to $10K volume per wallet, then 0.1% (growth hook)
-- Fee collected in the transacted token
-- Fee accumulates in a separate PDA, withdrawable by program authority
-- Configurable by program authority (can adjust post-launch)
+**Rate:** Free for first $10K volume per wallet, then 0.1% per private transaction. Configurable by program authority.
+
+**Collection:** Hybrid approach — fee taken in the transacted token, converted to USDC by WATCHER.
+
+```
+Fee deduction (at TX time):
+  User sends 1000 JUP privately
+  → Program deducts 1 JUP (0.1%) to fee_account PDA
+  → 999 JUP sent to stealth address
+  → User sees: "Fee: 1 JUP (0.1%)"
+```
+
+**Fee accounts (on-chain):**
+
+```
+Vault PDA
+├── user_deposit_accounts (per user, per token)
+└── fee_accounts (per token)
+    ├── fee_sol      → SOL fees (keep as-is)
+    ├── fee_usdc     → USDC fees (keep as-is)
+    ├── fee_jup      → JUP fees (convert to USDC)
+    ├── fee_bonk     → BONK fees (convert to USDC)
+    └── ...
+```
+
+**Smart threshold conversion (WATCHER agent, runs hourly):**
+
+```
+For each non-SOL/USDC fee account:
+  → Check balance value (via Jupiter quote)
+  → If value ≥ $10:       convert to USDC immediately
+  → If value < $10:       skip, check next hour
+  → If token down >20% in 24h: convert regardless of amount
+  → If sitting >72h:      convert regardless of amount
+```
+
+**Why hybrid:**
+- SOL/USDC are already useful — no conversion needed
+- Random tokens accumulate but get auto-converted hourly by WATCHER
+- No extra TX cost at send time (fee taken inline, conversion deferred)
+- Threshold prevents wasting gas on dust swaps
+- 72h hard ceiling ensures nothing sits forever
+- Volatility protection catches dumps early
 
 ---
 

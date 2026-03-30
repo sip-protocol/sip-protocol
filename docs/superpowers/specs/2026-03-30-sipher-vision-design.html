@@ -623,14 +623,27 @@
     </ul>
 
     <h3>Fee Model</h3>
+    <div class="card card-accent">
+      <h4>Free for first $10K volume per wallet, then 0.1%</h4>
+      <p>10x cheaper than competitors. Growth-friendly. Configurable by program authority.</p>
+    </div>
+
+    <h4 style="color: var(--cyan); margin-top: 16px;">Collection: Hybrid</h4>
+    <p>Fee taken in transacted token at TX time. Converted to USDC by WATCHER agent.</p>
+    <pre><code>User sends 1000 JUP privately
+  &rarr; Program deducts 1 JUP (0.1%) to fee_account PDA
+  &rarr; 999 JUP sent to stealth address
+  &rarr; User sees: "Fee: 1 JUP (0.1%)"</code></pre>
+
+    <h4 style="color: var(--green); margin-top: 16px;">Smart Threshold Conversion (WATCHER, hourly)</h4>
     <table>
-      <thead>
-        <tr><th>Option</th><th>Rate</th><th>Notes</th></tr>
-      </thead>
+      <thead><tr><th>Condition</th><th>Action</th></tr></thead>
       <tbody>
-        <tr><td><strong>Recommended</strong></td><td>0.1%</td><td>10x cheaper than competitors. Sustainable.</td></tr>
-        <tr><td>Alternative</td><td>0% up to $10K, then 0.1%</td><td>Growth hook. Best of both worlds.</td></tr>
-        <tr><td>Competitors (Cloak)</td><td>~0.3-0.5%</td><td>For reference</td></tr>
+        <tr><td>SOL / USDC fees</td><td>Keep as-is (already useful)</td></tr>
+        <tr><td>Other token, value &ge; $10</td><td>Convert to USDC immediately</td></tr>
+        <tr><td>Other token, value &lt; $10</td><td>Skip, check next hour</td></tr>
+        <tr><td>Token down &gt;20% in 24h</td><td>Convert regardless of amount</td></tr>
+        <tr><td>Sitting &gt; 72h unconverted</td><td>Convert regardless of amount</td></tr>
       </tbody>
     </table>
   </section>
