@@ -178,21 +178,65 @@ No new domain. SSL already configured. Zero breaking changes for existing API co
 
 ## 5. PDA Vault Design
 
+### Program Architecture: Composable (Option C)
+
+Two programs, composable via CPI:
+
+```
+sipher_vault (NEW)                    sip_privacy (EXISTING)
+├── deposit                           ├── shielded_transfer
+├── withdraw_private ──CPI call──►    ├── shielded_token_transfer
+├── swap_private ─────CPI call──►     ├── create_transfer_announcement
+├── refund                            ├── claim_transfer
+├── crank_refund                      ├── claim_token_transfer
+├── collect_fee                       ├── verify_commitment
+├── update_config                     ├── set_paused
+└── pause                             └── update_fee
+```
+
+**Why two programs:**
+- SIP program stays clean — it's the standard, not a product
+- sipher_vault is product logic (deposit, refund, fee, rate limit)
+- CPI composition = both independently upgradeable
+- Other products (sip-app, sip-mobile) continue using SIP program directly
+- Matches "SIP = engine, Sipher = car" philosophy
+
+**Cost:** ~1.4 SOL rent (~$196) for new program. Negligible vs architectural benefit.
+
+**Program IDs:**
+- SIP Privacy: `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` (existing, unchanged)
+- Sipher Vault: TBD (vanity grind `S1PHER...` or `S1Phr...`)
+
 ### Core Concept
 
 A single program-controlled vault (PDA) where all users deposit. The vault acts as a natural mixer — funds from many users pool together, breaking the on-chain link between depositor and eventual recipient.
 
-**Critical:** No private key. The vault is a PDA controlled by the Sipher program. SIP team never has custody.
+**Critical:** No private key. The vault is a PDA controlled by the sipher_vault program. SIP team never has custody.
 
-### Vault Operations
+### sipher_vault Instructions
 
-| Operation | Description |
-|-----------|-------------|
-| **Deposit** | User sends any SPL token to the vault PDA. Amount recorded in deposit PDA account. |
-| **Private Send** | Vault sends to a stealth address. Pedersen commitment hides amount. Viewing key generated. |
-| **Private Swap** | Route through Jupiter to stealth output ATA. Already proven on mainnet. |
-| **Refund** | User requests refund OR auto-refund triggers after configurable timeout (default 24h). |
-| **Withdraw** | User claims funds from stealth address (existing SIP claim flow). |
+| Instruction | Description |
+|-------------|-------------|
+| `initialize` | Set up vault config (fee rate, refund timeout, authority) |
+| `deposit` | User deposits token into vault PDA, creates deposit record PDA |
+| `withdraw_private` | CPI to sip_privacy for stealth send (from vault balance) |
+| `swap_private` | Jupiter swap + CPI to sip_privacy for stealth output |
+| `refund` | Return funds to depositor (manual, user-initiated) |
+| `crank_refund` | Permissionless: anyone can trigger expired auto-refunds |
+| `collect_fee` | Authority withdraws accumulated fees from fee accounts |
+| `update_config` | Authority updates fee rate, refund timeout |
+| `pause` | Emergency pause all operations |
+
+### Vault Operations (User Flow)
+
+| Operation | Flow |
+|-----------|------|
+| **Deposit** | User sends token to vault PDA → sipher_vault creates deposit record PDA (wallet, token, amount, timestamp) |
+| **Private Send** | sipher_vault deducts balance → CPI to sip_privacy `shielded_token_transfer` → stealth address + announcement PDA |
+| **Private Swap** | sipher_vault deducts balance → Jupiter swap → CPI to sip_privacy for stealth output ATA |
+| **Refund** | User calls `refund` → sipher_vault returns current balance to depositor |
+| **Auto-Refund** | Anyone calls `crank_refund` after timeout → sipher_vault returns balance to depositor |
+| **Claim** | Recipient calls sip_privacy `claim_transfer` directly (existing flow, unchanged) |
 
 ### Auto-Refund Mechanism
 

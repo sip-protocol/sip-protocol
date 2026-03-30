@@ -593,23 +593,62 @@
   <section>
     <h2><span class="num">05</span> PDA Vault Design</h2>
 
+    <h3>Program Architecture: Composable (Option C)</h3>
     <div class="card card-accent">
-      <h4>Core Concept</h4>
-      <p>A single program-controlled vault (PDA) where all users deposit. The vault acts as a natural mixer &mdash; funds from many users pool together, breaking the on-chain link between depositor and recipient.</p>
-      <p><strong>Critical:</strong> No private key. The vault is a PDA controlled by the Sipher program. SIP team never has custody.</p>
+      <h4>Two programs, composable via CPI</h4>
+      <p><strong>sipher_vault</strong> (NEW) handles deposits, refunds, fees, rate limiting.</p>
+      <p><strong>sip_privacy</strong> (EXISTING) handles stealth transfers, announcements, claims.</p>
+      <p>sipher_vault calls sip_privacy via CPI for stealth operations. Both independently upgradeable.</p>
     </div>
 
-    <h3>Vault Operations</h3>
+    <div class="arch"><span class="green">sipher_vault</span> (NEW)                <span class="cyan">sip_privacy</span> (EXISTING)
+  deposit                           shielded_transfer
+  withdraw_private <span class="highlight">&mdash;CPI&rarr;</span>        shielded_token_transfer
+  swap_private <span class="highlight">&mdash;&mdash;&mdash;CPI&rarr;</span>        create_transfer_announcement
+  refund                            claim_transfer
+  crank_refund                      claim_token_transfer
+  collect_fee                       verify_commitment
+  update_config                     set_paused
+  pause                             update_fee</div>
+
+    <p style="font-size: 13px; color: var(--text-muted);">
+      SIP Privacy: <code>S1PMFspo4W6...S9at</code> (unchanged) &middot;
+      Sipher Vault: TBD (vanity <code>S1PHER...</code>) &middot;
+      Cost: ~1.4 SOL (~$196)
+    </p>
+
+    <div class="card card-accent" style="margin-top: 16px;">
+      <h4>Core Concept</h4>
+      <p>Single program-controlled vault (PDA). Natural mixer &mdash; funds pool together, breaking depositor-to-recipient link.</p>
+      <p><strong>Critical:</strong> No private key. PDA controlled by sipher_vault program. SIP team never has custody.</p>
+    </div>
+
+    <h3>sipher_vault Instructions</h3>
     <table>
-      <thead>
-        <tr><th>Operation</th><th>Description</th></tr>
-      </thead>
+      <thead><tr><th>Instruction</th><th>Description</th></tr></thead>
       <tbody>
-        <tr><td><strong>Deposit</strong></td><td>User sends any SPL token to the vault PDA. Amount recorded in deposit PDA account.</td></tr>
-        <tr><td><strong>Private Send</strong></td><td>Vault sends to a stealth address. Pedersen commitment hides amount. Viewing key generated.</td></tr>
-        <tr><td><strong>Private Swap</strong></td><td>Route through Jupiter to stealth output ATA. Already proven on mainnet.</td></tr>
-        <tr><td><strong>Refund</strong></td><td>User requests refund OR auto-refund triggers after configurable timeout (default 24h).</td></tr>
-        <tr><td><strong>Withdraw</strong></td><td>User claims funds from stealth address (existing SIP claim flow).</td></tr>
+        <tr><td><code>initialize</code></td><td>Set up vault config (fee, timeout, authority)</td></tr>
+        <tr><td><code>deposit</code></td><td>User deposits token, creates deposit record PDA</td></tr>
+        <tr><td><code>withdraw_private</code></td><td>CPI to sip_privacy for stealth send from vault</td></tr>
+        <tr><td><code>swap_private</code></td><td>Jupiter swap + CPI to sip_privacy for stealth output</td></tr>
+        <tr><td><code>refund</code></td><td>Return funds to depositor (manual)</td></tr>
+        <tr><td><code>crank_refund</code></td><td>Permissionless: trigger expired auto-refunds</td></tr>
+        <tr><td><code>collect_fee</code></td><td>Authority withdraws accumulated fees</td></tr>
+        <tr><td><code>update_config</code></td><td>Authority updates fee rate, refund timeout</td></tr>
+        <tr><td><code>pause</code></td><td>Emergency pause all operations</td></tr>
+      </tbody>
+    </table>
+
+    <h3>User Flow</h3>
+    <table>
+      <thead><tr><th>Operation</th><th>Flow</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Deposit</strong></td><td>Token &rarr; vault PDA &rarr; deposit record PDA (wallet, token, amount, timestamp)</td></tr>
+        <tr><td><strong>Private Send</strong></td><td>Deduct balance &rarr; CPI sip_privacy <code>shielded_token_transfer</code> &rarr; stealth + announcement</td></tr>
+        <tr><td><strong>Private Swap</strong></td><td>Deduct balance &rarr; Jupiter swap &rarr; CPI sip_privacy for stealth output</td></tr>
+        <tr><td><strong>Refund</strong></td><td>User calls <code>refund</code> &rarr; returns current balance</td></tr>
+        <tr><td><strong>Auto-Refund</strong></td><td>Anyone calls <code>crank_refund</code> after timeout &rarr; returns balance</td></tr>
+        <tr><td><strong>Claim</strong></td><td>Recipient calls sip_privacy <code>claim_transfer</code> directly (unchanged)</td></tr>
       </tbody>
     </table>
 
