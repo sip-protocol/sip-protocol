@@ -1062,9 +1062,121 @@ Sipher Agent (single process)
 
 One agent, multiple interfaces. X adapter translates X events into tool calls and responses into tweets/DMs.
 
+### X Agent Security (Additional Threats)
+
+The web app has wallet signing as a gate. X DMs don't. Extra attack surface:
+
+| Threat | Risk vs Web | Mitigation |
+|--------|-------------|------------|
+| Prompt injection via DM | Higher — no wallet sig | Execution links require wallet sig on web. DM alone never moves funds. |
+| Impersonation (compromised X account) | Higher — X handle is weaker identity than wallet | Execution links tied to wallet sig, not X identity |
+| Public data leakage | Higher — public replies visible | Never echo wallet addresses or amounts in public, even if user mentions them |
+| Thread context poisoning | New — other users inject instructions | Only process direct @mentions, ignore other users in thread |
+| Phishing via fake @sipher accounts | New — N/A for web | Verified badge, pinned tweet with official links, warn users in DMs |
+
+**Additional rules:**
+- Rate limit per X user: max 5 DM commands per hour per user
+- All DM tool calls logged to admin dashboard with X user ID
+- Execution links expire in 15 minutes
+- Link URLs contain cryptographic nonce (not guessable)
+
 ---
 
-## 19. Resolved Design Decisions
+## 19. Web Chat UI Design
+
+### Design Philosophy
+
+Sipher is a privacy vault, not a helpdesk. The UI should feel like a secure terminal, not a friendly chatbot.
+
+**Aesthetic:** Dark, cypherpunk. Not pastel AI slop. Think vault control panel.
+
+### Build Approach
+
+**Fork pi-web-ui.** Start with the chat skeleton (message rendering, streaming, input), replace every visual component with custom Sipher-branded ones. Get Pi SDK event compatibility without the generic look.
+
+**Build tools:** Frontend-design skill (Superpowers) + Claude Code (Opus) for initial design system. Codex/Gemini for grinding boilerplate later.
+
+**Why not stock pi-web-ui:** Generic AI chat look kills differentiation.
+**Why not from scratch:** Wastes time rebuilding chat mechanics that pi-web-ui already solves.
+
+### Component Library
+
+**Core Layout:**
+
+| Component | Purpose |
+|-----------|---------|
+| `ChatContainer` | Main chat area with message stream |
+| `WalletBar` | Top bar: connected wallet, vault balance, network indicator |
+| `VaultPanel` | Collapsible side panel: balances, refund timer, pending ops |
+
+**Message Components:**
+
+| Component | Purpose |
+|-----------|---------|
+| `TextMessage` | Standard chat bubble (user + agent variants) |
+| `TransactionCard` | Visual TX status: pending → confirmed → done, explorer link |
+| `BalanceCard` | Token balances with icons and USD values |
+| `PrivacyScoreGauge` | Visual gauge (0-100) with color coding (red/yellow/green) |
+| `ViewingKeyExport` | Secure download button, never inline text display |
+| `ConfirmationPrompt` | "Confirm this TX?" with details + wallet sign button |
+| `SplitSendTimeline` | Visual timeline of scheduled chunks with status per chunk |
+| `PaymentLinkCard` | Shareable link with QR code + expiry countdown |
+
+**Input:**
+
+| Component | Purpose |
+|-----------|---------|
+| `ChatInput` | Text input with send button, supports multi-line |
+| `WalletConnectModal` | Multi-wallet selector (Phantom, Backpack, Solflare, etc.) |
+| `QuickActions` | Preset buttons: Deposit, Send, Swap, Score, Refund |
+
+### Layout Wireframe
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SIPHER                        [7Kf2...xYz] [◆ 2.3 SOL]   │  ← WalletBar
+├──────────────────────────────────────────────┬──────────────┤
+│                                              │ VAULT        │
+│  [User] Send 100 USDC to 0xAbc privately     │ ────────     │
+│                                              │ 450 USDC     │
+│  [Sipher] ┌─────────────────────────┐       │ 2.3 SOL      │
+│           │ ✓ TX Confirmed          │       │ 10K BONK     │
+│           │ 100 USDC → stealth addr │       │              │
+│           │ TX: 4Hc3v...5s5c  [↗]   │       │ ⏱ Refund:    │
+│           │ [Download Viewing Key]   │       │   18h 42m    │
+│           └─────────────────────────┘       │              │
+│                                              │ PENDING OPS  │
+│  [User] How exposed is my wallet?            │ ────────     │
+│                                              │ 2 scheduled  │
+│  [Sipher] ┌─────────────────────────┐       │ 1 recurring  │
+│           │ Privacy Score: 31/100    │       │              │
+│           │ ████░░░░░░ HIGH EXPOSURE │       │              │
+│           │ • 12 exchange txs        │       │              │
+│           │ • Labeled on 2 platforms │       │              │
+│           └─────────────────────────┘       │              │
+│                                              │              │
+├──────────────────────────────────────────────┴──────────────┤
+│  [Deposit] [Send] [Swap] [Score]     [Type a message... ⏎]  │  ← QuickActions + Input
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Brand Guidelines
+
+| Element | Value |
+|---------|-------|
+| Background | `#0a0a0f` (near-black) |
+| Surface | `#12121a` (dark panel) |
+| Accent | `#7c5cfc` (purple) |
+| Success | `#22c55e` (green) |
+| Warning | `#eab308` (yellow) |
+| Error | `#ef4444` (red) |
+| Font | Inter (UI), JetBrains Mono (code/addresses) |
+| Border radius | 8-12px (cards), 100px (pills) |
+| Tone | Dark, minimal, cypherpunk. No gradients, no illustrations. |
+
+---
+
+## 20. Resolved Design Decisions
 
 | # | Question | Decision |
 |---|----------|----------|
@@ -1077,7 +1189,7 @@ One agent, multiple interfaces. X adapter translates X events into tool calls an
 
 ---
 
-## 20. Regulatory Landscape (2026)
+## 21. Regulatory Landscape (2026)
 
 ### Tornado Cash — Sanctions LIFTED (March 2025)
 
@@ -1116,7 +1228,7 @@ Sipher = Privacy Pools equivalent for Solana. The only compliant privacy option 
 
 ---
 
-## 21. References
+## 22. References
 
 - [Privacy Pools paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364) — Vitalik Buterin et al.
 - [0xbow Privacy Pools](https://0xbow.io/) — live implementation, $3.5M funded

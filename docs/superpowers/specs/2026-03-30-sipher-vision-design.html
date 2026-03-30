@@ -1506,9 +1506,119 @@ Budget gates:
     <p style="font-size: 13px; color: var(--text-muted);">One agent, multiple interfaces. X adapter translates X events into tool calls and responses into tweets/DMs.</p>
   </section>
 
-  <!-- 19. Resolved Decisions -->
+  <!-- 18b. X Agent Security -->
+  <section style="margin-top: -20px; padding-top: 0;">
+    <h3>X Agent Security (Additional Threats)</h3>
+    <table>
+      <thead><tr><th>Threat</th><th>Risk vs Web</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td>Prompt injection via DM</td><td style="color: var(--red);">Higher</td><td>Execution links require wallet sig on web. DM alone never moves funds.</td></tr>
+        <tr><td>Impersonation</td><td style="color: var(--red);">Higher</td><td>Links tied to wallet sig, not X identity</td></tr>
+        <tr><td>Public data leakage</td><td style="color: var(--red);">Higher</td><td>Never echo addresses/amounts in public replies</td></tr>
+        <tr><td>Thread poisoning</td><td style="color: var(--yellow);">New</td><td>Only process direct @mentions, ignore other users</td></tr>
+        <tr><td>Phishing (fake accounts)</td><td style="color: var(--yellow);">New</td><td>Verified badge, pinned tweet, warn in DMs</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size: 13px; color: var(--text-muted);">Rate limit: 5 DM commands/hr per user. Execution links expire in 15min with cryptographic nonce.</p>
+  </section>
+
+  <!-- 19. Web Chat UI Design -->
   <section>
-    <h2><span class="num">19</span> Resolved Design Decisions</h2>
+    <h2><span class="num">19</span> Web Chat UI Design</h2>
+
+    <div class="card card-accent">
+      <h4>Design Philosophy</h4>
+      <p>Sipher is a privacy vault, not a helpdesk. The UI should feel like a secure terminal, not a friendly chatbot. <strong>Dark, cypherpunk. Not pastel AI slop.</strong></p>
+    </div>
+
+    <h3>Build Approach</h3>
+    <div class="card">
+      <h4>Fork pi-web-ui</h4>
+      <p>Start with chat skeleton (message rendering, streaming, input). Replace every visual component with custom Sipher-branded ones. Pi SDK event compatibility without the generic look.</p>
+      <p style="margin-top: 8px; font-size: 13px; color: var(--text-muted);"><strong>Design tools:</strong> Frontend-design skill (Superpowers) + Claude Code (Opus) for design system. Codex/Gemini for boilerplate later.</p>
+    </div>
+
+    <h3>Component Library</h3>
+
+    <h4 style="color: var(--accent); margin-top: 16px;">Core Layout</h4>
+    <table>
+      <thead><tr><th>Component</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>ChatContainer</code></td><td>Main chat area with message stream</td></tr>
+        <tr><td><code>WalletBar</code></td><td>Top bar: connected wallet, vault balance, network</td></tr>
+        <tr><td><code>VaultPanel</code></td><td>Collapsible side panel: balances, refund timer, pending ops</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color: var(--green); margin-top: 16px;">Message Components</h4>
+    <table>
+      <thead><tr><th>Component</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>TextMessage</code></td><td>Chat bubble (user + agent variants)</td></tr>
+        <tr><td><code>TransactionCard</code></td><td>Visual TX status: pending &rarr; confirmed &rarr; done</td></tr>
+        <tr><td><code>BalanceCard</code></td><td>Token balances with icons and USD values</td></tr>
+        <tr><td><code>PrivacyScoreGauge</code></td><td>Visual gauge (0-100) with color coding</td></tr>
+        <tr><td><code>ViewingKeyExport</code></td><td>Secure download button (never inline text)</td></tr>
+        <tr><td><code>ConfirmationPrompt</code></td><td>"Confirm TX?" with details + wallet sign button</td></tr>
+        <tr><td><code>SplitSendTimeline</code></td><td>Visual timeline of scheduled chunks</td></tr>
+        <tr><td><code>PaymentLinkCard</code></td><td>Shareable link with QR code + expiry</td></tr>
+      </tbody>
+    </table>
+
+    <h4 style="color: var(--cyan); margin-top: 16px;">Input</h4>
+    <table>
+      <thead><tr><th>Component</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>ChatInput</code></td><td>Text input with send, supports multi-line</td></tr>
+        <tr><td><code>WalletConnectModal</code></td><td>Multi-wallet selector</td></tr>
+        <tr><td><code>QuickActions</code></td><td>Preset buttons: Deposit, Send, Swap, Score, Refund</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Layout Wireframe</h3>
+    <div class="arch"><span class="highlight">SIPHER</span>                        [7Kf2...xYz] [<span class="green">&#9670; 2.3 SOL</span>]
+
+  [User] Send 100 USDC to 0xAbc     <span class="cyan">VAULT</span>
+         privately                   ────────
+                                     450 USDC
+  [Sipher]                           2.3 SOL
+  <span class="green">&#x2713; TX Confirmed</span>                  10K BONK
+  100 USDC &rarr; stealth addr
+  TX: 4Hc3v...5s5c  [&nearr;]           <span class="yellow">&#x23F1; Refund:</span>
+  [Download Viewing Key]               18h 42m
+
+  [User] How exposed is my           PENDING OPS
+         wallet?                     ────────
+                                     2 scheduled
+  [Sipher]                           1 recurring
+  Privacy Score: <span class="highlight">31/100</span>
+  <span class="highlight">&#x2588;&#x2588;&#x2588;&#x2588;</span><span class="cyan">&#x2591;&#x2591;&#x2591;&#x2591;&#x2591;&#x2591;</span> HIGH EXPOSURE
+  &middot; 12 exchange txs
+  &middot; Labeled on 2 platforms
+
+  [Deposit] [Send] [Swap] [Score]     [Type a message... &#x23CE;]</div>
+
+    <h3>Brand Guidelines</h3>
+    <table>
+      <thead><tr><th>Element</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Background</td><td><code>#0a0a0f</code> (near-black)</td></tr>
+        <tr><td>Surface</td><td><code>#12121a</code> (dark panel)</td></tr>
+        <tr><td>Accent</td><td><code style="color: var(--accent);">#7c5cfc</code> (purple)</td></tr>
+        <tr><td>Success</td><td><code style="color: var(--green);">#22c55e</code> (green)</td></tr>
+        <tr><td>Warning</td><td><code style="color: var(--yellow);">#eab308</code> (yellow)</td></tr>
+        <tr><td>Error</td><td><code style="color: var(--red);">#ef4444</code> (red)</td></tr>
+        <tr><td>UI Font</td><td>Inter</td></tr>
+        <tr><td>Code Font</td><td>JetBrains Mono</td></tr>
+        <tr><td>Radius</td><td>8-12px (cards), 100px (pills)</td></tr>
+        <tr><td>Tone</td><td>Dark, minimal, cypherpunk. No gradients, no illustrations.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 20. Resolved Decisions -->
+  <section>
+    <h2><span class="num">20</span> Resolved Design Decisions</h2>
     <table>
       <thead><tr><th>#</th><th>Question</th><th>Decision</th></tr></thead>
       <tbody>
@@ -1522,9 +1632,9 @@ Budget gates:
     </table>
   </section>
 
-  <!-- 20. Regulatory Landscape -->
+  <!-- 21. Regulatory Landscape -->
   <section>
-    <h2><span class="num">20</span> Regulatory Landscape (2026)</h2>
+    <h2><span class="num">21</span> Regulatory Landscape (2026)</h2>
 
     <div class="card" style="border-left: 3px solid var(--green);">
       <h4>Tornado Cash &mdash; Sanctions LIFTED (March 2025)</h4>
@@ -1555,9 +1665,9 @@ Budget gates:
     <p><strong>Sipher = Privacy Pools equivalent for Solana.</strong> The only compliant privacy option on Solana.</p>
   </section>
 
-  <!-- 21. References -->
+  <!-- 22. References -->
   <section>
-    <h2><span class="num">21</span> References</h2>
+    <h2><span class="num">22</span> References</h2>
     <ul>
       <li><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364">Privacy Pools paper</a> &mdash; Vitalik Buterin et al.</li>
       <li><a href="https://0xbow.io/">0xbow Privacy Pools</a> &mdash; live implementation, $3.5M funded</li>
