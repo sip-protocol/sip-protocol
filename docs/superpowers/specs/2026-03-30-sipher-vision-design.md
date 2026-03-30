@@ -1320,7 +1320,83 @@ Updates to ecosystem docs happen AFTER spec approval, in this order:
 
 ---
 
-## 23. Resolved Design Decisions
+## 23. UX: Suggested Prompts & Capability Discovery
+
+### Suggested Prompts
+
+Two types of prompt suggestions to bridge the knowledge gap:
+
+**Welcome prompts** (first connect, no messages yet):
+- "Send privately" — stealth send flow
+- "Privacy score" — analyze wallet exposure
+- "Swap privately" — Jupiter + stealth output
+- "Vault balance" — check deposited funds
+- "Create payment link" — one-time stealth link
+- "Link wallet" — connect wallet to identity
+
+**Contextual prompts** (change based on state):
+
+| State | Suggested Prompts |
+|-------|------------------|
+| After deposit | Send privately, Swap, Set auto-refund timer |
+| After transaction | View TX, Export viewing key, Send another |
+| Empty vault | Deposit SOL, Deposit USDC, How does it work? |
+| Low privacy score | Shield my wallet, What's exposing me? |
+| Scheduled op pending | Check schedule, Cancel pending, View timeline |
+
+Prompts are rendered as clickable buttons below the chat input.
+
+### Capability Discovery (No Slash Commands)
+
+Slash commands feel like Discord bots from 2021. Sipher is conversational.
+
+**First-time users:** Onboarding flow — agent detects no linked wallet/no history, shows guided introduction covering Privacy, Intelligence, Automation, and Compliance capabilities with actionable suggested prompts.
+
+**Returning users:** Contextual hints only — after each response, Sipher suggests next actions based on what just happened. No explicit "help" needed.
+
+**X/Telegram:** Simple help response listing capabilities (no rich UI available). Triggered by "help" or "what can you do" — not a slash command.
+
+---
+
+## 24. Model Assignment Per Agent
+
+Not every agent needs an LLM. This cuts costs dramatically.
+
+| Agent | Intelligence Level | Model | Why |
+|-------|-------------------|-------|-----|
+| **SIPHER** | High | Claude Sonnet / Opus | Financial commands, security-sensitive, needs best reasoning |
+| **HERALD** | Medium | Claude Sonnet | Good writing for content, not financial reasoning |
+| **SENTINEL** | Low (alerts only) | Haiku | Repetitive scanning, high frequency, only LLM for anomaly notifications |
+| **COURIER** | None | No LLM | Pure execution — read task, call SDK, done. Just code. |
+| **WATCHER** | None | No LLM | Computation, threshold checks, template-based alerts. |
+
+### Cost Estimate
+
+**Phase 1 (realistic):**
+
+| Service | Cost/mo |
+|---------|---------|
+| LLM: SIPHER (Sonnet, ~500K tok/day) | ~$45 |
+| LLM: HERALD (Sonnet, ~100K tok/day) | ~$9 |
+| LLM: SENTINEL (Haiku, alerts only) | ~$0.30 |
+| X API (Phase 1 volume) | ~$30 |
+| RPC: Helius free tier (50K credits/day) | $0 |
+| VPS (already running) | $0 incremental |
+| **Total** | **~$84/mo** |
+
+**Phase 2+ (moderate scale):**
+
+| Service | Cost/mo |
+|---------|---------|
+| LLM (all agents) | ~$54 |
+| X API (moderate usage) | ~$117 |
+| RPC: Helius paid tier | ~$30 |
+| Redis (shared, already exists) | $0 |
+| **Total** | **~$200/mo** |
+
+---
+
+## 25. Resolved Design Decisions
 
 | # | Question | Decision |
 |---|----------|----------|
@@ -1333,7 +1409,7 @@ Updates to ecosystem docs happen AFTER spec approval, in this order:
 
 ---
 
-## 24. Regulatory Landscape (2026)
+## 26. Regulatory Landscape (2026)
 
 ### Tornado Cash — Sanctions LIFTED (March 2025)
 
@@ -1372,7 +1448,7 @@ Sipher = Privacy Pools equivalent for Solana. The only compliant privacy option 
 
 ---
 
-## 25. References
+## 27. References
 
 - [Privacy Pools paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364) — Vitalik Buterin et al.
 - [0xbow Privacy Pools](https://0xbow.io/) — live implementation, $3.5M funded
