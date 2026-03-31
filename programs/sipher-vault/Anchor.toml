@@ -7,10 +7,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-sipher_vault = "5aVri8ivDA9WkEPanbPjVUnDLobdPcFYkaVBpuFMnSo"
+sipher_vault = "S1PZXtwJTfy4Dz8qZHRZmTJu1mhAhviMtK5pd13owjX"
 
 [programs.devnet]
-sipher_vault = "5aVri8ivDA9WkEPanbPjVUnDLobdPcFYkaVBpuFMnSo"
+sipher_vault = "S1PZXtwJTfy4Dz8qZHRZmTJu1mhAhviMtK5pd13owjX"
 
 [registry]
 url = "https://api.apr.dev"

@@ -31,7 +31,7 @@ import {
 // forward, enabling full happy-path and error-path coverage.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PROGRAM_ID = new PublicKey('5aVri8ivDA9WkEPanbPjVUnDLobdPcFYkaVBpuFMnSo')
+const PROGRAM_ID = new PublicKey('S1PZXtwJTfy4Dz8qZHRZmTJu1mhAhviMtK5pd13owjX')
 
 describe('sipher-vault: refund', () => {
   let provider: BankrunProvider

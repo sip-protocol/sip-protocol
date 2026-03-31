@@ -32,7 +32,7 @@ import {
 //   7. Test empty fee account rejection
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PROGRAM_ID = new PublicKey('5aVri8ivDA9WkEPanbPjVUnDLobdPcFYkaVBpuFMnSo')
+const PROGRAM_ID = new PublicKey('S1PZXtwJTfy4Dz8qZHRZmTJu1mhAhviMtK5pd13owjX')
 
 describe('sipher-vault: collect_fee', () => {
   let provider: BankrunProvider

@@ -24,7 +24,7 @@ use constants::*;
 use errors::VaultError;
 use state::{DepositRecord, VaultConfig};
 
-declare_id!("5aVri8ivDA9WkEPanbPjVUnDLobdPcFYkaVBpuFMnSo");
+declare_id!("S1PZXtwJTfy4Dz8qZHRZmTJu1mhAhviMtK5pd13owjX");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Program
