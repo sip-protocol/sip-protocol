@@ -205,13 +205,20 @@ describe('sipher-vault: refund', () => {
     expect(availableToRefund).to.equal(TOTAL_DEPOSITED)
     expect(vaultBalanceBefore).to.equal(TOTAL_DEPOSITED)
 
-    // Warp clock forward past the refund timeout (86400s + 1s buffer)
+    // Warp the bank forward to generate a fresh blockhash — without this,
+    // bankrun deduplicates the refund() tx (same accounts, same blockhash as
+    // the failed RefundNotExpired call in Test 1). setClock only updates the
+    // sysvar; warpToSlot actually advances the bank's internal slot counter.
     const clock = await provider.context.banksClient.getClock()
+    const warpedSlot = clock.slot + 2n
+    provider.context.warpToSlot(warpedSlot)
+
+    // Now set the clock timestamp past the refund timeout (86400s + 1s buffer)
     const warpedTimestamp =
       clock.unixTimestamp + BigInt(DEFAULT_REFUND_TIMEOUT) + 1n
     provider.context.setClock(
       new Clock(
-        clock.slot,
+        warpedSlot,
         clock.epochStartTimestamp,
         clock.epoch,
         clock.leaderScheduleEpoch,
@@ -260,6 +267,12 @@ describe('sipher-vault: refund', () => {
   // ── Test 3: NothingToRefund after full refund ──────────────────────────
 
   it('rejects refund when nothing to refund (NothingToRefund)', async () => {
+    // Advance the bank slot to force a fresh blockhash — without this, bankrun
+    // deduplicates the identical refund() tx from Test 2 at the transport layer
+    // before the program ever executes.
+    const clock = await provider.context.banksClient.getClock()
+    provider.context.warpToSlot(clock.slot + 2n)
+
     // Post-refund: balance=0, locked_amount=0 -> available=0
     const record = await program.account.depositRecord.fetch(depositRecordPDA)
     expect(record.balance.toNumber()).to.equal(0)
