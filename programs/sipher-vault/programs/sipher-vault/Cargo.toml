@@ -1,0 +1,32 @@
+[package]
+name = "sipher-vault"
+version = "0.1.0"
+description = "Sipher Vault - Agentic privacy mixer vault for Solana"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "sipher_vault"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
+anchor-spl = "0.30.1"
+
+# Pin blake3/constant_time_eq to avoid edition2024 requirement
+# (Solana platform-tools BPF toolchain uses Cargo 1.84 which doesn't support it)
+blake3 = "=1.5.5"
+constant_time_eq = "=0.3.1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
