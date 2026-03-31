@@ -43,7 +43,7 @@ pub mod sipher_vault {
     let config = &mut ctx.accounts.config;
     config.authority = ctx.accounts.authority.key();
     config.fee_bps = fee_bps;
-    config.refund_timeout = refund_timeout;
+    config.refund_timeout = if refund_timeout > 0 { refund_timeout } else { DEFAULT_REFUND_TIMEOUT };
     config.paused = false;
     config.total_deposits = 0;
     config.total_depositors = 0;
@@ -86,9 +86,7 @@ pub mod sipher_vault {
 
     // Update global counters
     let config = &mut ctx.accounts.config;
-    config.total_deposits = config.total_deposits
-      .checked_add(amount)
-      .ok_or(VaultError::MathOverflow)?;
+    config.total_deposits = config.total_deposits.saturating_add(1);
     if is_new {
       config.total_depositors = config.total_depositors
         .checked_add(1)
@@ -116,6 +114,7 @@ pub mod sipher_vault {
     _proof: Vec<u8>,
   ) -> Result<()> {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
+    require!(amount > 0, VaultError::ZeroDeposit);
 
     // 1. Debit-first: reduce balance before any transfers
     let record = &mut ctx.accounts.deposit_record;
@@ -224,8 +223,15 @@ pub mod sipher_vault {
   }
 
   /// Authority-only: collect accumulated fees from the fee token account.
+  /// Pass amount=0 to collect all available fees.
   pub fn collect_fee(ctx: Context<CollectFee>, amount: u64) -> Result<()> {
-    require!(amount > 0, VaultError::NoFeesToCollect);
+    let fee_balance = ctx.accounts.fee_token.amount;
+    require!(fee_balance > 0, VaultError::NoFeesToCollect);
+    let withdraw_amount = if amount == 0 || amount > fee_balance {
+      fee_balance
+    } else {
+      amount
+    };
 
     let config_bump = ctx.accounts.config.bump;
     let signer_seeds: &[&[&[u8]]] = &[&[VAULT_CONFIG_SEED, &[config_bump]]];
@@ -239,9 +245,9 @@ pub mod sipher_vault {
       },
       signer_seeds,
     );
-    token::transfer(transfer_ctx, amount)?;
+    token::transfer(transfer_ctx, withdraw_amount)?;
 
-    msg!("Collected {} fees", amount);
+    msg!("Collected {} fees", withdraw_amount);
     Ok(())
   }
 }
@@ -313,7 +319,6 @@ pub struct Deposit<'info> {
 #[derive(Accounts)]
 pub struct WithdrawPrivate<'info> {
   #[account(
-    mut,
     seeds = [VAULT_CONFIG_SEED],
     bump = config.bump,
   )]
