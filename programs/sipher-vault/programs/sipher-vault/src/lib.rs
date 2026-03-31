@@ -6,6 +6,8 @@
 //! ## Instructions
 //!
 //! - `initialize` — Create VaultConfig PDA with fee and timeout settings
+//! - `create_vault_token` — Create vault token PDA for a given mint
+//! - `create_fee_token` — Create fee token PDA for a given mint
 //! - `deposit` — Transfer tokens from user to vault PDA, create/update DepositRecord
 //! - `withdraw_private` — Debit-first withdrawal to stealth address + fee split
 //! - `refund` — Return available (unlocked) balance to depositor
@@ -50,6 +52,26 @@ pub mod sipher_vault {
     config.bump = ctx.bumps.config;
 
     msg!("Vault initialized: fee={}bps, timeout={}s", fee_bps, refund_timeout);
+    Ok(())
+  }
+
+  /// Create the vault token PDA for a given mint.
+  /// Anyone can call this (first depositor pays rent). Must be called before deposit.
+  pub fn create_vault_token(ctx: Context<CreateVaultToken>) -> Result<()> {
+    msg!(
+      "Vault token PDA created for mint {}",
+      ctx.accounts.token_mint.key()
+    );
+    Ok(())
+  }
+
+  /// Create the fee token PDA for a given mint.
+  /// Anyone can call this. Must exist before withdraw_private.
+  pub fn create_fee_token(ctx: Context<CreateFeeToken>) -> Result<()> {
+    msg!(
+      "Fee token PDA created for mint {}",
+      ctx.accounts.token_mint.key()
+    );
     Ok(())
   }
 
@@ -270,6 +292,60 @@ pub struct Initialize<'info> {
   #[account(mut)]
   pub authority: Signer<'info>,
 
+  pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreateVaultToken<'info> {
+  #[account(
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  #[account(
+    init,
+    payer = payer,
+    seeds = [VAULT_TOKEN_SEED, token_mint.key().as_ref()],
+    bump,
+    token::mint = token_mint,
+    token::authority = config,
+  )]
+  pub vault_token: Account<'info, TokenAccount>,
+
+  pub token_mint: Account<'info, Mint>,
+
+  #[account(mut)]
+  pub payer: Signer<'info>,
+
+  pub token_program: Program<'info, Token>,
+  pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreateFeeToken<'info> {
+  #[account(
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  #[account(
+    init,
+    payer = payer,
+    seeds = [FEE_TOKEN_SEED, token_mint.key().as_ref()],
+    bump,
+    token::mint = token_mint,
+    token::authority = config,
+  )]
+  pub fee_token: Account<'info, TokenAccount>,
+
+  pub token_mint: Account<'info, Mint>,
+
+  #[account(mut)]
+  pub payer: Signer<'info>,
+
+  pub token_program: Program<'info, Token>,
   pub system_program: Program<'info, System>,
 }
 
