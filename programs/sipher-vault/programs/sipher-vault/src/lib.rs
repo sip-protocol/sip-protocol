@@ -108,12 +108,12 @@ pub mod sipher_vault {
   pub fn withdraw_private(
     ctx: Context<WithdrawPrivate>,
     amount: u64,
-    amount_commitment: [u8; 32],
-    stealth_pubkey: [u8; 32],
-    ephemeral_pubkey: [u8; 32],
+    amount_commitment: [u8; 33],
+    stealth_pubkey: Pubkey,
+    ephemeral_pubkey: [u8; 33],
     viewing_key_hash: [u8; 32],
-    encrypted_amount: [u8; 32],
-    proof: [u8; 64],
+    _encrypted_amount: Vec<u8>,
+    _proof: Vec<u8>,
   ) -> Result<()> {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
 
@@ -170,16 +170,12 @@ pub mod sipher_vault {
     // 5. Emit event
     emit!(VaultWithdrawEvent {
       depositor: ctx.accounts.depositor.key(),
-      token_mint: ctx.accounts.token_mint.key(),
-      amount,
-      fee,
-      net_amount,
+      stealth_recipient: stealth_pubkey,
       amount_commitment,
-      stealth_pubkey,
       ephemeral_pubkey,
       viewing_key_hash,
-      encrypted_amount,
-      proof,
+      transfer_amount: net_amount,
+      fee_amount: fee,
       timestamp: Clock::get()?.unix_timestamp,
     });
 
@@ -443,15 +439,11 @@ pub struct CollectFee<'info> {
 #[event]
 pub struct VaultWithdrawEvent {
   pub depositor: Pubkey,
-  pub token_mint: Pubkey,
-  pub amount: u64,
-  pub fee: u64,
-  pub net_amount: u64,
-  pub amount_commitment: [u8; 32],
-  pub stealth_pubkey: [u8; 32],
-  pub ephemeral_pubkey: [u8; 32],
+  pub stealth_recipient: Pubkey,
+  pub amount_commitment: [u8; 33],
+  pub ephemeral_pubkey: [u8; 33],
   pub viewing_key_hash: [u8; 32],
-  pub encrypted_amount: [u8; 32],
-  pub proof: [u8; 64],
+  pub transfer_amount: u64,
+  pub fee_amount: u64,
   pub timestamp: i64,
 }

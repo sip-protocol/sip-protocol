@@ -5,4 +5,4 @@ pub const FEE_TOKEN_SEED: &[u8] = b"fee_token";
 pub const DEFAULT_REFUND_TIMEOUT: i64 = 86400;
 pub const DEFAULT_FEE_BPS: u16 = 10;
 pub const MAX_FEE_BPS: u16 = 100;
-pub const FREE_TIER_NOTE: &str = "Free tier tracking is off-chain (agent responsibility)";
+
