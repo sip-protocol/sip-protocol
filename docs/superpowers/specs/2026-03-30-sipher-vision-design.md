@@ -1891,7 +1891,136 @@ Pi SDK is unaudited, maintained by one person (Mario Zechner), and has no track 
 
 ---
 
-## 28. References
+## 28. Deployment Workflow
+
+### Components & Targets
+
+| Component | Target | Method |
+|-----------|--------|--------|
+| `sipher_vault` program | Solana devnet → mainnet | `solana program deploy` (vanity keypair) |
+| `packages/agent/` | VPS (reclabs3) | Docker + GHCR |
+| `packages/api/` | VPS (same container) | Docker + GHCR (existing) |
+| `app/` (web chat UI) | VPS (served by agent) | Built into Docker image |
+
+### CI Pipeline (GitHub Actions)
+
+```
+Push to main
+  │
+  ├─ ci.yml (automated):
+  │   ├── Lint + typecheck
+  │   ├── Test (packages/sdk, packages/agent, packages/api)
+  │   ├── Build Docker image
+  │   ├── Push to ghcr.io/sip-protocol/sipher:latest
+  │   └── SSH deploy to VPS (docker compose pull + up)
+  │
+  └─ Vault program (manual, NOT in CI):
+      ├── anchor build
+      ├── anchor test (localnet)
+      ├── Deploy to devnet (test)
+      └── Deploy to mainnet (multisig for authority)
+```
+
+### Docker Architecture
+
+Single container serves everything:
+
+```
+Routes:
+  /          → web chat (static files from app/)
+  /api/v1/   → REST API (Express, existing Mode 2)
+  /pay/:id   → payment links
+  /link/:id  → wallet linking
+  /tx/:id    → execution links
+  /admin/    → dashboard (auth-protected)
+
+Port: 5006 (same as current Sipher)
+```
+
+### VPS docker-compose.yml
+
+```yaml
+name: sipher
+
+services:
+  sipher:
+    image: ghcr.io/sip-protocol/sipher:latest
+    container_name: sipher
+    ports:
+      - "5006:5006"
+    volumes:
+      - ./data/sipher.db:/app/data/sipher.db
+      - ./data/backups:/app/data/backups
+    env_file: .env
+    restart: unless-stopped
+```
+
+Environment variables (in `.env` on VPS):
+- `ANTHROPIC_API_KEY` — LLM for SIPHER agent
+- `HELIUS_API_KEY` — Solana RPC (or free tier)
+- `SQLITE_ENCRYPTION_KEY` — SQLCipher encryption
+- `SIPHER_VAULT_PROGRAM_ID` — vault program address
+- `SIP_PRIVACY_PROGRAM_ID` — `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at`
+- `SOLANA_RPC_URL` — mainnet RPC endpoint
+
+### Blue/Green (Phase 2)
+
+Phase 1: single container, port 5006.
+
+Phase 2 (when uptime matters):
+```
+sipher-blue:  5006 (active)
+sipher-green: 5007 (standby)
+nginx routes to active
+Deploy → green, health check, swap nginx
+```
+
+### Vault Program Deploy
+
+```bash
+# Devnet
+anchor build
+solana program deploy target/deploy/sipher_vault.so \
+  --program-id secrets/sipher-vault-program-id.json \
+  --keypair secrets/authority.json \
+  --url devnet
+
+# Mainnet (requires multisig approval — see C2)
+# Step 1: Create buffer
+solana program write-buffer target/deploy/sipher_vault.so \
+  --url mainnet-beta
+# Step 2: Squads multisig approves upgrade
+# Step 3: Deploy with 48h timelock
+```
+
+### Backup Cron
+
+```bash
+# Every 6 hours on VPS
+0 */6 * * * /home/sip/scripts/backup-sipher.sh
+
+# backup-sipher.sh:
+sqlite3 /app/data/sipher.db ".backup /tmp/sipher-backup.db"
+age -e -R ~/.age/recipients.txt /tmp/sipher-backup.db \
+  > /tmp/sipher-$(date +%s).db.age
+rclone copy /tmp/sipher-*.db.age b2:sip-backups/sipher/
+find /tmp/sipher-*.db.age -mtime +7 -delete
+rm /tmp/sipher-backup.db
+```
+
+### CI Secrets
+
+| Secret | Purpose | Status |
+|--------|---------|--------|
+| `GHCR_TOKEN` | Push Docker images | Exists |
+| `VPS_SSH_KEY` | SSH deploy to reclabs3 | Exists |
+| `ANTHROPIC_API_KEY` | LLM for SIPHER | New |
+| `SQLITE_ENCRYPTION_KEY` | SQLCipher | New |
+| `HELIUS_API_KEY` | Solana RPC | Exists |
+
+---
+
+## 29. References
 
 - [Privacy Pools paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364) — Vitalik Buterin et al.
 - [0xbow Privacy Pools](https://0xbow.io/) — live implementation, $3.5M funded

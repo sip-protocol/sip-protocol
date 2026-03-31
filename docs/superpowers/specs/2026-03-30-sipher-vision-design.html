@@ -1967,9 +1967,69 @@ Budget gates:
     </div>
   </section>
 
-  <!-- 28. References -->
+  <!-- 28. Deployment Workflow -->
   <section>
-    <h2><span class="num">28</span> References</h2>
+    <h2><span class="num">28</span> Deployment Workflow</h2>
+
+    <h3>CI Pipeline</h3>
+    <div class="arch">Push to main
+  &rarr; <span class="cyan">ci.yml</span> (automated)
+      Lint + typecheck
+      Test (sdk, agent, api)
+      Build Docker image
+      Push to <span class="green">ghcr.io/sip-protocol/sipher:latest</span>
+      SSH deploy to VPS
+
+  &rarr; <span class="highlight">Vault program</span> (manual, NOT in CI)
+      anchor build &rarr; anchor test &rarr; deploy devnet
+      Mainnet: multisig approval required</div>
+
+    <h3>Docker: Single Container</h3>
+    <table>
+      <thead><tr><th>Route</th><th>Serves</th></tr></thead>
+      <tbody>
+        <tr><td><code>/</code></td><td>Web chat (static from app/)</td></tr>
+        <tr><td><code>/api/v1/</code></td><td>REST API (Express, Mode 2)</td></tr>
+        <tr><td><code>/pay/:id</code></td><td>Payment links</td></tr>
+        <tr><td><code>/link/:id</code></td><td>Wallet linking</td></tr>
+        <tr><td><code>/tx/:id</code></td><td>Execution links</td></tr>
+        <tr><td><code>/admin/</code></td><td>Dashboard (auth)</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size: 13px; color: var(--text-muted);">Port 5006 (same as current). Phase 2: blue/green on 5006/5007.</p>
+
+    <h3>VPS &amp; Backup</h3>
+    <pre><code># docker-compose.yml
+name: sipher
+services:
+  sipher:
+    image: ghcr.io/sip-protocol/sipher:latest
+    ports: ["5006:5006"]
+    volumes:
+      - ./data/sipher.db:/app/data/sipher.db
+      - ./data/backups:/app/data/backups
+    env_file: .env
+    restart: unless-stopped
+
+# Backup: every 6h, encrypted with age, to Backblaze B2
+# Keep 7 days. Monthly restore test.</code></pre>
+
+    <h3>CI Secrets</h3>
+    <table>
+      <thead><tr><th>Secret</th><th>Purpose</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><code>GHCR_TOKEN</code></td><td>Docker image push</td><td style="color: var(--green);">Exists</td></tr>
+        <tr><td><code>VPS_SSH_KEY</code></td><td>SSH deploy</td><td style="color: var(--green);">Exists</td></tr>
+        <tr><td><code>ANTHROPIC_API_KEY</code></td><td>LLM for SIPHER</td><td style="color: var(--yellow);">New</td></tr>
+        <tr><td><code>SQLITE_ENCRYPTION_KEY</code></td><td>SQLCipher</td><td style="color: var(--yellow);">New</td></tr>
+        <tr><td><code>HELIUS_API_KEY</code></td><td>Solana RPC</td><td style="color: var(--green);">Exists</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 29. References -->
+  <section>
+    <h2><span class="num">29</span> References</h2>
     <ul>
       <li><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364">Privacy Pools paper</a> &mdash; Vitalik Buterin et al.</li>
       <li><a href="https://0xbow.io/">0xbow Privacy Pools</a> &mdash; live implementation, $3.5M funded</li>
