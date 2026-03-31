@@ -7,10 +7,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-sipher_vault = "11111111111111111111111111111111"
+sipher_vault = "5aVri8ivDA9WkEPanbPjVUnDLobdPcFYkaVBpuFMnSo"
 
 [programs.devnet]
-sipher_vault = "11111111111111111111111111111111"
+sipher_vault = "5aVri8ivDA9WkEPanbPjVUnDLobdPcFYkaVBpuFMnSo"
 
 [registry]
 url = "https://api.apr.dev"
@@ -20,4 +20,4 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "pnpm ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
+test = "pnpm exec ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""

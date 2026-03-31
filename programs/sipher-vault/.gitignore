@@ -1,0 +1,6 @@
+# Anchor build artifacts
+target/
+.anchor/
+
+# Node
+node_modules/
