@@ -1576,11 +1576,322 @@ OFAC removed Tornado Cash from sanctions in March 2025. The Fifth Circuit ruled 
 | PrivacyCash | Pool mixing | None | Live on Solana, risky |
 | **Sipher** | Stealth + Pedersen + vault | Viewing keys + association sets (Phase 3) | Building |
 
-Sipher = Privacy Pools equivalent for Solana. The only compliant privacy option on Solana.
+Sipher = Privacy Pools equivalent for Solana — the only Solana privacy tool with a compliance roadmap.
 
 ---
 
-## 27. References
+## 27. Post-Roast Amendments (Mar 31, 2026)
+
+Full design roast identified 19 issues across Critical/High/Medium severity. All addressed below with cross-references to affected sections.
+
+### CRITICAL FIXES
+
+**C1. Phase 1 Scope Cut** (affects Section 9)
+
+Original Phase 1 was 10-14 weeks of work in a 5-week hackathon window. Revised:
+
+```
+Phase 1 REVISED (5-6 weeks):
+  ✓ sipher_vault program: 5 instructions (initialize, deposit,
+    withdraw_private, refund, collect_fee) — defer crank_refund,
+    swap_private, update_config, pause to Phase 1.5
+  ✓ @sipher/sdk: vault operations + 6 core tools (deposit, send,
+    refund, balance, scan, claim)
+  ✓ Web chat: 4 components (ChatContainer, WalletBar, TextMessage,
+    ConfirmationPrompt)
+  ✗ DEFERRED: GUARDIAN squad naming, X agent, scheduled operations,
+    splitSend, drip, recurring, privacyScore, threatCheck,
+    paymentLink, invoice, sweep, consolidate, roundAmount,
+    admin dashboard, SplitSendTimeline, PaymentLinkCard,
+    PrivacyScoreGauge
+```
+
+Deferred items move to Phase 1.5 (post-hackathon, pre-Phase 2). The hackathon submission needs: vault + core tools + basic web chat. Everything else is scope creep.
+
+**C2. Multisig Vault Authority** (affects Section 5, 11)
+
+Single authority keypair is a critical vulnerability for a money-holding program.
+
+**Before mainnet deposits:**
+- Deploy with Squads multisig (2-of-3) as program authority
+- Authority keys: RECTOR key + cold storage key + hardware wallet key
+- All `collect_fee`, `update_config`, `pause` require multisig approval
+- Fee rate changes subject to 24-hour timelock (on-chain delay)
+
+For hackathon/devnet: single authority is acceptable. Multisig required before mainnet vault launch.
+
+**C3. CPI Double-Spend Mitigation** (affects Section 5)
+
+Risk: CPI call to sip_privacy succeeds but sipher_vault PDA update fails (compute exhaustion).
+
+**Fix:** Debit-first pattern:
+1. sipher_vault decrements user's deposit balance (state change)
+2. CPI call to sip_privacy for stealth transfer
+3. If CPI fails, revert the balance decrement (Solana's native transaction atomicity handles this — entire TX fails)
+
+Solana transactions are atomic — if any instruction fails, all state changes revert. But we must ensure the balance decrement and CPI call are in the SAME transaction, not separate. Never split deposit decrement and stealth send into two transactions.
+
+**C4. Off-Chain/On-Chain State Split** (affects Section 12, 5)
+
+Risk: User has scheduled splitSend in SQLite, calls refund on-chain. Vault refunds full remaining balance, but COURIER still has pending chunks.
+
+**Fix:**
+- On-chain deposit PDA gets a `locked_amount` field: amount reserved by scheduled operations
+- When SIPHER creates a scheduled op, it calls `lock_balance` on-chain (reserves funds)
+- Refund instruction returns `balance - locked_amount`
+- COURIER decrements `locked_amount` after each chunk executes
+- User cancels scheduled op → `unlock_balance` frees the reserved amount
+
+This keeps the source of truth on-chain, not in SQLite. SQLite stores the schedule; the chain stores the accounting.
+
+**C5. Upgrade Authority Policy** (affects Section 5)
+
+**Phase 1 (devnet/hackathon):** Upgradeable program, single upgrade authority (development speed).
+
+**Pre-mainnet:** Transfer upgrade authority to Squads multisig (same as program authority). 48-hour timelock on upgrades.
+
+**Phase 3+:** Consider making the program immutable (renounce upgrade authority) after security audit. This is the strongest trust signal — "we literally cannot change the code."
+
+Document this progression in the vault program README.
+
+**C6. Honest Compliance Positioning** (affects Section 7, 8, 26)
+
+Phase 1 ships viewing keys only. Association sets are Phase 3. The spec must be honest:
+
+**BEFORE:** "Sipher: privacy with viewing keys + association sets → sustainable"
+**AFTER:** "Sipher: privacy with viewing keys (Phase 1) + association sets (Phase 3, planned) → building toward sustainable compliance"
+
+Repositioned: "Privacy-first with a compliance roadmap" — not "compliant privacy" until Phase 3 ships.
+
+### HIGH FIXES
+
+**H7. Auto Privacy Defaults** (affects Section 6)
+
+The default `send` tool must include privacy-enhancing behavior automatically:
+
+```
+Default send behavior (user says "send 1000 USDC to 0xAbc"):
+  → Auto-round to nearest 50/100/500 denomination
+    (1000 → 1000, good. 1337 → 1300 + 37 remainder held)
+  → If vault anonymity set < 10 depositors: warn user
+    "Low privacy: only 6 depositors in vault. Your transaction
+     may be linkable. Proceed anyway? [Yes / Add delay]"
+  → If amount > $1K: suggest splitSend
+    "Large amount detected. Split across 2-4 hours for
+     better privacy? [Yes / Send now]"
+```
+
+User can always override. But the default protects users who don't know better.
+
+**H8. Corrected Cost Math** (affects Section 24)
+
+Original: $45/mo for SIPHER at 500K tokens/day.
+
+**Recalculated (Claude Sonnet 4 pricing: $3/M input, $15/M output):**
+- 500K tokens/day × 30 days = 15M tokens/month
+- Assume 70% input, 30% output: 10.5M input + 4.5M output
+- Input: 10.5M × $3/M = $31.50
+- Output: 4.5M × $15/M = $67.50
+- **SIPHER total: ~$99/mo** (not $45)
+
+**HERALD (100K tokens/day):**
+- 3M tokens/month: 2.1M input ($6.30) + 0.9M output ($13.50) = **~$20/mo**
+
+**Revised Phase 1 cost:**
+
+| Service | Corrected Cost/mo |
+|---------|------------------|
+| LLM: SIPHER | ~$99 |
+| LLM: HERALD | ~$20 |
+| LLM: SENTINEL | ~$1 |
+| X API (Phase 1) | ~$30 |
+| RPC (Helius free) | $0 |
+| **Total** | **~$150/mo** |
+
+Still sustainable, but nearly 2x the original estimate.
+
+**H9. Free Tier Reset** (affects Section 5, 25)
+
+**BEFORE:** "Free for first $10K volume per wallet" (ambiguous — lifetime? monthly?)
+**AFTER:** "Free for first $1K volume per wallet per month, then 0.1%"
+
+Changes:
+- $10K → $1K (reach breakeven faster)
+- Per-month reset (prevents lifetime exploitation)
+- Breakeven: $150/mo ÷ 0.001 = $150K billable volume/month
+- At $1K free/wallet, need 150 wallets doing $2K/mo each = $150K billable
+
+More realistic path to sustainability.
+
+**H10. Anonymity Set Threshold** (affects Section 5, 6)
+
+The vault is a weak mixer with < 10 depositors. Add on-chain safeguards:
+
+- Vault config stores `min_anonymity_set` (default: 5)
+- `withdraw_private` checks: if unique depositors < `min_anonymity_set`, add a mandatory minimum delay (1 hour) between deposit and withdrawal
+- Agent warns user: "Low anonymity set. Adding 1-hour privacy delay."
+- As vault grows, delay drops to 0 when set exceeds threshold
+- Dashboard shows current anonymity set size publicly (transparency)
+
+**H11. Testing Strategy** (new subsection in spec)
+
+```
+Testing Plan:
+
+Vault Program (sipher_vault):
+  - Anchor tests (happy path: deposit, withdraw, refund, fees)
+  - Bankrun tests (CPI composition with sip_privacy)
+  - Fuzzing with Trident or custom property tests
+  - Edge cases: zero balance refund, overflow, re-entrancy
+
+@sipher/sdk:
+  - Unit tests (each tool in isolation, mocked chain)
+  - Integration tests (tools against localnet validator)
+  - Coverage target: 80%+ on new code
+
+Pi SDK Agent:
+  - Tool execution tests (mock LLM, verify tool calls)
+  - Conversation flow tests (multi-turn scenarios)
+  - Prompt injection tests (adversarial inputs)
+
+Web Chat UI:
+  - Component tests (Vitest + Testing Library)
+  - Wallet connection flow E2E
+  - Mobile responsive checks
+
+Target: 200+ tests for Phase 1 new code.
+```
+
+**H12. Error UX Design** (new subsection in spec)
+
+```
+Agent error responses (never show raw errors to users):
+
+| Scenario | Agent Response |
+|----------|---------------|
+| Jupiter quote expired | "Quote expired. Fetching a fresh one... [new quote]. Confirm?" |
+| Vault paused | "The vault is temporarily paused for maintenance. Try again shortly." |
+| TX failed (network) | "Transaction failed due to network congestion. Retrying with higher priority... [auto-retry 1x]" |
+| Insufficient balance | "You have 50 USDC in vault but tried to send 100. Deposit more or reduce amount." |
+| splitSend chunk failed | "Chunk 2 of 4 failed. Remaining 750 USDC still in vault. Retry chunk? [Yes / Cancel remaining]" |
+| Wallet disconnected | "Wallet disconnected. Reconnect to continue. Your vault balance is safe." |
+| Rate limited | "Too many requests. Please wait 30 seconds." |
+| Unknown error | "Something went wrong. Your funds are safe in the vault. Error ref: [code]. Contact support if this persists." |
+```
+
+Every error must: (1) reassure funds are safe, (2) explain what happened, (3) offer a next action.
+
+**H13. Authority Key Management** (affects Section 11, 5)
+
+```
+Program Authority Key Lifecycle:
+
+Devnet/Hackathon:
+  - Single keypair in ~/Documents/secret/sipher-vault-authority.json
+  - Acceptable for development speed
+
+Pre-Mainnet:
+  - Transfer to Squads multisig (2-of-3):
+    Key 1: RECTOR hot wallet (daily ops)
+    Key 2: Cold storage (Ledger hardware wallet)
+    Key 3: Backup (separate hardware, secure location)
+  - 24h timelock on fee changes, 48h on upgrades
+
+Authority can:
+  - collect_fee: withdraw accumulated fees (multisig)
+  - update_config: change fee rate (multisig + 24h timelock)
+  - pause/unpause: emergency pause (any single key — speed matters)
+
+Authority CANNOT:
+  - Access user deposit balances (PDA-controlled)
+  - Modify deposit records (user-signed only)
+  - Bypass refund mechanism
+```
+
+### MEDIUM FIXES
+
+**M14. Hybrid UX: Buttons + Agent** (affects Section 6, 19, 23)
+
+Not everything needs the LLM. Deterministic operations get buttons. Complex operations get the agent.
+
+```
+Buttons (instant, no LLM):        Agent (conversational):
+  [Deposit]                         "Split 5000 USDC over 6 hours"
+  [Refund]                          "How exposed is my wallet?"
+  [Check Balance]                   "Set up recurring payment"
+  [View History]                    "What's the best way to send
+  [Scan for Payments]                this privately?"
+  [Export Viewing Key]              "Explain what viewing keys do"
+```
+
+The QuickActions bar (Section 23) handles simple ops without LLM roundtrip. Chat input handles complex or ambiguous requests. This cuts LLM costs by ~40% and eliminates latency on common operations.
+
+**M15. GUARDIAN Naming Deferred** (affects Section 21)
+
+Phase 1: No GUARDIAN squad. No separate packages. Everything lives in the SIPHER agent with embedded modules:
+
+```
+Phase 1 (single process, single package):
+  sipher/packages/agent/
+    ├── tools/          ← SIP tools (deposit, send, etc.)
+    ├── cron/           ← what would be COURIER (setInterval)
+    ├── listener/       ← what would be SENTINEL (WebSocket)
+    └── agent.ts        ← Pi SDK agent loop
+
+Phase 2 (if scale justifies):
+  Extract cron/ → packages/courier/
+  Extract listener/ → packages/sentinel/
+  Add packages/herald/ and packages/watcher/
+  Rename to GUARDIAN squad
+```
+
+Don't name agents that don't exist yet. Build features, not brands.
+
+**M16. X Agent Deferred to Phase 2** (affects Section 18)
+
+Section 18 (X Agent Architecture) is thorough but entirely Phase 2. For Phase 1:
+- No X API integration
+- No X costs ($0 instead of $30/mo)
+- HERALD not built
+- X presence maintained manually by RECTOR (existing @sipprotocol account)
+
+Phase 2 builds the X agent using the architecture already designed in Section 18.
+
+**M17. DM-to-Web Acknowledged as Phase 2 UX** (affects Section 16)
+
+The 3-context-switch flow (X DM → browser → wallet → back to X) is suboptimal. Acknowledged. Phase 2 explores:
+- Telegram inline keyboards (richer DM UX than X)
+- X DM as advisory-only (never link to TX execution)
+- Direct wallet integrations in Telegram (TON Connect pattern adapted for Solana)
+
+**M18. Fixed Denomination Option** (affects Section 5)
+
+PrivacyCash uses fixed denominations (stronger anonymity). Sipher uses any-amount (weaker anonymity, better UX).
+
+**Compromise:** Offer "privacy modes" for deposits:
+
+| Mode | Behavior | Anonymity |
+|------|----------|-----------|
+| **Quick** (default) | Any amount, auto-rounded to nearest 50/100 | Moderate |
+| **Strong** | Fixed denominations (100, 500, 1000, 5000 USDC) | High |
+| **Maximum** | Fixed denomination + mandatory 1hr delay + splitSend | Highest |
+
+User chooses at deposit time. Agent recommends based on amount and vault state.
+
+**M19. Pi SDK Risk Mitigation** (affects Section 4)
+
+Pi SDK is unaudited, maintained by one person (Mario Zechner), and has no track record with financial applications.
+
+**Mitigations:**
+- Pi SDK handles ONLY the LLM interaction layer (prompt → response → tool call). It never touches keys, funds, or transactions directly.
+- All financial logic lives in @sipher/sdk and the on-chain vault program — both fully under our control.
+- If Pi SDK becomes unmaintained, the agent layer is replaceable without touching the vault or SDK. The tools are framework-agnostic TypeScript functions.
+- Audit the Pi SDK dependencies before Phase 1 launch (supply chain risk).
+- Pin exact Pi SDK versions. No auto-updates.
+
+---
+
+## 28. References
 
 - [Privacy Pools paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364) — Vitalik Buterin et al.
 - [0xbow Privacy Pools](https://0xbow.io/) — live implementation, $3.5M funded

@@ -1918,9 +1918,58 @@ Budget gates:
     <p><strong>Sipher = Privacy Pools equivalent for Solana.</strong> The only compliant privacy option on Solana.</p>
   </section>
 
-  <!-- 27. References -->
+  <!-- 27. Post-Roast Amendments -->
   <section>
-    <h2><span class="num">27</span> References</h2>
+    <h2><span class="num">27</span> Post-Roast Amendments</h2>
+    <p>Full design roast identified 19 issues. All addressed below.</p>
+
+    <h3>Critical Fixes (6)</h3>
+    <div class="moat-stack">
+      <div class="moat-item"><span class="moat-num" style="background: var(--red);">C1</span> <span><strong>Phase 1 Scope Cut</strong> &mdash; 5 vault instructions, 6 tools, 4 UI components. No GUARDIAN, no X agent, no scheduled ops. 5-6 weeks.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--red);">C2</span> <span><strong>Multisig Vault Authority</strong> &mdash; Squads 2-of-3 before mainnet. 24h timelock on fee changes. Single key only for devnet.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--red);">C3</span> <span><strong>CPI Double-Spend Fix</strong> &mdash; Debit-first pattern. Balance decrement + CPI in same TX. Solana atomicity handles rollback.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--red);">C4</span> <span><strong>On-Chain State Split</strong> &mdash; Add <code>locked_amount</code> field to deposit PDA. Scheduled ops lock balance on-chain, not just SQLite.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--red);">C5</span> <span><strong>Upgrade Authority</strong> &mdash; Devnet: upgradeable. Pre-mainnet: multisig + 48h timelock. Phase 3+: consider immutable.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--red);">C6</span> <span><strong>Honest Compliance</strong> &mdash; "Privacy-first with compliance roadmap" not "compliant privacy" until Phase 3 ships association sets.</span></div>
+    </div>
+
+    <h3>High Fixes (7)</h3>
+    <div class="moat-stack">
+      <div class="moat-item"><span class="moat-num" style="background: var(--yellow);">H7</span> <span><strong>Auto Privacy Defaults</strong> &mdash; Auto-round amounts, warn on low anonymity set (&lt;10), suggest splitSend for &gt;$1K. User can override.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--yellow);">H8</span> <span><strong>Cost Math Fixed</strong> &mdash; SIPHER: ~$99/mo (was $45). Total Phase 1: ~$150/mo (was $84). 2x original estimate.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--yellow);">H9</span> <span><strong>Free Tier Reset</strong> &mdash; $1K/wallet/month (was $10K lifetime). Breakeven: $150K billable volume (~150 active wallets).</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--yellow);">H10</span> <span><strong>Anonymity Set Threshold</strong> &mdash; On-chain <code>min_anonymity_set</code> (default 5). Mandatory delay when below threshold.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--yellow);">H11</span> <span><strong>Testing Strategy</strong> &mdash; Anchor tests, Bankrun CPI tests, fuzzing, tool unit/integration tests, prompt injection tests. Target: 200+ tests.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--yellow);">H12</span> <span><strong>Error UX</strong> &mdash; Every error: reassure funds safe, explain what happened, offer next action. 8 error scenarios designed.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--yellow);">H13</span> <span><strong>Authority Key Mgmt</strong> &mdash; Devnet: single key. Mainnet: Squads 2-of-3 (hot + cold + backup). Pause = any single key (speed).</span></div>
+    </div>
+
+    <h3>Medium Fixes (6)</h3>
+    <div class="moat-stack">
+      <div class="moat-item"><span class="moat-num" style="background: var(--cyan);">M14</span> <span><strong>Hybrid UX</strong> &mdash; Buttons for deterministic ops (deposit, refund, balance). Agent for complex ops (splitSend, privacy analysis). Cuts LLM costs ~40%.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--cyan);">M15</span> <span><strong>GUARDIAN Deferred</strong> &mdash; Phase 1: embedded modules in SIPHER (cron/, listener/). Phase 2: extract into squad if scale justifies.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--cyan);">M16</span> <span><strong>X Agent Phase 2</strong> &mdash; No X API in Phase 1 ($0). Manual X presence. Architecture ready (Section 18) for Phase 2.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--cyan);">M17</span> <span><strong>DM-to-Web Phase 2</strong> &mdash; 3-context-switch flow acknowledged as suboptimal. Explore Telegram inline keyboards first.</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--cyan);">M18</span> <span><strong>Fixed Denomination Option</strong> &mdash; Privacy modes: Quick (any amount, auto-round), Strong (fixed denominations), Maximum (fixed + delay + split).</span></div>
+      <div class="moat-item"><span class="moat-num" style="background: var(--cyan);">M19</span> <span><strong>Pi SDK Risk</strong> &mdash; Pi handles LLM only, never touches funds. Financial logic in @sipher/sdk + vault program. Pi is replaceable. Pin versions, audit deps.</span></div>
+    </div>
+
+    <h3>Revised Phase 1 Cost</h3>
+    <div class="card-grid">
+      <div class="card" style="border-left: 3px solid var(--red);">
+        <h4>Before Roast: ~$84/mo</h4>
+        <p>LLM: $54 | X API: $30 | RPC: $0</p>
+      </div>
+      <div class="card card-accent">
+        <h4>After Roast: ~$150/mo</h4>
+        <p>LLM: $120 (corrected) | X API: $0 (deferred) | RPC: $0 | Infra: $30</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 28. References -->
+  <section>
+    <h2><span class="num">28</span> References</h2>
     <ul>
       <li><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4563364">Privacy Pools paper</a> &mdash; Vitalik Buterin et al.</li>
       <li><a href="https://0xbow.io/">0xbow Privacy Pools</a> &mdash; live implementation, $3.5M funded</li>
