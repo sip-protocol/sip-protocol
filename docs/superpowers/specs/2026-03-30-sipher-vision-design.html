@@ -501,18 +501,42 @@
     <h2><span class="num">03</span> Product Concept</h2>
     <h3>Two Modes, One Product</h3>
 
+    <div class="card card-accent" style="margin-bottom: 16px;">
+      <h4>Parallel, Not Sequential</h4>
+      <p>Sipher is NOT "old API replaced by new agent." It's two interfaces serving two audiences, running in parallel. The REST API is not legacy &mdash; it IS Mode 2.</p>
+    </div>
+
     <div class="card-grid">
-      <div class="card card-accent">
-        <h4>Mode 1: Human Plug</h4>
-        <p>Connect any wallet. Deposit into Sipher's PDA vault. Interact via conversational agent (web chat, Telegram, X). Agent handles all privacy mechanics. User never touches cryptographic primitives.</p>
+      <div class="card" style="border-left: 3px solid var(--green);">
+        <h4>Mode 1: Human Plug (NEW)</h4>
+        <p>Connect any wallet. Deposit into PDA vault. Interact via conversational agent (web chat, Telegram, X). Agent handles all privacy mechanics. User never touches cryptographic primitives.</p>
       </div>
-      <div class="card card-accent">
-        <h4>Mode 2: Agent Plug</h4>
-        <p>SDK, REST API, MCP skill. Any agent framework adds Sipher and gets SIP privacy integrated into their workflow. Evolves current Sipher capabilities (71 endpoints, 17 chains).</p>
+      <div class="card" style="border-left: 3px solid var(--cyan);">
+        <h4>Mode 2: Agent Plug (EXISTING)</h4>
+        <p>71 endpoints, 573 tests, 17 chains, 4 SDKs. OpenClaw skill. Live at <code>sipher.sip-protocol.org/api/v1/</code>. <strong>Not deprecated. Stays as first-class interface.</strong></p>
       </div>
     </div>
 
     <p><strong>Same engine underneath:</strong> <code>@sip-protocol/sdk</code> &rarr; PDA vault &rarr; stealth addresses &rarr; Pedersen commitments &rarr; viewing keys</p>
+
+    <h3>sip-mobile Feature Absorption</h3>
+    <p>Absorb capabilities (what it can do), not interactions (how). In sip-mobile, users tap buttons. In Sipher, users talk.</p>
+    <table>
+      <thead><tr><th>Feature</th><th>Sipher Status</th><th>Phase</th></tr></thead>
+      <tbody>
+        <tr><td>Stealth send/receive/scan/claim</td><td>Via @sip-protocol/sdk</td><td>1</td></tr>
+        <tr><td>Privacy levels (transparent/shielded/compliant)</td><td>Agent tool options</td><td>1</td></tr>
+        <tr><td>Viewing key management + disclosure</td><td>viewingKey tool + audit trail</td><td>1</td></tr>
+        <tr><td>Privacy score + exposure analysis</td><td>privacyScore tool</td><td>1</td></tr>
+        <tr><td>Jupiter swap + privacy toggle</td><td>swap tool</td><td>1</td></tr>
+        <tr><td>Transaction history + filters</td><td>history tool</td><td>1</td></tr>
+        <tr><td>Multi-wallet management</td><td>User identity system (Section 17)</td><td>1</td></tr>
+        <tr><td>Multi-provider (7 backends)</td><td>SIP Native first, add others</td><td>2</td></tr>
+        <tr><td>Compliance audit trail</td><td>Full TX log with privacy metadata</td><td>2</td></tr>
+        <tr><td>Token details (price, market cap)</td><td>Token info via Jupiter API</td><td>2</td></tr>
+        <tr><td>Biometric auth / Native key storage</td><td>N/A &mdash; web app, wallet adapter handles</td><td>&mdash;</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <!-- 4. Architecture -->
@@ -1745,16 +1769,17 @@ Budget gates:
     <h3>Repo Structure (Monorepo)</h3>
     <pre><code>sipher/
 ├── packages/
-│   ├── sdk/          &larr; @sipher/sdk (shared)
-│   ├── sipher/       &larr; Lead Agent
+│   ├── sdk/          &larr; @sipher/sdk (shared by both modes)
+│   ├── agent/        &larr; Mode 1: Human Plug (Pi SDK, NEW)
+│   ├── api/          &larr; Mode 2: Agent Plug (Express, EXISTING)
 │   ├── sentinel/     &larr; Blockchain Monitor
 │   ├── courier/      &larr; Scheduled Executor
 │   ├── herald/       &larr; Content Agent
 │   └── watcher/      &larr; Analytics
-├── programs/         &larr; PDA vault Solana program
+├── programs/         &larr; sipher_vault (NEW)
 ├── app/              &larr; Web chat UI
-├── src/api/          &larr; Legacy REST API
 └── tests/</code></pre>
+    <p style="font-size: 13px; color: var(--text-muted);"><code>packages/api/</code> is NOT legacy &mdash; it's Mode 2, a first-class interface. Nothing deprecated.</p>
 
     <h3>Deployment Phases</h3>
     <table>
@@ -1854,7 +1879,7 @@ Budget gates:
         <tr><td>2</td><td>Vault vanity address</td><td>Try <code>S1PHER...</code> first, fall back to <code>S1P</code></td></tr>
         <tr><td>3</td><td>Privacy Pools timeline</td><td>Research in Phase 1, build in Phase 3</td></tr>
         <tr><td>4</td><td>Token allowlist</td><td>Jupiter verified token list from day 1</td></tr>
-        <tr><td>5</td><td>Repo structure</td><td>Gradual migration &mdash; keep REST API, build agent alongside (<code>/src/agent/</code> + <code>/src/api/</code>)</td></tr>
+        <tr><td>5</td><td>Repo structure</td><td><strong>Parallel operation</strong> &mdash; REST API = Mode 2 (Agent Plug, first-class). Pi SDK agent = Mode 1 (Human Plug). Both in <code>packages/</code>, sharing <code>@sipher/sdk</code>. Nothing deprecated.</td></tr>
         <tr><td>6</td><td>Legal review</td><td>Budget $500-2K for opinion letter. Start with self-research + Superteam resources.</td></tr>
       </tbody>
     </table>

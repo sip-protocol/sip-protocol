@@ -59,22 +59,50 @@ Autonomous agents (trading bots, DeFi agents, OpenClaw-based agents) that execut
 
 ## 3. Product Concept
 
-### Two Modes, One Product
+### Two Modes, One Product — Parallel, Not Sequential
 
-**Mode 1: Human Plug**
+Sipher is NOT "old API being replaced by new agent." It's two interfaces serving two audiences, running in parallel:
+
+**Mode 1: Human Plug (NEW — what we're building)**
 - Connect any wallet (Phantom, Backpack, Solflare — wallet-agnostic)
 - Deposit funds into Sipher's PDA vault
 - Interact via conversational agent (web chat, Telegram, X)
 - Agent handles all privacy mechanics (stealth addresses, commitments, viewing keys)
 - User never touches cryptographic primitives directly
 
-**Mode 2: Agent Plug**
-- SDK, REST API, MCP skill
-- Any agent framework (OpenClaw, custom bots, autonomous traders) adds Sipher
-- Gets SIP privacy integrated into their workflow
-- Preserves and evolves current Sipher REST API capabilities (71 endpoints, 17 chains)
+**Mode 2: Agent Plug (EXISTING — Sipher REST API, already working)**
+- 71 endpoints, 573 tests, 17 chains, 4 client SDKs
+- OpenClaw skill, MCP compatible
+- Live at sipher.sip-protocol.org/api/v1/
+- Serves autonomous agents, trading bots, other platforms
+- **Not deprecated. Not migrated. Stays as a first-class interface.**
+
+**Key reframe:** The current Sipher REST API is not "legacy" — it IS Mode 2. We're not replacing it, we're adding Mode 1 alongside it. Two products, one codebase, one vault.
 
 **Same engine underneath:** @sip-protocol/sdk → PDA vault → stealth addresses → Pedersen commitments → viewing keys
+
+### sip-mobile Feature Absorption
+
+Sipher absorbs sip-mobile's capabilities (what it can do), not its interactions (how it does it). In sip-mobile, users tap buttons. In Sipher, users talk.
+
+| sip-mobile Feature | Sipher Status | Phase |
+|---------------------|--------------|-------|
+| Stealth send/receive/scan/claim | Via @sip-protocol/sdk | Phase 1 |
+| Privacy levels (transparent/shielded/compliant) | Agent tool options | Phase 1 |
+| Viewing key management + disclosure tracking | `viewingKey` tool + audit trail | Phase 1 |
+| Privacy score + exposure analysis | `privacyScore` tool | Phase 1 |
+| Jupiter swap + privacy toggle | `swap` tool | Phase 1 |
+| Transaction history with filters | `history` tool | Phase 1 |
+| Multi-wallet management | User identity system (Section 17) | Phase 1 |
+| Contacts/address book | Wallet linking + labels | Phase 1 |
+| Multi-provider (7 privacy backends) | SIP Native first, add others | Phase 2 |
+| Compliance audit trail | Full TX log with privacy metadata | Phase 2 |
+| Token details (price, market cap) | Token info via Jupiter API | Phase 2 |
+| Stealth key regeneration + archiving | Key rotation support | Phase 2 |
+| Onboarding (5-slide education) | Conversational onboarding (different paradigm) | Phase 1 |
+| Biometric auth | N/A — web app, wallet adapter handles auth | — |
+| Native key storage (SecureStore) | N/A — keys stay in user's wallet | — |
+| QR code scanning | Payment links replace QR | Phase 2 |
 
 ---
 
@@ -86,8 +114,14 @@ Autonomous agents (trading bots, DeFi agents, OpenClaw-based agents) that execut
 @sip-protocol/sdk     → Privacy primitives (stealth, Pedersen, viewing keys)
                          Existing. Does not change. The standard.
 
-@sipher/sdk           → Agent + vault layer that USES @sip-protocol/sdk
-                         New. The "plug" interface.
+@sipher/sdk           → Vault operations + shared tools that USES @sip-protocol/sdk
+                         New. Shared by both modes.
+
+packages/agent/       → Mode 1: Human Plug (Pi SDK, web chat, X, Telegram)
+                         New. Uses @sipher/sdk.
+
+packages/api/         → Mode 2: Agent Plug (Express REST API, 71 endpoints)
+                         Existing. Evolves to also use @sipher/sdk + vault.
 ```
 
 SIP SDK is the standard — low-level, framework-agnostic, used by anyone.
@@ -1370,25 +1404,26 @@ User (via web/X/Telegram)
 
 ### Repo Structure
 
-All 5 agents live in the sipher repo (monorepo):
+All agents + both modes live in the sipher repo (monorepo):
 
 ```
 sipher/
 ├── packages/
 │   ├── sdk/          ← @sipher/sdk (shared: vault ops, SIP tools, types)
-│   ├── sipher/       ← Lead Agent (conversations, commands)
+│   ├── agent/        ← Mode 1: Human Plug — SIPHER Lead Agent (Pi SDK)
+│   ├── api/          ← Mode 2: Agent Plug — REST API (Express, EXISTING)
 │   ├── sentinel/     ← Blockchain Monitor (scan, detect, crank)
 │   ├── courier/      ← Scheduled Executor (drip, recurring, splitSend)
 │   ├── herald/       ← Content Agent (X posts, engagement)
 │   └── watcher/      ← Analytics (metrics, dashboard, alerts)
-├── programs/         ← PDA vault Solana program
+├── programs/         ← sipher_vault Solana program (NEW)
 ├── app/              ← Web chat UI (pi-web-ui fork)
-├── src/
-│   └── api/          ← Legacy REST API (gradual migration)
 └── tests/
 ```
 
-**Why one repo:** All agents share @sipher/sdk, database, and config. Separate repos = dependency hell for tightly-coupled agents.
+**Key:** `packages/api/` is NOT legacy — it's Mode 2 (Agent Plug), a first-class interface serving autonomous agents. `packages/agent/` is Mode 1 (Human Plug), serving humans via conversation. Both share `packages/sdk/`.
+
+**Why one repo:** All agents and both modes share @sipher/sdk, database, and config.
 
 ### Deployment
 
@@ -1501,7 +1536,7 @@ Not every agent needs an LLM. This cuts costs dramatically.
 | 2 | Vault vanity address | Try `S1PHER...` first, fall back to `S1Phr` or `S1P` if grinding takes too long. |
 | 3 | Privacy Pools timeline | Research in Phase 1 (map 0xbow architecture), build in Phase 3. Don't discover mid-build. |
 | 4 | Token allowlist | Jupiter verified token list from day 1. If Jupiter trusts it, we trust it. |
-| 5 | Sipher repo structure | Gradual migration (option B). Keep existing REST API live, build agent alongside in same repo. `/src/agent/` + `/src/api/` coexist. API becomes one of the Agent Plug interfaces in Phase 2. |
+| 5 | Sipher repo structure | **Parallel operation** (not migration). REST API = Mode 2 (Agent Plug), stays as first-class interface. New Pi SDK agent = Mode 1 (Human Plug). Both in `packages/` monorepo, sharing `@sipher/sdk`. Nothing deprecated. |
 | 6 | Legal review | Budget $500-2K for regulatory opinion letter before mainnet vault launch. Start with self-research (OFAC guidance, Privacy Pools paper, a16z compliance papers) + Superteam legal resources. Risk is lower than initially assessed — see Regulatory Landscape below. |
 
 ---
