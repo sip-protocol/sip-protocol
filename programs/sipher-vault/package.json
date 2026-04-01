@@ -17,6 +17,7 @@
     "mocha": "^10.0.0",
     "solana-bankrun": "^0.4.0",
     "ts-mocha": "^10.0.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.0.0"
   }
 }
