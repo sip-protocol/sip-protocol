@@ -111,3 +111,7 @@ packages/sdk/benchmarks/results.json
 .claude/
 .playwright-mcp/
 **/package-lock.json
+.agents/
+.kiro/
+skills-lock.json
+skills/

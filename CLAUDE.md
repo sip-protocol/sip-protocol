@@ -760,15 +760,17 @@ ssh core      # Admin user for nginx/system config
 
 ## Keypair Storage & Deployments
 
-**Location:** `~/.claude/sip-protocol/keys/` (age-encrypted, never commit)
+**Location:** `~/Documents/secret/` (iCloud encrypted, Bitwarden backup). Never commit keypairs to git.
 
-| Key | Address | Usage |
-|-----|---------|-------|
-| `solana/program-id.json.age` | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | Anchor program |
-| `solana/authority.json.age` | `S1P6j1yeTm6zkewQVeihrTZvmfoHABRkHDhabWTuWMd` | Deploy authority |
-| `solana/treasury.json.age` | `S1P9WhBSbAGGatvrVE4TRBZfWpbG96U26zksy2TQj8q` | Treasury |
-| `solana/dapp-store.json.age` | `S1PSkwV3YZD6exNiUEdfTJadyUJ1CDDUgwmQaWB5yie` | Solana dApp Store |
-| `ethereum/evm.json.age` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | ETH/Base/Arb/OP |
+| File | Address | Usage |
+|------|---------|-------|
+| `sip-native-program-id.json` | `S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at` | SIP Privacy program |
+| `authority.json` | `S1P6j1yeTm6zkewQVeihrTZvmfoHABRkHDhabWTuWMd` | Deploy authority |
+| `treasury.json` | `S1P9WhBSbAGGatvrVE4TRBZfWpbG96U26zksy2TQj8q` | Treasury |
+| `solana-dapp-store.json` | `S1PSkwV3YZD6exNiUEdfTJadyUJ1CDDUgwmQaWB5yie` | Solana dApp Store |
+| `sipher-vault-program-id.json` | `S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB` | Sipher Vault program |
+| `solana-devnet.json` | `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr` | Shared devnet wallet |
+| `evm-deployer.json` | `0x5AfE45685756B6E93FAf0DccD662d8AbA94c1b46` | ETH/Base/Arb/OP |
 
 ### Solana Program Deployments
 
@@ -784,12 +786,39 @@ ssh core      # Admin user for nginx/system config
 **Latest Mainnet Deploy TX:** [`m5oJybe...qVwv`](https://solscan.io/tx/m5oJybeGj3GVMr8GxCKz817nr28NugasFDduyLHqW74kQTZcWXTWYgRH7VbNCKjezdeXaQDiVqFsqg3LHxdqVwv) (Mar 7, 2026 — added `create_transfer_announcement` for private swaps)
 
 ```bash
-# Deploy (keys in sip-protocol/secrets/ or decrypt from ~/.claude/sip-protocol/keys/)
+# Deploy (keys in ~/Documents/secret/)
 solana program deploy target/deploy/sip_privacy.so \
   --program-id secrets/sip-native-program-id.json \
   --keypair secrets/authority.json \
   --url mainnet-beta \
   --with-compute-unit-price 10000
+```
+
+### Sipher Vault Deployments
+
+| Network | Program ID | Config PDA | Date |
+|---------|------------|------------|------|
+| **Devnet** | `S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB` | `CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u` | 2026-03-31 |
+
+**Config:** Fee 10 bps, Refund timeout 86400s (24h), Authority `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr` (devnet wallet)
+
+**Instructions (7):** `initialize`, `create_vault_token`, `create_fee_token`, `deposit`, `withdraw_private`, `refund`, `collect_fee`
+
+**Tests:** 14 passing, 1 pending | **Binary:** 353KB
+
+```bash
+# Deploy sipher_vault
+cd programs/sipher-vault
+solana program deploy target/deploy/sipher_vault.so \
+  --program-id ~/Documents/secret/sipher-vault-program-id.json \
+  --keypair ~/Documents/secret/solana-devnet.json \
+  --url devnet \
+  --with-compute-unit-price 10000
+
+# Initialize vault config
+ANCHOR_WALLET=~/Documents/secret/solana-devnet.json \
+ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
+pnpm exec tsx scripts/init-devnet.ts
 ```
 
 ### EVM Contract Deployments (M18)

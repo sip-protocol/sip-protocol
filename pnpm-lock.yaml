@@ -442,6 +442,9 @@ importers:
       ts-mocha:
         specifier: ^10.0.0
         version: 10.1.0(mocha@10.8.2)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
