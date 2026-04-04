@@ -36,7 +36,7 @@ Built Mode 1 (conversational privacy agent) and deployed to VPS.
 - **Tests:** 97 agent + 71 SDK = 168 tests + 573 root REST API tests
 - **Commits:** `f6ed2ff` through `fdfa9d1` on sipher main
 
-### Gap Fixes (Partially Done — 3 of 5)
+### Gap Fixes (ALL COMPLETE — 5 of 5)
 
 After comparing spec to implementation, wrote a gap fix plan at:
 `docs/superpowers/plans/2026-04-01-sipher-gap-fixes.md`
@@ -45,9 +45,9 @@ After comparing spec to implementation, wrote a gap fix plan at:
 |---|------|--------|
 | 1 | Restore Mode 2 REST API alongside agent | ✅ Done — `src/app.ts` extracted, mounted via dynamic import |
 | 2 | Wire wallet TX signing in UI | ✅ Done — `useTransactionSigner` hook, ConfirmationPrompt signs + broadcasts |
-| 3 | Real privacy crypto in SDK | **TODO** — replace placeholder zero-fills with real @sip-protocol/sdk stealth + Pedersen |
+| 3 | Real privacy crypto in SDK | ✅ Done — ed25519 DKSAP stealth + secp256k1 Pedersen via @sip-protocol/sdk |
 | 4 | Add 4 missing Phase 1 tools | ✅ Done — swap, viewingKey, history, status (10/10 tools) |
-| 5 | Chat streaming (SSE) | **TODO** — replace POST-wait with Server-Sent Events |
+| 5 | Chat streaming (SSE) | ✅ Done — SSE streaming with tool loop, POST fallback, nginx hardening |
 
 ---
 

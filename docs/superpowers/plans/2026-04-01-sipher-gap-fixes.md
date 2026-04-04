@@ -4,6 +4,16 @@
 
 **Goal:** Close the critical and important gaps between the Sipher spec and current implementation — restore Mode 2 REST API, wire wallet signing in the UI, connect real privacy crypto, and add the 4 missing Phase 1 tools.
 
+**Status:** ALL 5 TASKS COMPLETE (Apr 4, 2026)
+
+| # | Task | Commit(s) | Date |
+|---|------|-----------|------|
+| 1 | Restore Mode 2 REST API | `fdfa9d1` | Apr 1 |
+| 2 | Wire wallet TX signing | `dd2ab64` | Apr 1 |
+| 3 | Real privacy crypto | `89615ec`, `d18181d` | Apr 4 |
+| 4 | Add 4 missing tools | `fdfa9d1` | Apr 1 |
+| 5 | SSE chat streaming | `bfee058`, `0570b7a` | Apr 4 |
+
 **Architecture:** The agent server (`packages/agent/src/index.ts`) becomes the unified entrypoint that mounts both Mode 1 (agent chat) and Mode 2 (REST API) on the same Express app. The web UI gets real transaction signing via `@solana/wallet-adapter-react`. Privacy operations use `@sip-protocol/sdk` for real stealth address derivation and Pedersen commitments.
 
 **Tech Stack:** TypeScript, Express 5, @solana/wallet-adapter-react, @sip-protocol/sdk, @solana/web3.js, Vitest
@@ -271,7 +281,7 @@ Replace placeholder zero-filled crypto params with real `@sip-protocol/sdk` call
 - Modify: `packages/sdk/src/privacy.ts`
 - Create: `packages/sdk/tests/privacy.test.ts`
 
-- [ ] **Step 1: Check @sip-protocol/sdk exports**
+- [x] **Step 1: Check @sip-protocol/sdk exports**
 
 Read the `@sip-protocol/sdk` package to find the exact function signatures for:
 - `generateStealthAddress(spendingPubkey, viewingPubkey)` → stealth address + ephemeral key
@@ -286,7 +296,7 @@ grep -n "export function\|export async function" /Users/rector/local-dev/sip-pro
 grep -n "export function\|export async function" /Users/rector/local-dev/sip-protocol/packages/sdk/src/crypto.ts
 ```
 
-- [ ] **Step 2: Update buildPrivateSendTx with real crypto**
+- [x] **Step 2: Update buildPrivateSendTx with real crypto**
 
 In `packages/sdk/src/privacy.ts`, replace the placeholder crypto params:
 
@@ -306,7 +316,7 @@ const ephemeralPubkey = Buffer.from(stealth.ephemeralPublicKey.slice(2), 'hex') 
 const viewingKeyHash = Buffer.from(stealth.viewingKeyHash.slice(2), 'hex') // [u8; 32]
 ```
 
-- [ ] **Step 3: Update scanForPayments with stealth matching**
+- [x] **Step 3: Update scanForPayments with stealth matching**
 
 In `packages/sdk/src/privacy.ts`, the scan function should check each `VaultWithdrawEvent` against the user's viewing key:
 
@@ -324,7 +334,7 @@ const isOurs = checkStealthAddress(
 
 Only return events where `isOurs === true`.
 
-- [ ] **Step 4: Write privacy tests**
+- [x] **Step 4: Write privacy tests**
 
 ```typescript
 // packages/sdk/tests/privacy.test.ts
@@ -349,13 +359,13 @@ describe('@sipher/sdk privacy', () => {
 })
 ```
 
-- [ ] **Step 5: Run tests**
+- [x] **Step 5: Run tests**
 
 ```bash
 cd packages/sdk && pnpm test
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/sdk/src/privacy.ts packages/sdk/tests/privacy.test.ts
@@ -610,7 +620,7 @@ Replace the POST-wait-response pattern with Server-Sent Events for real-time tok
 - Modify: `packages/agent/src/agent.ts` (add streaming chat function)
 - Modify: `app/src/components/ChatContainer.tsx` (consume SSE stream)
 
-- [ ] **Step 1: Add streaming agent function**
+- [x] **Step 1: Add streaming agent function**
 
 In `packages/agent/src/agent.ts`, add a `chatStream` function that yields events:
 
@@ -639,7 +649,7 @@ export async function* chatStream(
 }
 ```
 
-- [ ] **Step 2: Add SSE endpoint**
+- [x] **Step 2: Add SSE endpoint**
 
 In `packages/agent/src/index.ts`:
 
@@ -663,18 +673,18 @@ app.post('/api/chat/stream', async (req, res) => {
 })
 ```
 
-- [ ] **Step 3: Update ChatContainer to use SSE**
+- [x] **Step 3: Update ChatContainer to use SSE**
 
 In `app/src/components/ChatContainer.tsx`, replace the `fetch` POST call with an SSE consumer that appends tokens as they arrive. Fall back to POST if streaming fails.
 
-- [ ] **Step 4: Build and verify**
+- [x] **Step 4: Build and verify**
 
 ```bash
 cd app && pnpm build
 cd packages/agent && pnpm test
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add packages/agent/src/ app/src/components/ChatContainer.tsx
