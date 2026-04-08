@@ -8,6 +8,7 @@ skip-lint = false
 
 [programs.localnet]
 sipher_vault = "S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB"
+sip_privacy = "S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at"
 
 [programs.devnet]
 sipher_vault = "S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB"

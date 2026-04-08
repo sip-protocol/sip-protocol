@@ -14,6 +14,7 @@
 //! - `collect_fee` — Authority-only fee withdrawal
 
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
 pub mod constants;
@@ -23,6 +24,17 @@ pub mod state;
 use constants::*;
 use errors::VaultError;
 use state::{DepositRecord, VaultConfig};
+
+/// SIP Privacy program ID — used for CPI to create_transfer_announcement
+/// S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at
+pub const SIP_PRIVACY_PROGRAM_ID: Pubkey = Pubkey::new_from_array([
+    6, 103, 244, 183, 95, 66, 85, 178, 94, 77, 35, 31, 200, 4, 171, 142,
+    239, 75, 239, 31, 200, 233, 194, 236, 6, 172, 102, 172, 187, 213, 122, 133,
+]);
+
+/// Seeds used by the sip_privacy program
+pub const SIP_CONFIG_SEED: &[u8] = b"config";
+pub const SIP_TRANSFER_RECORD_SEED: &[u8] = b"transfer_record";
 
 declare_id!("S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB");
 
@@ -188,7 +200,57 @@ pub mod sipher_vault {
       token::transfer(transfer_fee, fee)?;
     }
 
-    // 5. Emit event
+    // 5. CPI to sip_privacy::create_transfer_announcement
+    //    Creates a TransferRecord PDA so the payment is scannable by recipients.
+    //    This is metadata-only — no token movement happens here.
+    {
+      // Anchor discriminator: sha256("global:create_transfer_announcement")[..8]
+      let disc = solana_program::hash::hash(
+        b"global:create_transfer_announcement"
+      ).to_bytes();
+
+      let mut cpi_data = Vec::with_capacity(8 + 33 + 32 + 33 + 32 + 4 + _encrypted_amount.len() + 32);
+      cpi_data.extend_from_slice(&disc[..8]);
+      // amount_commitment: [u8; 33]
+      cpi_data.extend_from_slice(&amount_commitment);
+      // stealth_pubkey: Pubkey (32 bytes)
+      cpi_data.extend_from_slice(stealth_pubkey.as_ref());
+      // ephemeral_pubkey: [u8; 33]
+      cpi_data.extend_from_slice(&ephemeral_pubkey);
+      // viewing_key_hash: [u8; 32]
+      cpi_data.extend_from_slice(&viewing_key_hash);
+      // encrypted_amount: Vec<u8> (4-byte LE length prefix + data)
+      let enc_amt = &_encrypted_amount;
+      cpi_data.extend_from_slice(&(enc_amt.len() as u32).to_le_bytes());
+      cpi_data.extend_from_slice(enc_amt);
+      // token_mint: Pubkey (32 bytes)
+      cpi_data.extend_from_slice(ctx.accounts.token_mint.key().as_ref());
+
+      let cpi_accounts = vec![
+        AccountMeta::new(ctx.accounts.sip_config.key(), false),
+        AccountMeta::new(ctx.accounts.sip_transfer_record.key(), false),
+        AccountMeta::new(ctx.accounts.depositor.key(), true),
+        AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
+      ];
+
+      let cpi_ix = solana_program::instruction::Instruction {
+        program_id: ctx.accounts.sip_privacy_program.key(),
+        accounts: cpi_accounts,
+        data: cpi_data,
+      };
+
+      solana_program::program::invoke(
+        &cpi_ix,
+        &[
+          ctx.accounts.sip_config.to_account_info(),
+          ctx.accounts.sip_transfer_record.to_account_info(),
+          ctx.accounts.depositor.to_account_info(),
+          ctx.accounts.system_program.to_account_info(),
+        ],
+      )?;
+    }
+
+    // 6. Emit event
     emit!(VaultWithdrawEvent {
       depositor: ctx.accounts.depositor.key(),
       stealth_recipient: stealth_pubkey,
@@ -440,6 +502,31 @@ pub struct WithdrawPrivate<'info> {
   pub depositor: Signer<'info>,
 
   pub token_program: Program<'info, Token>,
+
+  // ── CPI accounts for sip_privacy::create_transfer_announcement ──
+
+  /// SIP Privacy program config PDA
+  /// CHECK: Validated by seeds against sip_privacy program
+  #[account(
+    mut,
+    seeds = [SIP_CONFIG_SEED],
+    bump,
+    seeds::program = SIP_PRIVACY_PROGRAM_ID,
+  )]
+  pub sip_config: AccountInfo<'info>,
+
+  /// Transfer record PDA — will be initialized by CPI to sip_privacy
+  /// CHECK: Initialized and validated by the CPI call to sip_privacy
+  #[account(mut)]
+  pub sip_transfer_record: AccountInfo<'info>,
+
+  /// SIP Privacy program for CPI
+  /// CHECK: Validated by address constraint
+  #[account(address = SIP_PRIVACY_PROGRAM_ID)]
+  pub sip_privacy_program: AccountInfo<'info>,
+
+  /// System program (needed by sip_privacy to init the transfer record)
+  pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]

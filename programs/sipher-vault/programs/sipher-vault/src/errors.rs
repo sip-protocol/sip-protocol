@@ -24,4 +24,6 @@ pub enum VaultError {
   InvalidMint,
   #[msg("Balance locked by scheduled operations")]
   BalanceLocked,
+  #[msg("CPI to SIP Privacy program failed")]
+  AnnouncementCpiFailed,
 }

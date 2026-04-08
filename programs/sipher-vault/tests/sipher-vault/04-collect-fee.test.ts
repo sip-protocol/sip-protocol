@@ -2,7 +2,7 @@ import * as anchor from '@coral-xyz/anchor'
 import { Program } from '@coral-xyz/anchor'
 import { SipherVault } from '../../target/types/sipher_vault'
 import { expect } from 'chai'
-import { Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
+import { Keypair, PublicKey, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js'
 import {
   TOKEN_PROGRAM_ID,
   createInitializeMintInstruction,
@@ -12,11 +12,15 @@ import {
   MINT_SIZE,
 } from '@solana/spl-token'
 import { BankrunProvider, startAnchor } from 'anchor-bankrun'
+import { createHash } from 'crypto'
 import {
   getVaultConfigPDA,
   getDepositRecordPDA,
   getVaultTokenPDA,
   getFeeTokenPDA,
+  getSipConfigPDA,
+  getSipTransferRecordPDA,
+  SIP_PRIVACY_PROGRAM_ID,
 } from './setup'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -48,6 +52,8 @@ describe('sipher-vault: collect_fee', () => {
   let depositRecordPDA: PublicKey
   let stealthKeypair: Keypair
   let stealthAta: PublicKey
+  let sipConfigPDA: PublicKey
+  let sipTransferCounter: number // tracks total_transfers for PDA derivation
 
   const FEE_BPS = 10 // 0.1%
   const DEPOSIT_AMOUNT = 1_000_000
@@ -137,6 +143,37 @@ describe('sipher-vault: collect_fee', () => {
     ;[vaultTokenPDA] = getVaultTokenPDA(mint, PROGRAM_ID)
     ;[feeTokenPDA] = getFeeTokenPDA(mint, PROGRAM_ID)
     ;[depositRecordPDA] = getDepositRecordPDA(payer.publicKey, mint, PROGRAM_ID)
+    ;[sipConfigPDA] = getSipConfigPDA()
+    sipTransferCounter = 0
+
+    // ── Initialize SIP Privacy program config (required for CPI) ────────
+    {
+      const disc = createHash('sha256')
+        .update('global:initialize')
+        .digest()
+        .subarray(0, 8)
+      const data = Buffer.alloc(8 + 2) // disc + fee_bps (u16 LE)
+      disc.copy(data, 0)
+      data.writeUInt16LE(0, 8) // 0 bps fee for sip_privacy
+
+      const initSipTx = new Transaction().add(
+        new TransactionInstruction({
+          programId: SIP_PRIVACY_PROGRAM_ID,
+          keys: [
+            { pubkey: sipConfigPDA, isSigner: false, isWritable: true },
+            { pubkey: payer.publicKey, isSigner: true, isWritable: true },
+            { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+          ],
+          data,
+        }),
+      )
+      initSipTx.feePayer = payer.publicKey
+      initSipTx.recentBlockhash = (
+        await provider.context.banksClient.getLatestBlockhash()
+      )?.[0]!
+      initSipTx.sign(payer)
+      await provider.context.banksClient.processTransaction(initSipTx)
+    }
 
     // ── Initialize vault (fee=10bps, timeout=86400) ─────────────────────
     await program.methods
@@ -182,10 +219,13 @@ describe('sipher-vault: collect_fee', () => {
 
     // ── Execute withdraw_private to generate fees ───────────────────────
     // Dummy values for privacy params (not validated in Phase 1)
+    // sip_privacy validates commitment prefix: must be 0x02 or 0x03
     const amountCommitment = Array.from(new Uint8Array(33))
+    amountCommitment[0] = 0x02
     const ephemeralPubkey = Array.from(new Uint8Array(33))
     const viewingKeyHash = Array.from(new Uint8Array(32))
 
+    const [sipTransferRecord0] = getSipTransferRecordPDA(payer.publicKey, sipTransferCounter)
     await program.methods
       .withdrawPrivate(
         new anchor.BN(WITHDRAW_AMOUNT),
@@ -204,8 +244,13 @@ describe('sipher-vault: collect_fee', () => {
         stealthToken: stealthAta,
         tokenMint: mint,
         depositor: payer.publicKey,
+        sipConfig: sipConfigPDA,
+        sipTransferRecord: sipTransferRecord0,
+        sipPrivacyProgram: SIP_PRIVACY_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
       })
       .rpc()
+    sipTransferCounter++
 
     // Sanity: verify fee token received the fee
     const feeBalance = await getTokenBalance(provider, feeTokenPDA)
@@ -259,10 +304,13 @@ describe('sipher-vault: collect_fee', () => {
     provider.context.warpToSlot(clock.slot + 2n)
 
     // Execute another withdraw_private to replenish fees
+    // sip_privacy validates commitment prefix: must be 0x02 or 0x03
     const amountCommitment = Array.from(new Uint8Array(33))
+    amountCommitment[0] = 0x02
     const ephemeralPubkey = Array.from(new Uint8Array(33))
     const viewingKeyHash = Array.from(new Uint8Array(32))
 
+    const [sipTransferRecord1] = getSipTransferRecordPDA(payer.publicKey, sipTransferCounter)
     await program.methods
       .withdrawPrivate(
         new anchor.BN(WITHDRAW_AMOUNT),
@@ -281,8 +329,13 @@ describe('sipher-vault: collect_fee', () => {
         stealthToken: stealthAta,
         tokenMint: mint,
         depositor: payer.publicKey,
+        sipConfig: sipConfigPDA,
+        sipTransferRecord: sipTransferRecord1,
+        sipPrivacyProgram: SIP_PRIVACY_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
       })
       .rpc()
+    sipTransferCounter++
 
     // Verify fees exist
     const feeBalance = await getTokenBalance(provider, feeTokenPDA)
@@ -433,10 +486,13 @@ describe('sipher-vault: collect_fee', () => {
     let clock = await provider.context.banksClient.getClock()
     provider.context.warpToSlot(clock.slot + 2n)
 
+    // sip_privacy validates commitment prefix: must be 0x02 or 0x03
     const amountCommitment = Array.from(new Uint8Array(33))
+    amountCommitment[0] = 0x02
     const ephemeralPubkey = Array.from(new Uint8Array(33))
     const viewingKeyHash = Array.from(new Uint8Array(32))
 
+    const [sipTransferRecord2] = getSipTransferRecordPDA(payer.publicKey, sipTransferCounter)
     await program.methods
       .withdrawPrivate(
         new anchor.BN(WITHDRAW_AMOUNT),
@@ -455,8 +511,13 @@ describe('sipher-vault: collect_fee', () => {
         stealthToken: stealthAta,
         tokenMint: mint,
         depositor: payer.publicKey,
+        sipConfig: sipConfigPDA,
+        sipTransferRecord: sipTransferRecord2,
+        sipPrivacyProgram: SIP_PRIVACY_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
       })
       .rpc()
+    sipTransferCounter++
 
     const feeBalanceBefore = await getTokenBalance(provider, feeTokenPDA)
     expect(feeBalanceBefore).to.equal(EXPECTED_FEE) // 100
