@@ -297,6 +297,7 @@ pnpm typecheck                  # Type check
 **REST Endpoints (58):** Stealth, Transfer, Commitment, Viewing Key, Multi-chain (17 chains), Private Swap, Demo, Meta
 **Agent Tools (21):** deposit, send, refund, balance, scan, claim, swap, viewingKey, history, status, paymentLink, invoice, privacyScore, threatCheck, roundAmount, scheduleSend, splitSend, drip, recurring, sweep, consolidate
 **HERALD (X Agent):** 9 tools — autonomous mention/DM response via AgentCore + X adapter
+**Command Center UI (app/):** React 19, Vite 6, Tailwind 4, Zustand — adaptive dashboard (2,079 lines, 24 files, 4 views + streaming chat sidebar)
 
 **Deployment:** sipher.sip-protocol.org (Docker + GHCR, port 5006)
 **CLAUDE.md:** [sipher/CLAUDE.md](https://github.com/sip-protocol/sipher/blob/main/CLAUDE.md)
