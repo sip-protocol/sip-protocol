@@ -284,17 +284,19 @@ npx ts-node scripts/init-comp-defs.ts    # Initialize computation definitions
 
 ### 9. sipher
 
-**Purpose:** Privacy-as-a-Skill REST API for Solana Agents (Colosseum Agent Hackathon)
-**Tech Stack:** Express 5, TypeScript, @sip-protocol/sdk, Vitest
+**Purpose:** Privacy Agent + REST API for Solana — autonomous X agent (HERALD), web chat, real Jupiter swaps
+**Tech Stack:** Express 5, TypeScript, @sip-protocol/sdk, Anthropic SDK (OpenRouter), Vitest
 **Key Commands:**
 ```bash
 pnpm install                    # Install dependencies
 pnpm dev                        # Dev server (localhost:5006)
-pnpm test -- --run              # Run tests (36 suites, 573 tests)
+pnpm test -- --run              # Run tests (32 suites, 497 tests)
 pnpm build                      # Build for production
 pnpm typecheck                  # Type check
 ```
-**Endpoints (71):** Stealth, Transfer, Commitment, Viewing Key, Multi-chain (17 chains), Demo, Meta
+**REST Endpoints (58):** Stealth, Transfer, Commitment, Viewing Key, Multi-chain (17 chains), Private Swap, Demo, Meta
+**Agent Tools (21):** deposit, send, refund, balance, scan, claim, swap, viewingKey, history, status, paymentLink, invoice, privacyScore, threatCheck, roundAmount, scheduleSend, splitSend, drip, recurring, sweep, consolidate
+**HERALD (X Agent):** 9 tools — autonomous mention/DM response via AgentCore + X adapter
 
 **Deployment:** sipher.sip-protocol.org (Docker + GHCR, port 5006)
 **CLAUDE.md:** [sipher/CLAUDE.md](https://github.com/sip-protocol/sipher/blob/main/CLAUDE.md)
