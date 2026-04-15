@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIP Protocol — Ecosystem Dashboard</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --text: #e0e0e8;
+    --muted: #6b6b80;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+    --cyan: #06b6d4;
+    --orange: #f97316;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace; padding: 24px; max-width: 1400px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  h2 { font-size: 18px; margin-bottom: 16px; color: var(--cyan); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { font-size: 14px; color: var(--muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+  .grid { display: grid; gap: 20px; margin-bottom: 32px; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .stat-card { text-align: center; }
+  .stat-value { font-size: 36px; font-weight: bold; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .green { color: var(--green); }
+  .yellow { color: var(--yellow); }
+  .red { color: var(--red); }
+  .blue { color: var(--blue); }
+  .purple { color: var(--purple); }
+  .cyan { color: var(--cyan); }
+  .orange { color: var(--orange); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+  .badge-done { background: rgba(34,197,94,0.15); color: var(--green); }
+  .badge-active { background: rgba(234,179,8,0.15); color: var(--yellow); }
+  .badge-planned { background: rgba(107,107,128,0.15); color: var(--muted); }
+  .badge-blocked { background: rgba(239,68,68,0.15); color: var(--red); }
+  .timeline { position: relative; margin: 20px 0; }
+  .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .section { margin-bottom: 40px; }
+  svg text { font-family: 'SF Mono', 'Fira Code', monospace; }
+  .phase-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .phase-label { width: 200px; font-size: 13px; flex-shrink: 0; }
+  .phase-bar-wrap { flex: 1; }
+  .phase-pct { width: 50px; text-align: right; font-size: 13px; font-weight: bold; flex-shrink: 0; }
+  .deploy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .deploy-item { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; padding: 10px; text-align: center; font-size: 12px; }
+  .deploy-item.pending { background: rgba(107,107,128,0.08); border-color: rgba(107,107,128,0.2); }
+  .deploy-item .name { font-weight: bold; margin-bottom: 2px; }
+  .deploy-item .status { font-size: 10px; color: var(--muted); }
+  @media (max-width: 900px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(1, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<h1>SIP Protocol</h1>
+<div class="subtitle">Ecosystem Dashboard &mdash; April 5, 2026 &mdash; THE Privacy Standard for Web3</div>
+
+<!-- ═══ TOP STATS ═══ -->
+<div class="grid grid-4">
+  <div class="card stat-card">
+    <div class="stat-value green">17</div>
+    <div class="stat-label">Milestones Done</div>
+    <div class="stat-sub">of 22 total (M1&ndash;M22)</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-value cyan">10,272</div>
+    <div class="stat-label">Total Tests</div>
+    <div class="stat-sub">across 6 repositories</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-value purple">17</div>
+    <div class="stat-label">Chains Supported</div>
+    <div class="stat-sub">Solana, Ethereum, NEAR, + 14 L2s</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-value blue">10</div>
+    <div class="stat-label">Live Deployments</div>
+    <div class="stat-sub">5 sites + 3 programs + 7 L2 contracts</div>
+  </div>
+</div>
+
+<!-- ═══ PHASE PROGRESS ═══ -->
+<div class="section">
+  <h2>Phase Progress</h2>
+  <div class="card">
+    <div class="phase-row">
+      <div class="phase-label">Phase 1: Foundation</div>
+      <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
+      <div class="phase-pct green">100%</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-label">Phase 2: Standard</div>
+      <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
+      <div class="phase-pct green">100%</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-label">Phase 3: Ecosystem</div>
+      <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
+      <div class="phase-pct green">100%</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-label">Phase 4: Same-Chain</div>
+      <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:92%;background:var(--yellow)"></div></div></div>
+      <div class="phase-pct yellow">92%</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-label">Phase 5: Technical Moat</div>
+      <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--muted)"></div></div></div>
+      <div class="phase-pct" style="color:var(--muted)">0%</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MILESTONE TIMELINE SVG ═══ -->
+<div class="section">
+  <h2>Milestone Timeline</h2>
+  <div class="card" style="overflow-x:auto">
+    <svg viewBox="0 0 1300 340" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:900px">
+      <!-- Grid lines -->
+      <line x1="60" y1="40" x2="60" y2="300" stroke="#1e1e2e" stroke-width="1"/>
+      <line x1="310" y1="40" x2="310" y2="300" stroke="#1e1e2e" stroke-width="1"/>
+      <line x1="560" y1="40" x2="560" y2="300" stroke="#1e1e2e" stroke-width="1"/>
+      <line x1="810" y1="40" x2="810" y2="300" stroke="#1e1e2e" stroke-width="1"/>
+      <line x1="1060" y1="40" x2="1060" y2="300" stroke="#1e1e2e" stroke-width="1"/>
+      <line x1="1260" y1="40" x2="1260" y2="300" stroke="#1e1e2e" stroke-width="1"/>
+
+      <!-- Year labels -->
+      <text x="60" y="25" fill="#6b6b80" font-size="11">2024</text>
+      <text x="310" y="25" fill="#6b6b80" font-size="11">Early 2025</text>
+      <text x="560" y="25" fill="#6b6b80" font-size="11">Mid 2025</text>
+      <text x="810" y="25" fill="#6b6b80" font-size="11">Late 2025</text>
+      <text x="1010" y="25" fill="#6b6b80" font-size="11">Q1 2026</text>
+      <text x="1180" y="25" fill="#6b6b80" font-size="11">Q3-Q4 2026</text>
+
+      <!-- Phase 1: Foundation M1-M8 -->
+      <rect x="60" y="50" width="310" height="28" rx="6" fill="rgba(34,197,94,0.2)" stroke="#22c55e" stroke-width="1"/>
+      <text x="70" y="69" fill="#22c55e" font-size="12" font-weight="bold">Phase 1: Foundation (M1-M8)</text>
+      <text x="340" y="69" fill="#22c55e" font-size="10">DONE</text>
+
+      <!-- Phase 2: Standard M9-M12 -->
+      <rect x="370" y="90" width="250" height="28" rx="6" fill="rgba(34,197,94,0.2)" stroke="#22c55e" stroke-width="1"/>
+      <text x="380" y="109" fill="#22c55e" font-size="12" font-weight="bold">Phase 2: Standard (M9-M12)</text>
+      <text x="590" y="109" fill="#22c55e" font-size="10">DONE</text>
+
+      <!-- Phase 3: Ecosystem M13-M15 -->
+      <rect x="620" y="130" width="200" height="28" rx="6" fill="rgba(34,197,94,0.2)" stroke="#22c55e" stroke-width="1"/>
+      <text x="630" y="149" fill="#22c55e" font-size="12" font-weight="bold">Phase 3: Ecosystem (M13-15)</text>
+
+      <!-- Phase 4: Same-Chain M16-M18 -->
+      <rect x="820" y="170" width="260" height="28" rx="6" fill="rgba(234,179,8,0.2)" stroke="#eab308" stroke-width="1"/>
+      <text x="830" y="189" fill="#eab308" font-size="12" font-weight="bold">Phase 4: Same-Chain (M16-18)</text>
+      <text x="1050" y="189" fill="#eab308" font-size="10">92%</text>
+
+      <!-- M16 -->
+      <rect x="820" y="210" width="80" height="20" rx="4" fill="rgba(34,197,94,0.3)"/>
+      <text x="830" y="224" fill="#22c55e" font-size="10">M16</text>
+      <!-- M17 -->
+      <rect x="910" y="210" width="80" height="20" rx="4" fill="rgba(34,197,94,0.3)"/>
+      <text x="920" y="224" fill="#22c55e" font-size="10">M17</text>
+      <!-- M18 -->
+      <rect x="1000" y="210" width="80" height="20" rx="4" fill="rgba(234,179,8,0.3)"/>
+      <text x="1010" y="224" fill="#eab308" font-size="10">M18 92%</text>
+
+      <!-- Phase 5: Technical Moat M19-M22 -->
+      <rect x="1100" y="250" width="160" height="28" rx="6" fill="rgba(107,107,128,0.15)" stroke="#6b6b80" stroke-width="1" stroke-dasharray="4"/>
+      <text x="1110" y="269" fill="#6b6b80" font-size="12">Phase 5 (M19-22)</text>
+
+      <!-- Today marker -->
+      <line x1="1070" y1="35" x2="1070" y2="300" stroke="#ef4444" stroke-width="2" stroke-dasharray="4"/>
+      <text x="1074" y="315" fill="#ef4444" font-size="11" font-weight="bold">TODAY</text>
+
+      <!-- Hackathon wins -->
+      <circle cx="870" cy="290" r="8" fill="rgba(168,85,247,0.3)" stroke="#a855f7"/>
+      <text x="884" y="294" fill="#a855f7" font-size="10">Zypherpunk $6.5K</text>
+      <circle cx="1040" cy="290" r="8" fill="rgba(168,85,247,0.3)" stroke="#a855f7"/>
+      <text x="1054" y="294" fill="#a855f7" font-size="10">Graveyard 1st</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══ MILESTONE DETAIL TABLE ═══ -->
+<div class="section">
+  <h2>Milestone Status</h2>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Completed (17)</h3>
+      <table>
+        <tr><th>Milestone</th><th>Theme</th><th>Status</th></tr>
+        <tr><td>M1</td><td>Architecture & Specification</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M2</td><td>Cryptographic Core</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M3</td><td>SDK Production</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M4</td><td>Network Integration</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M5</td><td>Documentation & Launch</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M6</td><td>Launch & Publish</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M7</td><td>Real Integration</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M8</td><td>Production Hardening</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M9</td><td>Stable Core</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M10</td><td>ZK Production</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M11</td><td>Multi-Settlement</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M12</td><td>Multi-Chain (17 chains)</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M13</td><td>Compliance Layer</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M14</td><td>Developer Experience</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M15</td><td>Application Layer</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M16</td><td>Narrative Capture</td><td><span class="badge badge-done">DONE</span></td></tr>
+        <tr><td>M17</td><td>Solana Same-Chain</td><td><span class="badge badge-done">DONE</span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Remaining (5)</h3>
+      <table>
+        <tr><th>Milestone</th><th>Theme</th><th>Status</th></tr>
+        <tr><td class="yellow">M18</td><td>Ethereum Same-Chain</td><td><span class="badge badge-active">92% &mdash; 22/24</span></td></tr>
+        <tr><td>M19</td><td>Claim Linkability Fix + Mina</td><td><span class="badge badge-planned">PLANNED Q3</span></td></tr>
+        <tr><td>M20</td><td>Proof Composition + Post-Quantum</td><td><span class="badge badge-planned">PLANNED Q4</span></td></tr>
+        <tr><td>M21</td><td>SIP-EIP Standard Proposal</td><td><span class="badge badge-planned">PLANNED Q4</span></td></tr>
+        <tr><td>M22</td><td>Institutional + Agent Custody</td><td><span class="badge badge-planned">PLANNED 2027</span></td></tr>
+      </table>
+      <h3 style="margin-top:24px">M18 Remaining Issues</h3>
+      <table>
+        <tr><th>#</th><th>Issue</th><th>Status</th></tr>
+        <tr><td>#821</td><td>zkSync Era deployment</td><td><span class="badge badge-blocked">BLOCKED</span></td></tr>
+        <tr><td>#824</td><td>Blast + Mantle L2s</td><td><span class="badge badge-active">PENDING FUNDS</span></td></tr>
+      </table>
+      <h3 style="margin-top:24px">Active Blockers</h3>
+      <table>
+        <tr><th>Blocker</th><th>Impact</th></tr>
+        <tr><td>zkSync: foundry-zksync dep</td><td class="yellow">M18 close</td></tr>
+        <tr><td>dApp Store: 4x rejected</td><td class="orange">Mobile distribution</td></tr>
+        <tr><td>Superteam T2: 8+ days overdue</td><td class="orange">$3K payment</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TEST COVERAGE SVG ═══ -->
+<div class="section">
+  <h2>Test Coverage by Repository</h2>
+  <div class="card" style="overflow-x:auto">
+    <svg viewBox="0 0 1200 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:800px">
+      <!-- Bars -->
+      <rect x="160" y="20" width="520" height="28" rx="4" fill="rgba(6,182,212,0.3)" stroke="#06b6d4" stroke-width="1"/>
+      <text x="10" y="39" fill="#e0e0e8" font-size="12">@sip/sdk</text>
+      <text x="690" y="39" fill="#06b6d4" font-size="12" font-weight="bold">6,716</text>
+
+      <rect x="160" y="58" width="93" height="28" rx="4" fill="rgba(168,85,247,0.3)" stroke="#a855f7" stroke-width="1"/>
+      <text x="10" y="77" fill="#e0e0e8" font-size="12">sip-mobile</text>
+      <text x="260" y="77" fill="#a855f7" font-size="12" font-weight="bold">1,323</text>
+
+      <rect x="160" y="96" width="83" height="28" rx="4" fill="rgba(249,115,22,0.3)" stroke="#f97316" stroke-width="1"/>
+      <text x="10" y="115" fill="#e0e0e8" font-size="12">sip-app</text>
+      <text x="250" y="115" fill="#f97316" font-size="12" font-weight="bold">1,184</text>
+
+      <rect x="160" y="134" width="45" height="28" rx="4" fill="rgba(34,197,94,0.3)" stroke="#22c55e" stroke-width="1"/>
+      <text x="10" y="153" fill="#e0e0e8" font-size="12">sipher</text>
+      <text x="212" y="153" fill="#22c55e" font-size="12" font-weight="bold">573</text>
+
+      <rect x="160" y="172" width="38" height="28" rx="4" fill="rgba(59,130,246,0.3)" stroke="#3b82f6" stroke-width="1"/>
+      <text x="10" y="191" fill="#e0e0e8" font-size="12">@sip/react</text>
+      <text x="205" y="191" fill="#3b82f6" font-size="12" font-weight="bold">543</text>
+
+      <rect x="160" y="210" width="24" height="28" rx="4" fill="rgba(234,179,8,0.3)" stroke="#eab308" stroke-width="1"/>
+      <text x="10" y="229" fill="#e0e0e8" font-size="12">EVM contracts</text>
+      <text x="190" y="229" fill="#eab308" font-size="12" font-weight="bold">294</text>
+
+      <rect x="160" y="248" width="16" height="20" rx="4" fill="rgba(107,107,128,0.3)" stroke="#6b6b80" stroke-width="1"/>
+      <text x="10" y="263" fill="#e0e0e8" font-size="12">Others</text>
+      <text x="182" y="263" fill="#6b6b80" font-size="11">cli:62 api:198 rn:10 web:157 noir:18</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══ L2 DEPLOYMENTS ═══ -->
+<div class="section">
+  <h2>EVM L2 Deployments</h2>
+  <div class="card">
+    <div class="deploy-grid">
+      <div class="deploy-item"><div class="name">Sepolia</div><div class="status green">v2 + ZK Verifier</div></div>
+      <div class="deploy-item"><div class="name">Base</div><div class="status green">v1 Live</div></div>
+      <div class="deploy-item"><div class="name">Arbitrum</div><div class="status green">v2 + ZK Verifier</div></div>
+      <div class="deploy-item"><div class="name">Optimism</div><div class="status green">v1 Live</div></div>
+      <div class="deploy-item"><div class="name">Linea</div><div class="status green">v2 + Relayer</div></div>
+      <div class="deploy-item"><div class="name">Scroll</div><div class="status green">v1 + Relayer</div></div>
+      <div class="deploy-item"><div class="name">Mode</div><div class="status green">v1 + Relayer</div></div>
+      <div class="deploy-item pending"><div class="name">zkSync Era</div><div class="status" style="color:var(--red)">Blocked</div></div>
+      <div class="deploy-item pending"><div class="name">Blast</div><div class="status">Pending bridge</div></div>
+      <div class="deploy-item pending"><div class="name">Mantle</div><div class="status">Pending faucet</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SIPHER ═══ -->
+<div class="section">
+  <h2>Sipher &mdash; Privacy Agent</h2>
+  <div class="grid grid-3">
+    <div class="card stat-card">
+      <div class="stat-value green">10</div>
+      <div class="stat-label">Agent Tools</div>
+      <div class="stat-sub">deposit, send, scan, claim, swap, refund, balance, viewingKey, history, status</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value cyan">71</div>
+      <div class="stat-label">REST Endpoints</div>
+      <div class="stat-sub">Mode 2 API (17 chains)</div>
+    </div>
+    <div class="card stat-card">
+      <div class="stat-value purple">5/5</div>
+      <div class="stat-label">Gap Fixes Done</div>
+      <div class="stat-sub">Real crypto, SSE stream, TX signing</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Sipher Phase Status</h3>
+    <div class="phase-row">
+      <div class="phase-label">Phase 1: Hackathon</div>
+      <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
+      <div class="phase-pct green">100%</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-label">Gap Fixes (Plan A+B)</div>
+      <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
+      <div class="phase-pct green">100%</div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-label">Phase 2: Multi-Platform</div>
+      <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--muted)"></div></div></div>
+      <div class="phase-pct" style="color:var(--muted)">0%</div>
+    </div>
+    <h3 style="margin-top:16px">Phase 2 Targets</h3>
+    <table>
+      <tr><th>Feature</th><th>Priority</th><th>Autonomous?</th></tr>
+      <tr><td>Telegram bot adapter</td><td class="orange">High</td><td class="green">Yes</td></tr>
+      <tr><td>X/Twitter agent</td><td class="orange">High</td><td class="yellow">Partial</td></tr>
+      <tr><td>Discord adapter</td><td>Medium</td><td class="green">Yes</td></tr>
+      <tr><td>MCP skill export</td><td>Medium</td><td class="green">Yes</td></tr>
+      <tr><td>Payment links / QR</td><td>Medium</td><td class="green">Yes</td></tr>
+      <tr><td>Postgres migration</td><td>Medium</td><td class="green">Yes</td></tr>
+      <tr><td>Multi-token expansion</td><td>Low</td><td class="green">Yes</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ LIVE SERVICES ═══ -->
+<div class="section">
+  <h2>Live Services</h2>
+  <div class="card">
+    <table>
+      <tr><th>Service</th><th>URL</th><th>Port</th><th>Stack</th><th>Status</th></tr>
+      <tr><td>Marketing</td><td>sip-protocol.org</td><td>5000</td><td>Next.js 15</td><td><span class="badge badge-done">LIVE</span></td></tr>
+      <tr><td>Documentation</td><td>docs.sip-protocol.org</td><td>5003</td><td>Astro Starlight</td><td><span class="badge badge-done">LIVE</span></td></tr>
+      <tr><td>Blog</td><td>blog.sip-protocol.org</td><td>5004</td><td>Astro 5, MDX</td><td><span class="badge badge-done">LIVE</span></td></tr>
+      <tr><td>App</td><td>app.sip-protocol.org</td><td>5005</td><td>Next.js 16, React 19</td><td><span class="badge badge-done">LIVE</span></td></tr>
+      <tr><td>Sipher</td><td>sipher.sip-protocol.org</td><td>5006</td><td>Express 5, TS</td><td><span class="badge badge-done">LIVE</span></td></tr>
+      <tr><td>Analytics</td><td>analytics.sip-protocol.org</td><td>5010</td><td>Umami</td><td><span class="badge badge-done">LIVE</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ═══ GRANTS ═══ -->
+<div class="section">
+  <h2>Grants & Funding</h2>
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>Superteam Indonesia ($10K)</h3>
+      <div class="phase-row">
+        <div class="phase-label">T1: $3,000</div>
+        <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div>
+        <div class="phase-pct green">PAID</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-label">T2: $3,000</div>
+        <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:90%;background:var(--yellow)"></div></div></div>
+        <div class="phase-pct yellow">OVERDUE</div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-label">T3: $4,000</div>
+        <div class="phase-bar-wrap"><div class="progress-bar"><div class="progress-fill" style="width:10%;background:var(--muted)"></div></div></div>
+        <div class="phase-pct" style="color:var(--muted)">PENDING</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Hackathon Wins</h3>
+      <table>
+        <tr><th>Event</th><th>Prize</th><th>Rank</th></tr>
+        <tr><td>Zypherpunk</td><td class="purple">$6,500</td><td>#9 of 93, 3 tracks</td></tr>
+        <tr><td>Graveyard Hack</td><td class="purple">$750</td><td>1st Place (Torque)</td></tr>
+      </table>
+      <h3 style="margin-top:16px">Pipeline</h3>
+      <table>
+        <tr><th>Grant</th><th>Amount</th><th>Status</th></tr>
+        <tr><td>Solana Audit Subsidy V</td><td>Up to $50K</td><td><span class="badge badge-active">PENDING</span></td></tr>
+        <tr><td>Solana Foundation</td><td>$100K</td><td><span class="badge badge-planned">PLANNED</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ISSUE BURNDOWN SVG ═══ -->
+<div class="section">
+  <h2>Issue Burndown</h2>
+  <div class="card" style="overflow-x:auto">
+    <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:600px">
+      <!-- SIP Protocol -->
+      <rect x="40" y="30" width="200" height="30" rx="4" fill="rgba(34,197,94,0.2)"/>
+      <rect x="40" y="30" width="100" height="30" rx="4" fill="rgba(34,197,94,0.5)"/>
+      <text x="10" y="50" fill="#6b6b80" font-size="11">SIP</text>
+      <text x="148" y="50" fill="#e0e0e8" font-size="11">30/60</text>
+      <text x="250" y="50" fill="#6b6b80" font-size="11">50% closed</text>
+
+      <!-- Sipher -->
+      <rect x="40" y="80" width="200" height="30" rx="4" fill="rgba(168,85,247,0.2)"/>
+      <rect x="40" y="80" width="182" height="30" rx="4" fill="rgba(168,85,247,0.5)"/>
+      <text x="10" y="100" fill="#6b6b80" font-size="11">SPR</text>
+      <text x="148" y="100" fill="#e0e0e8" font-size="11">30/33</text>
+      <text x="250" y="100" fill="#6b6b80" font-size="11">91% closed</text>
+
+      <!-- Combined -->
+      <rect x="40" y="140" width="200" height="30" rx="4" fill="rgba(6,182,212,0.2)"/>
+      <rect x="40" y="140" width="130" height="30" rx="4" fill="rgba(6,182,212,0.5)"/>
+      <text x="10" y="160" fill="#6b6b80" font-size="11">ALL</text>
+      <text x="148" y="160" fill="#e0e0e8" font-size="11">60/93</text>
+      <text x="250" y="160" fill="#6b6b80" font-size="11">65% closed</text>
+    </svg>
+  </div>
+</div>
+
+<div style="text-align:center;color:var(--muted);font-size:11px;margin-top:40px;padding:20px 0;border-top:1px solid var(--border)">
+  SIP Protocol Ecosystem Dashboard &mdash; Generated Apr 5, 2026 &mdash; Bismillah
+</div>
+
+</body>
+</html>
