@@ -303,6 +303,147 @@ describe('sipher-vault: refund', () => {
       ).to.be.true
     }
   })
+
+  // ── Authority Refund tests ──────────────────────────────────────────────
+
+  describe('authority_refund', () => {
+    // Re-deposit so there's balance to refund (previous tests emptied it)
+    before(async () => {
+      // Advance slot for fresh blockhash
+      const clock = await provider.context.banksClient.getClock()
+      provider.context.warpToSlot(clock.slot + 2n)
+
+      await program.methods
+        .deposit(new anchor.BN(DEPOSIT_AMOUNT_1))
+        .accounts({
+          config: configPDA,
+          vaultToken: vaultTokenPDA,
+          depositorToken: depositorAta,
+          tokenMint: mint,
+          depositor: payer.publicKey,
+        })
+        .rpc()
+
+      const record = await program.account.depositRecord.fetch(depositRecordPDA)
+      expect(record.balance.toNumber()).to.equal(DEPOSIT_AMOUNT_1)
+    })
+
+    it('rejects authority_refund before timeout (RefundNotExpired)', async () => {
+      // Don't advance time — deposit just happened
+      const clock = await provider.context.banksClient.getClock()
+      provider.context.warpToSlot(clock.slot + 2n)
+
+      try {
+        await program.methods
+          .authorityRefund()
+          .accounts({
+            config: configPDA,
+            depositRecord: depositRecordPDA,
+            vaultToken: vaultTokenPDA,
+            depositorToken: depositorAta,
+            depositor: payer.publicKey,
+            authority: payer.publicKey,
+          })
+          .rpc()
+        expect.fail('Should have thrown RefundNotExpired')
+      } catch (err: any) {
+        const hasError =
+          err.error?.errorCode?.code === 'RefundNotExpired' ||
+          err.logs?.some((log: string) => log.includes('RefundNotExpired')) ||
+          err.toString().includes('RefundNotExpired')
+        expect(hasError, `Expected RefundNotExpired, got: ${err.message || err}`).to.be.true
+      }
+    })
+
+    it('rejects authority_refund from non-authority signer (Unauthorized)', async () => {
+      const fakeSigner = Keypair.generate()
+
+      // Fund the fake signer so it can pay tx fees
+      const transferIx = SystemProgram.transfer({
+        fromPubkey: payer.publicKey,
+        toPubkey: fakeSigner.publicKey,
+        lamports: 100_000_000,
+      })
+      const fundTx = new Transaction().add(transferIx)
+      fundTx.feePayer = payer.publicKey
+      const clock = await provider.context.banksClient.getClock()
+      provider.context.warpToSlot(clock.slot + 2n)
+      fundTx.recentBlockhash = provider.context.lastBlockhash
+      fundTx.sign(payer)
+      await provider.context.banksClient.processTransaction(fundTx)
+
+      // Warp past timeout so only the auth check should fail
+      const clock2 = await provider.context.banksClient.getClock()
+      const warpedSlot = clock2.slot + 2n
+      provider.context.warpToSlot(warpedSlot)
+      const warpedTimestamp = clock2.unixTimestamp + BigInt(DEFAULT_REFUND_TIMEOUT) + 1n
+      provider.context.setClock(
+        new Clock(warpedSlot, clock2.epochStartTimestamp, clock2.epoch, clock2.leaderScheduleEpoch, warpedTimestamp),
+      )
+
+      try {
+        await program.methods
+          .authorityRefund()
+          .accounts({
+            config: configPDA,
+            depositRecord: depositRecordPDA,
+            vaultToken: vaultTokenPDA,
+            depositorToken: depositorAta,
+            depositor: payer.publicKey,
+            authority: fakeSigner.publicKey,
+          })
+          .signers([fakeSigner])
+          .rpc()
+        expect.fail('Should have thrown Unauthorized')
+      } catch (err: any) {
+        const hasError =
+          err.error?.errorCode?.code === 'Unauthorized' ||
+          err.logs?.some((log: string) => log.includes('Unauthorized') || log.includes('has_one')) ||
+          err.toString().includes('Unauthorized') ||
+          err.toString().includes('ConstraintHasOne') ||
+          err.toString().includes('2001')
+        expect(hasError, `Expected Unauthorized, got: ${err.message || err}`).to.be.true
+      }
+    })
+
+    it('authority_refund succeeds after timeout (authority signs, tokens return to depositor)', async () => {
+      // Time is already warped past timeout from the previous test
+      const clock = await provider.context.banksClient.getClock()
+      provider.context.warpToSlot(clock.slot + 2n)
+
+      const depositorBalanceBefore = await getTokenBalance(provider, depositorAta)
+      const vaultBalanceBefore = await getTokenBalance(provider, vaultTokenPDA)
+      const record = await program.account.depositRecord.fetch(depositRecordPDA)
+      const availableToRefund = record.balance.toNumber() - record.lockedAmount.toNumber()
+
+      expect(availableToRefund).to.equal(DEPOSIT_AMOUNT_1)
+
+      await program.methods
+        .authorityRefund()
+        .accounts({
+          config: configPDA,
+          depositRecord: depositRecordPDA,
+          vaultToken: vaultTokenPDA,
+          depositorToken: depositorAta,
+          depositor: payer.publicKey,
+          authority: payer.publicKey,
+        })
+        .rpc()
+
+      // Verify: deposit record balance zeroed
+      const recordAfter = await program.account.depositRecord.fetch(depositRecordPDA)
+      expect(recordAfter.balance.toNumber()).to.equal(recordAfter.lockedAmount.toNumber())
+      expect(recordAfter.balance.toNumber()).to.equal(0)
+
+      // Verify: depositor received tokens
+      const depositorBalanceAfter = await getTokenBalance(provider, depositorAta)
+      expect(depositorBalanceAfter).to.equal(depositorBalanceBefore + availableToRefund)
+
+      // Verify: vault balance decreased
+      const vaultBalanceAfter = await getTokenBalance(provider, vaultTokenPDA)
+      expect(vaultBalanceAfter).to.equal(vaultBalanceBefore - availableToRefund)
+    })
+  })
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
