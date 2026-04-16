@@ -284,19 +284,21 @@ npx ts-node scripts/init-comp-defs.ts    # Initialize computation definitions
 
 ### 9. sipher
 
-**Purpose:** Privacy Agent + REST API for Solana — autonomous X agent (HERALD), web chat, real Jupiter swaps
-**Tech Stack:** Express 5, TypeScript, @sip-protocol/sdk, Anthropic SDK (OpenRouter), Vitest
+**Purpose:** Privacy Agent + REST API for Solana — autonomous X agent (HERALD), LLM security analyst (SENTINEL), web chat, real Jupiter swaps
+**Tech Stack:** Express 5, TypeScript, @sip-protocol/sdk, Pi SDK (@mariozechner/pi-agent-core + pi-ai via OpenRouter), Vitest
 **Key Commands:**
 ```bash
 pnpm install                    # Install dependencies
 pnpm dev                        # Dev server (localhost:5006)
 pnpm test -- --run              # Run tests (32 suites, 497 tests)
+cd packages/agent && pnpm test  # Run agent tests (69 suites, 905 tests)
 pnpm build                      # Build for production
 pnpm typecheck                  # Type check
 ```
-**REST Endpoints (58):** Stealth, Transfer, Commitment, Viewing Key, Multi-chain (17 chains), Private Swap, Demo, Meta
-**Agent Tools (21):** deposit, send, refund, balance, scan, claim, swap, viewingKey, history, status, paymentLink, invoice, privacyScore, threatCheck, roundAmount, scheduleSend, splitSend, drip, recurring, sweep, consolidate
+**REST Endpoints (66):** Stealth, Transfer, Commitment, Viewing Key, Multi-chain (17 chains), Private Swap, Demo, Meta, SENTINEL (8: assess, blacklist, pending, decisions, status)
+**Agent Tools (22):** deposit, send, refund, balance, scan, claim, swap, viewingKey, history, status, paymentLink, invoice, privacyScore, threatCheck, roundAmount, scheduleSend, splitSend, drip, recurring, sweep, consolidate, assessRisk
 **HERALD (X Agent):** 9 tools — autonomous mention/DM response via AgentCore + X adapter
+**SENTINEL (Security Analyst):** 14 tools (7 read + 7 action) — LLM-backed risk assessment, autonomous incident response, preflight gate on fund-moving tools, circuit breaker, SENTINEL_MODE=yolo|advisory|off
 **Command Center UI (app/):** React 19, Vite 6, Tailwind 4, Zustand — adaptive dashboard (2,079 lines, 24 files, 4 views + streaming chat sidebar)
 
 **Deployment:** sipher.sip-protocol.org (Docker + GHCR, port 5006)
