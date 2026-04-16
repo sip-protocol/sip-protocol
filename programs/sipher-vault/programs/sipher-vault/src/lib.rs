@@ -306,6 +306,51 @@ pub mod sipher_vault {
     Ok(())
   }
 
+  /// Authority-signed refund: return available (unlocked) balance to depositor.
+  /// Mirrors `refund` exactly except the authority signs instead of the depositor.
+  /// Used by SENTINEL for autonomous refunds of expired deposits.
+  /// Timeout is still enforced on-chain — authority does NOT bypass the cooldown.
+  pub fn authority_refund(ctx: Context<AuthorityRefund>) -> Result<()> {
+    require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
+
+    let record = &mut ctx.accounts.deposit_record;
+    let available = record.balance
+      .checked_sub(record.locked_amount)
+      .ok_or(VaultError::MathOverflow)?;
+    require!(available > 0, VaultError::NothingToRefund);
+
+    // Enforce refund timeout — authority does NOT bypass the cooldown
+    let now = Clock::get()?.unix_timestamp;
+    let elapsed = now
+      .checked_sub(record.last_deposit_at)
+      .ok_or(VaultError::MathOverflow)?;
+    require!(
+      elapsed >= ctx.accounts.config.refund_timeout,
+      VaultError::RefundNotExpired
+    );
+
+    // Transfer tokens from vault back to depositor's token account (PDA signs)
+    let config_bump = ctx.accounts.config.bump;
+    let signer_seeds: &[&[&[u8]]] = &[&[VAULT_CONFIG_SEED, &[config_bump]]];
+
+    let transfer_ctx = CpiContext::new_with_signer(
+      ctx.accounts.token_program.to_account_info(),
+      Transfer {
+        from: ctx.accounts.vault_token.to_account_info(),
+        to: ctx.accounts.depositor_token.to_account_info(),
+        authority: ctx.accounts.config.to_account_info(),
+      },
+      signer_seeds,
+    );
+    token::transfer(transfer_ctx, available)?;
+
+    // Zero out refunded balance (locked_amount preserved)
+    record.balance = record.locked_amount;
+
+    msg!("Authority refunded {} tokens to {}", available, ctx.accounts.depositor.key());
+    Ok(())
+  }
+
   /// Authority-only: collect accumulated fees from the fee token account.
   /// Pass amount=0 to collect all available fees.
   pub fn collect_fee(ctx: Context<CollectFee>, amount: u64) -> Result<()> {
@@ -563,6 +608,50 @@ pub struct Refund<'info> {
 
   #[account(mut)]
   pub depositor: Signer<'info>,
+
+  pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct AuthorityRefund<'info> {
+  #[account(
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+    has_one = authority @ VaultError::Unauthorized,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  #[account(
+    mut,
+    seeds = [DEPOSIT_RECORD_SEED, depositor.key().as_ref(), deposit_record.token_mint.as_ref()],
+    bump = deposit_record.bump,
+    has_one = depositor @ VaultError::Unauthorized,
+  )]
+  pub deposit_record: Account<'info, DepositRecord>,
+
+  #[account(
+    mut,
+    seeds = [VAULT_TOKEN_SEED, deposit_record.token_mint.as_ref()],
+    bump,
+    token::mint = deposit_record.token_mint,
+    token::authority = config,
+  )]
+  pub vault_token: Account<'info, TokenAccount>,
+
+  #[account(
+    mut,
+    constraint = depositor_token.owner == depositor.key() @ VaultError::Unauthorized,
+    constraint = depositor_token.mint == deposit_record.token_mint @ VaultError::InvalidMint,
+  )]
+  pub depositor_token: Account<'info, TokenAccount>,
+
+  /// CHECK: Not a signer — validated by deposit_record.has_one. Used for PDA
+  /// derivation and token account ownership check. The authority (not depositor)
+  /// is the signer for this instruction.
+  pub depositor: AccountInfo<'info>,
+
+  #[account(mut)]
+  pub authority: Signer<'info>,
 
   pub token_program: Program<'info, Token>,
 }

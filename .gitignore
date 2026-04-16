@@ -115,3 +115,4 @@ packages/sdk/benchmarks/results.json
 .kiro/
 skills-lock.json
 skills/
+.worktrees/
