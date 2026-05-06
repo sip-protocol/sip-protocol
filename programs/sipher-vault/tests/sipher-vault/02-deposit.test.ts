@@ -158,7 +158,7 @@ describe('sipher-vault: deposit', () => {
   })
 
   // ── Test 4: Deposit when paused ────────────────────────────────────────
-  // The set_paused instruction lands in commit X (PR-A1 / Task A1.2.5).
+  // The set_paused instruction landed in PR-A1 / Task A1.2.5 (this branch).
   // This Anchor-client unit test stays skipped because regenerating the IDL
   // requires `anchor build` without `--no-idl`, which currently fails on the
   // host toolchain (proc_macro2::Span::source_file removed from rustc 1.94+;

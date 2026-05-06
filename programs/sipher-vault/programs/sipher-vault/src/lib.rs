@@ -388,9 +388,18 @@ pub mod sipher_vault {
   /// funds and the authority can still drain accumulated fees during an emergency.
   ///
   /// Idempotent — calling with the current state is a no-op success.
+  ///
+  /// Emits `VaultPausedEvent` so off-chain monitoring (SENTINEL, audit
+  /// log indexers, dashboards) can subscribe to state changes without
+  /// log-parsing.
   pub fn set_paused(ctx: Context<SetPaused>, paused: bool) -> Result<()> {
     ctx.accounts.config.paused = paused;
     msg!("Vault paused = {}", paused);
+    emit!(VaultPausedEvent {
+      authority: ctx.accounts.authority.key(),
+      paused,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
     Ok(())
   }
 }
@@ -729,5 +738,12 @@ pub struct VaultWithdrawEvent {
   pub viewing_key_hash: [u8; 32],
   pub transfer_amount: u64,
   pub fee_amount: u64,
+  pub timestamp: i64,
+}
+
+#[event]
+pub struct VaultPausedEvent {
+  pub authority: Pubkey,
+  pub paused: bool,
   pub timestamp: i64,
 }
