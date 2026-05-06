@@ -56,6 +56,19 @@ instruction (commit `0f701e5`) on top of the CPI binary.
   new instruction handler + accounts struct)
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
+### Devnet — Phase 4a `VaultPausedEvent` Upgrade (2026-05-06)
+
+Third devnet upgrade in Phase 4a — adds the `VaultPausedEvent` emit to
+`set_paused` so off-chain monitoring tooling can subscribe to state
+changes. Same authority, same RPC, same config PDA.
+
+- Upgrade TX: `4xZyApH8pjb4rUerXmKL6oodC6JKHDTes2y1k5jKHPGnjTR59ADRCMXccAKsBftdgB7bijT84KpDF8vsDxTagi1T`
+- Previous deployed slot: `460374492` (set_paused upgrade)
+- New deployed slot: `460376111`
+- Binary size: `383144` bytes (Δ from `382112` reflects the
+  event struct + emit call)
+- Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
+
 ## Mainnet Deployments
 
 _Not deployed. See Phase 4b plan for mainnet rollout sequencing._
