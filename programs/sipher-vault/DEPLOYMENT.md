@@ -69,6 +69,18 @@ changes. Same authority, same RPC, same config PDA.
   event struct + emit call)
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
+### Pause Runbook Rehearsed (Phase 4a, 2026-05-06)
+
+Authority-signed pause/unpause cycle exercised on devnet to verify the
+emergency lever works before mainnet (PR-B1 Risk B2/B3).
+
+- Pause TX: `2SPbNjyQ6Nib3csVmW9j7DnoS3RKgEifgKxYBvE7bT5U9kPsUm1vynSFqPsiTCV28oeq8W6GtPXzPhm26FdWa4KP`
+- Deposit attempt during paused state: failed as expected (`AnchorError thrown in programs/sipher-vault/src/lib.rs:92. Error Code: ProgramPaused. Error Number: 6000. Error Message: Program is paused.` — custom program error `0x1770`)
+- Unpause TX: `eSSaz7kCcCkYNGs1yoZ7uTGjWEDa7uVVEt4kfPcq6vughaiRKxqweTJxyEd5SBsYrfeTbtkMNpuKYpM9xJq2EfK`
+- Approximate downtime during rehearsal: `18 seconds` (block time delta between pause TX slot `460376982` and unpause TX slot `460377030`)
+- Verified script: `programs/sipher-vault/scripts/set-paused.ts`
+- Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
+
 ## Mainnet Deployments
 
 _Not deployed. See Phase 4b plan for mainnet rollout sequencing._
