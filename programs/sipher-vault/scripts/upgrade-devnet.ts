@@ -4,7 +4,7 @@
 // existing program ID. Idempotent — running again redeploys (Solana's
 // program upgrade pattern).
 //
-// Usage: pnpm exec tsx scripts/upgrade-devnet.ts
+// Usage: cd programs/sipher-vault && pnpm exec tsx scripts/upgrade-devnet.ts
 import { execSync } from 'child_process'
 import { existsSync } from 'fs'
 import { homedir } from 'os'
@@ -15,11 +15,20 @@ const AUTHORITY_KEYPAIR = `${homedir()}/Documents/secret/solana-devnet.json`
 const SO_FILE = 'target/deploy/sipher_vault.so'
 const RPC = 'https://api.devnet.solana.com'
 
-function run(cmd: string): string {
+// Run a command with live stdout/stderr streamed to the terminal. No return value.
+// Use this for build, deploy, and post-deploy show — where the operator needs to
+// see progress in real time. `anchor build` (10-30s) and `solana program deploy`
+// (30s-5min) would otherwise leave the terminal frozen until completion.
+function run(cmd: string): void {
   console.log('$', cmd)
-  const out = execSync(cmd, { stdio: ['inherit', 'pipe', 'inherit'] }).toString()
-  console.log(out)
-  return out
+  execSync(cmd, { stdio: 'inherit' })
+}
+
+// Run a command and capture stdout as a trimmed string. Stderr still inherits.
+// Use this when the script needs to parse the command's output.
+function capture(cmd: string): string {
+  console.log('$', cmd)
+  return execSync(cmd, { stdio: ['inherit', 'pipe', 'inherit'], encoding: 'utf-8' }).trim()
 }
 
 async function main() {
@@ -31,20 +40,23 @@ async function main() {
   }
 
   // 1. Sanity: program ID matches the keypair
-  const idFromKey = run(`solana address -k ${PROGRAM_KEYPAIR}`).trim()
+  const idFromKey = capture(`solana address -k ${PROGRAM_KEYPAIR}`)
   if (idFromKey !== PROGRAM_ID) {
     throw new Error(`Program keypair ID ${idFromKey} != expected ${PROGRAM_ID}`)
   }
 
-  // 2. Clean + build
+  // 2. Build
   // Note: `--no-idl` is required because anchor 0.30.1's IDL generator
   // depends on `proc_macro2::Span::source_file()`, a nightly-only proc-macro
   // API that has been removed from current host rustc (1.94+). The on-chain
   // SBF binary builds correctly via Solana's pinned platform-tools toolchain;
-  // only the host-side IDL generation is affected. The IDL artifact already
-  // exists at target/idl/sipher_vault.json and is regenerated whenever a
-  // compatible host toolchain is available.
-  run('anchor clean')
+  // only the host-side IDL generation is affected.
+  //
+  // We deliberately skip `anchor clean` here: clean would wipe `target/idl/sipher_vault.json`
+  // (which downstream consumers like the agent SDK and UI depend on), and the `--no-idl`
+  // flag means we cannot regenerate it from this script. `anchor build` is incremental
+  // and reliable; a stale `.so` is not a realistic risk on a deploy script that already
+  // verifies the artifact's existence afterward.
   run('anchor build --no-idl')
 
   if (!existsSync(SO_FILE)) {
