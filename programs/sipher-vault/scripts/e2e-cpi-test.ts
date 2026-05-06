@@ -46,7 +46,7 @@ const FEE_TOKEN_SEED = Buffer.from('fee_token')
 const SIP_CONFIG_SEED = Buffer.from('config')
 const SIP_TRANSFER_RECORD_SEED = Buffer.from('transfer_record')
 
-const RPC = 'https://api.devnet.solana.com'
+const RPC = process.env.ANCHOR_PROVIDER_URL ?? 'https://api.devnet.solana.com'
 const DEPOSIT_LAMPORTS = 1_000_000n // 0.001 SOL
 const WITHDRAW_LAMPORTS = 500_000n  // 0.0005 SOL — half of deposit, leaves remainder for the refund-script if rerun
 
@@ -56,8 +56,9 @@ function disc(name: string): Buffer {
 
 async function main() {
   const conn = new Connection(RPC, 'confirmed')
+  const walletPath = process.env.ANCHOR_WALLET ?? `${homedir()}/Documents/secret/solana-devnet.json`
   const wallet = Keypair.fromSecretKey(
-    Uint8Array.from(JSON.parse(readFileSync(`${homedir()}/Documents/secret/solana-devnet.json`, 'utf-8')))
+    Uint8Array.from(JSON.parse(readFileSync(walletPath, 'utf-8')))
   )
   console.log('Depositor:', wallet.publicKey.toString())
 
@@ -108,6 +109,12 @@ async function main() {
   )
   console.log('TransferRecord PDA (expected):', sipTransferRecordPda.toString())
 
+  // Snapshot fee_token balance before the test for the fee-accumulation assertion.
+  // The fee_token PDA was created during Phase 3 init for wSOL on devnet, so it exists.
+  const feeBefore = await conn.getTokenAccountBalance(feeTokenPda)
+  const feeBeforeAmount = BigInt(feeBefore.value.amount)
+  console.log('fee_token wSOL before:', feeBeforeAmount.toString(), 'lamports')
+
   // ─── 1. Wrap 0.001 SOL ───────────────────────────────────────────────────────
   const wrapTx = new Transaction()
   wrapTx.add(
@@ -152,16 +159,20 @@ async function main() {
   // Layout: discriminator(8) + amount(u64) + amount_commitment(33) +
   //         stealth_pubkey(32) + ephemeral_pubkey(33) + viewing_key_hash(32) +
   //         encrypted_amount(Vec<u8>: 4-byte len + bytes) + proof(Vec<u8>: 4-byte len + bytes)
+  const amountBuf = Buffer.alloc(8); amountBuf.writeBigUInt64LE(WITHDRAW_LAMPORTS)
+  const encLenBuf = Buffer.alloc(4); encLenBuf.writeUInt32LE(encryptedAmount.length)
+  const proofLenBuf = Buffer.alloc(4); proofLenBuf.writeUInt32LE(0)
+
   const wpData = Buffer.concat([
     disc('withdraw_private'),
-    Buffer.from(new BigUint64Array([WITHDRAW_LAMPORTS]).buffer),
+    amountBuf,
     amountCommitment,
     stealthRecipient.toBuffer(),
     ephemeralPubkey,
     viewingKeyHash,
-    Buffer.from(new Uint32Array([encryptedAmount.length]).buffer),
+    encLenBuf,
     encryptedAmount,
-    Buffer.from(new Uint32Array([0]).buffer), // empty proof
+    proofLenBuf, // empty proof len
   ])
 
   const stealthAta = getAssociatedTokenAddressSync(WSOL_MINT, stealthRecipient)
@@ -214,6 +225,18 @@ async function main() {
     console.error('FAIL — TransferRecord owner is not sip_privacy.')
     process.exit(1)
   }
+
+  // ─── 5. Verify fee_token accounting ──────────────────────────────────────────
+  const feeAfter = await conn.getTokenAccountBalance(feeTokenPda)
+  const feeAfterAmount = BigInt(feeAfter.value.amount)
+  const feeDelta = feeAfterAmount - feeBeforeAmount
+  const expectedFee = WITHDRAW_LAMPORTS * 10n / 10_000n // 10 bps
+  console.log('fee_token wSOL after:', feeAfterAmount.toString(), 'lamports (Δ', feeDelta.toString(), ')')
+  if (feeDelta !== expectedFee) {
+    console.error(`FAIL — fee_token delta ${feeDelta} != expected ${expectedFee} (10 bps of ${WITHDRAW_LAMPORTS})`)
+    process.exit(1)
+  }
+  console.log(`fee_token Δ matches expected ${expectedFee} lamports (10 bps of ${WITHDRAW_LAMPORTS})`)
 
   console.log('\n✓ Devnet CPI E2E PASSED.')
   console.log({
