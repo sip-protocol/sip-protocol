@@ -98,9 +98,9 @@ ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
 pnpm exec tsx scripts/upgrade-devnet.ts
 ```
 
-The script verifies the program keypair, runs `anchor clean && anchor build --no-idl`,
-deploys via `BPFLoaderUpgradeable`, and prints the new deployed slot. Idempotent —
-running again redeploys.
+The script verifies the program keypair, runs `anchor build --no-idl` (incremental —
+preserves the IDL artifact), deploys via `BPFLoaderUpgradeable`, and prints the new
+deployed slot. Idempotent — running again redeploys.
 
 ### Mainnet Upgrade
 

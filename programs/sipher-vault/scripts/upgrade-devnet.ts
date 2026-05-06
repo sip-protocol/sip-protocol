@@ -11,9 +11,9 @@ import { homedir } from 'os'
 
 const PROGRAM_ID = 'S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB'
 const PROGRAM_KEYPAIR = `${homedir()}/Documents/secret/sipher-vault-program-id.json`
-const AUTHORITY_KEYPAIR = `${homedir()}/Documents/secret/solana-devnet.json`
+const AUTHORITY_KEYPAIR = process.env.ANCHOR_WALLET ?? `${homedir()}/Documents/secret/solana-devnet.json`
 const SO_FILE = 'target/deploy/sipher_vault.so'
-const RPC = 'https://api.devnet.solana.com'
+const RPC = process.env.ANCHOR_PROVIDER_URL ?? 'https://api.devnet.solana.com'
 
 // Run a command with live stdout/stderr streamed to the terminal. No return value.
 // Use this for build, deploy, and post-deploy show — where the operator needs to
