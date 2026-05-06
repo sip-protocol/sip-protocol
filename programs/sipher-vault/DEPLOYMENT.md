@@ -44,6 +44,18 @@ Deployment records and procedures for the `sipher_vault` Anchor program — a pr
 - Binary size: `376664` bytes
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr` (devnet wallet)
 
+### Devnet — Phase 4a `set_paused` Upgrade (2026-05-06)
+
+Second devnet upgrade in Phase 4a — adds the authority-gated `set_paused`
+instruction (commit `0f701e5`) on top of the CPI binary.
+
+- Upgrade TX: `utoZnnbbaNz6X6VxybwpF6odKxDB8H28Kh3bwP3M3abJEHHdEBXv7tPcCaeJqAMT9vUJQazcUbLidPyNb2egkNy`
+- Previous deployed slot: `460367898` (CPI upgrade)
+- New deployed slot: `460374492`
+- Binary size: `382112` bytes (Δ from prior `376_664` reflects the
+  new instruction handler + accounts struct)
+- Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
+
 ## Mainnet Deployments
 
 _Not deployed. See Phase 4b plan for mainnet rollout sequencing._
