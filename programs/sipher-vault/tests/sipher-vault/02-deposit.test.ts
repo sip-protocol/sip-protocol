@@ -158,11 +158,13 @@ describe('sipher-vault: deposit', () => {
   })
 
   // ── Test 4: Deposit when paused ────────────────────────────────────────
-  // No `pause` instruction exists in Phase 1. Marking as pending.
-  // When a `set_paused` instruction is added, this test should:
-  // 1. Call set_paused(true) as authority
-  // 2. Attempt deposit -> expect ProgramPaused error
-  // 3. Call set_paused(false) to restore state for subsequent tests
+  // The set_paused instruction landed in PR-A1 / Task A1.2.5 (this branch).
+  // This Anchor-client unit test stays skipped because regenerating the IDL
+  // requires `anchor build` without `--no-idl`, which currently fails on the
+  // host toolchain (proc_macro2::Span::source_file removed from rustc 1.94+;
+  // see programs/sipher-vault/DEPLOYMENT.md "Build note"). Operational test
+  // coverage comes from scripts/set-paused.ts rehearsal evidence on devnet
+  // (DEPLOYMENT.md "Pause Runbook Rehearsed" section).
 
-  it.skip('rejects deposit when paused (pending: no pause instruction in Phase 1)')
+  it.skip('rejects deposit when paused (pending: IDL regeneration blocked on host toolchain)')
 })

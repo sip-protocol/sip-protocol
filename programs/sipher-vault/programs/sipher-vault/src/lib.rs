@@ -379,6 +379,29 @@ pub mod sipher_vault {
     msg!("Collected {} fees", withdraw_amount);
     Ok(())
   }
+
+  /// Pause or unpause the vault. Authority-only.
+  ///
+  /// While paused (`config.paused == true`), `deposit`, `withdraw_private`, and
+  /// `authority_refund` revert with `VaultError::ProgramPaused`. The `refund` and
+  /// `collect_fee` paths intentionally remain available so depositors can recover
+  /// funds and the authority can still drain accumulated fees during an emergency.
+  ///
+  /// Idempotent — calling with the current state is a no-op success.
+  ///
+  /// Emits `VaultPausedEvent` so off-chain monitoring (SENTINEL, audit
+  /// log indexers, dashboards) can subscribe to state changes without
+  /// log-parsing.
+  pub fn set_paused(ctx: Context<SetPaused>, paused: bool) -> Result<()> {
+    ctx.accounts.config.paused = paused;
+    msg!("Vault paused = {}", paused);
+    emit!(VaultPausedEvent {
+      authority: ctx.accounts.authority.key(),
+      paused,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
+    Ok(())
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -689,6 +712,19 @@ pub struct CollectFee<'info> {
   pub token_program: Program<'info, Token>,
 }
 
+#[derive(Accounts)]
+pub struct SetPaused<'info> {
+  #[account(
+    mut,
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+    has_one = authority @ VaultError::Unauthorized,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  pub authority: Signer<'info>,
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Events
 // ─────────────────────────────────────────────────────────────────────────────
@@ -702,5 +738,12 @@ pub struct VaultWithdrawEvent {
   pub viewing_key_hash: [u8; 32],
   pub transfer_amount: u64,
   pub fee_amount: u64,
+  pub timestamp: i64,
+}
+
+#[event]
+pub struct VaultPausedEvent {
+  pub authority: Pubkey,
+  pub paused: bool,
   pub timestamp: i64,
 }
