@@ -15,7 +15,7 @@ pnpm add @sip-protocol/sns-stealth
 ## Usage
 
 ```typescript
-import { resolveSIPStealth, buildPublishTx, deriveStealthKeys } from '@sip-protocol/sns-stealth'
+import { resolveSIPStealth, buildPublishTx, deriveStealthKeys, MetaAddress } from '@sip-protocol/sns-stealth'
 
 // Sender
 const meta = await resolveSIPStealth(connection, 'rector.sol')
