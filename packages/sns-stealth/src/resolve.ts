@@ -57,7 +57,7 @@ export async function resolveSIPStealth(
       return result
     }
     throw new NetworkError(
-      `SNS domain lookup failed: ${(e as Error).message ?? 'unknown error'}`,
+      `SNS domain lookup failed: ${e instanceof Error ? e.message : String(e)}`,
       e,
     )
   }
@@ -77,7 +77,7 @@ export async function resolveSIPStealth(
       return result
     }
     throw new NetworkError(
-      `SNS record lookup failed: ${(e as Error).message ?? 'unknown error'}`,
+      `SNS record lookup failed: ${e instanceof Error ? e.message : String(e)}`,
       e,
     )
   }
@@ -113,6 +113,8 @@ export function invalidateCache(domain?: string): void {
   cache.invalidate(normalizeDomain(domain))
 }
 
+// Input is validated upstream by the Zod `Hex32` regex (`^[0-9a-f]{64}$`),
+// so we trust even length + valid hex chars here. No defensive guards.
 function hexToBytes(hex: string): Uint8Array {
   const out = new Uint8Array(hex.length / 2)
   for (let i = 0; i < out.length; i++) {

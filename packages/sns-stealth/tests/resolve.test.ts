@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Connection } from '@solana/web3.js'
 import { resolveSIPStealth, MetaAddress, invalidateCache } from '../src/resolve'
-import { NotFound, Malformed } from '../src/errors'
+import { NotFound, Malformed, NetworkError } from '../src/errors'
 
 // Mock the Bonfida API surface we use:
 //   - getRecord (v1 records, with deserialize:true returns the raw JSON string)
@@ -156,6 +156,44 @@ describe('resolveSIPStealth', () => {
 
     const a = await resolveSIPStealth(mockConnection, 'rector.sol')
     invalidateCache('rector.sol')
+    const b = await resolveSIPStealth(mockConnection, 'rector.sol')
+
+    expect(a).not.toBe(b)
+    expect(getRecord).toHaveBeenCalledTimes(2)
+  })
+
+  it('throws NetworkError on unexpected error during domain probe', async () => {
+    vi.mocked(NameRegistryState.retrieve).mockRejectedValueOnce(
+      new Error('connection reset'),
+    )
+
+    await expect(resolveSIPStealth(mockConnection, 'rector.sol'))
+      .rejects.toThrow(NetworkError)
+  })
+
+  it('throws NetworkError on unexpected error during record fetch', async () => {
+    vi.mocked(getRecord).mockRejectedValueOnce(
+      new Error('rpc timeout'),
+    )
+
+    await expect(resolveSIPStealth(mockConnection, 'rector.sol'))
+      .rejects.toThrow(NetworkError)
+  })
+
+  it('invalidateCache normalizes the domain argument', async () => {
+    vi.mocked(getRecord)
+      .mockResolvedValueOnce(
+        JSON.stringify({ v: 1, spending: validHex, viewing: validHex }),
+      )
+      .mockResolvedValueOnce(
+        JSON.stringify({ v: 1, spending: 'e'.repeat(64), viewing: validHex }),
+      )
+
+    // Cache stores under normalized key 'rector.sol'
+    const a = await resolveSIPStealth(mockConnection, 'rector.sol')
+    // Invalidate with non-normalized argument
+    invalidateCache('RECTOR.SOL.')
+    // Next lookup should bypass cache and re-fetch
     const b = await resolveSIPStealth(mockConnection, 'rector.sol')
 
     expect(a).not.toBe(b)
