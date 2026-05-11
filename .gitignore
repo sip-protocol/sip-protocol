@@ -116,3 +116,4 @@ packages/sdk/benchmarks/results.json
 skills-lock.json
 skills/
 .worktrees/
+.superpowers/
