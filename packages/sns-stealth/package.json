@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/sns-stealth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SNS-based stealth address resolution and publishing for SIP Protocol",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",

@@ -13,22 +13,29 @@ import {
 
 // Devnet round-trip integration test.
 //
+// Opt-in: requires BOTH the shared devnet keypair on disk AND an explicit
+// `SIP_TEST_DOMAIN` env var pointing at a `.sol` already owned by that wallet.
+// We don't ship a default domain because Bonfida's create instruction errors
+// out with "given name account is incorrect" when the parent doesn't exist —
+// that surfaces as a confusing failure for anyone who has the keypair but
+// never provisioned the domain.
+//
 // Skips automatically when:
 //   - The shared devnet keypair is not on disk (CI / contributors without it)
+//   - `SIP_TEST_DOMAIN` is not set (operator hasn't provisioned a domain)
 //   - `SIP_SKIP_INTEGRATION=1` is set (local opt-out for fast iteration)
 //
 // When it runs, it exercises the full public API surface — derive → publish →
-// resolve — against a real .sol domain. The test domain must already be
-// provisioned (owned by the devnet wallet) on Bonfida's devnet UI; if not, the
-// publish step will fail at `sendAndConfirmTransaction`. We do NOT try to
-// register the domain here — that's a one-time setup the operator handles.
+// resolve — against the real .sol. We do NOT try to register the domain here;
+// that's a one-time setup the operator handles via Bonfida's devnet UI.
 
 const RPC = process.env.SOLANA_DEVNET_RPC ?? 'https://api.devnet.solana.com'
-const TEST_DOMAIN = process.env.SIP_TEST_DOMAIN ?? 'test.sipher.sol'
+const TEST_DOMAIN = process.env.SIP_TEST_DOMAIN
 const KEYPAIR_PATH = `${homedir()}/Documents/secret/solana-devnet.json`
 
 const skipReason = (): string | false => {
   if (!existsSync(KEYPAIR_PATH)) return 'no devnet keypair'
+  if (!TEST_DOMAIN) return 'SIP_TEST_DOMAIN not set'
   if (process.env.SIP_SKIP_INTEGRATION === '1') return 'SIP_SKIP_INTEGRATION=1'
   return false
 }
