@@ -1,13 +1,22 @@
-import type { Connection, PublicKey } from '@solana/web3.js'
+import type { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js'
 import { Transaction } from '@solana/web3.js'
-import { createRecordInstruction } from '@bonfida/spl-name-service'
+import {
+  createRecordInstruction,
+  updateInstruction,
+  deleteInstruction,
+  getRecordKeySync,
+  serializeRecord,
+  NAME_PROGRAM_ID,
+  Numberu32,
+  NameRegistryState,
+} from '@bonfida/spl-name-service'
 import { bytesToHex } from '@noble/hashes/utils'
 import { normalizeDomain } from './derive'
 import { encodeRecord } from './schema'
 
 // SNS record key for SIP stealth metadata. Mirrors `resolve.ts`: cast bypasses
 // Bonfida's closed `Record` enum because at runtime the SDK passes this string
-// through to `getDomainKeySync` which composes it as a subdomain
+// through to `getRecordKeySync` which composes it as a subdomain
 // `<RECORD>.<DOMAIN>`, so arbitrary strings work.
 const SIP_STEALTH_RECORD = 'SIP-STEALTH' as never
 
@@ -30,7 +39,16 @@ export interface PublishKeys {
  * V2 would require switching both reader and writer in lockstep — out of scope
  * for the foundation milestone.
  *
- * @param connection Solana RPC connection (used for rent-exemption lookup + blockhash)
+ * Three on-chain paths, mirroring Bonfida's own `updateRecordInstruction` flow:
+ *   • account missing      → allocate (create) + write (update)
+ *   • account size matches → write only (update)
+ *   • account size differs → free (delete) + reallocate (create) + write (update)
+ *
+ * `createRecordInstruction` ONLY allocates the record account; it never writes
+ * the record value. Without a follow-up `updateInstruction` the published
+ * record is `data.length` bytes of zeros — that was the v0.1.0 bug.
+ *
+ * @param connection Solana RPC connection (used for account lookup, rent, blockhash)
  * @param domain     The `.sol` domain (case-insensitive; normalized internally)
  * @param keys       The 32-byte ed25519 spending/viewing public keys to publish
  * @param payer      The domain owner / fee payer (single wallet for self-publish flow)
@@ -59,25 +77,68 @@ export async function buildPublishTx(
     viewing: bytesToHex(keys.viewing),
   })
 
-  // V1 createRecordInstruction signature:
-  //   (connection, domain, record, data, owner, payer) => Promise<TransactionInstruction>
-  // For the self-publish flow `owner === payer` (the user writing to their own
-  // domain). If we ever need separate signers (e.g., relayer pays gas for a
-  // hardware wallet owner), expose `owner` as a distinct parameter — but until
-  // then collapsing them keeps the API simple and matches the common case.
-  const ix = await createRecordInstruction(
+  const recordKey = getRecordKeySync(normalized, SIP_STEALTH_RECORD)
+  const data = serializeRecord(recordValue, SIP_STEALTH_RECORD)
+  const existing = await connection.getAccountInfo(recordKey)
+
+  const ixs: TransactionInstruction[] = []
+
+  if (existing === null) {
+    // Fresh: allocate the account at the right size, then write the value.
+    ixs.push(await buildCreateIx(connection, normalized, recordValue, payer))
+    ixs.push(buildUpdateIx(recordKey, data, payer))
+  } else if (
+    existing.data.slice(NameRegistryState.HEADER_LEN).length === data.length
+  ) {
+    // Existing account, matching data area size — just overwrite.
+    ixs.push(buildUpdateIx(recordKey, data, payer))
+  } else {
+    // Existing account, mismatched size — free + reallocate + write. Bonfida's
+    // `updateInstruction` rejects writes when the new payload doesn't fit the
+    // allocated space, so a stale account from a different schema version
+    // would otherwise wedge the domain.
+    ixs.push(deleteInstruction(NAME_PROGRAM_ID, recordKey, payer, payer))
+    ixs.push(await buildCreateIx(connection, normalized, recordValue, payer))
+    ixs.push(buildUpdateIx(recordKey, data, payer))
+  }
+
+  const tx = new Transaction()
+  tx.add(...ixs)
+  const { blockhash } = await connection.getLatestBlockhash()
+  tx.recentBlockhash = blockhash
+  tx.feePayer = payer
+  return tx
+}
+
+// `createRecordInstruction` signature: (connection, domain, record, value, owner, payer).
+// Self-publish flow collapses owner === payer; if a relayer-paid flow is ever
+// needed, expose `owner` as a distinct parameter on `buildPublishTx`.
+function buildCreateIx(
+  connection: Connection,
+  normalizedDomain: string,
+  recordValue: string,
+  payer: PublicKey,
+): Promise<TransactionInstruction> {
+  return createRecordInstruction(
     connection,
-    normalized,
+    normalizedDomain,
     SIP_STEALTH_RECORD,
     recordValue,
     payer,
     payer,
   )
+}
 
-  const tx = new Transaction()
-  tx.add(ix)
-  const { blockhash } = await connection.getLatestBlockhash()
-  tx.recentBlockhash = blockhash
-  tx.feePayer = payer
-  return tx
+function buildUpdateIx(
+  recordKey: PublicKey,
+  data: Buffer,
+  payer: PublicKey,
+): TransactionInstruction {
+  return updateInstruction(
+    NAME_PROGRAM_ID,
+    recordKey,
+    new Numberu32(0),
+    data,
+    payer,
+  )
 }
