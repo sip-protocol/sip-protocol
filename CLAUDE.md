@@ -201,7 +201,7 @@ npm run preview                 # Preview build
 - `src/content/config.ts` - Content collections config
 - `astro.config.mjs` - Astro configuration
 
-**Deployment:** docs.sip-protocol.org (Docker + GHCR)
+**Deployment:** docs.sip-protocol.org (Vercel — Git auto-deploy; migrated off VPS 2026-05-31)
 **CLAUDE.md:** [docs-sip/CLAUDE.md](https://github.com/sip-protocol/docs-sip/blob/main/CLAUDE.md)
 
 ---
@@ -246,7 +246,7 @@ pnpm preview                    # Preview build
 
 **Features:** SEO optimization, LLMO (LLM discoverability), RSS feed, JSON-LD structured data
 **Content:** 25 published posts (M16 target: 12 — exceeded)
-**Deployment:** blog.sip-protocol.org (Docker + GHCR, port 5004)
+**Deployment:** blog.sip-protocol.org (Vercel — Git auto-deploy; migrated off VPS 2026-05-31)
 **CLAUDE.md:** [blog-sip/CLAUDE.md](https://github.com/sip-protocol/blog-sip/blob/main/CLAUDE.md)
 
 ---
@@ -714,23 +714,34 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ---
 
-## VPS Deployment (151.245.137.75 — reclabs3)
+## Deployment Topology
 
-### SIP Services on VPS
+> **Migration in progress (VPS reclabs3 → Vercel).** As of 2026-06-01, **docs, blog, and cdn** are live on **Vercel** (Git-integration auto-deploy); **sip-website, sip-app, sipher, sip-umami** remain on the VPS. Per-migration status + cutover/rollback detail: `VERCEL_MIGRATION_HANDOFF.md` (repo root, untracked).
+
+### On Vercel (scope `rectors-projects` — push to `main` auto-deploys)
+
+| Service | Vercel project | Repo | Domain | Migrated |
+|---------|----------------|------|--------|----------|
+| docs | `sip-docs` | sip-protocol/docs-sip | docs.sip-protocol.org | 2026-05-31 |
+| blog | `sip-blog` | sip-protocol/blog-sip | blog.sip-protocol.org | 2026-05-31 |
+| cdn | `sip-cdn` | sip-protocol/cdn-sip | cdn.sip-protocol.org | 2026-06-01 |
+
+### On VPS (151.245.137.75 — reclabs3 — Docker + GHCR + SSH)
 
 | Service | Port | Container | Domain |
 |---------|------|-----------|--------|
 | sip-website | 5000 | sip-website | sip-protocol.org |
-| sip-docs | 5003 | sip-docs | docs.sip-protocol.org |
-| sip-blog | 5004 | sip-blog | blog.sip-protocol.org |
 | sip-app | 5005 | sip-app-blue | app.sip-protocol.org |
 | sipher | 5006 | sipher + sipher-redis | sipher.sip-protocol.org |
 | sip-umami | 5010 | sip-umami + sip-umami-db | analytics.sip-protocol.org |
 
+> Migrated services keep their VPS counterpart running as **rollback** until each 7-day buffer elapses (~2026-06-08), then decommissioned (nginx site + cert removed). **sip-website + sip-app migrate next (#4 / #5)** — apex LAST.
+
 ### Deployment Flow
 
 ```
-Push to main → GitHub Actions → Build Docker → Push to GHCR → SSH deploy → docker compose up
+VPS  (sip-website, sip-app, sipher, sip-umami): Push to main → GitHub Actions → Docker → GHCR → SSH → docker compose up
+Vercel (docs, blog, cdn):                       Push to main → Vercel Git integration → build → deploy   (no Docker/SSH)
 ```
 
 ### Docker Compose Isolation
@@ -741,9 +752,9 @@ Push to main → GitHub Actions → Build Docker → Push to GHCR → SSH deploy
 name: sip  # Prevents conflicts with other projects
 
 services:
-  docs:
-    image: ghcr.io/sip-protocol/docs-sip:latest
-    container_name: sip-docs
+  web:
+    image: ghcr.io/sip-protocol/sip-website:latest
+    container_name: sip-website
     ...
 ```
 
@@ -758,8 +769,8 @@ ssh core      # Admin user for nginx/system config
 ### Key Files on VPS
 
 - `~/app/docker-compose.yml` - Service definitions
-- `/etc/nginx/sites-enabled/sip-docs.conf` - Nginx reverse proxy
-- `/etc/letsencrypt/live/docs.sip-protocol.org/` - SSL certs (auto-renew)
+- `/etc/nginx/sites-enabled/sip-app.conf` - Nginx reverse proxy (example — service still on VPS)
+- `/etc/letsencrypt/live/app.sip-protocol.org/` - SSL certs (auto-renew)
 
 ---
 
@@ -894,5 +905,5 @@ See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas rep
 
 ---
 
-**Last Updated:** 2026-03-01
+**Last Updated:** 2026-06-01
 **Status:** M17 Complete (Mainnet Live) | M18 In Progress (20/24 done) | 7,552+ Tests + 294 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
