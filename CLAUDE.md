@@ -297,7 +297,7 @@ pnpm typecheck                  # Type check
 ```
 **REST Endpoints (66):** Stealth, Transfer, Commitment, Viewing Key, Multi-chain (17 chains), Private Swap, Demo, Meta, SENTINEL (8: assess, blacklist, pending, decisions, status)
 **Agent Tools (22):** deposit, send, refund, balance, scan, claim, swap, viewingKey, history, status, paymentLink, invoice, privacyScore, threatCheck, roundAmount, scheduleSend, splitSend, drip, recurring, sweep, consolidate, assessRisk
-**HERALD (X Agent):** 9 tools — autonomous mention/DM response via AgentCore + X adapter
+**HERALD (X Agent):** 9 tools — autonomous mention/DM response via AgentCore + X adapter. T3: proactive content engine added (daily approval-gated posts from a weekly calendar + GitHub-activity ingestion) — shipped to prod, dormant pending @sipprotocol X credentials + `HERALD_CONTENT_CRON_ENABLED=true`
 **SENTINEL (Security Analyst):** 14 tools (7 read + 7 action) — LLM-backed risk assessment, autonomous incident response, preflight gate on fund-moving tools, circuit breaker, SENTINEL_MODE=yolo|advisory|off
 **Command Center UI (app/):** React 19, Vite 6, Tailwind 4, Zustand — adaptive dashboard (2,079 lines, 24 files, 4 views + streaming chat sidebar)
 
@@ -581,13 +581,14 @@ interface Commitment {
 **Grant Status:**
 | Grant | Amount | Status | Date |
 |-------|--------|--------|------|
-| Superteam Indonesia | $10,000 USDC | ✅ **APPROVED** | Jan 22, 2026 |
+| Superteam Indonesia | $10,000 USDC | ✅ **APPROVED** — T1+T2 paid ($6K/$10K); T3 $4K pending | Jan 22, 2026 |
 | Solana Audit Subsidy V | Up to $50K | ⏳ Pending | Feb 7, 2026 deadline |
 | SIP Labs, Inc. | — | 📋 Planned | Feb 2026 |
 | Solana Foundation | $100K | 📋 Planned | Feb-Mar 2026 |
 
 **Superteam Deliverables:** Native Solana Privacy SDK, Jupiter DEX Integration, Production App, Developer Resources
-**Tranches:** T1 $3,000 (KYC done, payment by Jan 30) → T2 $3,000 → T3 $4,000 | Deadline: Mar 31, 2026
+**Tranches:** T1 $3,000 (paid Jan 30) ✅ → T2 $3,000 (paid May 2) ✅ → T3 $4,000 ⏳ (final — "40% upon completion") | **$6K of $10K received**
+**T3 Growth Phase (Jun 2026):** Distribution > building — operationalize HERALD (X agent), launch Discord community + 4 Superteam Earn bounties, close M18 → 24/24, dApp Store retry. Spec: `docs/superpowers/specs/2026-06-02-t3-superteam-growth-refresh-design.md`
 
 **Multi-Foundation Approach:** Chain-agnostic = loved by all = funded by all
 - Solana Foundation (same-chain privacy for SOL users)
@@ -905,5 +906,5 @@ See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas rep
 
 ---
 
-**Last Updated:** 2026-06-01
-**Status:** M17 Complete (Mainnet Live) | M18 In Progress (20/24 done) | 7,552+ Tests + 294 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 $10K Grant Approved
+**Last Updated:** 2026-06-03
+**Status:** M17 Complete (Mainnet Live) | M18 Near-Complete (22/24 done) | T3 Growth Phase active | 7,552+ Tests + 294 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 Superteam Grant $6K/$10K paid (T3 pending)

@@ -32,7 +32,7 @@
 │   • Same-chain privacy on Solana + Ethereum                                 │
 │   • Direct competitor to pool-based mixers (PrivacyCash, etc)               │
 │   • Superior tech: stealth + hidden amounts vs pool mixing                  │
-│   • Discourse forum (500+ members, self-hosted) + Twitter presence (50K imp)│
+│   • Discord community (500+ members) + Twitter presence (50K impressions)   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -1177,9 +1177,15 @@ const payments = await scanForPayments({
 
 ---
 
-#### M18: Ethereum Same-Chain Privacy (Solidity Contract) 🔄 Q1 2026
+#### M18: Ethereum Same-Chain Privacy (Solidity Contract) 🔄 Near-Complete (22/24)
 
 **SIP Ethereum Contract** — On-chain privacy using Solidity smart contracts.
+
+> **Status (Jun 2026):** 22 of 24 issues done. Core contracts (SIPPrivacy, PedersenVerifier,
+> ZKVerifier, StealthAddressRegistry, SIPSwapRouter, SIPRelayer) are live on **7 testnets**
+> (Sepolia, Base, OP, Arbitrum, Scroll, Linea, Mode) with 294 Foundry tests. Remaining:
+> zkSync Era (#821 — needs the `foundry-zksync` toolchain) and Blast/Mantle (#824 —
+> faucet / RPC-relay blocked). Closing these → 24/24 is a Track B item of the T3 growth phase below.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -1275,6 +1281,44 @@ Phase 5: Long-tail   → Blast, Mantle, Mode, Taiko (completeness)
 - 3 Tier 1 L2 chains supported (Base, Arbitrum, Optimism)
 - Integration guide published
 - Gas benchmarks under 200K per shielded transfer
+
+---
+
+### T3: Superteam Growth Phase (Jun 2026) 🎯 Active
+
+With M17 shipped to mainnet and M18 at 22/24, the technical build is substantially complete.
+**T3** — the final tranche of the Superteam Indonesia grant ($4K of $10K; T1 + T2 = $6K already
+received) — shifts the mandate from *building* to *distribution and growth*. The highest-leverage
+move is to **run the distribution machinery already built**, not build new machinery.
+
+> Design spec: [`docs/superpowers/specs/2026-06-02-t3-superteam-growth-refresh-design.md`](docs/superpowers/specs/2026-06-02-t3-superteam-growth-refresh-design.md)
+
+**Two parallel tracks** (independent — they share no state):
+
+**Track A — Growth** *(RECTOR-paced)*
+- **HERALD operationalization** *(centerpiece)* — the autonomous X agent (in `sipher`) goes from
+  dormant to live: a daily approval-gated content cron driven by a weekly calendar, GitHub-activity
+  ingestion so posts reference real shipped progress, and the reactive mention/DM → reply pipeline.
+  Content engine shipped; live wiring is pending `@sipprotocol` X credentials.
+- **Discord community** — server + 8 channels, linked from the website footer, org README, and every
+  bounty listing (replaces the earlier self-hosted-forum idea).
+- **Bounties (4 listings on Superteam Earn)** — Write-a-Thread, Build-with-SDK, Technical Deep-Dive,
+  and Bug Bounty; HERALD amplifies active listings every Thursday.
+
+**Track B — Technical** *(agent-driven, concurrent)*
+- **Close M18 → 24/24** — zkSync Era (#821) + Blast/Mantle (#824).
+- **dApp Store retry** (sip-mobile) — diagnose the 4th rejection, resubmit with a reviewer walkthrough.
+- **M19 claim-privacy PoC** *(stretch)* — Pool PDA + ZK claim-proof research; moves the privacy score
+  from ~30% toward an 80%+ path (see M19 below).
+
+**Traction targets:** X followers 124 → 300+ · GitHub stars 3 → 50+ · npm ~500 → 1,000+/wk · Discord 0 → 50+.
+Success is the engine demonstrably running with metrics trending up — not necessarily every target hit.
+
+**Agent team:** SIP's build and distribution increasingly run on a dedicated agent team in the `sipher`
+repo — **SIPHER** (privacy agent + 66-endpoint REST API), **HERALD** (autonomous X distribution), and
+**SENTINEL** (LLM security analyst that gates fund-moving actions). T3 operationalizes HERALD as the
+distribution engine; the swarm grows from there (HERALD-as-Discord-bot and a standalone `sip-agents`
+repo are explicitly deferred to agent-swarm v2).
 
 ---
 
@@ -1647,7 +1691,7 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 
 | Milestone | Timeline | Amount | Purpose | Status |
 |-----------|----------|--------|---------|--------|
-| **Superteam Indonesia** | Jan 2026 | $10K | Community + Narrative | ✅ **APPROVED** |
+| **Superteam Indonesia** | Jan 2026 | $10K | Community + Narrative | ✅ **APPROVED** — $6K/$10K paid (T3 $4K pending) |
 | **Solana Audit Subsidy V** | Feb 2026 | Up to $50K | Security audit funding | ⏳ Pending (Feb 7) |
 | **Solana Foundation** | Feb-Mar 2026 | $100K | Solana Same-Chain Privacy | 📋 Planned |
 | **Mina Foundation** | H2 2026 | $50-100K | Proof composition (Zypherpunk relationship) | 🔲 Planned |
@@ -1702,15 +1746,15 @@ SIP is **chain-agnostic** — we enhance every chain, compete with none.
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Current focus areas:**
-- M18: Ethereum same-chain privacy module — Active development
-- Base L2 deployment (highest priority)
-- Superteam T1-T3 deliverables (deadline: Mar 31, 2026)
-- Solana Foundation grant application (Feb-Mar 2026)
+- T3 Superteam growth phase — operationalize HERALD, launch Discord + bounties (distribution > building)
+- Close M18 → 24/24 — zkSync Era (#821) + Blast/Mantle (#824) long-tail L2s
+- M19 claim-privacy PoC — Pool PDA + ZK claims (privacy score ~30% → 80%+)
+- Solana Foundation grant application (audit subsidy + same-chain privacy)
 - Production hardening & audit preparation
 
 ---
 
-*Last updated: March 1, 2026*
-*M16-M17 Complete | M18 In Progress (22/24 issues done) | Superteam Grant APPROVED ($10K)*
+*Last updated: June 3, 2026*
+*M16-M17 Complete | M18 Near-Complete (22/24 issues done) | T3 Superteam Growth Phase active | Superteam Grant $6K/$10K paid (T3 $4K pending)*
 *7,624+ tests | 7 packages | Full Privacy Architecture documented (M19-M20)*
 *M18: 294 Foundry tests, deployed on 7 testnets (Sepolia, Base, OP, Arbitrum, Scroll, Linea, Mode). SIPRelayer on 4 chains. GelatoRelayAdapter in SDK (23 tests). Blast/Mantle/zkSync pending.*
