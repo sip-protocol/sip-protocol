@@ -36,7 +36,7 @@
     "cors": "^2.8.5",
     "envalid": "^8.1.1",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.2.2",
     "helmet": "^8.1.0",
     "ioredis": "^5.9.2",
     "lru-cache": "^11.2.4",
