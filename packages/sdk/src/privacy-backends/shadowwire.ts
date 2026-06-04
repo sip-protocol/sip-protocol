@@ -76,6 +76,12 @@ export const SHADOWWIRE_TOKEN_MINTS: Record<TokenSymbol, string> = {
   USD1: 'USD1exampleaddress1111111111111111111111111', // Placeholder - USD1 stablecoin
   AOL: 'AOLexampleaddress11111111111111111111111111', // Placeholder
   IQLABS: 'IQLABSexampleaddress111111111111111111111', // Placeholder - IQ Labs token
+  // Added in @radr/shadowwire@1.1.15 — real mints verified against the package's TOKEN_MINTS
+  SANA: '5dpN5wMH8j8au29Rp91qn4WfNq6t6xJfcjQNcFeDJ8Ct',
+  POKI: '6vK6cL9C66Bsqw7SC2hcCdkgm1UKBDUE6DCYJ4kubonk',
+  RAIN: '3iC63FgnB7EhcPaiSaC51UkVweeBDkqu17SaRyy2pump',
+  HOSICO: 'Dx2bQe2UPv4k3BmcW8G2KhaL5oKsxduM5XxLSV3Sbonk',
+  SKR: 'SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3',
 }
 
 /**
@@ -370,6 +376,13 @@ export class ShadowWireBackend implements PrivacyBackend {
       amount,
       token_mint: tokenMint,
     })
+    // @radr/shadowwire@1.1.15 made WithdrawResponse.unsigned_tx_base64 optional
+    // (returned only in the unsigned-tx flow). Absence here is an error, not an empty tx.
+    if (!response.unsigned_tx_base64) {
+      throw new Error(
+        `ShadowWire withdraw returned no unsigned transaction${response.error ? `: ${response.error}` : ''}`
+      )
+    }
     return {
       unsignedTx: response.unsigned_tx_base64,
       amountWithdrawn: response.amount_withdrawn,
