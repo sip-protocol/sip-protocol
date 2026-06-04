@@ -19,22 +19,24 @@ vi.mock('@ledgerhq/hw-transport-webusb', () => ({
 }))
 
 vi.mock('@ledgerhq/hw-app-eth', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    getAddress: vi.fn().mockResolvedValue({
-      address: '0x1234567890123456789012345678901234567890',
-      publicKey: '04' + 'ab'.repeat(64), // Uncompressed secp256k1 public key
-    }),
-    signPersonalMessage: vi.fn().mockResolvedValue({
-      r: 'ab'.repeat(32),
-      s: 'cd'.repeat(32),
-      v: 27,
-    }),
-    signTransaction: vi.fn().mockResolvedValue({
-      r: 'ab'.repeat(32),
-      s: 'cd'.repeat(32),
-      v: '1b',
-    }),
-  })),
+  default: vi.fn().mockImplementation(function () {
+    return {
+      getAddress: vi.fn().mockResolvedValue({
+        address: '0x1234567890123456789012345678901234567890',
+        publicKey: '04' + 'ab'.repeat(64), // Uncompressed secp256k1 public key
+      }),
+      signPersonalMessage: vi.fn().mockResolvedValue({
+        r: 'ab'.repeat(32),
+        s: 'cd'.repeat(32),
+        v: 27,
+      }),
+      signTransaction: vi.fn().mockResolvedValue({
+        r: 'ab'.repeat(32),
+        s: 'cd'.repeat(32),
+        v: '1b',
+      }),
+    }
+  }),
 }))
 
 // Mock WebUSB API

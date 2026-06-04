@@ -20,21 +20,23 @@ vi.mock('@solana/web3.js', async () => {
   const actual = await vi.importActual('@solana/web3.js')
   return {
     ...actual,
-    Connection: vi.fn().mockImplementation(() => ({
-      getAccountInfo: vi.fn().mockResolvedValue({
-        data: Buffer.alloc(100), // Mock config account data
-      }),
-      getLatestBlockhash: vi.fn().mockResolvedValue({
-        // Must be valid base58 (32 bytes)
-        blockhash: 'EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N',
-        lastValidBlockHeight: 100,
-      }),
-      sendRawTransaction: vi.fn().mockResolvedValue(
-        '5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnbJLgp8uirBgmQpjKhoR4tjF3ZpRzrFmBV6UjKdiSZkQUW'
-      ),
-      confirmTransaction: vi.fn().mockResolvedValue({ value: { err: null } }),
-      rpcEndpoint: 'https://api.devnet.solana.com',
-    })),
+    Connection: vi.fn().mockImplementation(function () {
+      return {
+        getAccountInfo: vi.fn().mockResolvedValue({
+          data: Buffer.alloc(100), // Mock config account data
+        }),
+        getLatestBlockhash: vi.fn().mockResolvedValue({
+          // Must be valid base58 (32 bytes)
+          blockhash: 'EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N',
+          lastValidBlockHeight: 100,
+        }),
+        sendRawTransaction: vi.fn().mockResolvedValue(
+          '5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnbJLgp8uirBgmQpjKhoR4tjF3ZpRzrFmBV6UjKdiSZkQUW'
+        ),
+        confirmTransaction: vi.fn().mockResolvedValue({ value: { err: null } }),
+        rpcEndpoint: 'https://api.devnet.solana.com',
+      }
+    }),
   }
 })
 

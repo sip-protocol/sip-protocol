@@ -93,13 +93,13 @@
   "devDependencies": {
     "@grpc/grpc-js": "^1.14.4",
     "@types/node": "^25.9.1",
-    "@vitest/coverage-v8": "1.6.1",
+    "@vitest/coverage-v8": "^4.1.0",
     "fast-check": "^4.8.0",
     "https-proxy-agent": "^7.0.0",
     "socks-proxy-agent": "^8.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.3.0",
-    "vitest": "^1.1.0"
+    "vitest": "^4.1.0"
   },
   "keywords": [
     "sip",

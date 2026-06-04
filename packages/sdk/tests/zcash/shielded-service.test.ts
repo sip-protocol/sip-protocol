@@ -27,7 +27,9 @@ vi.mock('../../src/zcash/rpc-client', () => {
   }
 
   return {
-    ZcashRPCClient: vi.fn(() => mockClient),
+    ZcashRPCClient: vi.fn(function () {
+      return mockClient
+    }),
     ZcashRPCError: class ZcashRPCError extends Error {
       constructor(
         message: string,

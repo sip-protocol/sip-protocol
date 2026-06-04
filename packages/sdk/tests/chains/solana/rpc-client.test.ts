@@ -75,26 +75,28 @@ vi.mock('@solana/web3.js', async () => {
   const actual = await vi.importActual<typeof import('@solana/web3.js')>('@solana/web3.js')
   return {
     ...actual,
-    Connection: vi.fn().mockImplementation((endpoint: string) => ({
-      rpcEndpoint: endpoint,
-      getVersion: vi.fn().mockResolvedValue({ 'solana-core': '1.14.0' }),
-      getLatestBlockhash: vi.fn().mockResolvedValue({
-        blockhash: 'GHtXQBsoZHVnNFa9YevAzFr17DJjgHXk3ycTKD5xD3Zi',
-        lastValidBlockHeight: 1000,
-      }),
-      getBalance: vi.fn().mockResolvedValue(1_000_000_000),
-      getAccountInfo: vi.fn().mockResolvedValue(null),
-      sendRawTransaction: vi.fn().mockResolvedValue('mockSignature123'),
-      confirmTransaction: vi.fn().mockResolvedValue({
-        context: { slot: 12345 },
-        value: { err: null },
-      }),
-      getRecentPrioritizationFees: vi.fn().mockResolvedValue([
-        { slot: 100, prioritizationFee: 1000 },
-        { slot: 101, prioritizationFee: 2000 },
-        { slot: 102, prioritizationFee: 1500 },
-      ]),
-    })),
+    Connection: vi.fn().mockImplementation(function (endpoint: string) {
+      return {
+        rpcEndpoint: endpoint,
+        getVersion: vi.fn().mockResolvedValue({ 'solana-core': '1.14.0' }),
+        getLatestBlockhash: vi.fn().mockResolvedValue({
+          blockhash: 'GHtXQBsoZHVnNFa9YevAzFr17DJjgHXk3ycTKD5xD3Zi',
+          lastValidBlockHeight: 1000,
+        }),
+        getBalance: vi.fn().mockResolvedValue(1_000_000_000),
+        getAccountInfo: vi.fn().mockResolvedValue(null),
+        sendRawTransaction: vi.fn().mockResolvedValue('mockSignature123'),
+        confirmTransaction: vi.fn().mockResolvedValue({
+          context: { slot: 12345 },
+          value: { err: null },
+        }),
+        getRecentPrioritizationFees: vi.fn().mockResolvedValue([
+          { slot: 100, prioritizationFee: 1000 },
+          { slot: 101, prioritizationFee: 2000 },
+          { slot: 102, prioritizationFee: 1500 },
+        ]),
+      }
+    }),
   }
 })
 

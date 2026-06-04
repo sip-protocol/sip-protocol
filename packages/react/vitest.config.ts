@@ -15,9 +15,11 @@ export default defineConfig({
         'src/hooks/index.ts',
       ],
     },
-    deps: {
-      // Mock ledger packages that are optional in the SDK
-      inline: [/@ledgerhq/],
+    server: {
+      deps: {
+        // Mock ledger packages that are optional in the SDK
+        inline: [/@ledgerhq/],
+      },
     },
     alias: {
       // Mock all hardware wallet packages (Ledger, Trezor)

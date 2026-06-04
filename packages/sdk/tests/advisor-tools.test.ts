@@ -15,7 +15,7 @@ import {
 
 // Mock the SurveillanceAnalyzer
 vi.mock('../src/surveillance/analyzer', () => ({
-  SurveillanceAnalyzer: vi.fn().mockImplementation(() => ({
+  SurveillanceAnalyzer: vi.fn().mockImplementation(function () { return {
     analyze: vi.fn().mockResolvedValue({
       privacyScore: {
         overall: 65,
@@ -90,7 +90,7 @@ vi.mock('../src/surveillance/analyzer', () => ({
       risk: 'medium',
       topIssue: 'Address reuse detected',
     }),
-  })),
+  } }),
 }))
 
 describe('Privacy Advisor Tools', () => {
@@ -137,10 +137,10 @@ describe('Privacy Advisor Tools', () => {
 
     it('should return error on analysis failure', async () => {
       const { SurveillanceAnalyzer } = await import('../src/surveillance/analyzer')
-      vi.mocked(SurveillanceAnalyzer).mockImplementationOnce(() => ({
+      vi.mocked(SurveillanceAnalyzer).mockImplementationOnce(function () { return {
         analyze: vi.fn().mockRejectedValue(new Error('Network error')),
         quickScore: vi.fn(),
-      }))
+      } })
 
       const tool = createAnalyzeWalletTool(mockConfig)
       const result = await tool.invoke({ address: 'invalid' })
