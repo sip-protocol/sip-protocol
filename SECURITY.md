@@ -4,14 +4,20 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.6.x   | :white_check_mark: |
-| < 0.6   | :x:                |
+| 0.9.x   | :white_check_mark: |
+| < 0.9   | :x:                |
 
 ## Reporting a Vulnerability
 
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
-Instead, please report them via email to: **security@sip-protocol.org**
+Use one of the following confidential channels:
+
+1. **GitHub Private Vulnerability Reporting (preferred).** Open a private report at
+   [github.com/sip-protocol/sip-protocol/security/advisories/new](https://github.com/sip-protocol/sip-protocol/security/advisories/new).
+   Private reporting is enabled on every SIP Protocol repository, so you can also file from the
+   **Security → Report a vulnerability** tab of the affected repo. This is the most reliable channel.
+2. **Email:** **security@sip-protocol.org**
 
 Include:
 - Description of the vulnerability
@@ -211,6 +217,8 @@ For users of SIP Protocol:
 - `@sip-protocol/cli`
 - `@sip-protocol/api`
 - `@sip-protocol/types`
+- `@sip-protocol/sns-stealth`
+- `@sip-protocol/react-native`
 - `sip-website`
 - `sip-app`
 - `docs-sip`
@@ -235,4 +243,4 @@ We thank the security researchers who have helped improve SIP Protocol:
 
 ---
 
-*Last updated: January 2026*
+*Last updated: June 2026*
