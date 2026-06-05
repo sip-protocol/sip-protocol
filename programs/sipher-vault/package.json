@@ -24,7 +24,8 @@
     "overrides": {
       "serialize-javascript": ">=7.0.5",
       "rpc-websockets>ws": ">=8.20.1 <9",
-      "bigint-buffer": "npm:bigint-buffer-fixed@^1.1.6"
+      "bigint-buffer": "npm:bigint-buffer-fixed@^1.1.6",
+      "tar": ">=7.5.11"
     }
   }
 }
