@@ -16,5 +16,9 @@
     "@types/mocha": "^9.0.0",
     "typescript": "^5.7.3",
     "prettier": "^2.6.2"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.5",
+    "ws": "^8.20.1"
   }
 }
