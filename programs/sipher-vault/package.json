@@ -19,5 +19,12 @@
     "ts-mocha": "^10.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "serialize-javascript": ">=7.0.5",
+      "rpc-websockets>ws": ">=8.20.1 <9",
+      "bigint-buffer": "npm:bigint-buffer-fixed@^1.1.6"
+    }
   }
 }
