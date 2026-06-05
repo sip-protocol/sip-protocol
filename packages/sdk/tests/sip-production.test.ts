@@ -30,12 +30,14 @@ vi.mock('../src/adapters', async (importOriginal) => {
   const original = await importOriginal<typeof import('../src/adapters')>()
   return {
     ...original,
-    NEARIntentsAdapter: vi.fn().mockImplementation(() => ({
-      prepareSwap: mockPrepareSwap,
-      getQuote: mockGetQuote,
-      notifyDeposit: mockNotifyDeposit,
-      waitForCompletion: mockWaitForCompletion,
-    })),
+    NEARIntentsAdapter: vi.fn().mockImplementation(function () {
+      return {
+        prepareSwap: mockPrepareSwap,
+        getQuote: mockGetQuote,
+        notifyDeposit: mockNotifyDeposit,
+        waitForCompletion: mockWaitForCompletion,
+      }
+    }),
   }
 })
 

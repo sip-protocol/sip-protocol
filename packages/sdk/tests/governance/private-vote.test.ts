@@ -1041,6 +1041,10 @@ describe('PrivateVoting', () => {
   })
 
   describe('end-to-end tallying', () => {
+    // Heavy e2e: revealTally brute-forces the homomorphic tally (a discrete-log
+    // search up to the summed vote weight), running many EC operations. Allow
+    // extra headroom beyond the 30s default for slower CI runners under coverage
+    // and full-suite parallel load.
     it('should handle complete tallying lifecycle', () => {
       const voting = new PrivateVoting()
       const encryptionKey = generateRandomBytes(32)
@@ -1078,7 +1082,7 @@ describe('PrivateVoting', () => {
       expect(results.results['0']).toBe(2500n) // 1000 + 1500
       expect(results.results['1']).toBe(5000n) // 2000 + 3000
       expect(results.results['2']).toBe(500n)
-    })
+    }, 90000)
 
     it('should handle tie scenario', () => {
       const voting = new PrivateVoting()

@@ -17,19 +17,21 @@ vi.mock('@solana/web3.js', async () => {
   const actual = await vi.importActual('@solana/web3.js')
   return {
     ...actual,
-    Connection: vi.fn().mockImplementation(() => ({
-      getLatestBlockhash: vi.fn().mockResolvedValue({
-        blockhash: 'EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N',
-        lastValidBlockHeight: 100,
-      }),
-      sendRawTransaction: vi.fn().mockResolvedValue(
-        '5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnbJLgp8uirBgmQpjKhoR4tjF3ZpRzrFmBV6UjKdiSZkQUW'
-      ),
-      confirmTransaction: vi.fn().mockResolvedValue({ value: { err: null } }),
-      getTransaction: vi.fn().mockResolvedValue({
-        meta: { computeUnitsConsumed: 200000 },
-      }),
-    })),
+    Connection: vi.fn().mockImplementation(function () {
+      return {
+        getLatestBlockhash: vi.fn().mockResolvedValue({
+          blockhash: 'EkSnNWid2cvwEVnVx9aBqawnmiCNiDgp3gUdkDPTKN1N',
+          lastValidBlockHeight: 100,
+        }),
+        sendRawTransaction: vi.fn().mockResolvedValue(
+          '5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnbJLgp8uirBgmQpjKhoR4tjF3ZpRzrFmBV6UjKdiSZkQUW'
+        ),
+        confirmTransaction: vi.fn().mockResolvedValue({ value: { err: null } }),
+        getTransaction: vi.fn().mockResolvedValue({
+          meta: { computeUnitsConsumed: 200000 },
+        }),
+      }
+    }),
   }
 })
 

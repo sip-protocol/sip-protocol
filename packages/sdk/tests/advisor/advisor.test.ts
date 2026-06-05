@@ -25,22 +25,32 @@ const mockStream = vi.fn().mockImplementation(async function* () {
 })
 
 vi.mock('@langchain/openai', () => ({
-  ChatOpenAI: vi.fn().mockImplementation(() => ({
-    invoke: mockInvoke,
-    stream: mockStream,
-  })),
+  ChatOpenAI: vi.fn().mockImplementation(function () {
+    return {
+      invoke: mockInvoke,
+      stream: mockStream,
+    }
+  }),
 }))
 
 vi.mock('@langchain/core/messages', () => ({
-  HumanMessage: vi.fn().mockImplementation((content) => ({ content, role: 'user' })),
-  SystemMessage: vi.fn().mockImplementation((content) => ({ content, role: 'system' })),
-  AIMessage: vi.fn().mockImplementation((content) => ({ content, role: 'assistant' })),
+  HumanMessage: vi.fn().mockImplementation(function (content) {
+    return { content, role: 'user' }
+  }),
+  SystemMessage: vi.fn().mockImplementation(function (content) {
+    return { content, role: 'system' }
+  }),
+  AIMessage: vi.fn().mockImplementation(function (content) {
+    return { content, role: 'assistant' }
+  }),
 }))
 
 vi.mock('@langchain/core/output_parsers', () => ({
-  StringOutputParser: vi.fn().mockImplementation(() => ({
-    invoke: vi.fn().mockImplementation((response) => response.content),
-  })),
+  StringOutputParser: vi.fn().mockImplementation(function () {
+    return {
+      invoke: vi.fn().mockImplementation((response) => response.content),
+    }
+  }),
 }))
 
 // Now import the advisor after mocks are set up

@@ -20,32 +20,34 @@ import { ValidationError } from '../../src/errors'
 
 // Mock OneClickClient
 vi.mock('../../src/adapters/oneclick-client', () => ({
-  OneClickClient: vi.fn().mockImplementation(() => ({
-    quote: vi.fn().mockResolvedValue({
-      quoteId: 'quote_123',
-      depositAddress: '0xdeposit',
-      amountIn: '1000000000000000000000000',
-      amountInFormatted: '1.0',
-      amountOut: '300000000000000000',
-      amountOutFormatted: '0.3',
-      deadline: '2024-12-01T00:00:00.000Z',
-      timeEstimate: 120,
-      signature: '0xsig',
-    }),
-    dryQuote: vi.fn().mockResolvedValue({
-      quoteId: 'dry_quote_123',
-      amountIn: '1000000000000000000000000',
-      amountOut: '300000000000000000',
-    }),
-    getStatus: vi.fn().mockResolvedValue({
-      status: OneClickSwapStatus.SUCCESS,
-    }),
-    submitDeposit: vi.fn().mockResolvedValue({}),
-    waitForStatus: vi.fn().mockResolvedValue({
-      status: OneClickSwapStatus.SUCCESS,
-      settlementTxHash: '0xsettlement',
-    }),
-  })),
+  OneClickClient: vi.fn().mockImplementation(function () {
+    return {
+      quote: vi.fn().mockResolvedValue({
+        quoteId: 'quote_123',
+        depositAddress: '0xdeposit',
+        amountIn: '1000000000000000000000000',
+        amountInFormatted: '1.0',
+        amountOut: '300000000000000000',
+        amountOutFormatted: '0.3',
+        deadline: '2024-12-01T00:00:00.000Z',
+        timeEstimate: 120,
+        signature: '0xsig',
+      }),
+      dryQuote: vi.fn().mockResolvedValue({
+        quoteId: 'dry_quote_123',
+        amountIn: '1000000000000000000000000',
+        amountOut: '300000000000000000',
+      }),
+      getStatus: vi.fn().mockResolvedValue({
+        status: OneClickSwapStatus.SUCCESS,
+      }),
+      submitDeposit: vi.fn().mockResolvedValue({}),
+      waitForStatus: vi.fn().mockResolvedValue({
+        status: OneClickSwapStatus.SUCCESS,
+        settlementTxHash: '0xsettlement',
+      }),
+    }
+  }),
 }))
 
 describe('NEARIntentsAdapter', () => {
