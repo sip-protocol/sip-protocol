@@ -34,8 +34,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Run tests with coverage
+      - name: Run SDK tests with coverage
         run: pnpm -r --filter @sip-protocol/sdk test -- --run --coverage
+
+      - name: Run tests (other packages)
+        run: pnpm -r --filter '!@sip-protocol/sdk' --if-present test -- --run
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6
