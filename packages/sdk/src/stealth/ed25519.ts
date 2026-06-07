@@ -195,11 +195,11 @@ export function generateEd25519StealthMetaAddress(
 /**
  * Generate a one-time ed25519 stealth address for a recipient
  *
- * Algorithm (DKSAP for ed25519):
+ * Algorithm (DKSAP for ed25519, canonical EIP-5564):
  * 1. Generate ephemeral keypair (r, R = r*G)
- * 2. Compute shared secret: S = r * P_spend (ephemeral scalar * spending public)
+ * 2. Compute shared secret: S = r * P_view (ephemeral scalar * viewing public)
  * 3. Hash shared secret: h = SHA256(S)
- * 4. Derive stealth public key: P_stealth = P_view + h*G
+ * 4. Derive stealth public key: P_stealth = P_spend + h*G
  */
 export function generateEd25519StealthAddress(
   recipientMetaAddress: StealthMetaAddress,
@@ -226,14 +226,14 @@ export function generateEd25519StealthAddress(
       throw new Error('CRITICAL: Zero ephemeral scalar after reduction - investigate RNG')
     }
 
-    // S = ephemeral_scalar * P_spend
-    const spendingPoint = ed25519.ExtendedPoint.fromHex(spendingKeyBytes)
-    const sharedSecretPoint = spendingPoint.multiply(ephemeralScalar)
+    // S = ephemeral_scalar * P_view  (canonical EIP-5564: ECDH on the VIEWING key)
+    const viewingPoint = ed25519.ExtendedPoint.fromHex(viewingKeyBytes)
+    const sharedSecretPoint = viewingPoint.multiply(ephemeralScalar)
 
     // Hash the shared secret point
     const sharedSecretHash = sha256(sharedSecretPoint.toRawBytes())
 
-    // Derive stealth public key: P_stealth = P_view + hash(S)*G
+    // Derive stealth public key: P_stealth = P_spend + hash(S)*G
     const hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
     if (hashScalar === 0n) {
       throw new Error('CRITICAL: Zero hash scalar after reduction - investigate hash computation')
@@ -242,9 +242,9 @@ export function generateEd25519StealthAddress(
     // Compute hash(S) * G
     const hashTimesG = ed25519.ExtendedPoint.BASE.multiply(hashScalar)
 
-    // Add to viewing key: P_stealth = P_view + hash(S)*G
-    const viewingPoint = ed25519.ExtendedPoint.fromHex(viewingKeyBytes)
-    const stealthPoint = viewingPoint.add(hashTimesG)
+    // Add to spending key: P_stealth = P_spend + hash(S)*G
+    const spendingPoint = ed25519.ExtendedPoint.fromHex(spendingKeyBytes)
+    const stealthPoint = spendingPoint.add(hashTimesG)
     const stealthAddressBytes = stealthPoint.toRawBytes()
 
     // Compute view tag
@@ -266,7 +266,9 @@ export function generateEd25519StealthAddress(
 // ─── Private Key Derivation ─────────────────────────────────────────────────
 
 /**
- * Derive the private key for an ed25519 stealth address
+ * Derive the private key for an ed25519 stealth address (canonical EIP-5564)
+ *
+ * Requires BOTH the spending and viewing private keys (spending authority).
  *
  * **IMPORTANT: Derived Key Format**
  *
@@ -278,6 +280,86 @@ export function generateEd25519StealthAddress(
  * ```
  */
 export function deriveEd25519StealthPrivateKey(
+  stealthAddress: StealthAddress,
+  spendingPrivateKey: HexString,
+  viewingPrivateKey: HexString,
+): StealthAddressRecovery {
+  validateEd25519StealthAddress(stealthAddress)
+
+  if (!isValidPrivateKey(spendingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'spendingPrivateKey'
+    )
+  }
+
+  if (!isValidPrivateKey(viewingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'viewingPrivateKey'
+    )
+  }
+
+  const spendingPrivBytes = hexToBytes(spendingPrivateKey.slice(2))
+  const viewingPrivBytes = hexToBytes(viewingPrivateKey.slice(2))
+  const ephemeralPubBytes = hexToBytes(stealthAddress.ephemeralPublicKey.slice(2))
+
+  try {
+    // Compute shared secret: S = viewing_scalar * R  (canonical: ECDH on the viewing key)
+    const rawViewingScalar = getEd25519Scalar(viewingPrivBytes)
+    const viewingScalar = rawViewingScalar % ED25519_ORDER
+    if (viewingScalar === 0n) {
+      throw new Error('CRITICAL: Zero viewing scalar after reduction - investigate key derivation')
+    }
+    const ephemeralPoint = ed25519.ExtendedPoint.fromHex(ephemeralPubBytes)
+    const sharedSecretPoint = ephemeralPoint.multiply(viewingScalar)
+
+    // Hash the shared secret
+    const sharedSecretHash = sha256(sharedSecretPoint.toRawBytes())
+
+    // Get spending scalar and reduce mod L
+    const rawSpendingScalar = getEd25519Scalar(spendingPrivBytes)
+    const spendingScalar = rawSpendingScalar % ED25519_ORDER
+    if (spendingScalar === 0n) {
+      throw new Error('CRITICAL: Zero spending scalar after reduction - investigate key derivation')
+    }
+
+    // Derive stealth private key: s_stealth = s_spend + hash(S) mod L  (canonical)
+    const hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
+    if (hashScalar === 0n) {
+      throw new Error('CRITICAL: Zero hash scalar after reduction - investigate hash computation')
+    }
+    const stealthPrivateScalar = (spendingScalar + hashScalar) % ED25519_ORDER
+    if (stealthPrivateScalar === 0n) {
+      throw new Error('CRITICAL: Zero stealth scalar after reduction - investigate key derivation')
+    }
+
+    // Convert to bytes (little-endian for ed25519)
+    const stealthPrivateKey = bigIntToBytesLE(stealthPrivateScalar, 32)
+
+    const result = {
+      stealthAddress: stealthAddress.address,
+      ephemeralPublicKey: stealthAddress.ephemeralPublicKey,
+      privateKey: `0x${bytesToHex(stealthPrivateKey)}` as HexString,
+    }
+
+    secureWipe(stealthPrivateKey)
+
+    return result
+  } finally {
+    secureWipeAll(spendingPrivBytes, viewingPrivBytes)
+  }
+}
+
+/**
+ * @deprecated Legacy SIP:1 swapped-scheme derivation — claim-side back-compat ONLY.
+ *
+ * Recovers funds sent to stealth addresses generated before the canonical
+ * EIP-5564 flip (legacy scheme: ECDH used the spending key, `S = s_spend * R`,
+ * and the private key was `p = s_view + H(S)`). Used only when claiming a
+ * `SIP:1` announcement. New (SIP:2) sends use {@link deriveEd25519StealthPrivateKey}.
+ */
+export function deriveEd25519StealthPrivateKeyV1(
   stealthAddress: StealthAddress,
   spendingPrivateKey: HexString,
   viewingPrivateKey: HexString,
@@ -354,9 +436,88 @@ export function deriveEd25519StealthPrivateKey(
 // ─── Address Checking ───────────────────────────────────────────────────────
 
 /**
- * Check if an ed25519 stealth address was intended for this recipient
+ * Check if an ed25519 stealth address is ours — canonical EIP-5564 view-only.
+ *
+ * Requires only the viewing PRIVATE key + the spending PUBLIC key, so a viewing
+ * key can be delegated for scanning without granting spend authority. Never
+ * touches the spending private key.
+ *
+ * @param stealthAddress - Stealth address to check
+ * @param viewingPrivateKey - Recipient's viewing private key
+ * @param spendingPublicKey - Recipient's spending PUBLIC key (meta-address spendingKey)
+ * @returns true if this address belongs to the recipient
  */
 export function checkEd25519StealthAddress(
+  stealthAddress: StealthAddress,
+  viewingPrivateKey: HexString,
+  spendingPublicKey: HexString,
+): boolean {
+  validateEd25519StealthAddress(stealthAddress)
+
+  if (!isValidPrivateKey(viewingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'viewingPrivateKey'
+    )
+  }
+
+  if (!isValidEd25519PublicKey(spendingPublicKey)) {
+    throw new ValidationError(
+      'must be a valid ed25519 public key (32 bytes)',
+      'spendingPublicKey'
+    )
+  }
+
+  const viewingPrivBytes = hexToBytes(viewingPrivateKey.slice(2))
+  const spendingPubBytes = hexToBytes(spendingPublicKey.slice(2))
+  const ephemeralPubBytes = hexToBytes(stealthAddress.ephemeralPublicKey.slice(2))
+
+  try {
+    // Compute shared secret: S = viewing_scalar * R  (canonical: ECDH on the viewing key)
+    const rawViewingScalar = getEd25519Scalar(viewingPrivBytes)
+    const viewingScalar = rawViewingScalar % ED25519_ORDER
+    if (viewingScalar === 0n) {
+      throw new Error('CRITICAL: Zero viewing scalar after reduction - investigate key derivation')
+    }
+    const ephemeralPoint = ed25519.ExtendedPoint.fromHex(ephemeralPubBytes)
+    const sharedSecretPoint = ephemeralPoint.multiply(viewingScalar)
+
+    // Hash the shared secret
+    const sharedSecretHash = sha256(sharedSecretPoint.toRawBytes())
+
+    // View tag check (fast reject)
+    if (sharedSecretHash[0] !== stealthAddress.viewTag) {
+      return false
+    }
+
+    const hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
+    if (hashScalar === 0n) {
+      throw new Error('CRITICAL: Zero hash scalar after reduction - investigate hash computation')
+    }
+
+    // Expected address: P_stealth = P_spend + hash(S)*G  (no spending private key needed)
+    const hashTimesG = ed25519.ExtendedPoint.BASE.multiply(hashScalar)
+    const spendingPoint = ed25519.ExtendedPoint.fromHex(spendingPubBytes)
+    const expectedPoint = spendingPoint.add(hashTimesG)
+    const expectedPubKeyBytes = expectedPoint.toRawBytes()
+
+    // Compare with provided stealth address
+    const providedAddress = hexToBytes(stealthAddress.address.slice(2))
+
+    return bytesToHex(expectedPubKeyBytes) === bytesToHex(providedAddress)
+  } finally {
+    secureWipe(viewingPrivBytes)
+  }
+}
+
+/**
+ * @deprecated Legacy SIP:1 full-wallet check — requires BOTH private keys.
+ *
+ * For detecting/claiming pre-flip (SIP:1) announcements only (legacy swapped
+ * scheme: `S = s_spend * R`, address built on the viewing key). New code should
+ * use the view-only {@link checkEd25519StealthAddress}.
+ */
+export function checkEd25519StealthAddressV1(
   stealthAddress: StealthAddress,
   spendingPrivateKey: HexString,
   viewingPrivateKey: HexString,
