@@ -95,8 +95,9 @@ const { metaAddress, spendingPrivateKey, viewingPrivateKey } =
 // Sender creates one-time address
 const { stealthAddress } = generateStealthAddress(metaAddress)
 
-// Recipient scans and claims
-if (checkStealthAddress(stealthAddress, spendingPrivateKey, viewingPrivateKey)) {
+// Recipient scans (view-only: viewing PRIVATE key + spending PUBLIC key)
+if (checkStealthAddress(stealthAddress, viewingPrivateKey, metaAddress.spendingKey)) {
+  // ...then derives the private key to claim (needs both private keys)
   const recovery = deriveStealthPrivateKey(stealthAddress, spendingPrivateKey, viewingPrivateKey)
   // Use recovery.privateKey to claim funds
 }

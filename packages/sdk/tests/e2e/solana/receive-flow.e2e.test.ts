@@ -132,8 +132,8 @@ describe('E2E: Solana Receive Flow', () => {
       // Recipient checks if address is theirs
       const isForMe = checkStealthAddress(
         stealth.stealthAddress,
-        recipient.spendingPrivateKey,
-        recipient.viewingPrivateKey
+        recipient.viewingPrivateKey,
+        recipient.metaAddress.spendingKey
       )
 
       expect(isForMe).toBe(true)
@@ -149,8 +149,8 @@ describe('E2E: Solana Receive Flow', () => {
       // recipient2 checks (should fail)
       const isForRecipient2 = checkStealthAddress(
         stealth.stealthAddress,
-        recipient2.spendingPrivateKey,
-        recipient2.viewingPrivateKey
+        recipient2.viewingPrivateKey,
+        recipient2.metaAddress.spendingKey
       )
 
       expect(isForRecipient2).toBe(false)
@@ -168,8 +168,8 @@ describe('E2E: Solana Receive Flow', () => {
       const allMine = payments.every((p) =>
         checkStealthAddress(
           p.stealthAddress,
-          recipient.spendingPrivateKey,
-          recipient.viewingPrivateKey
+          recipient.viewingPrivateKey,
+          recipient.metaAddress.spendingKey
         )
       )
 
@@ -227,8 +227,8 @@ describe('E2E: Solana Receive Flow', () => {
       // 3. Bob scans and detects the payment
       const isForBob = checkStealthAddress(
         stealthForBob.stealthAddress,
-        bob.spendingPrivateKey,
-        bob.viewingPrivateKey
+        bob.viewingPrivateKey,
+        bob.metaAddress.spendingKey
       )
       expect(isForBob).toBe(true)
 
@@ -255,8 +255,8 @@ describe('E2E: Solana Receive Flow', () => {
       // Bob detects
       const isForBob = checkStealthAddress(
         stealth.stealthAddress,
-        bobKeys.spendingPrivateKey,
-        bobKeys.viewingPrivateKey
+        bobKeys.viewingPrivateKey,
+        bobKeys.metaAddress.spendingKey
       )
       expect(isForBob).toBe(true)
     })
@@ -278,8 +278,8 @@ describe('E2E: Solana Receive Flow', () => {
       const allValid = payments.every((p) =>
         checkStealthAddress(
           p.stealthAddress,
-          recipient.spendingPrivateKey,
-          recipient.viewingPrivateKey
+          recipient.viewingPrivateKey,
+          recipient.metaAddress.spendingKey
         )
       )
       expect(allValid).toBe(true)
@@ -289,11 +289,11 @@ describe('E2E: Solana Receive Flow', () => {
       const recipient = generateStealthMetaAddress('solana')
       const stealth = generateStealthAddress(recipient.metaAddress)
 
-      // Third party with only viewing key can detect but not spend
+      // Third party with only viewing key (+ spending public key) can detect but not spend
       const canDetect = checkStealthAddress(
         stealth.stealthAddress,
-        recipient.spendingPrivateKey, // Need spending key for full check
-        recipient.viewingPrivateKey
+        recipient.viewingPrivateKey,
+        recipient.metaAddress.spendingKey // Spending PUBLIC key only — no spend authority
       )
       expect(canDetect).toBe(true)
 

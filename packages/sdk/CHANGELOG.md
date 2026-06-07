@@ -1,5 +1,30 @@
 # @sip-protocol/sdk
 
+## 0.10.0
+
+### Minor Changes
+
+- **BREAKING (security):** Canonical EIP-5564 stealth scheme — fixes view-only scanning ([#1099](https://github.com/sip-protocol/sip-protocol/issues/1099))
+
+  The secp256k1 and ed25519 stealth implementations previously swapped the two EIP-5564 key roles (ECDH on the spending key; one-time address built on the viewing key), which made view-only scanning cryptographically impossible — every "scan with the viewing key" surface silently failed. Both curves are now canonical: the ECDH shared secret is computed from the **viewing** key (`S = r·K_view`) and the one-time address/key is built on the **spending** key (`A = K_spend + H(S)·G`). View-only delegation now works as advertised.
+
+  **Breaking API change** — every `check*StealthAddress` is now **view-only** and takes `(stealthAddress, viewingPrivateKey, spendingPublicKey)` (previously `(stealthAddress, spendingPrivateKey, viewingPrivateKey)`):
+  - `checkStealthAddress`, `checkEd25519StealthAddress`, `checkSecp256k1StealthAddress`
+  - `checkNEARStealthAddress`, `checkEthereumStealthAddress`, `checkSuiStealthAddress`, `checkAptosStealthAddress`
+  - `EthereumPrivacyAdapter.checkStealthAddress`, `NEARPrivacyAdapter.checkStealthAddress`, `SuiStealthService.checkStealthAddress`, `AptosStealthService.checkStealthAddress`
+
+  `deriveStealthPrivateKey` / `derive*StealthPrivateKey` signatures are **unchanged** (recovering a spendable key still requires both private keys).
+
+  **Now correct with no call-site change:** `scanForPayments`, `StealthScanner`, the webhook provider, and `@sip-protocol/react` `useScanPayments` already passed `(viewingPrivateKey, spendingPublicKey)`.
+
+  **Solana announcements** are now emitted with the `SIP:2:` prefix; `SIP:1:` announcements remain parseable (`parseAnnouncement` returns a `version`).
+
+  **Back-compat:** legacy `SIP:1` (pre-flip) funds remain claimable via the preserved `deriveStealthPrivateKeyV1`, `deriveEd25519StealthPrivateKeyV1`, `deriveSecp256k1StealthPrivateKeyV1`, `checkEd25519StealthAddressV1`, and `checkSecp256k1StealthAddressV1`. `claimStealthPayment` accepts a `version` (`'1' | '2'`) to route derivation.
+
+### Removed
+
+- Removed the unused Solana ephemeral stealth helpers `computeStealthAddress`, `ManagedEphemeralKeypair.useForStealthAddress`, `formatEphemeralAnnouncement`, `parseEphemeralAnnouncement`, and the `EphemeralKeyUsageResult` type. They were non-canonical (little-endian hash tweak + `SIP:1` announcement tag) and produced stealth addresses that are undetectable and unspendable under the canonical EIP-5564 scheme. Use `generateStealthAddress`, `createAnnouncementMemo`, and `scanForPayments` instead. The safe ephemeral key-generation/disposal utilities (`generateEphemeralKeypair`, `generateManagedEphemeralKeypair`, `batchGenerate*`, `disposeEphemeralKeypairs`, `wipeEphemeralPrivateKey`) remain.
+
 ## 0.9.0
 
 ### Minor Changes

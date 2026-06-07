@@ -146,8 +146,8 @@ describe('Ethereum Stealth Addresses', () => {
 
       const isOwner = checkEthereumStealthAddress(
         stealth.stealthAddress,
-        meta.spendingPrivateKey,
-        meta.viewingPrivateKey
+        meta.viewingPrivateKey,
+        meta.metaAddress.spendingKey
       )
 
       expect(isOwner).toBe(true)
@@ -160,8 +160,8 @@ describe('Ethereum Stealth Addresses', () => {
 
       const isOwner = checkEthereumStealthAddress(
         stealth.stealthAddress,
-        meta2.spendingPrivateKey,
-        meta2.viewingPrivateKey
+        meta2.viewingPrivateKey,
+        meta2.metaAddress.spendingKey
       )
 
       expect(isOwner).toBe(false)

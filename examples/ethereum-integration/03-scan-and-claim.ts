@@ -100,11 +100,12 @@ async function main() {
     }
 
     // Check if this payment is for us
-    // The SDK automatically uses view tag for optimization
+    // The SDK automatically uses view tag for optimization.
+    // View-only scan: viewing PRIVATE key + spending PUBLIC key (EIP-5564)
     const isOurs = checkStealthAddress(
       stealthAddress,
-      recipient.spendingPrivateKey,
-      recipient.viewingPrivateKey
+      recipient.viewingPrivateKey,
+      recipient.metaAddress.spendingKey
     )
 
     if (isOurs) {
@@ -312,7 +313,8 @@ Production scanning pattern:
         viewTag: extractViewTag(log.args.ephemeralPubKey),
       }
 
-      if (checkStealthAddress(stealthAddress, spendingKey, viewingKey)) {
+      // View-only scan: viewing PRIVATE key + spending PUBLIC key (EIP-5564)
+      if (checkStealthAddress(stealthAddress, viewingPrivateKey, spendingPublicKey)) {
         // Found a payment!
         await processPayment(log)
       }

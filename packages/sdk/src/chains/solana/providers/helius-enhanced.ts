@@ -38,7 +38,7 @@ import {
   SOLANA_ADDRESS_MAX_LENGTH,
   HELIUS_API_KEY_MIN_LENGTH,
   sanitizeUrl,
-  SIP_MEMO_PREFIX,
+  SIP_MEMO_PREFIX_ANY,
   getExplorerUrl,
 } from '../constants'
 import type {
@@ -324,7 +324,7 @@ export class HeliusEnhanced {
    * Extract SIP metadata from a transaction
    *
    * Parses memo program instructions to find SIP announcements.
-   * SIP memo format: SIP:1:<ephemeral_pubkey_base58>:<view_tag_hex>
+   * SIP memo format: SIP:<version>:<ephemeral_pubkey_base58>:<view_tag_hex>
    *
    * @param tx - Enhanced transaction
    * @returns SIP metadata if found
@@ -339,13 +339,13 @@ export class HeliusEnhanced {
     const description = tx.description || ''
 
     // Check if this looks like a SIP transaction
-    // SIP transactions have a memo with format: SIP:1:<ephemeral_pubkey>:<view_tag>
-    if (description.includes(SIP_MEMO_PREFIX) || description.includes('SIP:')) {
+    // SIP transactions have a memo with format: SIP:<version>:<ephemeral_pubkey>:<view_tag>
+    if (description.includes(SIP_MEMO_PREFIX_ANY)) {
       metadata.isSIPTransaction = true
 
       // Try to extract SIP memo data
-      // The memo format is: SIP:1:<ephemeral_pubkey_base58>:<view_tag_hex>
-      const sipMemoMatch = description.match(/SIP:1:([A-Za-z0-9]{32,44}):([0-9a-fA-F]{2})/)
+      // The memo format is: SIP:<version>:<ephemeral_pubkey_base58>:<view_tag_hex>
+      const sipMemoMatch = description.match(/SIP:[12]:([A-Za-z0-9]{32,44}):([0-9a-fA-F]{1,2})/)
       if (sipMemoMatch) {
         metadata.ephemeralPubKey = sipMemoMatch[1]
         metadata.viewTag = parseInt(sipMemoMatch[2], 16)

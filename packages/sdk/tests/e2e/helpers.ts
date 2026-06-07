@@ -367,8 +367,8 @@ export function verifyStealthAddressClaim(
 ): boolean {
   return checkStealthAddress(
     stealthAddress.stealthAddress,
-    stealthKeys.spendingPrivateKey,
-    stealthKeys.viewingPrivateKey
+    stealthKeys.viewingPrivateKey,
+    stealthKeys.metaAddress.spendingKey
   )
 }
 

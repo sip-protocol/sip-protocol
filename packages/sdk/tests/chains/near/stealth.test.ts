@@ -203,8 +203,8 @@ describe('NEAR Stealth Address Generation (M17-NEAR-01)', () => {
 
       const isMatch = checkNEARStealthAddress(
         stealthAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isMatch).toBe(true)
@@ -216,8 +216,8 @@ describe('NEAR Stealth Address Generation (M17-NEAR-01)', () => {
 
       const isMatch = checkNEARStealthAddress(
         stealthAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isMatch).toBe(false)
@@ -235,8 +235,8 @@ describe('NEAR Stealth Address Generation (M17-NEAR-01)', () => {
 
       const isMatch = checkNEARStealthAddress(
         modifiedAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isMatch).toBe(false)
@@ -459,8 +459,8 @@ describe('End-to-End NEAR Stealth Flow', () => {
     // 5. Recipient scans and detects payment
     const isForRecipient = checkNEARStealthAddress(
       senderResult.stealthAddress,
-      recipientResult.spendingPrivateKey,
-      recipientResult.viewingPrivateKey
+      recipientResult.viewingPrivateKey,
+      recipientResult.metaAddress.spendingKey
     )
     expect(isForRecipient).toBe(true)
 
@@ -486,8 +486,8 @@ describe('End-to-End NEAR Stealth Flow', () => {
     // Recipient can still verify
     const isForRecipient = checkNEARStealthAddress(
       senderResult.stealthAddress,
-      recipientResult.spendingPrivateKey,
-      recipientResult.viewingPrivateKey
+      recipientResult.viewingPrivateKey,
+      recipientResult.metaAddress.spendingKey
     )
     expect(isForRecipient).toBe(true)
   })

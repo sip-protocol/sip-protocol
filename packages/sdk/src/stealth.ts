@@ -17,6 +17,7 @@ export {
   generateStealthMetaAddress,
   generateStealthAddress,
   deriveStealthPrivateKey,
+  deriveStealthPrivateKeyV1,
   checkStealthAddress,
 
   // Chain detection
@@ -27,10 +28,16 @@ export {
   generateEd25519StealthMetaAddress,
   generateEd25519StealthAddress,
   deriveEd25519StealthPrivateKey,
+  deriveEd25519StealthPrivateKeyV1,
   checkEd25519StealthAddress,
+  checkEd25519StealthAddressV1,
 
   // secp256k1 (Ethereum, Polygon, etc.)
   publicKeyToEthAddress,
+
+  // Legacy SIP:1 back-compat (claim/scan of pre-flip announcements)
+  deriveSecp256k1StealthPrivateKeyV1,
+  checkSecp256k1StealthAddressV1,
 
   // Meta-address encoding
   encodeStealthMetaAddress,

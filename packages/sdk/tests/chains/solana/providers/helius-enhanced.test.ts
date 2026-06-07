@@ -283,6 +283,66 @@ describe('HeliusEnhanced', () => {
       expect(results[0].sipMetadata.viewTag).toBe(0xab)
     })
 
+    it('should extract SIP:2 (canonical) metadata from transactions', async () => {
+      const sipMemoTx: EnhancedTransaction = {
+        signature: testSignature,
+        description: 'SIP:2:7xK8kJcT3FnKQYFzw2VNcxn5TRrxS2qvFkp3kT1eFB9p:ab Transfer',
+        type: 'TRANSFER',
+        source: 'SYSTEM_PROGRAM',
+        fee: 5000,
+        feePayer: testAddress,
+        slot: 123456789,
+        timestamp: 1678886400,
+        nativeTransfers: [],
+        tokenTransfers: [],
+        accountData: [],
+        events: {},
+        transactionError: null,
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [sipMemoTx],
+      })
+
+      const helius = new HeliusEnhanced({ apiKey: validApiKey })
+      const results = await helius.getSIPTransactionHistory(testAddress)
+
+      expect(results).toHaveLength(1)
+      expect(results[0].sipMetadata.isSIPTransaction).toBe(true)
+      expect(results[0].sipMetadata.ephemeralPubKey).toBe('7xK8kJcT3FnKQYFzw2VNcxn5TRrxS2qvFkp3kT1eFB9p')
+      expect(results[0].sipMetadata.viewTag).toBe(0xab)
+    })
+
+    it('should extract a single-hex-digit view tag', async () => {
+      const sipMemoTx: EnhancedTransaction = {
+        signature: testSignature,
+        description: 'SIP:2:7xK8kJcT3FnKQYFzw2VNcxn5TRrxS2qvFkp3kT1eFB9p:a Transfer',
+        type: 'TRANSFER',
+        source: 'SYSTEM_PROGRAM',
+        fee: 5000,
+        feePayer: testAddress,
+        slot: 123456789,
+        timestamp: 1678886400,
+        nativeTransfers: [],
+        tokenTransfers: [],
+        accountData: [],
+        events: {},
+        transactionError: null,
+      }
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [sipMemoTx],
+      })
+
+      const helius = new HeliusEnhanced({ apiKey: validApiKey })
+      const results = await helius.getSIPTransactionHistory(testAddress)
+
+      expect(results[0].sipMetadata.isSIPTransaction).toBe(true)
+      expect(results[0].sipMetadata.viewTag).toBe(0x0a)
+    })
+
     it('should mark non-SIP transactions', async () => {
       const normalTx: EnhancedTransaction = {
         signature: testSignature,

@@ -179,8 +179,8 @@ describe('Stealth Addresses', () => {
 
       const isOurs = checkStealthAddress(
         stealthAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isOurs).toBe(true)
@@ -196,8 +196,8 @@ describe('Stealth Addresses', () => {
       // Check with recipient2's keys - should fail
       const isTheirs = checkStealthAddress(
         stealthAddress,
-        recipient2.spendingPrivateKey,
-        recipient2.viewingPrivateKey
+        recipient2.viewingPrivateKey,
+        recipient2.metaAddress.spendingKey
       )
 
       expect(isTheirs).toBe(false)
@@ -218,8 +218,8 @@ describe('Stealth Addresses', () => {
       // Should fail fast due to view tag mismatch
       const result = checkStealthAddress(
         modifiedAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(result).toBe(false)
@@ -238,7 +238,7 @@ describe('Stealth Addresses', () => {
 
       // All should be ours
       for (const addr of addresses) {
-        expect(checkStealthAddress(addr, spendingPrivateKey, viewingPrivateKey)).toBe(true)
+        expect(checkStealthAddress(addr, viewingPrivateKey, metaAddress.spendingKey)).toBe(true)
       }
     })
   })
@@ -312,8 +312,8 @@ describe('Stealth Addresses', () => {
       // 4. Recipient scans and finds their address
       const isOurs = checkStealthAddress(
         stealthAddress,
-        recipient.spendingPrivateKey,
-        recipient.viewingPrivateKey
+        recipient.viewingPrivateKey,
+        recipient.metaAddress.spendingKey
       )
       expect(isOurs).toBe(true)
 
@@ -346,8 +346,8 @@ describe('Stealth Addresses', () => {
         expect(
           checkStealthAddress(
             stealthAddress,
-            recipient.spendingPrivateKey,
-            recipient.viewingPrivateKey
+            recipient.viewingPrivateKey,
+            recipient.metaAddress.spendingKey
           )
         ).toBe(true)
 

@@ -109,10 +109,11 @@ const { stealthAddress, sharedSecret } = generateStealthAddress(metaAddress)
 ### 3. Scan for Payments
 
 ```typescript
+// View-only scan: viewing PRIVATE key + spending PUBLIC key (EIP-5564)
 const isOurs = checkStealthAddress(
   stealthAddress,
-  spendingPrivateKey,
-  viewingPrivateKey
+  viewingPrivateKey,
+  metaAddress.spendingKey
 )
 
 if (isOurs) {

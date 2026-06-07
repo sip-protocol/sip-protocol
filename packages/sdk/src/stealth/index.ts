@@ -30,14 +30,18 @@ import {
   generateEd25519StealthMetaAddress,
   generateEd25519StealthAddress,
   deriveEd25519StealthPrivateKey,
+  deriveEd25519StealthPrivateKeyV1,
   checkEd25519StealthAddress,
+  checkEd25519StealthAddressV1,
 } from './ed25519'
 
 import {
   generateSecp256k1StealthMetaAddress,
   generateSecp256k1StealthAddress,
   deriveSecp256k1StealthPrivateKey,
+  deriveSecp256k1StealthPrivateKeyV1,
   checkSecp256k1StealthAddress,
+  checkSecp256k1StealthAddressV1,
   publicKeyToEthAddress,
   validateSecp256k1StealthMetaAddress,
   validateSecp256k1StealthAddress,
@@ -167,31 +171,62 @@ export function deriveStealthPrivateKey(
 }
 
 /**
+ * Derive the stealth private key for a LEGACY SIP:1 announcement (back-compat)
+ *
+ * Routes to the pre-flip swapped-scheme derivation. Use only when claiming funds
+ * announced before the canonical EIP-5564 flip; new (SIP:2) payments use
+ * {@link deriveStealthPrivateKey}.
+ *
+ * @param stealthAddress - The legacy stealth address to recover
+ * @param spendingPrivateKey - Recipient's spending private key
+ * @param viewingPrivateKey - Recipient's viewing private key
+ * @returns Recovery data including the derived private key
+ */
+export function deriveStealthPrivateKeyV1(
+  stealthAddress: StealthAddress,
+  spendingPrivateKey: HexString,
+  viewingPrivateKey: HexString,
+): StealthAddressRecovery {
+  const addressHex = stealthAddress.address.slice(2)
+
+  if (addressHex.length === 64) {
+    // 32 bytes = ed25519
+    return deriveEd25519StealthPrivateKeyV1(stealthAddress, spendingPrivateKey, viewingPrivateKey)
+  }
+
+  // Default to secp256k1
+  return deriveSecp256k1StealthPrivateKeyV1(stealthAddress, spendingPrivateKey, viewingPrivateKey)
+}
+
+/**
  * Check if a stealth address was intended for this recipient
  *
  * Automatically dispatches to the correct curve implementation.
  *
+ * Canonical EIP-5564 view-only check: requires only the recipient's viewing
+ * private key plus their spending PUBLIC key (no spending private key needed).
+ *
  * @param stealthAddress - Stealth address to check
- * @param spendingPrivateKey - Recipient's spending private key
  * @param viewingPrivateKey - Recipient's viewing private key
+ * @param spendingPublicKey - Recipient's spending public key (meta-address spendingKey)
  * @returns true if this address belongs to the recipient
  * @throws {ValidationError} If any input is invalid
  */
 export function checkStealthAddress(
   stealthAddress: StealthAddress,
-  spendingPrivateKey: HexString,
   viewingPrivateKey: HexString,
+  spendingPublicKey: HexString,
 ): boolean {
   // Try to detect curve from address length
   const addressHex = stealthAddress.address.slice(2)
 
   if (addressHex.length === 64) {
     // 32 bytes = ed25519
-    return checkEd25519StealthAddress(stealthAddress, spendingPrivateKey, viewingPrivateKey)
+    return checkEd25519StealthAddress(stealthAddress, viewingPrivateKey, spendingPublicKey)
   }
 
   // Default to secp256k1
-  return checkSecp256k1StealthAddress(stealthAddress, spendingPrivateKey, viewingPrivateKey)
+  return checkSecp256k1StealthAddress(stealthAddress, viewingPrivateKey, spendingPublicKey)
 }
 
 // ─── Re-exports ─────────────────────────────────────────────────────────────
@@ -205,6 +240,14 @@ export {
   generateEd25519StealthAddress,
   deriveEd25519StealthPrivateKey,
   checkEd25519StealthAddress,
+}
+
+// Legacy SIP:1 back-compat (claim/scan of pre-flip announcements)
+export {
+  deriveEd25519StealthPrivateKeyV1,
+  checkEd25519StealthAddressV1,
+  deriveSecp256k1StealthPrivateKeyV1,
+  checkSecp256k1StealthAddressV1,
 }
 
 // secp256k1 (Ethereum, Polygon, etc.)

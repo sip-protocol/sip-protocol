@@ -176,8 +176,8 @@ describe('SIP Protocol Full Flow', () => {
       // 4. Recipient scans and finds their payment
       const isOurs = checkStealthAddress(
         stealthAddress,
-        recipient.spendingPrivateKey,
-        recipient.viewingPrivateKey
+        recipient.viewingPrivateKey,
+        recipient.metaAddress.spendingKey
       )
       expect(isOurs).toBe(true)
 
@@ -496,13 +496,13 @@ describe('SIP Protocol Full Flow', () => {
       // Recipient can identify which account each payment is for
       const isPersonal = checkStealthAddress(
         personalPayment.stealthAddress,
-        personalMeta.spendingPrivateKey,
-        personalMeta.viewingPrivateKey
+        personalMeta.viewingPrivateKey,
+        personalMeta.metaAddress.spendingKey
       )
       const isBusiness = checkStealthAddress(
         businessPayment.stealthAddress,
-        businessMeta.spendingPrivateKey,
-        businessMeta.viewingPrivateKey
+        businessMeta.viewingPrivateKey,
+        businessMeta.metaAddress.spendingKey
       )
 
       // Personal key should identify personal payment
@@ -512,8 +512,8 @@ describe('SIP Protocol Full Flow', () => {
       // Cross-checking should fail
       const crossCheck = checkStealthAddress(
         personalPayment.stealthAddress,
-        businessMeta.spendingPrivateKey,
-        businessMeta.viewingPrivateKey
+        businessMeta.viewingPrivateKey,
+        businessMeta.metaAddress.spendingKey
       )
       expect(crossCheck).toBe(false)
     })

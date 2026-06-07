@@ -267,8 +267,8 @@ describe('E2E: Performance Metrics', () => {
         for (let i = 0; i < iterations; i++) {
           allValid = allValid && checkStealthAddress(
             stealthAddress,
-            meta.spendingPrivateKey,
-            meta.viewingPrivateKey
+            meta.viewingPrivateKey,
+            meta.metaAddress.spendingKey
           )
         }
         return allValid

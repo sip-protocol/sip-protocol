@@ -132,7 +132,7 @@ describe('E2E: Cross-Chain Stealth Addresses', () => {
       expect(sharedSecret.length).toBe(66) // 0x + 64 hex (32 bytes)
 
       // 3. Recipient can detect the stealth address
-      const isOurs = checkStealthAddress(stealthAddress, spendingPrivateKey, viewingPrivateKey)
+      const isOurs = checkStealthAddress(stealthAddress, viewingPrivateKey, metaAddress.spendingKey)
       expect(isOurs).toBe(true)
 
       // 4. Recipient can derive the private key
@@ -196,7 +196,7 @@ describe('E2E: Cross-Chain Stealth Addresses', () => {
       expect(sharedSecret.length).toBe(66)
 
       // 3. Recipient can detect the stealth address
-      const isOurs = checkEd25519StealthAddress(stealthAddress, spendingPrivateKey, viewingPrivateKey)
+      const isOurs = checkEd25519StealthAddress(stealthAddress, viewingPrivateKey, metaAddress.spendingKey)
       expect(isOurs).toBe(true)
 
       // 4. Recipient can derive the private key
@@ -340,14 +340,14 @@ describe('E2E: Cross-Chain Stealth Addresses', () => {
         const { stealthAddress } = generateStealthAddress(metaAddress)
 
         // Both modes should still generate valid stealth addresses
-        expect(checkStealthAddress(stealthAddress, spendingPrivateKey, viewingPrivateKey)).toBe(true)
+        expect(checkStealthAddress(stealthAddress, viewingPrivateKey, metaAddress.spendingKey)).toBe(true)
       })
 
       it('should work with ed25519 stealth addresses', () => {
         const { metaAddress, spendingPrivateKey, viewingPrivateKey } = generateEd25519StealthMetaAddress('solana')
         const { stealthAddress } = generateEd25519StealthAddress(metaAddress)
 
-        expect(checkEd25519StealthAddress(stealthAddress, spendingPrivateKey, viewingPrivateKey)).toBe(true)
+        expect(checkEd25519StealthAddress(stealthAddress, viewingPrivateKey, metaAddress.spendingKey)).toBe(true)
       })
     })
   })
@@ -416,7 +416,7 @@ describe('E2E: Cross-Chain Stealth Addresses', () => {
 
       const start = performance.now()
       for (const addr of addresses) {
-        checkStealthAddress(addr, spendingPrivateKey, viewingPrivateKey)
+        checkStealthAddress(addr, viewingPrivateKey, metaAddress.spendingKey)
       }
       const duration = performance.now() - start
 
@@ -432,7 +432,7 @@ describe('E2E: Cross-Chain Stealth Addresses', () => {
 
       const start = performance.now()
       for (const addr of addresses) {
-        checkEd25519StealthAddress(addr, spendingPrivateKey, viewingPrivateKey)
+        checkEd25519StealthAddress(addr, viewingPrivateKey, metaAddress.spendingKey)
       }
       const duration = performance.now() - start
 
@@ -626,8 +626,8 @@ describe('E2E: Cross-Chain Stealth Addresses', () => {
 
       const isOurs = checkStealthAddress(
         stealthAddress,
-        recipient.spendingPrivateKey,
-        wrongViewingKey
+        wrongViewingKey,
+        recipient.metaAddress.spendingKey
       )
 
       expect(isOurs).toBe(false)

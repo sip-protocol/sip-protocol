@@ -204,12 +204,12 @@ export function deriveNEARStealthPrivateKey(
 /**
  * Check if a NEAR stealth address was intended for this recipient
  *
- * Efficiently checks if a stealth address belongs to the owner of
- * the given spending/viewing keys.
+ * Canonical EIP-5564 view-only check: requires only the recipient's viewing
+ * private key plus their spending PUBLIC key (no spending private key needed).
  *
  * @param stealthAddress - The stealth address to check
- * @param spendingPrivateKey - Recipient's spending private key
  * @param viewingPrivateKey - Recipient's viewing private key
+ * @param spendingPublicKey - Recipient's spending public key (meta-address spendingKey)
  * @returns True if the address belongs to this recipient
  *
  * @example
@@ -217,8 +217,8 @@ export function deriveNEARStealthPrivateKey(
  * // Check if a detected address is for us
  * const isForMe = checkNEARStealthAddress(
  *   announcement.stealthAddress,
- *   mySpendingPrivateKey,
- *   myViewingPrivateKey
+ *   myViewingPrivateKey,
+ *   mySpendingPublicKey
  * )
  *
  * if (isForMe) {
@@ -228,13 +228,13 @@ export function deriveNEARStealthPrivateKey(
  */
 export function checkNEARStealthAddress(
   stealthAddress: StealthAddress,
-  spendingPrivateKey: HexString,
-  viewingPrivateKey: HexString
+  viewingPrivateKey: HexString,
+  spendingPublicKey: HexString
 ): boolean {
   return checkEd25519StealthAddress(
     stealthAddress,
-    spendingPrivateKey,
-    viewingPrivateKey
+    viewingPrivateKey,
+    spendingPublicKey
   )
 }
 

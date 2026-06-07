@@ -363,20 +363,23 @@ export class EthereumPrivacyAdapter {
   /**
    * Check if a stealth address belongs to a recipient
    *
+   * Canonical EIP-5564 view-only check: requires only the recipient's viewing
+   * private key plus their spending PUBLIC key (no spending private key needed).
+   *
    * @param stealthAddress - Stealth address object
-   * @param spendingPrivateKey - Spending private key (hex)
    * @param viewingPrivateKey - Viewing private key (hex)
+   * @param spendingPublicKey - Spending public key (hex, meta-address spendingKey)
    * @returns True if the address belongs to the recipient
    */
   checkStealthAddress(
     stealthAddress: StealthAddress,
-    spendingPrivateKey: HexString,
-    viewingPrivateKey: HexString
+    viewingPrivateKey: HexString,
+    spendingPublicKey: HexString
   ): boolean {
     return checkEthereumStealthAddress(
       stealthAddress,
-      spendingPrivateKey,
-      viewingPrivateKey
+      viewingPrivateKey,
+      spendingPublicKey
     )
   }
 

@@ -66,10 +66,22 @@ export const SOLANA_EXPLORER_URLS = {
 export const MEMO_PROGRAM_ID = 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr'
 
 /**
- * SIP announcement memo prefix
+ * SIP announcement memo prefix (legacy SIP:1, swapped scheme — read-only back-compat)
  * Format: SIP:1:<ephemeral_pubkey_base58>:<view_tag_hex>
  */
 export const SIP_MEMO_PREFIX = 'SIP:1:'
+
+/**
+ * Canonical EIP-5564 (SIP:2) announcement memo prefix — emitted by new sends.
+ * Format: SIP:2:<ephemeral_pubkey_base58>:<view_tag_hex>[:<stealth_address_base58>]
+ */
+export const SIP_MEMO_PREFIX_V2 = 'SIP:2:'
+
+/**
+ * Version-agnostic prefix for filtering announcement logs during scanning.
+ * Matches both SIP:1 (legacy) and SIP:2 (canonical) announcements.
+ */
+export const SIP_MEMO_PREFIX_ANY = 'SIP:'
 
 /**
  * Estimated transaction fee in lamports

@@ -91,8 +91,8 @@ describe('Performance Benchmarks', () => {
       const { result, timeMs } = measureTime(() =>
         checkStealthAddress(
           stealthAddress,
-          recipient.spendingPrivateKey,
-          recipient.viewingPrivateKey
+          recipient.viewingPrivateKey,
+          recipient.metaAddress.spendingKey
         )
       )
       console.log(`  checkStealthAddress(): ${timeMs.toFixed(3)}ms`)
@@ -121,8 +121,8 @@ describe('Performance Benchmarks', () => {
       const { stealthAddress } = generateStealthAddress(recipient.metaAddress)
       const isOurs = checkStealthAddress(
         stealthAddress,
-        recipient.spendingPrivateKey,
-        recipient.viewingPrivateKey
+        recipient.viewingPrivateKey,
+        recipient.metaAddress.spendingKey
       )
       const recovery = deriveStealthPrivateKey(
         stealthAddress,
@@ -206,8 +206,8 @@ describe('Performance Benchmarks', () => {
         if (
           checkStealthAddress(
             addr,
-            recipient.spendingPrivateKey,
-            recipient.viewingPrivateKey
+            recipient.viewingPrivateKey,
+            recipient.metaAddress.spendingKey
           )
         ) {
           matches++

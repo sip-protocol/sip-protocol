@@ -243,8 +243,8 @@ describe('Stealth Address Fuzzing (secp256k1)', () => {
 
         const isOurs = checkStealthAddress(
           stealthAddress,
-          spendingPrivateKey,
-          viewingPrivateKey
+          viewingPrivateKey,
+          metaAddress.spendingKey
         )
 
         expect(isOurs).toBe(true)
@@ -283,11 +283,11 @@ describe('Stealth Address Fuzzing (secp256k1)', () => {
 
         const { stealthAddress } = generateStealthAddress(meta1.metaAddress)
 
-        // Use wrong keys
+        // Use wrong keys (different party's viewing key + spending public key)
         const isOurs = checkStealthAddress(
           stealthAddress,
-          meta2.spendingPrivateKey,
-          meta2.viewingPrivateKey
+          meta2.viewingPrivateKey,
+          meta2.metaAddress.spendingKey
         )
 
         expect(isOurs).toBe(false)

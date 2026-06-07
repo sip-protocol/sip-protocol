@@ -267,6 +267,31 @@ describe('useScanPayments', () => {
         })
       )
     })
+
+    it('scans view-only: passes viewingPrivateKey + spendingPublicKey, never a spending private key', async () => {
+      const { result } = renderHook(() =>
+        useScanPayments({
+          connection: mockConnection as any,
+          viewingPrivateKey: '0xviewingpriv',
+          spendingPublicKey: '0xspendingpub',
+        })
+      )
+
+      await act(async () => {
+        await result.current.scan()
+      })
+
+      // Canonical EIP-5564 detection passes the viewing PRIVATE key + spending PUBLIC key
+      expect(scanForPayments).toHaveBeenCalledWith(
+        expect.objectContaining({
+          viewingPrivateKey: '0xviewingpriv',
+          spendingPublicKey: '0xspendingpub',
+        })
+      )
+      // View-only scanning must NEVER receive the spending private key
+      const scanArg = vi.mocked(scanForPayments).mock.calls[0][0] as Record<string, unknown>
+      expect(scanArg).not.toHaveProperty('spendingPrivateKey')
+    })
   })
 
   describe('claim', () => {

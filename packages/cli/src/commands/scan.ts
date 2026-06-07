@@ -1,13 +1,17 @@
 import { Command } from 'commander'
 import {
   checkStealthAddress,
-  checkEd25519StealthAddress,
+  checkEd25519StealthAddressV1,
+  checkSecp256k1StealthAddressV1,
   deriveStealthPrivateKey,
-  deriveEd25519StealthPrivateKey,
+  deriveStealthPrivateKeyV1,
   isEd25519Chain,
   parseStealthAddress
 } from '@sip-protocol/sdk'
 import type { ChainId, HexString } from '@sip-protocol/types'
+import { ed25519 } from '@noble/curves/ed25519'
+import { secp256k1 } from '@noble/curves/secp256k1'
+import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import { success, heading, info, warning, table } from '../utils/output'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -90,42 +94,36 @@ export function createScanCommand(): Command {
             const stealthAddr = parseStealthAddress(address)
             let result: StealthCheckResult
 
-            if (useEd25519) {
-              // Ed25519 chains (Solana, NEAR)
-              const isMine = checkEd25519StealthAddress(
-                stealthAddr,
-                options.spendingKey,
-                options.viewingKey
-              )
+            // Derive the spending PUBLIC key from the spending private key so we can
+            // run the canonical EIP-5564 view-only check (which never needs the
+            // spending private key). The CLI holds both keys, so it can also fall
+            // back to the legacy SIP:1 (swapped, full-wallet) scheme for old payments.
+            const spendingPubKey = (useEd25519
+              ? `0x${bytesToHex(ed25519.getPublicKey(hexToBytes(options.spendingKey.slice(2))))}`
+              : `0x${bytesToHex(secp256k1.getPublicKey(hexToBytes(options.spendingKey.slice(2)), true))}`) as HexString
 
-              if (isMine) {
-                const derivedKey = deriveEd25519StealthPrivateKey(
-                  stealthAddr,
-                  options.spendingKey,
-                  options.viewingKey
-                )
-                result = { isMine: true, stealthPrivateKey: derivedKey.privateKey }
-              } else {
-                result = { isMine: false }
+            // Canonical (SIP:2) view-only check
+            let isMine = checkStealthAddress(stealthAddr, options.viewingKey, spendingPubKey)
+            let isLegacy = false
+
+            // Fall back to legacy SIP:1 (full-wallet) check for pre-flip announcements
+            if (!isMine) {
+              const legacyMatch = useEd25519
+                ? checkEd25519StealthAddressV1(stealthAddr, options.spendingKey, options.viewingKey)
+                : checkSecp256k1StealthAddressV1(stealthAddr, options.spendingKey, options.viewingKey)
+              if (legacyMatch) {
+                isMine = true
+                isLegacy = true
               }
+            }
+
+            if (isMine) {
+              const derivedKey = isLegacy
+                ? deriveStealthPrivateKeyV1(stealthAddr, options.spendingKey, options.viewingKey)
+                : deriveStealthPrivateKey(stealthAddr, options.spendingKey, options.viewingKey)
+              result = { isMine: true, stealthPrivateKey: derivedKey.privateKey }
             } else {
-              // secp256k1 chains (EVM)
-              const isMine = checkStealthAddress(
-                stealthAddr,
-                options.spendingKey,
-                options.viewingKey
-              )
-
-              if (isMine) {
-                const derivedKey = deriveStealthPrivateKey(
-                  stealthAddr,
-                  options.spendingKey,
-                  options.viewingKey
-                )
-                result = { isMine: true, stealthPrivateKey: derivedKey.privateKey }
-              } else {
-                result = { isMine: false }
-              }
+              result = { isMine: false }
             }
 
             results.push({

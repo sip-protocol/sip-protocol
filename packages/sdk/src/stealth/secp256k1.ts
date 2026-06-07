@@ -163,21 +163,22 @@ export function generateSecp256k1StealthAddress(
     const spendingKeyBytes = hexToBytes(recipientMetaAddress.spendingKey.slice(2))
     const viewingKeyBytes = hexToBytes(recipientMetaAddress.viewingKey.slice(2))
 
-    // Compute shared secret: S = r * P (ephemeral private * spending public)
+    // Compute shared secret: S = r * K_view (ephemeral private * viewing public)
+    // Canonical EIP-5564: ECDH is on the VIEWING key.
     const sharedSecretPoint = secp256k1.getSharedSecret(
       ephemeralPrivateKey,
-      spendingKeyBytes,
+      viewingKeyBytes,
     )
 
     // Hash the shared secret for use as a scalar
     const sharedSecretHash = sha256(sharedSecretPoint)
 
-    // Compute stealth address: A = Q + hash(S)*G
+    // Compute stealth address: A = K_spend + hash(S)*G
     const hashTimesG = secp256k1.getPublicKey(sharedSecretHash, true)
 
-    const viewingKeyPoint = secp256k1.ProjectivePoint.fromHex(viewingKeyBytes)
+    const spendingKeyPoint = secp256k1.ProjectivePoint.fromHex(spendingKeyBytes)
     const hashTimesGPoint = secp256k1.ProjectivePoint.fromHex(hashTimesG)
-    const stealthPoint = viewingKeyPoint.add(hashTimesGPoint)
+    const stealthPoint = spendingKeyPoint.add(hashTimesGPoint)
     const stealthAddressBytes = stealthPoint.toRawBytes(true)
 
     // Compute view tag (first byte of hash for efficient scanning)
@@ -199,9 +200,76 @@ export function generateSecp256k1StealthAddress(
 // ─── Private Key Derivation ─────────────────────────────────────────────────
 
 /**
- * Derive the private key for a secp256k1 stealth address
+ * Derive the private key for a secp256k1 stealth address (canonical EIP-5564)
+ *
+ * Requires BOTH the spending and viewing private keys (spending authority).
  */
 export function deriveSecp256k1StealthPrivateKey(
+  stealthAddress: StealthAddress,
+  spendingPrivateKey: HexString,
+  viewingPrivateKey: HexString,
+): StealthAddressRecovery {
+  validateSecp256k1StealthAddress(stealthAddress)
+
+  if (!isValidPrivateKey(spendingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'spendingPrivateKey'
+    )
+  }
+
+  if (!isValidPrivateKey(viewingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'viewingPrivateKey'
+    )
+  }
+
+  const spendingPrivBytes = hexToBytes(spendingPrivateKey.slice(2))
+  const viewingPrivBytes = hexToBytes(viewingPrivateKey.slice(2))
+  const ephemeralPubBytes = hexToBytes(stealthAddress.ephemeralPublicKey.slice(2))
+
+  try {
+    // Compute shared secret: S = k_view * R (viewing private * ephemeral public)
+    const sharedSecretPoint = secp256k1.getSharedSecret(
+      viewingPrivBytes,
+      ephemeralPubBytes,
+    )
+
+    // Hash the shared secret
+    const sharedSecretHash = sha256(sharedSecretPoint)
+
+    // Derive stealth private key: k_spend + hash(S) mod n  (canonical)
+    const spendingScalar = bytesToBigInt(spendingPrivBytes)
+    const hashScalar = bytesToBigInt(sharedSecretHash)
+    const stealthPrivateScalar = (spendingScalar + hashScalar) % secp256k1.CURVE.n
+
+    // Convert back to bytes
+    const stealthPrivateKey = bigIntToBytes(stealthPrivateScalar, 32)
+
+    const result = {
+      stealthAddress: stealthAddress.address,
+      ephemeralPublicKey: stealthAddress.ephemeralPublicKey,
+      privateKey: `0x${bytesToHex(stealthPrivateKey)}` as HexString,
+    }
+
+    secureWipe(stealthPrivateKey)
+
+    return result
+  } finally {
+    secureWipeAll(spendingPrivBytes, viewingPrivBytes)
+  }
+}
+
+/**
+ * @deprecated Legacy SIP:1 swapped-scheme derivation — claim-side back-compat ONLY.
+ *
+ * Recovers funds sent to secp256k1 stealth addresses generated before the
+ * canonical EIP-5564 flip (legacy scheme: `S = k_spend * R`, `p = k_view + H(S)`).
+ * Used only when claiming a `SIP:1` announcement. New (SIP:2) sends use
+ * {@link deriveSecp256k1StealthPrivateKey}.
+ */
+export function deriveSecp256k1StealthPrivateKeyV1(
   stealthAddress: StealthAddress,
   spendingPrivateKey: HexString,
   viewingPrivateKey: HexString,
@@ -261,9 +329,78 @@ export function deriveSecp256k1StealthPrivateKey(
 // ─── Address Checking ───────────────────────────────────────────────────────
 
 /**
- * Check if a secp256k1 stealth address belongs to this recipient
+ * Check if a secp256k1 stealth address is ours — canonical EIP-5564 view-only.
+ *
+ * Requires only the viewing PRIVATE key + the spending PUBLIC key, so a viewing
+ * key can be delegated for scanning without granting spend authority. Never
+ * touches the spending private key.
+ *
+ * @param stealthAddress - Stealth address to check
+ * @param viewingPrivateKey - Recipient's viewing private key
+ * @param spendingPublicKey - Recipient's compressed spending PUBLIC key (meta-address spendingKey)
+ * @returns true if this address belongs to the recipient
  */
 export function checkSecp256k1StealthAddress(
+  stealthAddress: StealthAddress,
+  viewingPrivateKey: HexString,
+  spendingPublicKey: HexString,
+): boolean {
+  validateSecp256k1StealthAddress(stealthAddress)
+
+  if (!isValidPrivateKey(viewingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'viewingPrivateKey'
+    )
+  }
+
+  if (!isValidCompressedPublicKey(spendingPublicKey)) {
+    throw new ValidationError(
+      'must be a valid compressed secp256k1 public key (33 bytes, starting with 02 or 03)',
+      'spendingPublicKey'
+    )
+  }
+
+  const viewingPrivBytes = hexToBytes(viewingPrivateKey.slice(2))
+  const spendingPubBytes = hexToBytes(spendingPublicKey.slice(2))
+  const ephemeralPubBytes = hexToBytes(stealthAddress.ephemeralPublicKey.slice(2))
+
+  try {
+    // Compute shared secret: S = k_view * R  (canonical: ECDH on the viewing key)
+    const sharedSecretPoint = secp256k1.getSharedSecret(
+      viewingPrivBytes,
+      ephemeralPubBytes,
+    )
+    const sharedSecretHash = sha256(sharedSecretPoint)
+
+    // View tag check (fast reject)
+    if (sharedSecretHash[0] !== stealthAddress.viewTag) {
+      return false
+    }
+
+    // Expected address: A = K_spend + hash(S)*G  (no spending private key needed)
+    const hashTimesG = secp256k1.getPublicKey(sharedSecretHash, true)
+    const expectedPoint = secp256k1.ProjectivePoint.fromHex(spendingPubBytes).add(
+      secp256k1.ProjectivePoint.fromHex(hashTimesG),
+    )
+
+    // Compare with provided stealth address
+    const providedAddress = hexToBytes(stealthAddress.address.slice(2))
+
+    return bytesToHex(expectedPoint.toRawBytes(true)) === bytesToHex(providedAddress)
+  } finally {
+    secureWipe(viewingPrivBytes)
+  }
+}
+
+/**
+ * @deprecated Legacy SIP:1 full-wallet check — requires BOTH private keys.
+ *
+ * For detecting/claiming pre-flip (SIP:1) announcements only (legacy swapped
+ * scheme: `S = k_spend * R`, address built on the viewing key). New code should
+ * use the view-only {@link checkSecp256k1StealthAddress}.
+ */
+export function checkSecp256k1StealthAddressV1(
   stealthAddress: StealthAddress,
   spendingPrivateKey: HexString,
   viewingPrivateKey: HexString,

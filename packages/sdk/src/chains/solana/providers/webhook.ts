@@ -46,7 +46,7 @@ import {
 import type { StealthAddress } from '@sip-protocol/types'
 import { parseAnnouncement } from '../types'
 import type { SolanaScanResult } from '../types'
-import { SIP_MEMO_PREFIX } from '../constants'
+import { SIP_MEMO_PREFIX_ANY } from '../constants'
 import { getTokenSymbol, parseTokenTransferFromBalances } from '../utils'
 import { ValidationError, SecurityError } from '../../../errors'
 import { hmac } from '@noble/hashes/hmac'
@@ -594,7 +594,7 @@ async function processRawTransaction(
 
   // Search log messages for SIP announcement
   for (const log of tx.meta.logMessages) {
-    if (!log.includes(SIP_MEMO_PREFIX)) continue
+    if (!log.includes(SIP_MEMO_PREFIX_ANY)) continue
 
     // Extract memo content from log
     const memoMatch = log.match(/Program log: (.+)/)

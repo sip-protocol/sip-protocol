@@ -247,8 +247,8 @@ export class LedgerPrivacyAdapter extends LedgerWalletAdapter {
       // Check if this payment belongs to us using viewing key
       const isOurs = checkEthereumStealthAddress(
         announcement,
-        this.stealthKeys!.spendingPrivateKey,
-        this.stealthKeys!.viewingPrivateKey
+        this.stealthKeys!.viewingPrivateKey,
+        this.stealthKeys!.metaAddress.spendingKey
       )
 
       if (isOurs) {

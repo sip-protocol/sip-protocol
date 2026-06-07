@@ -194,10 +194,11 @@ function demonstrateScanningLogic(recipientKeys: ReturnType<typeof generateSteal
   console.log('Step 2: Full stealth address check')
   console.log('─────────────────────────────────────────────────────────────────')
 
+  // View-only scan: viewing PRIVATE key + spending PUBLIC key (EIP-5564)
   const isOurs = checkEd25519StealthAddress(
     stealthAddress,
-    recipientKeys.spendingPrivateKey,
-    recipientKeys.viewingPrivateKey
+    recipientKeys.viewingPrivateKey,
+    recipientKeys.metaAddress.spendingKey
   )
 
   console.log(`  Result: ${isOurs ? '✓ MATCH - Payment is ours!' : '✗ Not ours'}`)

@@ -48,11 +48,11 @@ describe('Solana Payment Scanning', () => {
       const { stealthAddress } = generateEd25519StealthAddress(metaAddress)
 
       // Check if this is our address (simulating recipient scan)
-      // Function signature: checkEd25519StealthAddress(stealthAddress, spendingPrivateKey, viewingPrivateKey)
+      // Function signature: checkEd25519StealthAddress(stealthAddress, viewingPrivateKey, spendingPublicKey)
       const isOurs = checkEd25519StealthAddress(
         stealthAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isOurs).toBe(true)
@@ -68,8 +68,8 @@ describe('Solana Payment Scanning', () => {
       // Try to check with recipient 2's keys - should fail
       const isOurs = checkEd25519StealthAddress(
         stealthAddress,
-        recipient2.spendingPrivateKey,
-        recipient2.viewingPrivateKey
+        recipient2.viewingPrivateKey,
+        recipient2.metaAddress.spendingKey
       )
 
       expect(isOurs).toBe(false)

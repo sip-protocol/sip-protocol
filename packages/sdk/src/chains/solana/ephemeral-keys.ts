@@ -43,41 +43,6 @@ export interface EphemeralKeypair {
 }
 
 /**
- * Result of using an ephemeral keypair for stealth address generation
- */
-export interface EphemeralKeyUsageResult {
-  /**
-   * Shared secret derived from ECDH
-   */
-  sharedSecret: HexString
-
-  /**
-   * View tag (first byte of shared secret hash)
-   */
-  viewTag: number
-
-  /**
-   * Stealth address (hex, ed25519 format)
-   */
-  stealthAddress: HexString
-
-  /**
-   * Stealth address in Solana base58 format
-   */
-  stealthAddressBase58: string
-
-  /**
-   * Ephemeral public key used (for announcement)
-   */
-  ephemeralPublicKey: HexString
-
-  /**
-   * Ephemeral public key in Solana base58 format
-   */
-  ephemeralPublicKeyBase58: string
-}
-
-/**
  * Managed ephemeral keypair with automatic secure disposal
  */
 export interface ManagedEphemeralKeypair extends EphemeralKeypair {
@@ -91,15 +56,6 @@ export interface ManagedEphemeralKeypair extends EphemeralKeypair {
    * Called automatically after use, but can be called manually
    */
   dispose(): void
-
-  /**
-   * Use this keypair to generate a stealth address
-   * Automatically disposes the keypair after use
-   */
-  useForStealthAddress(
-    recipientSpendingKey: HexString,
-    recipientViewingKey: HexString
-  ): EphemeralKeyUsageResult
 }
 
 /**
@@ -162,13 +118,9 @@ export function generateEphemeralKeypair(): EphemeralKeypair {
  * ```typescript
  * const managed = generateManagedEphemeralKeypair()
  *
- * // Use for stealth address generation (auto-disposes)
- * const result = managed.useForStealthAddress(
- *   recipientSpendingKey,
- *   recipientViewingKey
- * )
- *
- * console.log('Stealth address:', result.stealthAddressBase58)
+ * // Use the ephemeral key, then securely dispose
+ * console.log('Public key:', managed.publicKeyBase58)
+ * managed.dispose()
  * console.log('Is disposed:', managed.isDisposed) // true
  * ```
  */
@@ -201,33 +153,6 @@ export function generateManagedEphemeralKeypair(): ManagedEphemeralKeypair {
       if (!disposed) {
         secureWipe(privateKeyBytes)
         disposed = true
-      }
-    },
-
-    useForStealthAddress(
-      recipientSpendingKey: HexString,
-      recipientViewingKey: HexString
-    ): EphemeralKeyUsageResult {
-      if (disposed) {
-        throw new Error('Ephemeral keypair has been disposed')
-      }
-
-      try {
-        const result = computeStealthAddress(
-          privateKeyBytes,
-          publicKeyBytes,
-          recipientSpendingKey,
-          recipientViewingKey
-        )
-
-        return {
-          ...result,
-          ephemeralPublicKey: publicKeyHex,
-          ephemeralPublicKeyBase58: publicKeyBase58,
-        }
-      } finally {
-        // Always dispose after use
-        managed.dispose()
       }
     },
   }
@@ -361,183 +286,4 @@ export function wipeEphemeralPrivateKey(privateKeyHex: HexString): void {
   // Convert hex to bytes and wipe the bytes
   const bytes = hexToBytes(privateKeyHex.slice(2))
   secureWipe(bytes)
-}
-
-// ─── Internal Helpers ─────────────────────────────────────────────────────────
-
-/**
- * ed25519 group order (L)
- */
-const ED25519_ORDER = 2n ** 252n + 27742317777372353535851937790883648493n
-
-/**
- * Convert bytes to bigint (little-endian for ed25519)
- */
-function bytesToBigIntLE(bytes: Uint8Array): bigint {
-  let result = 0n
-  for (let i = bytes.length - 1; i >= 0; i--) {
-    result = (result << 8n) | BigInt(bytes[i])
-  }
-  return result
-}
-
-/**
- * Get ed25519 scalar from private key bytes
- * Follows standard ed25519 scalar clamping
- */
-function getEd25519Scalar(privateKey: Uint8Array): bigint {
-  const hash = sha256(privateKey)
-  // Clamp to valid scalar
-  hash[0] &= 248
-  hash[31] &= 127
-  hash[31] |= 64
-  return bytesToBigIntLE(hash.slice(0, 32))
-}
-
-/**
- * Compute stealth address from ephemeral keypair and recipient keys
- */
-function computeStealthAddress(
-  ephemeralPrivateBytes: Uint8Array,
-  _ephemeralPublicBytes: Uint8Array, // Reserved for future validation
-  recipientSpendingKey: HexString,
-  recipientViewingKey: HexString
-): Omit<EphemeralKeyUsageResult, 'ephemeralPublicKey' | 'ephemeralPublicKeyBase58'> {
-  // Parse recipient keys
-  const spendingKeyBytes = hexToBytes(recipientSpendingKey.slice(2))
-  const viewingKeyBytes = hexToBytes(recipientViewingKey.slice(2))
-
-  // Get ephemeral scalar
-  const rawEphemeralScalar = getEd25519Scalar(ephemeralPrivateBytes)
-  const ephemeralScalar = rawEphemeralScalar % ED25519_ORDER
-  if (ephemeralScalar === 0n) {
-    throw new Error('Invalid ephemeral scalar')
-  }
-
-  // Compute shared secret: S = ephemeral_scalar * P_spend
-  const spendingPoint = ed25519.ExtendedPoint.fromHex(spendingKeyBytes)
-  const sharedSecretPoint = spendingPoint.multiply(ephemeralScalar)
-  const sharedSecretBytes = sharedSecretPoint.toRawBytes()
-
-  // Hash the shared secret
-  const sharedSecretHash = sha256(sharedSecretBytes)
-  const viewTag = sharedSecretHash[0]
-
-  // Derive stealth address: P_stealth = P_view + hash(S)*G
-  const hashScalar = bytesToBigIntLE(sharedSecretHash) % ED25519_ORDER
-  if (hashScalar === 0n) {
-    throw new Error('Invalid hash scalar')
-  }
-
-  const hashTimesG = ed25519.ExtendedPoint.BASE.multiply(hashScalar)
-  const viewingPoint = ed25519.ExtendedPoint.fromHex(viewingKeyBytes)
-  const stealthPoint = viewingPoint.add(hashTimesG)
-  const stealthAddressBytes = stealthPoint.toRawBytes()
-
-  const stealthAddress = `0x${bytesToHex(stealthAddressBytes)}` as HexString
-  const stealthAddressBase58 = ed25519PublicKeyToSolanaAddress(stealthAddress)
-
-  return {
-    sharedSecret: `0x${bytesToHex(sharedSecretHash)}` as HexString,
-    viewTag,
-    stealthAddress,
-    stealthAddressBase58,
-  }
-}
-
-// ─── Announcement Format ──────────────────────────────────────────────────────
-
-/**
- * Format ephemeral key data for Solana memo announcement
- *
- * @param ephemeralPublicKeyBase58 - Ephemeral public key in base58
- * @param viewTag - View tag (0-255)
- * @param stealthAddressBase58 - Optional stealth address for verification
- * @returns Formatted announcement string
- *
- * @example
- * ```typescript
- * const memo = formatEphemeralAnnouncement(
- *   result.ephemeralPublicKeyBase58,
- *   result.viewTag,
- *   result.stealthAddressBase58
- * )
- * // "SIP:1:7xK9...:0a:8yL0..."
- * ```
- */
-export function formatEphemeralAnnouncement(
-  ephemeralPublicKeyBase58: string,
-  viewTag: number,
-  stealthAddressBase58?: string
-): string {
-  const viewTagHex = viewTag.toString(16).padStart(2, '0')
-  const parts = ['SIP:1', ephemeralPublicKeyBase58, viewTagHex]
-
-  if (stealthAddressBase58) {
-    parts.push(stealthAddressBase58)
-  }
-
-  return parts.join(':')
-}
-
-/**
- * Parse ephemeral key data from Solana memo announcement
- *
- * @param announcement - Announcement string from memo
- * @returns Parsed ephemeral data or null if invalid
- *
- * @example
- * ```typescript
- * const parsed = parseEphemeralAnnouncement('SIP:1:7xK9...:0a:8yL0...')
- * if (parsed) {
- *   console.log('Ephemeral key:', parsed.ephemeralPublicKeyBase58)
- *   console.log('View tag:', parsed.viewTag)
- * }
- * ```
- */
-export function parseEphemeralAnnouncement(
-  announcement: string
-): {
-  ephemeralPublicKeyBase58: string
-  viewTag: number
-  stealthAddressBase58?: string
-} | null {
-  if (!announcement.startsWith('SIP:1:')) {
-    return null
-  }
-
-  const parts = announcement.slice(6).split(':')
-  if (parts.length < 2) {
-    return null
-  }
-
-  const ephemeralPublicKeyBase58 = parts[0]
-  const viewTagHex = parts[1]
-  const stealthAddressBase58 = parts[2]
-
-  // Validate ephemeral key (base58, 32-44 chars)
-  if (!ephemeralPublicKeyBase58 || ephemeralPublicKeyBase58.length < 32 || ephemeralPublicKeyBase58.length > 44) {
-    return null
-  }
-
-  // Validate view tag (1-2 hex chars)
-  if (!viewTagHex || viewTagHex.length > 2 || !/^[0-9a-fA-F]+$/.test(viewTagHex)) {
-    return null
-  }
-
-  const viewTag = parseInt(viewTagHex, 16)
-  if (viewTag < 0 || viewTag > 255) {
-    return null
-  }
-
-  // Validate stealth address if present
-  if (stealthAddressBase58 && (stealthAddressBase58.length < 32 || stealthAddressBase58.length > 44)) {
-    return null
-  }
-
-  return {
-    ephemeralPublicKeyBase58,
-    viewTag,
-    stealthAddressBase58,
-  }
 }

@@ -4,7 +4,7 @@
  * Tests for ephemeral keypair generation and management.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   generateEphemeralKeypair,
   generateManagedEphemeralKeypair,
@@ -12,16 +12,7 @@ import {
   batchGenerateManagedEphemeralKeypairs,
   disposeEphemeralKeypairs,
   wipeEphemeralPrivateKey,
-  formatEphemeralAnnouncement,
-  parseEphemeralAnnouncement,
-  type EphemeralKeypair,
-  type ManagedEphemeralKeypair,
 } from '../../../src/chains/solana/ephemeral-keys'
-import type { HexString } from '@sip-protocol/types'
-
-// Test recipient keys (from ed25519 stealth tests)
-const TEST_SPENDING_KEY = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as HexString
-const TEST_VIEWING_KEY = '0xfedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321' as HexString
 
 describe('Solana Ephemeral Keypair Management', () => {
   // ─── Basic Generation ─────────────────────────────────────────────────────
@@ -78,15 +69,6 @@ describe('Solana Ephemeral Keypair Management', () => {
       expect(() => managed.privateKey).toThrow('disposed')
     })
 
-    it('should throw when using disposed keypair', () => {
-      const managed = generateManagedEphemeralKeypair()
-      managed.dispose()
-
-      expect(() => {
-        managed.useForStealthAddress(TEST_SPENDING_KEY, TEST_VIEWING_KEY)
-      }).toThrow('disposed')
-    })
-
     it('should allow multiple dispose calls', () => {
       const managed = generateManagedEphemeralKeypair()
 
@@ -94,40 +76,6 @@ describe('Solana Ephemeral Keypair Management', () => {
       managed.dispose() // Should not throw
 
       expect(managed.isDisposed).toBe(true)
-    })
-  })
-
-  // ─── Stealth Address Usage ────────────────────────────────────────────────
-
-  describe('useForStealthAddress', () => {
-    it('should generate stealth address', () => {
-      const managed = generateManagedEphemeralKeypair()
-
-      // Generate stealth address (using dummy keys for structure test)
-      // Note: Real usage requires valid ed25519 public keys
-      // This test verifies the interface works correctly
-
-      // We'll skip this test for now since we need valid ed25519 keys
-      // In real scenarios, this would work with actual recipient keys
-      expect(managed.isDisposed).toBe(false)
-      managed.dispose()
-    })
-
-    it('should auto-dispose after use', () => {
-      const managed = generateManagedEphemeralKeypair()
-      const publicKey = managed.publicKey // Save before dispose
-
-      // Using the keypair should auto-dispose it
-      // (Even if it throws due to invalid keys, finally block disposes)
-      try {
-        managed.useForStealthAddress(TEST_SPENDING_KEY, TEST_VIEWING_KEY)
-      } catch {
-        // Expected to throw with invalid test keys
-      }
-
-      // Should be disposed either way
-      expect(managed.isDisposed).toBe(true)
-      expect(managed.publicKey).toBe(publicKey) // Public key still accessible
     })
   })
 
@@ -227,99 +175,6 @@ describe('Solana Ephemeral Keypair Management', () => {
 
       // Should not throw
       expect(() => wipeEphemeralPrivateKey(keypair.privateKey)).not.toThrow()
-    })
-  })
-
-  // ─── Announcement Format ──────────────────────────────────────────────────
-
-  describe('formatEphemeralAnnouncement', () => {
-    it('should format basic announcement', () => {
-      const memo = formatEphemeralAnnouncement(
-        '7xK9abcdefghijklmnopqrstuvwxyz123456',
-        10
-      )
-
-      expect(memo).toBe('SIP:1:7xK9abcdefghijklmnopqrstuvwxyz123456:0a')
-    })
-
-    it('should format announcement with stealth address', () => {
-      const memo = formatEphemeralAnnouncement(
-        '7xK9abcdefghijklmnopqrstuvwxyz123456',
-        255,
-        '8yL0zyxwvutsrqponmlkjihgfedcba987654'
-      )
-
-      expect(memo).toBe('SIP:1:7xK9abcdefghijklmnopqrstuvwxyz123456:ff:8yL0zyxwvutsrqponmlkjihgfedcba987654')
-    })
-
-    it('should pad view tag to 2 chars', () => {
-      const memo = formatEphemeralAnnouncement(
-        '7xK9abcdefghijklmnopqrstuvwxyz123456',
-        0
-      )
-
-      expect(memo).toContain(':00')
-    })
-  })
-
-  describe('parseEphemeralAnnouncement', () => {
-    it('should parse basic announcement', () => {
-      const parsed = parseEphemeralAnnouncement(
-        'SIP:1:7xK9abcdefghijklmnopqrstuvwxyz123456:0a'
-      )
-
-      expect(parsed).not.toBeNull()
-      expect(parsed?.ephemeralPublicKeyBase58).toBe('7xK9abcdefghijklmnopqrstuvwxyz123456')
-      expect(parsed?.viewTag).toBe(10)
-      expect(parsed?.stealthAddressBase58).toBeUndefined()
-    })
-
-    it('should parse announcement with stealth address', () => {
-      const parsed = parseEphemeralAnnouncement(
-        'SIP:1:7xK9abcdefghijklmnopqrstuvwxyz123456:ff:8yL0zyxwvutsrqponmlkjihgfedcba987654'
-      )
-
-      expect(parsed).not.toBeNull()
-      expect(parsed?.ephemeralPublicKeyBase58).toBe('7xK9abcdefghijklmnopqrstuvwxyz123456')
-      expect(parsed?.viewTag).toBe(255)
-      expect(parsed?.stealthAddressBase58).toBe('8yL0zyxwvutsrqponmlkjihgfedcba987654')
-    })
-
-    it('should return null for invalid prefix', () => {
-      expect(parseEphemeralAnnouncement('INVALID:7xK9:0a')).toBeNull()
-      expect(parseEphemeralAnnouncement('SIP:2:7xK9:0a')).toBeNull()
-    })
-
-    it('should return null for missing parts', () => {
-      expect(parseEphemeralAnnouncement('SIP:1:')).toBeNull()
-      expect(parseEphemeralAnnouncement('SIP:1:7xK9')).toBeNull()
-    })
-
-    it('should return null for invalid ephemeral key length', () => {
-      expect(parseEphemeralAnnouncement('SIP:1:short:0a')).toBeNull()
-    })
-
-    it('should return null for invalid view tag', () => {
-      expect(parseEphemeralAnnouncement('SIP:1:7xK9abcdefghijklmnopqrstuvwxyz123456:xxx')).toBeNull()
-      expect(parseEphemeralAnnouncement('SIP:1:7xK9abcdefghijklmnopqrstuvwxyz123456:123')).toBeNull()
-    })
-
-    it('should roundtrip format/parse', () => {
-      const original = {
-        ephemeralPublicKeyBase58: '7xK9abcdefghijklmnopqrstuvwxyz123456',
-        viewTag: 42,
-        stealthAddressBase58: '8yL0zyxwvutsrqponmlkjihgfedcba987654',
-      }
-
-      const formatted = formatEphemeralAnnouncement(
-        original.ephemeralPublicKeyBase58,
-        original.viewTag,
-        original.stealthAddressBase58
-      )
-
-      const parsed = parseEphemeralAnnouncement(formatted)
-
-      expect(parsed).toEqual(original)
     })
   })
 

@@ -61,8 +61,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       // 5. Bob detects payment
       const isForBob = checkStealthAddress(
         stealthForBob.stealthAddress,
-        bob.spendingPrivateKey,
-        bob.viewingPrivateKey
+        bob.viewingPrivateKey,
+        bob.metaAddress.spendingKey
       )
       expect(isForBob).toBe(true)
 
@@ -93,8 +93,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       // Alice tries to check if it's for her (should fail)
       const isForAlice = checkStealthAddress(
         stealthForBob.stealthAddress,
-        alice.spendingPrivateKey,
-        alice.viewingPrivateKey
+        alice.viewingPrivateKey,
+        alice.metaAddress.spendingKey
       )
       expect(isForAlice).toBe(false)
     })
@@ -182,8 +182,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       const hop1 = generateStealthAddress(bob.metaAddress)
       const isBobPayment = checkStealthAddress(
         hop1.stealthAddress,
-        bob.spendingPrivateKey,
-        bob.viewingPrivateKey
+        bob.viewingPrivateKey,
+        bob.metaAddress.spendingKey
       )
       expect(isBobPayment).toBe(true)
 
@@ -199,8 +199,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       const hop2 = generateStealthAddress(charlie.metaAddress)
       const isCharliePayment = checkStealthAddress(
         hop2.stealthAddress,
-        charlie.spendingPrivateKey,
-        charlie.viewingPrivateKey
+        charlie.viewingPrivateKey,
+        charlie.metaAddress.spendingKey
       )
       expect(isCharliePayment).toBe(true)
 
@@ -256,8 +256,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       payments.forEach((payment, i) => {
         const isForRecipient = checkStealthAddress(
           payment.stealth.stealthAddress,
-          recipients[i].spendingPrivateKey,
-          recipients[i].viewingPrivateKey
+          recipients[i].viewingPrivateKey,
+          recipients[i].metaAddress.spendingKey
         )
         expect(isForRecipient).toBe(true)
 
@@ -265,8 +265,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
         const otherIdx = (i + 1) % recipients.length
         const isForOther = checkStealthAddress(
           payment.stealth.stealthAddress,
-          recipients[otherIdx].spendingPrivateKey,
-          recipients[otherIdx].viewingPrivateKey
+          recipients[otherIdx].viewingPrivateKey,
+          recipients[otherIdx].metaAddress.spendingKey
         )
         expect(isForOther).toBe(false)
       })
@@ -291,8 +291,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       const allReceived = inboundPayments.every((payment) =>
         checkStealthAddress(
           payment.stealthAddress,
-          pool.spendingPrivateKey,
-          pool.viewingPrivateKey
+          pool.viewingPrivateKey,
+          pool.metaAddress.spendingKey
         )
       )
       expect(allReceived).toBe(true)
@@ -306,8 +306,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       const allClaimed = outboundPayments.every((payment, i) =>
         checkStealthAddress(
           payment.stealthAddress,
-          recipients[i].spendingPrivateKey,
-          recipients[i].viewingPrivateKey
+          recipients[i].viewingPrivateKey,
+          recipients[i].metaAddress.spendingKey
         )
       )
       expect(allClaimed).toBe(true)
@@ -341,8 +341,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       const allDetected = batch.every((p) =>
         checkStealthAddress(
           p.stealth.stealthAddress,
-          recipient.spendingPrivateKey,
-          recipient.viewingPrivateKey
+          recipient.viewingPrivateKey,
+          recipient.metaAddress.spendingKey
         )
       )
       expect(allDetected).toBe(true)
@@ -389,8 +389,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
       // Using Alice's keys to check Bob's payment should fail
       const wrongCheck = checkStealthAddress(
         stealthForBob.stealthAddress,
-        alice.spendingPrivateKey,
-        alice.viewingPrivateKey
+        alice.viewingPrivateKey,
+        alice.metaAddress.spendingKey
       )
       expect(wrongCheck).toBe(false)
     })
@@ -408,8 +408,8 @@ describe('E2E: Solana Multi-Party Scenarios', () => {
         payments.map(async (p) =>
           checkStealthAddress(
             p.stealthAddress,
-            recipient.spendingPrivateKey,
-            recipient.viewingPrivateKey
+            recipient.viewingPrivateKey,
+            recipient.metaAddress.spendingKey
           )
         )
       )
