@@ -231,8 +231,8 @@ describe('EIP-5564: Shared Secret Derivation', () => {
     // and the sender's ephemeral public key
     const isOwner = checkEthereumStealthAddress(
       result.stealthAddress,
-      meta.spendingPrivateKey,
-      meta.viewingPrivateKey
+      meta.viewingPrivateKey,
+      meta.metaAddress.spendingKey
     )
 
     expect(isOwner).toBe(true)
@@ -488,8 +488,8 @@ describe('EIP-5564: View Tag Computation', () => {
       // The view tag should allow quick filtering
       const isOwner = checkEthereumStealthAddress(
         result.stealthAddress,
-        meta.spendingPrivateKey,
-        meta.viewingPrivateKey
+        meta.viewingPrivateKey,
+        meta.metaAddress.spendingKey
       )
 
       expect(isOwner).toBe(true)
@@ -591,8 +591,8 @@ describe('EIP-5564: Private Key Recovery', () => {
         const result = generateEthereumStealthAddress(meta.metaAddress)
         const isOwner = checkEthereumStealthAddress(
           result.stealthAddress,
-          meta.spendingPrivateKey,
-          meta.viewingPrivateKey
+          meta.viewingPrivateKey,
+          meta.metaAddress.spendingKey
         )
         expect(isOwner).toBe(true)
       }
@@ -606,31 +606,31 @@ describe('EIP-5564: Private Key Recovery', () => {
         const result = generateEthereumStealthAddress(meta1.metaAddress)
         const isOwner = checkEthereumStealthAddress(
           result.stealthAddress,
-          meta2.spendingPrivateKey,
-          meta2.viewingPrivateKey
+          meta2.viewingPrivateKey,
+          meta2.metaAddress.spendingKey
         )
         expect(isOwner).toBe(false)
       }
     })
 
-    it('should require both spending and viewing keys', () => {
+    it('should require both viewing key and spending public key', () => {
       const meta1 = generateEthereumStealthMetaAddress()
       const meta2 = generateEthereumStealthMetaAddress()
       const result = generateEthereumStealthAddress(meta1.metaAddress)
 
-      // Wrong spending key, correct viewing key
+      // Wrong spending public key, correct viewing key → not detected
       const check1 = checkEthereumStealthAddress(
         result.stealthAddress,
-        meta2.spendingPrivateKey,
-        meta1.viewingPrivateKey
+        meta1.viewingPrivateKey,
+        meta2.metaAddress.spendingKey
       )
       expect(check1).toBe(false)
 
-      // Correct spending key, wrong viewing key
+      // Correct spending public key, wrong viewing key → not detected
       const check2 = checkEthereumStealthAddress(
         result.stealthAddress,
-        meta1.spendingPrivateKey,
-        meta2.viewingPrivateKey
+        meta2.viewingPrivateKey,
+        meta1.metaAddress.spendingKey
       )
       expect(check2).toBe(false)
     })
@@ -671,8 +671,8 @@ describe('EIP-5564: Known Test Vectors', () => {
       // Verify ownership with stored private keys
       const isOwner = checkEthereumStealthAddress(
         result.stealthAddress,
-        storedMeta.spendingPrivateKey,
-        storedMeta.viewingPrivateKey
+        storedMeta.viewingPrivateKey,
+        storedMeta.spendingKey
       )
 
       expect(isOwner).toBe(true)
@@ -725,8 +725,8 @@ describe('EIP-5564: Known Test Vectors', () => {
           ephemeralPublicKey: announcement.ephemeralPublicKey,
           viewTag: announcement.viewTag,
         },
-        alice.spendingPrivateKey,
-        alice.viewingPrivateKey
+        alice.viewingPrivateKey,
+        alice.metaAddress.spendingKey
       )
 
       expect(isForAlice).toBe(true)
@@ -778,37 +778,37 @@ describe('EIP-5564: Known Test Vectors', () => {
       expect(
         checkEthereumStealthAddress(
           toAlice.stealthAddress,
-          alice.spendingPrivateKey,
-          alice.viewingPrivateKey
+          alice.viewingPrivateKey,
+          alice.metaAddress.spendingKey
         )
       ).toBe(true)
       expect(
         checkEthereumStealthAddress(
           toAlice.stealthAddress,
-          bob.spendingPrivateKey,
-          bob.viewingPrivateKey
+          bob.viewingPrivateKey,
+          bob.metaAddress.spendingKey
         )
       ).toBe(false)
       expect(
         checkEthereumStealthAddress(
           toAlice.stealthAddress,
-          charlie.spendingPrivateKey,
-          charlie.viewingPrivateKey
+          charlie.viewingPrivateKey,
+          charlie.metaAddress.spendingKey
         )
       ).toBe(false)
 
       expect(
         checkEthereumStealthAddress(
           toBob.stealthAddress,
-          bob.spendingPrivateKey,
-          bob.viewingPrivateKey
+          bob.viewingPrivateKey,
+          bob.metaAddress.spendingKey
         )
       ).toBe(true)
       expect(
         checkEthereumStealthAddress(
           toCharlie.stealthAddress,
-          charlie.spendingPrivateKey,
-          charlie.viewingPrivateKey
+          charlie.viewingPrivateKey,
+          charlie.metaAddress.spendingKey
         )
       ).toBe(true)
     })
@@ -913,8 +913,8 @@ describe('EIP-5564: Performance', () => {
     for (const result of results) {
       checkEthereumStealthAddress(
         result.stealthAddress,
-        meta.spendingPrivateKey,
-        meta.viewingPrivateKey
+        meta.viewingPrivateKey,
+        meta.metaAddress.spendingKey
       )
     }
     const duration = performance.now() - start

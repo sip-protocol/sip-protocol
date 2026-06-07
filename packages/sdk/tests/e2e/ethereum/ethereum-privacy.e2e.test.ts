@@ -348,8 +348,8 @@ describe('Ethereum Privacy E2E Tests', () => {
       // Bob verifies the stealth address belongs to him
       const isForBob = checkEthereumStealthAddress(
         stealthResult.stealthAddress,
-        bobGen.spendingPrivateKey,
-        bobGen.viewingPrivateKey
+        bobGen.viewingPrivateKey,
+        bobGen.metaAddress.spendingKey
       )
 
       expect(isForBob).toBe(true)
@@ -358,8 +358,8 @@ describe('Ethereum Privacy E2E Tests', () => {
       const aliceGen = adapter.generateMetaAddress()
       const isForAlice = checkEthereumStealthAddress(
         stealthResult.stealthAddress,
-        aliceGen.spendingPrivateKey,
-        aliceGen.viewingPrivateKey
+        aliceGen.viewingPrivateKey,
+        aliceGen.metaAddress.spendingKey
       )
 
       expect(isForAlice).toBe(false)
@@ -643,8 +643,8 @@ describe('Ethereum Privacy E2E Tests', () => {
       // Using viewing key, Bob can verify the payment is for him
       const isForBob = checkEthereumStealthAddress(
         stealthResult.stealthAddress,
-        bobGen.spendingPrivateKey,
-        bobGen.viewingPrivateKey
+        bobGen.viewingPrivateKey,
+        bobGen.metaAddress.spendingKey
       )
 
       expect(isForBob).toBe(true)
@@ -685,8 +685,8 @@ describe('Ethereum Privacy E2E Tests', () => {
           // Bob uses his viewing key to check announcements
           const isForBob = checkEthereumStealthAddress(
             transferBuild.stealthAddress,
-            bobGen.spendingPrivateKey,
-            bobGen.viewingPrivateKey
+            bobGen.viewingPrivateKey,
+            bobGen.metaAddress.spendingKey
           )
 
           // ═══ Step 6: Bob claims funds to fresh wallet ═══
@@ -732,8 +732,8 @@ describe('Ethereum Privacy E2E Tests', () => {
         // ═══ Step 3: Bob verifies payment is for him ═══
         const isForBob = checkEthereumStealthAddress(
           transferBuild.stealthAddress,
-          bobGen.spendingPrivateKey,
-          bobGen.viewingPrivateKey
+          bobGen.viewingPrivateKey,
+          bobGen.metaAddress.spendingKey
         )
 
         // ═══ Step 4: Bob claims tokens ═══
@@ -778,8 +778,8 @@ describe('Ethereum Privacy E2E Tests', () => {
         // ═══ Step 4: Bob verifies ═══
         const isForBob = checkEthereumStealthAddress(
           transferBuild.stealthAddress,
-          bobGen.spendingPrivateKey,
-          bobGen.viewingPrivateKey
+          bobGen.viewingPrivateKey,
+          bobGen.metaAddress.spendingKey
         )
 
         // ═══ Step 5: Auditor can verify Bob received funds ═══

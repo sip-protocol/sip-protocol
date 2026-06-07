@@ -274,8 +274,8 @@ describe('E2E: Cross-Chain Swap Flow', () => {
       // Recipient should be able to verify ownership
       const canClaim = checkStealthAddress(
         stealthAddress,
-        recipientKeys.spendingPrivateKey,
-        recipientKeys.viewingPrivateKey
+        recipientKeys.viewingPrivateKey,
+        recipientKeys.metaAddress.spendingKey
       )
 
       expect(canClaim).toBe(true)
@@ -283,7 +283,7 @@ describe('E2E: Cross-Chain Swap Flow', () => {
 
     it('should prevent non-recipient from claiming', async () => {
       const recipientKeys = fixture.zcashStealthKeys
-      const attackerKeys = fixture.solanaStealthKeys // Different keys
+      const attackerKeys = fixture.ethereumStealthKeys // Different keys (same secp256k1 curve as recipient)
 
       const { generateStealthAddress, checkStealthAddress } = await import('../../src/stealth')
 
@@ -293,8 +293,8 @@ describe('E2E: Cross-Chain Swap Flow', () => {
       // Attacker should NOT be able to claim
       const attackerCanClaim = checkStealthAddress(
         stealthAddress,
-        attackerKeys.spendingPrivateKey,
-        attackerKeys.viewingPrivateKey
+        attackerKeys.viewingPrivateKey,
+        attackerKeys.metaAddress.spendingKey
       )
 
       expect(attackerCanClaim).toBe(false)

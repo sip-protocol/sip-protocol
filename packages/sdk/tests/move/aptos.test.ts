@@ -362,8 +362,8 @@ describe('Aptos Stealth Addresses', () => {
 
       const isMatch = checkAptosStealthAddress(
         { address: stealthPublicKey, ephemeralPublicKey, viewTag },
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isMatch).toBe(true)
@@ -379,8 +379,8 @@ describe('Aptos Stealth Addresses', () => {
       // Try to check with recipient2's keys
       const isMatch = checkAptosStealthAddress(
         { address: stealthPublicKey, ephemeralPublicKey, viewTag },
-        recipient2.spendingPrivateKey,
-        recipient2.viewingPrivateKey
+        recipient2.viewingPrivateKey,
+        recipient2.metaAddress.spendingKey
       )
 
       expect(isMatch).toBe(false)
@@ -406,8 +406,8 @@ describe('Aptos Stealth Addresses', () => {
 
       const isMatch = checkAptosStealthAddress(
         wrongTagAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isMatch).toBe(false)
@@ -470,8 +470,8 @@ describe('Aptos Stealth Addresses', () => {
 
       const isMatch = service.checkStealthAddress(
         { address: stealthPublicKey, ephemeralPublicKey, viewTag },
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isMatch).toBe(true)
@@ -510,8 +510,8 @@ describe('Aptos Stealth Addresses', () => {
       // 4. Recipient scans and checks if address is theirs
       const isMine = checkAptosStealthAddress(
         announcement,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isMine).toBe(true)
@@ -542,18 +542,18 @@ describe('Aptos Stealth Addresses', () => {
       // All recipients scan
       const match1 = checkAptosStealthAddress(
         announcement,
-        recipient1.spendingPrivateKey,
-        recipient1.viewingPrivateKey
+        recipient1.viewingPrivateKey,
+        recipient1.metaAddress.spendingKey
       )
       const match2 = checkAptosStealthAddress(
         announcement,
-        recipient2.spendingPrivateKey,
-        recipient2.viewingPrivateKey
+        recipient2.viewingPrivateKey,
+        recipient2.metaAddress.spendingKey
       )
       const match3 = checkAptosStealthAddress(
         announcement,
-        recipient3.spendingPrivateKey,
-        recipient3.viewingPrivateKey
+        recipient3.viewingPrivateKey,
+        recipient3.metaAddress.spendingKey
       )
 
       // Only recipient2 should match

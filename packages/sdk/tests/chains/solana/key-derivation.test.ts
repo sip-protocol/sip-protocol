@@ -194,8 +194,8 @@ describe('Solana Key Derivation', () => {
       // Check if it's ours
       const isOurs = checkEd25519StealthAddress(
         stealthAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isOurs).toBe(true)

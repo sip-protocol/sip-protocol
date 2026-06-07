@@ -207,11 +207,11 @@ describe('E2E: Solana Viewing Key Flow', () => {
       const stealth = generateStealthAddress(bob.metaAddress)
 
       // Bob shares viewing key with Auditor
-      // Auditor can verify the payment was to Bob
+      // Auditor can verify the payment was to Bob (view-only: viewing private + spending public)
       const isForBob = checkStealthAddress(
         stealth.stealthAddress,
-        bob.spendingPrivateKey, // Auditor would need this for full verification
-        bob.viewingPrivateKey
+        bob.viewingPrivateKey,
+        bob.metaAddress.spendingKey // Spending PUBLIC key — viewable, no spend authority
       )
 
       expect(isForBob).toBe(true)
@@ -282,20 +282,20 @@ describe('E2E: Solana Viewing Key Flow', () => {
       const recipient = generateStealthMetaAddress('solana')
       const stealth = generateStealthAddress(recipient.metaAddress)
 
-      // Only recipient with both keys can verify
+      // Recipient with their viewing key + spending public key can verify
       const isForRecipient = checkStealthAddress(
         stealth.stealthAddress,
-        recipient.spendingPrivateKey,
-        recipient.viewingPrivateKey
+        recipient.viewingPrivateKey,
+        recipient.metaAddress.spendingKey
       )
       expect(isForRecipient).toBe(true)
 
-      // Third party cannot verify (would need spending key)
+      // Third party cannot verify (their viewing key does not match)
       const thirdParty = generateStealthMetaAddress('solana')
       const isForThirdParty = checkStealthAddress(
         stealth.stealthAddress,
-        thirdParty.spendingPrivateKey,
-        thirdParty.viewingPrivateKey
+        thirdParty.viewingPrivateKey,
+        thirdParty.metaAddress.spendingKey
       )
       expect(isForThirdParty).toBe(false)
     })

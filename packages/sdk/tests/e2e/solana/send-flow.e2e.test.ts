@@ -148,7 +148,7 @@ describe('E2E: Solana Send Flow', () => {
 
       const memo = createAnnouncementMemo(ephemeralPubKey, viewTag)
 
-      expect(memo).toContain('SIP:1:')
+      expect(memo).toContain('SIP:2:')
       expect(memo).toContain(ephemeralPubKey)
       expect(memo).toContain(viewTag)
     })
@@ -160,7 +160,7 @@ describe('E2E: Solana Send Flow', () => {
 
       const memo = createAnnouncementMemo(ephemeralPubKey, viewTag, stealthAddr)
 
-      expect(memo).toContain('SIP:1:')
+      expect(memo).toContain('SIP:2:')
       expect(memo).toContain(stealthAddr)
     })
 
@@ -217,7 +217,7 @@ describe('E2E: Solana Send Flow', () => {
       // 6. Sender creates announcement
       const ephemeralPubKey = 'MockEphemeralKey12345678901234567890123'
       const announcement = createAnnouncementMemo(ephemeralPubKey, viewTag)
-      expect(announcement).toContain('SIP:1:')
+      expect(announcement).toContain('SIP:2:')
 
       // 7. Verify complete flow - recipient can parse announcement
       const parsedAnnouncement = parseAnnouncement(announcement)

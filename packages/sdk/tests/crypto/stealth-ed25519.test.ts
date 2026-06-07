@@ -252,8 +252,8 @@ describe('Ed25519 Stealth Addresses', () => {
 
       const isOurs = checkEd25519StealthAddress(
         stealthAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isOurs).toBe(true)
@@ -269,8 +269,8 @@ describe('Ed25519 Stealth Addresses', () => {
       // Check with recipient2's keys - should fail
       const isTheirs = checkEd25519StealthAddress(
         stealthAddress,
-        recipient2.spendingPrivateKey,
-        recipient2.viewingPrivateKey
+        recipient2.viewingPrivateKey,
+        recipient2.metaAddress.spendingKey
       )
 
       expect(isTheirs).toBe(false)
@@ -291,8 +291,8 @@ describe('Ed25519 Stealth Addresses', () => {
       // Should fail fast due to view tag mismatch
       const result = checkEd25519StealthAddress(
         modifiedAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(result).toBe(false)
@@ -311,7 +311,7 @@ describe('Ed25519 Stealth Addresses', () => {
 
       // All should be ours
       for (const addr of addresses) {
-        expect(checkEd25519StealthAddress(addr, spendingPrivateKey, viewingPrivateKey)).toBe(true)
+        expect(checkEd25519StealthAddress(addr, viewingPrivateKey, metaAddress.spendingKey)).toBe(true)
       }
     })
   })
@@ -330,8 +330,8 @@ describe('Ed25519 Stealth Addresses', () => {
       // 4. Recipient scans and finds their address
       const isOurs = checkEd25519StealthAddress(
         stealthAddress,
-        recipient.spendingPrivateKey,
-        recipient.viewingPrivateKey
+        recipient.viewingPrivateKey,
+        recipient.metaAddress.spendingKey
       )
       expect(isOurs).toBe(true)
 
@@ -357,8 +357,8 @@ describe('Ed25519 Stealth Addresses', () => {
       // 3. Recipient scans and finds their address
       const isOurs = checkEd25519StealthAddress(
         stealthAddress,
-        recipient.spendingPrivateKey,
-        recipient.viewingPrivateKey
+        recipient.viewingPrivateKey,
+        recipient.metaAddress.spendingKey
       )
       expect(isOurs).toBe(true)
 
@@ -387,8 +387,8 @@ describe('Ed25519 Stealth Addresses', () => {
         expect(
           checkEd25519StealthAddress(
             stealthAddress,
-            recipient.spendingPrivateKey,
-            recipient.viewingPrivateKey
+            recipient.viewingPrivateKey,
+            recipient.metaAddress.spendingKey
           )
         ).toBe(true)
 
@@ -476,8 +476,8 @@ describe('Ed25519 Stealth Addresses', () => {
       // Try to check with near keys - should fail
       const canClaim = checkEd25519StealthAddress(
         stealthAddress,
-        nearRecipient.spendingPrivateKey,
-        nearRecipient.viewingPrivateKey
+        nearRecipient.viewingPrivateKey,
+        nearRecipient.metaAddress.spendingKey
       )
 
       expect(canClaim).toBe(false)

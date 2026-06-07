@@ -170,20 +170,20 @@ describe('E2E: Privacy Verification', () => {
       // But all should be claimable by recipient
       expect(checkStealthAddress(
         stealth1.stealthAddress,
-        recipientMeta.spendingPrivateKey,
-        recipientMeta.viewingPrivateKey
+        recipientMeta.viewingPrivateKey,
+        recipientMeta.metaAddress.spendingKey
       )).toBe(true)
 
       expect(checkStealthAddress(
         stealth2.stealthAddress,
-        recipientMeta.spendingPrivateKey,
-        recipientMeta.viewingPrivateKey
+        recipientMeta.viewingPrivateKey,
+        recipientMeta.metaAddress.spendingKey
       )).toBe(true)
 
       expect(checkStealthAddress(
         stealth3.stealthAddress,
-        recipientMeta.spendingPrivateKey,
-        recipientMeta.viewingPrivateKey
+        recipientMeta.viewingPrivateKey,
+        recipientMeta.metaAddress.spendingKey
       )).toBe(true)
     })
 
@@ -197,8 +197,8 @@ describe('E2E: Privacy Verification', () => {
       // Attacker cannot claim
       const attackerCanClaim = checkStealthAddress(
         stealthAddress,
-        attacker.spendingPrivateKey,
-        attacker.viewingPrivateKey
+        attacker.viewingPrivateKey,
+        attacker.metaAddress.spendingKey
       )
       expect(attackerCanClaim).toBe(false)
     })

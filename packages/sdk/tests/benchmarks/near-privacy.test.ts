@@ -92,8 +92,8 @@ describe('NEAR Stealth Address Benchmarks', () => {
       for (let i = 0; i < iterations; i++) {
         checkEd25519StealthAddress(
           stealthAddress,
-          testSpendingPrivateKey,
-          testViewingPrivateKey
+          testViewingPrivateKey,
+          testMetaAddress.spendingKey
         )
       }
 
@@ -316,8 +316,8 @@ describe('NEAR Batch Operation Benchmarks', () => {
       for (const addr of addresses) {
         const isMatch = checkEd25519StealthAddress(
           addr,
-          testSpendingPrivateKey,
-          testViewingPrivateKey
+          testViewingPrivateKey,
+          testMetaAddress.spendingKey
         )
         if (isMatch) matchCount++
       }
@@ -423,8 +423,8 @@ describe('NEAR Batch Operation Benchmarks', () => {
       // 1. Check if stealth address belongs to us
       const isOurs = checkEd25519StealthAddress(
         stealthAddress,
-        recipient.spendingPrivateKey,
-        recipient.viewingPrivateKey
+        recipient.viewingPrivateKey,
+        recipient.metaAddress.spendingKey
       )
 
       // 2. Derive private key to spend

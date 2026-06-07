@@ -318,8 +318,8 @@ describe('NEARPrivacyAdapter', () => {
 
       const isOwner = adapter.checkStealthAddress(
         stealthAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
 
       expect(isOwner).toBe(true)
@@ -334,8 +334,8 @@ describe('NEARPrivacyAdapter', () => {
       // Use wrong keys
       const isOwner = adapter.checkStealthAddress(
         stealthAddress,
-        meta2.spendingPrivateKey,
-        meta2.viewingPrivateKey
+        meta2.viewingPrivateKey,
+        meta2.metaAddress.spendingKey
       )
 
       expect(isOwner).toBe(false)
@@ -413,7 +413,7 @@ describe('NEARPrivacyAdapter', () => {
   describe('integration: full privacy flow', () => {
     it('should complete send-scan-claim flow', async () => {
       // 1. Recipient generates meta-address
-      const { viewingPrivateKey, spendingPrivateKey, encoded } =
+      const { metaAddress, viewingPrivateKey, spendingPrivateKey, encoded } =
         adapter.generateMetaAddress('Recipient Wallet')
 
       // 2. Sender builds shielded transfer
@@ -436,8 +436,8 @@ describe('NEARPrivacyAdapter', () => {
       // 4. Verify stealth address ownership
       const isOwner = adapter.checkStealthAddress(
         build.stealthAddress,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        metaAddress.spendingKey
       )
       expect(isOwner).toBe(true)
 
