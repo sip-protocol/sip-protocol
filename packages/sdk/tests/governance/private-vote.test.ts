@@ -428,10 +428,13 @@ describe('PrivateVoting', () => {
         voter: '0xvoter123',
       })
 
-      // Verify encrypted vote has no readable information
-      expect(encryptedVote.ciphertext).not.toContain('proposal-xyz')
-      expect(encryptedVote.ciphertext).not.toContain('5000')
-      expect(encryptedVote.ciphertext).not.toContain('0xvoter123')
+      // Verify encrypted vote leaks no readable plaintext. Decode to bytes
+      // first — substring-matching the hex string false-positives when a
+      // value like "5000" coincides with hex digits in the random ciphertext.
+      const ciphertextBytes = Buffer.from(encryptedVote.ciphertext.slice(2), 'hex')
+      expect(ciphertextBytes.includes(Buffer.from('proposal-xyz'))).toBe(false)
+      expect(ciphertextBytes.includes(Buffer.from('5000'))).toBe(false)
+      expect(ciphertextBytes.includes(Buffer.from('0xvoter123'))).toBe(false)
 
       // Reveal vote
       const revealed = voting.revealVote(encryptedVote, encryptionKey)
