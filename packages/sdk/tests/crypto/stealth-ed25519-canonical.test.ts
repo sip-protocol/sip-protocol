@@ -4,6 +4,7 @@ import {
   generateStealthMetaAddress,
   generateStealthAddress,
   checkStealthAddress,
+  checkEd25519StealthAddress,
   deriveStealthPrivateKey,
 } from '../../src/stealth'
 import type { ChainId, HexString } from '@sip-protocol/types'
@@ -21,6 +22,19 @@ describe('ed25519 canonical EIP-5564', () => {
     const b = generateStealthMetaAddress('solana' as ChainId)
     const { stealthAddress } = generateStealthAddress(a.metaAddress)
     expect(checkStealthAddress(stealthAddress, b.viewingPrivateKey, a.metaAddress.spendingKey)).toBe(false)
+  })
+
+  it('rejects via FULL address compare when only the spending PUBLIC key is wrong', () => {
+    // Mirrors the secp256k1 "require both viewing key and spending public key" case.
+    // Keep the CORRECT viewing private key (so the view-tag fast-path matches —
+    // the tag derives only from the shared secret) but pass a WRONG spending
+    // public key, forcing rejection by the P_stealth = P_spend + H(S)*G compare.
+    const a = generateStealthMetaAddress('solana' as ChainId)
+    const b = generateStealthMetaAddress('solana' as ChainId)
+    const { stealthAddress } = generateStealthAddress(a.metaAddress)
+    expect(
+      checkEd25519StealthAddress(stealthAddress, a.viewingPrivateKey, b.metaAddress.spendingKey),
+    ).toBe(false)
   })
 
   it('spend key requires BOTH privates and controls the address', () => {
