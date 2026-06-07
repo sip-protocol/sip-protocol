@@ -167,6 +167,8 @@ export interface SolanaClaimResult {
  * Announcement data stored in transaction memo
  */
 export interface SolanaAnnouncement {
+  /** Announcement scheme version: '1' = legacy swapped, '2' = canonical EIP-5564 */
+  version: string
   /** Ephemeral public key (base58) */
   ephemeralPublicKey: string
   /** View tag for efficient scanning (hex, 1 byte) */
@@ -177,16 +179,21 @@ export interface SolanaAnnouncement {
 
 /**
  * Parse announcement from memo string
- * Format: SIP:1:<ephemeral_pubkey_base58>:<view_tag_hex>
+ * Format: SIP:<version>:<ephemeral_pubkey_base58>:<view_tag_hex>[:<stealth_address_base58>]
+ *
+ * Accepts SIP:1 (legacy swapped scheme) and SIP:2 (canonical EIP-5564); the
+ * detected version is returned so the claim path can route to the matching derivation.
  *
  * M4 FIX: Validates view tag is exactly 1-2 hex characters (1 byte)
  */
 export function parseAnnouncement(memo: string): SolanaAnnouncement | null {
-  if (!memo.startsWith('SIP:1:')) {
+  const versionMatch = /^SIP:([12]):/.exec(memo)
+  if (!versionMatch) {
     return null
   }
+  const version = versionMatch[1]
 
-  const parts = memo.slice(6).split(':')
+  const parts = memo.slice(versionMatch[0].length).split(':')
   if (parts.length < 2) {
     return null
   }
@@ -217,6 +224,7 @@ export function parseAnnouncement(memo: string): SolanaAnnouncement | null {
   }
 
   return {
+    version,
     ephemeralPublicKey,
     viewTag,
     stealthAddress,
@@ -231,7 +239,7 @@ export function createAnnouncementMemo(
   viewTag: string,
   stealthAddress?: string
 ): string {
-  const parts = ['SIP:1', ephemeralPublicKey, viewTag]
+  const parts = ['SIP:2', ephemeralPublicKey, viewTag]
   if (stealthAddress) {
     parts.push(stealthAddress)
   }

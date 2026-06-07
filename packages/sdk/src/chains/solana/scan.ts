@@ -28,7 +28,7 @@ import type {
 } from './types'
 import { parseAnnouncement } from './types'
 import {
-  SIP_MEMO_PREFIX,
+  SIP_MEMO_PREFIX_ANY,
   MEMO_PROGRAM_ID,
   getExplorerUrl,
   DEFAULT_SCAN_LIMIT,
@@ -111,7 +111,7 @@ export async function scanForPayments(
 
         // Look for SIP announcement in logs
         for (const log of tx.meta.logMessages) {
-          if (!log.includes(SIP_MEMO_PREFIX)) continue
+          if (!log.includes(SIP_MEMO_PREFIX_ANY)) continue
 
           // Extract memo content from log
           const memoMatch = log.match(/Program log: (.+)/)

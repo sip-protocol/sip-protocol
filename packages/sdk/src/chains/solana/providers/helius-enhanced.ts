@@ -38,7 +38,7 @@ import {
   SOLANA_ADDRESS_MAX_LENGTH,
   HELIUS_API_KEY_MIN_LENGTH,
   sanitizeUrl,
-  SIP_MEMO_PREFIX,
+  SIP_MEMO_PREFIX_ANY,
   getExplorerUrl,
 } from '../constants'
 import type {
@@ -340,7 +340,7 @@ export class HeliusEnhanced {
 
     // Check if this looks like a SIP transaction
     // SIP transactions have a memo with format: SIP:1:<ephemeral_pubkey>:<view_tag>
-    if (description.includes(SIP_MEMO_PREFIX) || description.includes('SIP:')) {
+    if (description.includes(SIP_MEMO_PREFIX_ANY)) {
       metadata.isSIPTransaction = true
 
       // Try to extract SIP memo data

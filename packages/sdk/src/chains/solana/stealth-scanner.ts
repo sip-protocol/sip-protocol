@@ -17,7 +17,7 @@ import type { StealthAddress, HexString } from '@sip-protocol/types'
 import { checkEd25519StealthAddress, solanaAddressToEd25519PublicKey } from '../../stealth'
 import { parseAnnouncement, type SolanaAnnouncement } from './types'
 import {
-  SIP_MEMO_PREFIX,
+  SIP_MEMO_PREFIX_ANY,
   MEMO_PROGRAM_ID,
   DEFAULT_SCAN_LIMIT,
   VIEW_TAG_MAX,
@@ -354,7 +354,7 @@ export class StealthScanner {
 
           // Look for SIP announcements in logs
           for (const log of tx.meta.logMessages) {
-            if (!log.includes(SIP_MEMO_PREFIX)) continue
+            if (!log.includes(SIP_MEMO_PREFIX_ANY)) continue
 
             const memoMatch = log.match(/Program log: (.+)/)
             if (!memoMatch) continue
@@ -421,7 +421,7 @@ export class StealthScanner {
         try {
           // Look for SIP announcements
           for (const log of logs.logs) {
-            if (!log.includes(SIP_MEMO_PREFIX)) continue
+            if (!log.includes(SIP_MEMO_PREFIX_ANY)) continue
 
             const memoMatch = log.match(/Program log: (.+)/)
             if (!memoMatch) continue
