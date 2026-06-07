@@ -471,8 +471,8 @@ export class PrivacyWalletSelector {
 
     return checkNEARStealthAddress(
       stealthAddress,
-      keys.spendingPublicKey,
-      keys.viewingPrivateKey
+      keys.viewingPrivateKey,
+      keys.spendingPublicKey
     )
   }
 

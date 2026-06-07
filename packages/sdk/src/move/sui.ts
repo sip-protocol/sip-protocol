@@ -267,9 +267,12 @@ export function deriveSuiStealthPrivateKey(
  * This is the same as the standard ed25519 check since Sui stealth
  * addresses use ed25519 stealth public keys.
  *
+ * Canonical EIP-5564 view-only check: requires only the recipient's viewing
+ * private key plus their spending PUBLIC key (no spending private key needed).
+ *
  * @param stealthAddress - Stealth address to check
- * @param spendingPrivateKey - Recipient's spending private key
  * @param viewingPrivateKey - Recipient's viewing private key
+ * @param spendingPublicKey - Recipient's spending public key (meta-address spendingKey)
  * @returns true if this address belongs to the recipient
  * @throws {ValidationError} If any input is invalid
  *
@@ -277,21 +280,21 @@ export function deriveSuiStealthPrivateKey(
  * ```typescript
  * const isMine = checkSuiStealthAddress(
  *   stealthAddress,
- *   mySpendingPrivKey,
- *   myViewingPrivKey
+ *   myViewingPrivKey,
+ *   mySpendingPubKey
  * )
  * ```
  */
 export function checkSuiStealthAddress(
   stealthAddress: StealthAddress,
-  spendingPrivateKey: HexString,
   viewingPrivateKey: HexString,
+  spendingPublicKey: HexString,
 ): boolean {
   // Use standard ed25519 check
   return checkEd25519StealthAddress(
     stealthAddress,
-    spendingPrivateKey,
-    viewingPrivateKey
+    viewingPrivateKey,
+    spendingPublicKey
   )
 }
 
@@ -342,17 +345,20 @@ export class SuiStealthService {
   /**
    * Check if a stealth address belongs to this recipient
    *
+   * Canonical EIP-5564 view-only check: requires only the recipient's viewing
+   * private key plus their spending PUBLIC key (no spending private key needed).
+   *
    * @param stealthAddress - Stealth address to check
-   * @param spendingPrivateKey - Recipient's spending private key
    * @param viewingPrivateKey - Recipient's viewing private key
+   * @param spendingPublicKey - Recipient's spending public key (meta-address spendingKey)
    * @returns true if the address belongs to this recipient
    */
   checkStealthAddress(
     stealthAddress: StealthAddress,
-    spendingPrivateKey: HexString,
     viewingPrivateKey: HexString,
+    spendingPublicKey: HexString,
   ): boolean {
-    return checkSuiStealthAddress(stealthAddress, spendingPrivateKey, viewingPrivateKey)
+    return checkSuiStealthAddress(stealthAddress, viewingPrivateKey, spendingPublicKey)
   }
 
   /**

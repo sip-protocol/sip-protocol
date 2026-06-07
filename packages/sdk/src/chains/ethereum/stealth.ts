@@ -348,9 +348,12 @@ export function deriveEthereumStealthPrivateKey(
  *
  * Used during scanning to quickly filter announcements.
  *
+ * Canonical EIP-5564 view-only check: requires only the recipient's viewing
+ * private key plus their spending PUBLIC key (no spending private key needed).
+ *
  * @param stealthAddress - The stealth address to check
- * @param spendingPrivateKey - Recipient's spending private key
  * @param viewingPrivateKey - Recipient's viewing private key
+ * @param spendingPublicKey - Recipient's spending public key (meta-address spendingKey)
  * @returns True if the address belongs to this recipient
  *
  * @example
@@ -359,8 +362,8 @@ export function deriveEthereumStealthPrivateKey(
  * for (const announcement of announcements) {
  *   const isMine = checkEthereumStealthAddress(
  *     announcement.stealthAddress,
- *     mySpendingPrivateKey,
- *     myViewingPrivateKey
+ *     myViewingPrivateKey,
+ *     mySpendingPublicKey
  *   )
  *   if (isMine) {
  *     console.log('Found incoming payment!')
@@ -370,13 +373,13 @@ export function deriveEthereumStealthPrivateKey(
  */
 export function checkEthereumStealthAddress(
   stealthAddress: StealthAddress,
-  spendingPrivateKey: HexString,
-  viewingPrivateKey: HexString
+  viewingPrivateKey: HexString,
+  spendingPublicKey: HexString
 ): boolean {
   return checkSecp256k1StealthAddress(
     stealthAddress,
-    spendingPrivateKey,
-    viewingPrivateKey
+    viewingPrivateKey,
+    spendingPublicKey
   )
 }
 

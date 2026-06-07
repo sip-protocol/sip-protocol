@@ -277,8 +277,8 @@ export class PrivacySolanaWalletAdapter extends SolanaWalletAdapter {
       try {
         const isOwned = checkEd25519StealthAddress(
           announcement,
-          this.stealthKeys.metaAddress.spendingKey,
           this.stealthKeys.viewingPrivateKey,
+          this.stealthKeys.metaAddress.spendingKey,
         )
 
         results.push({

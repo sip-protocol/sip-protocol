@@ -448,8 +448,8 @@ export class MyNearWalletPrivacy {
 
     return checkNEARStealthAddress(
       stealthAddress,
-      this.privacyKeys.spendingPrivateKey,
-      this.privacyKeys.viewingPrivateKey
+      this.privacyKeys.viewingPrivateKey,
+      this.privacyKeys.spendingPublicKey
     )
   }
 

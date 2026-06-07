@@ -337,8 +337,8 @@ export class PrivacyEthereumWalletAdapter extends EthereumWalletAdapter {
       try {
         const isOwned = checkEthereumStealthAddress(
           announcement,
-          this.stealthKeys.metaAddress.spendingKey,
           this.stealthKeys.viewingPrivateKey,
+          this.stealthKeys.metaAddress.spendingKey,
         )
 
         let ethAddress: HexString

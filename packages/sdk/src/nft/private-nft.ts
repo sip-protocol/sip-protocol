@@ -19,6 +19,7 @@
  */
 
 import { sha256 } from '@noble/hashes/sha256'
+import { ed25519 } from '@noble/curves/ed25519'
 import { secp256k1 } from '@noble/curves/secp256k1'
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import type {
@@ -490,9 +491,12 @@ export class PrivateNFT {
 
     const ownedNFTs: OwnedNFT[] = []
 
-    // Convert keys to hex for stealth checking
-    const scanKeyHex = `0x${bytesToHex(scanKey)}` as HexString
+    // Convert keys to hex for stealth checking.
+    // Canonical EIP-5564 view-only scanning needs the spending PUBLIC key, so
+    // derive it from the spending private (scan) key once for both curves.
     const viewingKeyHex = `0x${bytesToHex(viewingKey)}` as HexString
+    const ed25519SpendingPubHex = `0x${bytesToHex(ed25519.getPublicKey(scanKey))}` as HexString
+    const secp256k1SpendingPubHex = `0x${bytesToHex(secp256k1.getPublicKey(scanKey, true))}` as HexString
 
     // Scan each transfer
     for (const transfer of transfers) {
@@ -511,14 +515,14 @@ export class PrivateNFT {
         if (isEd25519Chain(transfer.chain)) {
           isOwned = checkEd25519StealthAddress(
             transfer.newOwnerStealth,
-            scanKeyHex,
-            viewingKeyHex
+            viewingKeyHex,
+            ed25519SpendingPubHex
           )
         } else {
           isOwned = checkStealthAddress(
             transfer.newOwnerStealth,
-            scanKeyHex,
-            viewingKeyHex
+            viewingKeyHex,
+            secp256k1SpendingPubHex
           )
         }
 

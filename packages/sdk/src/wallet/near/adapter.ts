@@ -441,8 +441,8 @@ export class NEARWalletAdapter extends BaseWalletAdapter {
 
     return checkNEARStealthAddress(
       stealthAddress,
-      keys.spendingPublicKey,
-      keys.viewingPrivateKey
+      keys.viewingPrivateKey,
+      keys.spendingPublicKey
     )
   }
 

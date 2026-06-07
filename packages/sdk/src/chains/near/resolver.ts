@@ -30,6 +30,7 @@
  * @module chains/near/resolver
  */
 
+import { ed25519 } from '@noble/curves/ed25519'
 import { bytesToHex, hexToBytes } from '@noble/hashes/utils'
 import type { HexString, StealthAddress } from '@sip-protocol/types'
 import { ValidationError } from '../../errors'
@@ -43,6 +44,19 @@ import {
   isImplicitAccount,
 } from './constants'
 import type { NEARViewingKey } from './viewing-key'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Derive the ed25519 spending PUBLIC key from a spending private key.
+ *
+ * Canonical EIP-5564 view-only scanning needs the spending public key, but
+ * scan recipients in this module hold the spending private key. This converts
+ * one to the other on the fly.
+ */
+function nearSpendingPublicFromPrivate(spendingPrivateKey: HexString): HexString {
+  return `0x${bytesToHex(ed25519.getPublicKey(hexToBytes(spendingPrivateKey.slice(2))))}` as HexString
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -652,8 +666,8 @@ export class NEARStealthScanner {
         try {
           const isMatch = checkNEARStealthAddress(
             stealthAddressToCheck,
-            recipient.spendingPrivateKey,
-            recipient.viewingPrivateKey
+            recipient.viewingPrivateKey,
+            nearSpendingPublicFromPrivate(recipient.spendingPrivateKey)
           )
 
           if (isMatch) {
@@ -764,8 +778,8 @@ export class NEARStealthScanner {
     try {
       return checkNEARStealthAddress(
         stealthAddressToCheck,
-        spendingPrivateKey,
-        viewingPrivateKey
+        viewingPrivateKey,
+        nearSpendingPublicFromPrivate(spendingPrivateKey)
       )
     } catch {
       return false
@@ -814,8 +828,8 @@ export class NEARStealthScanner {
         try {
           const isMatch = checkNEARStealthAddress(
             stealthAddressToCheck,
-            recipient.spendingPrivateKey,
-            recipient.viewingPrivateKey
+            recipient.viewingPrivateKey,
+            nearSpendingPublicFromPrivate(recipient.spendingPrivateKey)
           )
 
           if (isMatch) {
@@ -954,8 +968,8 @@ export function hasNEARAnnouncementMatch(
       try {
         const isMatch = checkNEARStealthAddress(
           stealthAddressToCheck,
-          recipient.spendingPrivateKey,
-          recipient.viewingPrivateKey
+          recipient.viewingPrivateKey,
+          nearSpendingPublicFromPrivate(recipient.spendingPrivateKey)
         )
 
         if (isMatch) {
