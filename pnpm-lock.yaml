@@ -185,6 +185,12 @@ importers:
 
   packages/cli:
     dependencies:
+      '@noble/curves':
+        specifier: ^1.3.0
+        version: 1.9.7
+      '@noble/hashes':
+        specifier: ^1.3.3
+        version: 1.8.0
       '@sip-protocol/sdk':
         specifier: workspace:*
         version: link:../sdk

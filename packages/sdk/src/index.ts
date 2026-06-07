@@ -88,6 +88,12 @@ export {
   generateEd25519StealthAddress,
   deriveEd25519StealthPrivateKey,
   checkEd25519StealthAddress,
+  // Legacy SIP:1 back-compat (claim/scan of pre-flip announcements)
+  deriveStealthPrivateKeyV1,
+  deriveEd25519StealthPrivateKeyV1,
+  checkEd25519StealthAddressV1,
+  deriveSecp256k1StealthPrivateKeyV1,
+  checkSecp256k1StealthAddressV1,
   // Solana address derivation
   ed25519PublicKeyToSolanaAddress,
   solanaAddressToEd25519PublicKey,
