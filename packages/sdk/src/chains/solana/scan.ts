@@ -17,6 +17,7 @@ import {
 import {
   checkEd25519StealthAddress,
   deriveEd25519StealthPrivateKey,
+  deriveEd25519StealthPrivateKeyV1,
   solanaAddressToEd25519PublicKey,
 } from '../../stealth'
 import type { StealthAddress, HexString } from '@sip-protocol/types'
@@ -261,6 +262,7 @@ export async function claimStealthPayment(
     spendingPrivateKey,
     destinationAddress,
     mint,
+    version = '2',
   } = params
 
   // M7 FIX: Check SOL balance for fees before attempting claim
@@ -285,12 +287,11 @@ export async function claimStealthPayment(
     viewTag: 0, // Not needed for derivation
   }
 
-  // Derive stealth private key
-  const recovery = deriveEd25519StealthPrivateKey(
-    stealthAddressObj,
-    spendingPrivateKey,
-    viewingPrivateKey
-  )
+  // Derive stealth private key — route by announcement version:
+  // legacy SIP:1 (swapped scheme) vs canonical SIP:2 (EIP-5564).
+  const recovery = version === '1'
+    ? deriveEd25519StealthPrivateKeyV1(stealthAddressObj, spendingPrivateKey, viewingPrivateKey)
+    : deriveEd25519StealthPrivateKey(stealthAddressObj, spendingPrivateKey, viewingPrivateKey)
 
   // Create Solana keypair from derived private key
   // Note: ed25519 private keys in Solana are seeds, not raw scalars

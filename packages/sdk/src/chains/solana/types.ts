@@ -147,6 +147,12 @@ export interface SolanaClaimParams {
   destinationAddress: string
   /** SPL token mint address */
   mint: PublicKey
+  /**
+   * Announcement scheme version of the payment being claimed.
+   * '2' (default) = canonical EIP-5564; '1' = legacy swapped (SIP:1) back-compat.
+   * Pass the `version` returned by {@link parseAnnouncement}.
+   */
+  version?: '1' | '2'
 }
 
 /**
