@@ -2,7 +2,7 @@
  * Solana scanForPayments end-to-end view-only test
  *
  * Drives the REAL `scanForPayments` against a mocked RPC connection — the path
- * the CI gap left uncovered. The existing scan-canonical.test.ts exercises only
+ * the CI gap left uncovered. The existing crypto/stealth-ed25519-canonical.test.ts exercises only
  * the `checkEd25519StealthAddress` PRIMITIVE, and the @sip-protocol/react test
  * MOCKS `scanForPayments`, so neither would catch a future re-swap of the 2nd/3rd
  * args (viewingPrivateKey <-> spendingPublicKey) inside scan.ts.
