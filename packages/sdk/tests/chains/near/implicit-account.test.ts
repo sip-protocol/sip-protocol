@@ -57,7 +57,7 @@ describe('NEAR Implicit Account Privacy (M17-NEAR-06)', () => {
       expect(result.stealthAddress.viewTag).toBeLessThanOrEqual(255)
 
       expect(result.stealthAccountId).toMatch(/^[0-9a-f]{64}$/)
-      expect(result.announcementMemo).toMatch(/^SIP:1:/)
+      expect(result.announcementMemo).toMatch(/^SIP:2:/)
       expect(result.receiverId).toBe(result.stealthAccountId)
 
       expect(result.actions).toHaveLength(1)
@@ -116,7 +116,7 @@ describe('NEAR Implicit Account Privacy (M17-NEAR-06)', () => {
 
       expect(result.stealthAddress).toBeDefined()
       expect(result.stealthAccountId).toMatch(/^[0-9a-f]{64}$/)
-      expect(result.announcementMemo).toMatch(/^SIP:1:/)
+      expect(result.announcementMemo).toMatch(/^SIP:2:/)
       expect(result.receiverId).toBe(TOKEN_CONTRACT)
 
       expect(result.actions).toHaveLength(1)
@@ -135,7 +135,7 @@ describe('NEAR Implicit Account Privacy (M17-NEAR-06)', () => {
       const args = JSON.parse(params.args)
       expect(args.receiver_id).toBe(result.stealthAccountId)
       expect(args.amount).toBe(TOKEN_AMOUNT.toString())
-      expect(args.memo).toContain('SIP:1:')
+      expect(args.memo).toContain('SIP:2:')
     })
 
     it('should include custom memo in transfer', () => {
@@ -150,7 +150,7 @@ describe('NEAR Implicit Account Privacy (M17-NEAR-06)', () => {
       const params = result.actions[0].params as { args: string }
       const args = JSON.parse(params.args)
       expect(args.memo).toContain(customMemo)
-      expect(args.memo).toContain('SIP:1:')
+      expect(args.memo).toContain('SIP:2:')
     })
 
     it('should throw for invalid token contract', () => {

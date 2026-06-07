@@ -38,7 +38,7 @@ import { isValidHex } from '../../validation'
 import { checkNEARStealthAddress, implicitAccountToEd25519PublicKey } from './stealth'
 import { parseAnnouncement, type NEARAnnouncement } from './types'
 import {
-  SIP_MEMO_PREFIX,
+  SIP_MEMO_PREFIX_ANY,
   VIEW_TAG_MIN,
   VIEW_TAG_MAX,
   isImplicitAccount,
@@ -722,7 +722,7 @@ export class NEARStealthScanner {
     const announcements: NEARAnnouncement[] = []
 
     for (const log of logs) {
-      if (!log.includes(SIP_MEMO_PREFIX)) {
+      if (!log.includes(SIP_MEMO_PREFIX_ANY)) {
         continue
       }
 

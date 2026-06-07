@@ -77,10 +77,22 @@ export const NEAR_TOKEN_DECIMALS: Record<string, number> = {
 }
 
 /**
- * SIP announcement prefix for NEAR memos
+ * SIP announcement memo prefix (legacy SIP:1, swapped scheme — read-only back-compat)
  * Format: SIP:1:<ephemeral_pubkey_hex>:<view_tag_hex>
  */
 export const SIP_MEMO_PREFIX = 'SIP:1:'
+
+/**
+ * Canonical EIP-5564 (SIP:2) announcement memo prefix — emitted by new sends.
+ * Format: SIP:2:<ephemeral_pubkey_hex>:<view_tag_hex>
+ */
+export const SIP_MEMO_PREFIX_V2 = 'SIP:2:'
+
+/**
+ * Version-agnostic announcement memo prefix for scanning.
+ * Matches both SIP:1 (legacy) and SIP:2 (canonical) announcements.
+ */
+export const SIP_MEMO_PREFIX_ANY = 'SIP:'
 
 /**
  * NEAR implicit account length (64 hex characters = 32 bytes)
