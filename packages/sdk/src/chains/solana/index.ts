@@ -152,10 +152,7 @@ export {
   batchGenerateManagedEphemeralKeypairs,
   disposeEphemeralKeypairs,
   wipeEphemeralPrivateKey,
-  formatEphemeralAnnouncement,
-  parseEphemeralAnnouncement,
   type EphemeralKeypair,
-  type EphemeralKeyUsageResult,
   type ManagedEphemeralKeypair,
   type BatchGenerationOptions,
 } from './ephemeral-keys'

@@ -21,6 +21,10 @@
 
   **Back-compat:** legacy `SIP:1` (pre-flip) funds remain claimable via the preserved `deriveStealthPrivateKeyV1`, `deriveEd25519StealthPrivateKeyV1`, `deriveSecp256k1StealthPrivateKeyV1`, `checkEd25519StealthAddressV1`, and `checkSecp256k1StealthAddressV1`. `claimStealthPayment` accepts a `version` (`'1' | '2'`) to route derivation.
 
+### Removed
+
+- Removed the unused Solana ephemeral stealth helpers `computeStealthAddress`, `ManagedEphemeralKeypair.useForStealthAddress`, `formatEphemeralAnnouncement`, `parseEphemeralAnnouncement`, and the `EphemeralKeyUsageResult` type. They were non-canonical (little-endian hash tweak + `SIP:1` announcement tag) and produced stealth addresses that are undetectable and unspendable under the canonical EIP-5564 scheme. Use `generateStealthAddress`, `createAnnouncementMemo`, and `scanForPayments` instead. The safe ephemeral key-generation/disposal utilities (`generateEphemeralKeypair`, `generateManagedEphemeralKeypair`, `batchGenerate*`, `disposeEphemeralKeypairs`, `wipeEphemeralPrivateKey`) remain.
+
 ## 0.9.0
 
 ### Minor Changes
