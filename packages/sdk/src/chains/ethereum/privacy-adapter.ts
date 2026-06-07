@@ -18,6 +18,7 @@ import {
   deriveEthereumStealthPrivateKey,
   checkEthereumStealthAddress,
   checkEthereumStealthByEthAddress,
+  checkEthereumStealthByEthAddressViewOnly,
   stealthPublicKeyToEthAddress,
   type EthereumStealthMetaAddress,
   type EthereumStealthAddress,
@@ -59,6 +60,7 @@ import type {
   EthereumPrivacyAdapterState,
   EthereumScanRecipient,
   EthereumDetectedPaymentResult,
+  EthereumViewOnlyDetectionResult,
   EthereumViewingKeyExport,
   EthereumViewingKeyPair,
   EthereumPedersenCommitment,
@@ -589,6 +591,11 @@ export class EthereumPrivacyAdapter {
 
       // Check each recipient
       for (const recipient of this.scanRecipients.values()) {
+        // The full scan derives the claimable key, which needs the spending private key.
+        // View-only recipients (no spending private key) are handled by scanAnnouncementsViewOnly.
+        if (!recipient.spendingPrivateKey) {
+          continue
+        }
         // Use ETH address comparison since announcements store 20-byte addresses
         // Returns the stealth private key if match found, null otherwise
         const stealthPrivateKey = checkEthereumStealthByEthAddress(
@@ -611,6 +618,55 @@ export class EthereumPrivacyAdapter {
             },
             recipient,
             stealthPrivateKey,
+          })
+          break // Found owner, no need to check other recipients
+        }
+      }
+    }
+
+    return results
+  }
+
+  /**
+   * Scan announcements for incoming payments — VIEW-ONLY.
+   *
+   * Detects payments using each registered recipient's viewing private key + spending
+   * public key only (never the spending private key), so a compliance auditor or a
+   * delegated watcher can find incoming payments without spend authority. Results carry
+   * no derived private key — claim by deriving it separately at claim time (with both
+   * private keys).
+   *
+   * @param announcements - Announcements to scan
+   * @returns Detected payments (without private keys)
+   */
+  scanAnnouncementsViewOnly(
+    announcements: EthereumAnnouncement[]
+  ): EthereumViewOnlyDetectionResult[] {
+    const results: EthereumViewOnlyDetectionResult[] = []
+
+    for (const announcement of announcements) {
+      const stealthAddress = announcementToStealthAddress(announcement)
+
+      for (const recipient of this.scanRecipients.values()) {
+        const isMatch = checkEthereumStealthByEthAddressViewOnly(
+          announcement.stealthAddress,
+          announcement.ephemeralPublicKey,
+          announcement.viewTag,
+          recipient.spendingPublicKey,
+          recipient.viewingPrivateKey,
+        )
+
+        if (isMatch) {
+          results.push({
+            payment: {
+              stealthAddress,
+              stealthEthAddress: announcement.stealthAddress,
+              txHash: announcement.txHash!,
+              blockNumber: announcement.blockNumber!,
+              logIndex: announcement.logIndex,
+              timestamp: announcement.timestamp,
+            },
+            recipient,
           })
           break // Found owner, no need to check other recipients
         }

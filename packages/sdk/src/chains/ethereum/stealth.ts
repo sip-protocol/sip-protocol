@@ -460,6 +460,78 @@ export function checkEthereumStealthByEthAddress(
   }
 }
 
+/**
+ * View-only check of an Ethereum stealth announcement by ETH address.
+ *
+ * Detects whether a payment was intended for this recipient using only the viewing
+ * PRIVATE key and the spending PUBLIC key — never the spending private key (which is
+ * required to claim, not to detect). Recomputes the expected stealth public key as
+ * `A = K_spend + H(S)*G` (point arithmetic on the spending public key), converts it to an
+ * ETH address, and compares. Mirrors {@link checkEthereumStealthByEthAddress} but without
+ * the spending private key and returning a boolean rather than the derived key.
+ *
+ * @param ethAddress - The ETH address from the announcement (20 bytes)
+ * @param ephemeralPublicKey - Ephemeral public key from the announcement
+ * @param viewTag - View tag from the announcement
+ * @param spendingPublicKey - Recipient's spending public key (meta-address spendingKey)
+ * @param viewingPrivateKey - Recipient's viewing private key
+ * @returns True if the address belongs to this recipient
+ */
+export function checkEthereumStealthByEthAddressViewOnly(
+  ethAddress: HexString,
+  ephemeralPublicKey: HexString,
+  viewTag: number,
+  spendingPublicKey: HexString,
+  viewingPrivateKey: HexString,
+): boolean {
+  if (!isValidPrivateKey(viewingPrivateKey)) {
+    throw new ValidationError(
+      'must be a valid 32-byte hex string',
+      'viewingPrivateKey'
+    )
+  }
+
+  const viewingPrivBytes = hexToBytes(viewingPrivateKey.slice(2))
+  const spendingPubBytes = hexToBytes(spendingPublicKey.slice(2))
+  const ephemeralPubBytes = hexToBytes(ephemeralPublicKey.slice(2))
+
+  try {
+    // Compute shared secret: S = viewingPrivateKey * ephemeralPublicKey
+    // Canonical EIP-5564: ECDH on the viewing key (mirrors generation S = r * K_view)
+    const sharedSecretPoint = secp256k1.getSharedSecret(
+      viewingPrivBytes,
+      ephemeralPubBytes,
+    )
+    const sharedSecretHash = sha256(sharedSecretPoint)
+
+    // Quick view tag check
+    if (sharedSecretHash[0] !== viewTag) {
+      return false
+    }
+
+    // Expected stealth address: A = K_spend + hash(S)*G — point arithmetic on the spending
+    // PUBLIC key, so no spending private key is needed. Reduce hash(S) into [1, n-1] (a zero
+    // offset would be degenerate) before scaling the generator.
+    const hashScalar = BigInt('0x' + bytesToHex(sharedSecretHash)) % secp256k1.CURVE.n
+    if (hashScalar === 0n) {
+      return false
+    }
+    const spendingPubPoint = secp256k1.ProjectivePoint.fromHex(spendingPubBytes)
+    const expectedPoint = spendingPubPoint.add(
+      secp256k1.ProjectivePoint.BASE.multiply(hashScalar),
+    )
+    const expectedPubKey = expectedPoint.toRawBytes(true)
+
+    // Convert to ETH address and compare (case-insensitive)
+    const expectedPubKeyHex = ('0x' + bytesToHex(expectedPubKey)) as HexString
+    const expectedEthAddress = publicKeyToEthAddress(expectedPubKeyHex)
+
+    return expectedEthAddress.toLowerCase() === ethAddress.toLowerCase()
+  } catch {
+    return false
+  }
+}
+
 // ─── Address Conversion ─────────────────────────────────────────────────────
 
 /**
