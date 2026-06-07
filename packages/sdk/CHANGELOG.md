@@ -19,7 +19,20 @@
 
   **Solana announcements** are now emitted with the `SIP:2:` prefix; `SIP:1:` announcements remain parseable (`parseAnnouncement` returns a `version`).
 
-  **Back-compat:** legacy `SIP:1` (pre-flip) funds remain claimable via the preserved `deriveStealthPrivateKeyV1`, `deriveEd25519StealthPrivateKeyV1`, `deriveSecp256k1StealthPrivateKeyV1`, `checkEd25519StealthAddressV1`, and `checkSecp256k1StealthAddressV1`. `claimStealthPayment` accepts a `version` (`'1' | '2'`) to route derivation.
+  **Back-compat:** legacy `SIP:1` (pre-flip) funds remain claimable via the preserved `deriveStealthPrivateKeyV1`, `deriveEd25519StealthPrivateKeyV1`, `deriveSecp256k1StealthPrivateKeyV1`, `checkEd25519StealthAddressV1`, and `checkSecp256k1StealthAddressV1`. `claimStealthPayment` accepts a `version` (`'1' | '2'`) to route derivation — it defaults to `'2'` (canonical), so pass `version: '1'` to claim a pre-flip payment:
+
+  ```typescript
+  await claimStealthPayment({
+    connection,
+    stealthAddress,
+    ephemeralPublicKey,
+    viewingPrivateKey,
+    spendingPrivateKey,
+    destinationAddress,
+    mint,
+    version: '1', // claim a legacy SIP:1 (pre-flip) payment; omit for canonical SIP:2
+  })
+  ```
 
 ### Removed
 
