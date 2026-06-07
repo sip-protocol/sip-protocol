@@ -497,15 +497,15 @@ export class CosmosIBCStealthService {
         const viewingPrivKey = hexToBytes(`0x${bytesToHex(viewingKey)}`.slice(2))
         const spendingPrivKey = hexToBytes(spendingPrivateKey.slice(2))
 
-        // Compute stealth private key using EIP-5564 algorithm:
-        // 1. Compute shared secret: S = spendingPriv * ephemeralPub
-        const sharedSecretPoint = secp256k1.getSharedSecret(spendingPrivKey, ephemeralPubKey)
+        // Compute stealth private key using canonical EIP-5564:
+        // 1. Compute shared secret: S = viewingPriv * ephemeralPub (ECDH on the viewing key)
+        const sharedSecretPoint = secp256k1.getSharedSecret(viewingPrivKey, ephemeralPubKey)
         const sharedSecretHash = sha256(sharedSecretPoint)
 
-        // 2. Derive stealth private key: stealthPriv = viewingPriv + hash(S) mod n
-        const viewingPrivBigInt = bytesToBigInt(viewingPrivKey)
+        // 2. Derive stealth private key: stealthPriv = spendingPriv + hash(S) mod n
+        const spendingPrivBigInt = bytesToBigInt(spendingPrivKey)
         const hashBigInt = bytesToBigInt(sharedSecretHash)
-        const stealthPrivBigInt = (viewingPrivBigInt + hashBigInt) % secp256k1.CURVE.n
+        const stealthPrivBigInt = (spendingPrivBigInt + hashBigInt) % secp256k1.CURVE.n
 
         // Convert to bytes and then to compressed public key
         const stealthPrivKey = bigIntToBytes(stealthPrivBigInt, 32)

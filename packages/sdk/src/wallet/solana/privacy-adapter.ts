@@ -358,23 +358,23 @@ export class PrivacySolanaWalletAdapter extends SolanaWalletAdapter {
     // Compute stealth address from ephemeral key
     const ephemeralPubBytes = hexToBytes(ephemeralPublicKey.slice(2))
 
-    // Compute shared secret: S = spending_scalar * R
-    const spendingScalar = getEd25519ScalarFromPrivate(
-      hexToBytes(this.stealthKeys.spendingPrivateKey.slice(2))
+    // Compute shared secret: S = viewing_scalar * R (canonical EIP-5564)
+    const viewingScalar = getEd25519ScalarFromPrivate(
+      hexToBytes(this.stealthKeys.viewingPrivateKey.slice(2))
     )
 
     const ephemeralPoint = ed25519.ExtendedPoint.fromHex(ephemeralPubBytes)
-    const sharedSecretPoint = ephemeralPoint.multiply(spendingScalar)
+    const sharedSecretPoint = ephemeralPoint.multiply(viewingScalar)
     const sharedSecretHash = sha256(sharedSecretPoint.toRawBytes())
 
-    // Derive stealth public key: P_stealth = P_view + hash(S)*G
+    // Derive stealth public key: P_stealth = P_spend + hash(S)*G
     const hashScalar = bytesToBigInt(sharedSecretHash) % ED25519_ORDER
     const hashTimesG = ed25519.ExtendedPoint.BASE.multiply(hashScalar)
 
-    const viewingPoint = ed25519.ExtendedPoint.fromHex(
-      hexToBytes(this.stealthKeys.metaAddress.viewingKey.slice(2))
+    const spendingPoint = ed25519.ExtendedPoint.fromHex(
+      hexToBytes(this.stealthKeys.metaAddress.spendingKey.slice(2))
     )
-    const stealthPoint = viewingPoint.add(hashTimesG)
+    const stealthPoint = spendingPoint.add(hashTimesG)
     const stealthAddressHex = `0x${bytesToHex(stealthPoint.toRawBytes())}` as HexString
 
     // Create StealthAddress for derivation

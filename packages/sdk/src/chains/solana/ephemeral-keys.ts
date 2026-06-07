@@ -414,24 +414,24 @@ function computeStealthAddress(
     throw new Error('Invalid ephemeral scalar')
   }
 
-  // Compute shared secret: S = ephemeral_scalar * P_spend
-  const spendingPoint = ed25519.ExtendedPoint.fromHex(spendingKeyBytes)
-  const sharedSecretPoint = spendingPoint.multiply(ephemeralScalar)
+  // Compute shared secret: S = ephemeral_scalar * P_view (canonical EIP-5564)
+  const viewingPoint = ed25519.ExtendedPoint.fromHex(viewingKeyBytes)
+  const sharedSecretPoint = viewingPoint.multiply(ephemeralScalar)
   const sharedSecretBytes = sharedSecretPoint.toRawBytes()
 
   // Hash the shared secret
   const sharedSecretHash = sha256(sharedSecretBytes)
   const viewTag = sharedSecretHash[0]
 
-  // Derive stealth address: P_stealth = P_view + hash(S)*G
+  // Derive stealth address: P_stealth = P_spend + hash(S)*G
   const hashScalar = bytesToBigIntLE(sharedSecretHash) % ED25519_ORDER
   if (hashScalar === 0n) {
     throw new Error('Invalid hash scalar')
   }
 
   const hashTimesG = ed25519.ExtendedPoint.BASE.multiply(hashScalar)
-  const viewingPoint = ed25519.ExtendedPoint.fromHex(viewingKeyBytes)
-  const stealthPoint = viewingPoint.add(hashTimesG)
+  const spendingPoint = ed25519.ExtendedPoint.fromHex(spendingKeyBytes)
+  const stealthPoint = spendingPoint.add(hashTimesG)
   const stealthAddressBytes = stealthPoint.toRawBytes()
 
   const stealthAddress = `0x${bytesToHex(stealthAddressBytes)}` as HexString
