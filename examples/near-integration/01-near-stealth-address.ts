@@ -127,11 +127,12 @@ SIP uses implicit accounts for stealth addresses because:
   console.log('STEP 4: Recipient scans and claims')
   console.log('─────────────────────────────────────────────────────────────────')
 
-  // Simulate scanning (recipient checks if this payment is theirs)
+  // Simulate scanning (recipient checks if this payment is theirs).
+  // View-only scan: viewing PRIVATE key + spending PUBLIC key (EIP-5564)
   const isOurs = checkEd25519StealthAddress(
     stealthAddress,
-    recipient.spendingPrivateKey,
-    recipient.viewingPrivateKey
+    recipient.viewingPrivateKey,
+    recipient.metaAddress.spendingKey
   )
 
   console.log(`Scanning result: ${isOurs ? '✓ MATCH - Payment is ours!' : '✗ Not ours'}`)

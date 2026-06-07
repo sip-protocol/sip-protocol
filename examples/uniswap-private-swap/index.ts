@@ -244,11 +244,12 @@ async function main() {
   console.log('STEP 6: Verify stealth output ownership')
   console.log('─────────────────────────────────────────────────────────────────')
 
-  // Recipient verifies they can claim the output
+  // Recipient verifies they can claim the output (view-only check: viewing
+  // PRIVATE key + spending PUBLIC key, per canonical EIP-5564)
   const isOwner = checkStealthAddress(
     outputStealth.stealthAddress,
-    receiverMeta.spendingPrivateKey,
-    receiverMeta.viewingPrivateKey
+    receiverMeta.viewingPrivateKey,
+    receiverMeta.metaAddress.spendingKey
   )
 
   console.log(`  Ownership verified: ${isOwner ? '✓' : '✗'}`)

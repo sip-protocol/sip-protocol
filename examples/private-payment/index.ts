@@ -115,11 +115,12 @@ async function main() {
     scannedCount++
 
     // Quick check using view tag (optimization)
-    // This avoids full EC computation for most non-matching payments
+    // This avoids full EC computation for most non-matching payments.
+    // View-only scan: viewing PRIVATE key + spending PUBLIC key (EIP-5564)
     const matches = checkStealthAddress(
       payment,
-      recipientKeys.spendingPrivateKey,
-      recipientKeys.viewingPrivateKey
+      recipientKeys.viewingPrivateKey,
+      recipientKeys.metaAddress.spendingKey
     )
 
     if (matches) {

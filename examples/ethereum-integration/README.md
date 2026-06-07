@@ -126,7 +126,8 @@ if (announcement.viewTag !== computedViewTag) {
 }
 
 // Only do full check if view tag matches (1/256 chance)
-const isOurs = checkStealthAddress(stealthAddress, spendingKey, viewingKey)
+// View-only scan: viewing PRIVATE key + spending PUBLIC key (EIP-5564)
+const isOurs = checkStealthAddress(stealthAddress, viewingPrivateKey, spendingPublicKey)
 ```
 
 ### ERC-4337 Account Abstraction

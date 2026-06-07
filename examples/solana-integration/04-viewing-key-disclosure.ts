@@ -154,13 +154,15 @@ Viewing keys can be:
   let totalSeen = 0n
 
   for (const payment of simulatedPayments) {
-    // Auditor checks if this payment belongs to the treasury
-    // Note: In production, auditor would use their scoped viewing key
-    // For demo, we use the treasury's actual viewing key
+    // Auditor checks if this payment belongs to the treasury.
+    // View-only scan: the auditor needs only the viewing PRIVATE key plus the
+    // spending PUBLIC key — never the spending private key (canonical EIP-5564).
+    // In production, the auditor would use their scoped viewing key; for the
+    // demo we use the treasury's actual viewing key.
     const isMatch = checkEd25519StealthAddress(
       payment.stealthAddress,
-      treasury.spendingPrivateKey,  // Note: auditor only has VIEWING key
-      treasury.viewingPrivateKey
+      treasury.viewingPrivateKey,
+      treasury.metaAddress.spendingKey  // spending PUBLIC key (safe to share)
     )
 
     if (isMatch) {
