@@ -67,6 +67,7 @@ export type {
   EthereumPrivacyAdapterState,
   EthereumScanRecipient,
   EthereumDetectedPaymentResult,
+  EthereumViewOnlyDetectionResult,
 } from './types'
 
 // ─── Stealth Addresses ────────────────────────────────────────────────────────
@@ -85,6 +86,7 @@ export {
   deriveEthereumStealthPrivateKey,
   checkEthereumStealthAddress,
   checkEthereumStealthByEthAddress,
+  checkEthereumStealthByEthAddressViewOnly,
   stealthPublicKeyToEthAddress,
   extractPublicKeys,
   createMetaAddressFromPublicKeys,

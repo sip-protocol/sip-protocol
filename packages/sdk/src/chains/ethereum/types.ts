@@ -441,8 +441,12 @@ export interface EthereumScanRecipient {
   viewingPrivateKey: HexString
   /** Spending public key */
   spendingPublicKey: HexString
-  /** Spending private key (required for scanning and key derivation) */
-  spendingPrivateKey: HexString
+  /**
+   * Spending private key — required to derive claimable keys during a full scan
+   * (`scanAnnouncements`). Optional for view-only registration: a recipient with only
+   * `viewingPrivateKey` + `spendingPublicKey` detects payments via `scanAnnouncementsViewOnly`.
+   */
+  spendingPrivateKey?: HexString
   /** Optional label */
   label?: string
 }
@@ -457,4 +461,16 @@ export interface EthereumDetectedPaymentResult {
   recipient: EthereumScanRecipient
   /** Derived stealth private key (for claiming) */
   stealthPrivateKey: HexString
+}
+
+/**
+ * View-only detected payment — carries no derived private key (detection used the
+ * spending PUBLIC key only). To claim, derive the stealth private key separately with
+ * both private keys at claim time.
+ */
+export interface EthereumViewOnlyDetectionResult {
+  /** The detected payment */
+  payment: EthereumDetectedPayment
+  /** The recipient that matched */
+  recipient: EthereumScanRecipient
 }
