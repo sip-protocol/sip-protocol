@@ -8,7 +8,7 @@
  */
 
 import type { HexString, StealthAddress } from '@sip-protocol/types'
-import { SIP_MEMO_PREFIX, VIEW_TAG_MIN, VIEW_TAG_MAX } from './constants'
+import { SIP_MEMO_PREFIX_V2, VIEW_TAG_MIN, VIEW_TAG_MAX } from './constants'
 
 // ─── Announcement Types ──────────────────────────────────────────────────────
 
@@ -18,6 +18,8 @@ import { SIP_MEMO_PREFIX, VIEW_TAG_MIN, VIEW_TAG_MAX } from './constants'
  * Contains the information needed for recipients to scan for payments.
  */
 export interface NEARAnnouncement {
+  /** Announcement scheme version: '1' = legacy swapped, '2' = canonical EIP-5564 */
+  version?: string
   /** Ephemeral public key (ed25519, 0x-prefixed hex) */
   ephemeralPublicKey: HexString
   /** View tag for efficient filtering (0-255) */
@@ -35,16 +37,21 @@ export interface NEARAnnouncement {
 /**
  * Parse an announcement from a NEAR memo string
  *
- * Format: SIP:1:<ephemeral_pubkey_hex>:<view_tag_hex>
+ * Accepts SIP:1 (legacy swapped scheme) and SIP:2 (canonical EIP-5564); the detected
+ * version is returned. NEAR derives canonically regardless, so the version is recorded
+ * for consistency rather than to route the claim.
+ *
+ * Format: SIP:<version>:<ephemeral_pubkey_hex>:<view_tag_hex>
  *
  * @param memo - The memo string to parse
  * @returns Parsed announcement or null if invalid
  *
  * @example
  * ```typescript
- * const memo = 'SIP:1:1234...abcd:0f'
+ * const memo = 'SIP:2:1234...abcd:0f'
  * const announcement = parseAnnouncement(memo)
  * if (announcement) {
+ *   console.log(announcement.version) // '2'
  *   console.log(announcement.ephemeralPublicKey)
  *   console.log(announcement.viewTag) // 15
  * }
@@ -55,13 +62,15 @@ export function parseAnnouncement(memo: string): Partial<NEARAnnouncement> | nul
     return null
   }
 
-  // Check prefix
-  if (!memo.startsWith(SIP_MEMO_PREFIX)) {
+  // Accept SIP:1 (legacy) and SIP:2 (canonical); capture the version.
+  const versionMatch = /^SIP:([12]):/.exec(memo)
+  if (!versionMatch) {
     return null
   }
+  const version = versionMatch[1]
 
-  // Parse parts: SIP:1:<ephemeral_pubkey>:<view_tag>
-  const content = memo.slice(SIP_MEMO_PREFIX.length)
+  // Parse parts: <ephemeral_pubkey_hex>:<view_tag_hex>
+  const content = memo.slice(versionMatch[0].length)
   const parts = content.split(':')
 
   if (parts.length < 2) {
@@ -86,6 +95,7 @@ export function parseAnnouncement(memo: string): Partial<NEARAnnouncement> | nul
   }
 
   return {
+    version,
     ephemeralPublicKey: `0x${ephemeralKeyHex.toLowerCase()}` as HexString,
     viewTag,
   }
@@ -104,7 +114,7 @@ export function parseAnnouncement(memo: string): Partial<NEARAnnouncement> | nul
  *   stealthAddress.ephemeralPublicKey,
  *   stealthAddress.viewTag
  * )
- * // => 'SIP:1:1234...abcd:0f'
+ * // => 'SIP:2:1234...abcd:0f'
  * ```
  */
 export function createAnnouncementMemo(
@@ -117,7 +127,8 @@ export function createAnnouncementMemo(
   // Convert view tag to 2-char hex
   const viewTagHex = viewTag.toString(16).padStart(2, '0')
 
-  return `${SIP_MEMO_PREFIX}${ephemeralKeyHex}:${viewTagHex}`
+  // Emit the canonical SIP:2 announcement (EIP-5564). Legacy SIP:1 remains parseable.
+  return `${SIP_MEMO_PREFIX_V2}${ephemeralKeyHex}:${viewTagHex}`
 }
 
 // ─── Transfer Types ──────────────────────────────────────────────────────────

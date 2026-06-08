@@ -173,11 +173,17 @@ export function generateSecp256k1StealthAddress(
     // Hash the shared secret for use as a scalar
     const sharedSecretHash = sha256(sharedSecretPoint)
 
-    // Compute stealth address: A = K_spend + hash(S)*G
-    const hashTimesG = secp256k1.getPublicKey(sharedSecretHash, true)
+    // Compute stealth address: A = K_spend + hash(S)*G.
+    // Reduce hash(S) to a scalar in [1, n-1] before deriving the point: secp256k1.getPublicKey
+    // throws for a scalar >= n or == 0 (~3.7e-39 for a random SHA-256 digest). Reducing mod n
+    // mirrors the ed25519 path and keeps generate symmetric with derive (k_spend + hash(S) mod n).
+    const hashScalar = bytesToBigInt(sharedSecretHash) % secp256k1.CURVE.n
+    if (hashScalar === 0n) {
+      throw new Error('CRITICAL: zero hash scalar after reduction - investigate hash computation')
+    }
 
     const spendingKeyPoint = secp256k1.ProjectivePoint.fromHex(spendingKeyBytes)
-    const hashTimesGPoint = secp256k1.ProjectivePoint.fromHex(hashTimesG)
+    const hashTimesGPoint = secp256k1.ProjectivePoint.BASE.multiply(hashScalar)
     const stealthPoint = spendingKeyPoint.add(hashTimesGPoint)
     const stealthAddressBytes = stealthPoint.toRawBytes(true)
 
@@ -378,10 +384,15 @@ export function checkSecp256k1StealthAddress(
       return false
     }
 
-    // Expected address: A = K_spend + hash(S)*G  (no spending private key needed)
-    const hashTimesG = secp256k1.getPublicKey(sharedSecretHash, true)
+    // Expected address: A = K_spend + hash(S)*G  (no spending private key needed).
+    // Reduce hash(S) mod n (symmetric with generate); a zero scalar can't correspond to a
+    // real stealth payment, so treat it as a non-match.
+    const hashScalar = bytesToBigInt(sharedSecretHash) % secp256k1.CURVE.n
+    if (hashScalar === 0n) {
+      return false
+    }
     const expectedPoint = secp256k1.ProjectivePoint.fromHex(spendingPubBytes).add(
-      secp256k1.ProjectivePoint.fromHex(hashTimesG),
+      secp256k1.ProjectivePoint.BASE.multiply(hashScalar),
     )
 
     // Compare with provided stealth address

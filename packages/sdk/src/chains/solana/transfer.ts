@@ -218,7 +218,7 @@ export async function sendPrivateSPLTransfer(
   )
 
   // 4. Add memo with announcement for recipient scanning
-  // Format: SIP:1:<ephemeral_pubkey_base58>:<view_tag_hex>
+  // Format: SIP:2:<ephemeral_pubkey_base58>:<view_tag_hex>:<stealth_address_base58>
   // viewTag is a number (0-255), convert to 2-char hex
   const viewTagHex = stealthAddress.viewTag.toString(16).padStart(2, '0')
   const memoContent = createAnnouncementMemo(

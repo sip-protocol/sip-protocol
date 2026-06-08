@@ -6,6 +6,7 @@ import {
   checkStealthAddress,
   deriveStealthPrivateKey,
 } from '../../src/stealth'
+import { bytesToBigInt } from '../../src/stealth/utils'
 import type { ChainId, HexString } from '@sip-protocol/types'
 
 describe('secp256k1 canonical EIP-5564', () => {
@@ -28,6 +29,21 @@ describe('secp256k1 canonical EIP-5564', () => {
     const { privateKey } = deriveStealthPrivateKey(stealthAddress, spendingPrivateKey, viewingPrivateKey)
     const pub = secp256k1.getPublicKey(hb(privateKey), true)
     expect('0x' + Buffer.from(pub).toString('hex')).toBe(stealthAddress.address)
+  })
+
+  it('#1102: derives with hash(S) reduced mod n (A = K_spend + (hash mod n)*G)', () => {
+    const { metaAddress } = generateStealthMetaAddress('ethereum' as ChainId)
+    const { stealthAddress, sharedSecret } = generateStealthAddress(metaAddress)
+
+    // hash(S) must be reduced into [1, n-1] before deriving hash(S)*G (symmetric with the
+    // derive path), so secp256k1.getPublicKey can't throw on a digest >= n. Recompute the
+    // address from the reduced scalar and confirm it reproduces the on-chain address.
+    const hashScalar = bytesToBigInt(hb(sharedSecret)) % secp256k1.CURVE.n
+    expect(hashScalar).not.toBe(0n)
+    const expected = secp256k1.ProjectivePoint.fromHex(hb(metaAddress.spendingKey))
+      .add(secp256k1.ProjectivePoint.BASE.multiply(hashScalar))
+      .toRawBytes(true)
+    expect('0x' + Buffer.from(expected).toString('hex')).toBe(stealthAddress.address)
   })
 })
 

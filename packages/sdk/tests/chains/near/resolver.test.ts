@@ -15,6 +15,8 @@ import {
   generateNEARStealthMetaAddress,
   generateNEARStealthAddress,
   ed25519PublicKeyToImplicitAccount,
+  parseAnnouncement,
+  createAnnouncementMemo,
 } from '../../../src/chains/near'
 import type {
   NEARScanRecipient,
@@ -367,6 +369,19 @@ describe('NEAR Stealth Address Resolver (M17-NEAR-05)', () => {
         expect(announcements[0].viewTag).toBe(stealth.viewTag)
       })
 
+      it('should parse canonical SIP:2 announcements from logs', () => {
+        const stealth = getStealthComponents(stealthResult)
+        const ephemeralKeyHex = stealth.ephemeralPublicKey.slice(2)
+        const viewTagHex = stealth.viewTag.toString(16).padStart(2, '0')
+        const logs = [`SIP:2:${ephemeralKeyHex}:${viewTagHex}`]
+
+        const announcements = scanner.parseAnnouncementsFromLogs(logs)
+
+        expect(announcements).toHaveLength(1)
+        expect(announcements[0].ephemeralPublicKey).toBe(stealth.ephemeralPublicKey)
+        expect(announcements[0].viewTag).toBe(stealth.viewTag)
+      })
+
       it('should skip invalid logs', () => {
         const logs = [
           'Not SIP:1:abc:ff',
@@ -376,6 +391,39 @@ describe('NEAR Stealth Address Resolver (M17-NEAR-05)', () => {
 
         const announcements = scanner.parseAnnouncementsFromLogs(logs)
         expect(announcements).toHaveLength(0)
+      })
+    })
+
+    describe('parseAnnouncement / createAnnouncementMemo versioning (#1103)', () => {
+      it('emits canonical SIP:2 announcements', () => {
+        const stealth = getStealthComponents(stealthResult)
+        const memo = createAnnouncementMemo(stealth.ephemeralPublicKey, stealth.viewTag)
+        expect(memo.startsWith('SIP:2:')).toBe(true)
+      })
+
+      it('parses SIP:2 and reports version "2"', () => {
+        const stealth = getStealthComponents(stealthResult)
+        const memo = createAnnouncementMemo(stealth.ephemeralPublicKey, stealth.viewTag)
+        const parsed = parseAnnouncement(memo)
+        expect(parsed?.version).toBe('2')
+        expect(parsed?.ephemeralPublicKey).toBe(stealth.ephemeralPublicKey)
+        expect(parsed?.viewTag).toBe(stealth.viewTag)
+      })
+
+      it('still parses legacy SIP:1 announcements and reports version "1"', () => {
+        const stealth = getStealthComponents(stealthResult)
+        const ephemeralKeyHex = stealth.ephemeralPublicKey.slice(2)
+        const viewTagHex = stealth.viewTag.toString(16).padStart(2, '0')
+        const parsed = parseAnnouncement(`SIP:1:${ephemeralKeyHex}:${viewTagHex}`)
+        expect(parsed?.version).toBe('1')
+        expect(parsed?.ephemeralPublicKey).toBe(stealth.ephemeralPublicKey)
+        expect(parsed?.viewTag).toBe(stealth.viewTag)
+      })
+
+      it('rejects non-SIP and malformed memos', () => {
+        expect(parseAnnouncement('Not SIP:1:abc:ff')).toBeNull()
+        expect(parseAnnouncement('SIP:3:abc:ff')).toBeNull()
+        expect(parseAnnouncement('SIP:1:tooshort:ff')).toBeNull()
       })
     })
 
