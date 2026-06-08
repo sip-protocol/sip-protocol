@@ -1,5 +1,18 @@
 # @sip-protocol/sdk
 
+## 0.11.0
+
+### Minor Changes
+
+- [#1107](https://github.com/sip-protocol/sip-protocol/pull/1107) [`231a815`](https://github.com/sip-protocol/sip-protocol/commit/231a8150a341473b284e5b1a17b1bcc1d456bedb) Thanks [@rz1989s](https://github.com/rz1989s)! - Add view-only EVM stealth scanning ([#1104](https://github.com/sip-protocol/sip-protocol/issues/1104)). `checkEthereumStealthByEthAddressViewOnly` and `EthereumPrivacyAdapter.scanAnnouncementsViewOnly` detect incoming payments using the viewing private key + spending public key only — never the spending private key — restoring the compliance/delegation property on EVM (previously the only scan path, `scanAnnouncements`, required the spending private key). `EthereumScanRecipient.spendingPrivateKey` is now optional so a view-only recipient can register with just `viewingPrivateKey` + `spendingPublicKey`; the full `scanAnnouncements` (which derives claimable keys) skips recipients that lack it.
+
+### Patch Changes
+
+- [#1106](https://github.com/sip-protocol/sip-protocol/pull/1106) [`6b063f9`](https://github.com/sip-protocol/sip-protocol/commit/6b063f930c3c21480a05073536ea56b0b92c10a1) Thanks [@rz1989s](https://github.com/rz1989s)! - Canonical EIP-5564 stealth follow-ups ([#1099](https://github.com/sip-protocol/sip-protocol/issues/1099)):
+  - secp256k1 `generateSecp256k1StealthAddress` / `checkSecp256k1StealthAddress` now reduce `hash(S) mod n` and guard the zero scalar before computing `hash(S)·G`, mirroring the ed25519 path and keeping generate/derive/check symmetric ([#1102](https://github.com/sip-protocol/sip-protocol/issues/1102)). Behavior is unchanged for all reachable inputs.
+  - NEAR announcements are now emitted with the canonical `SIP:2` prefix; `parseAnnouncement` accepts both `SIP:1` and `SIP:2` and reports the detected version, and the resolver scans both ([#1103](https://github.com/sip-protocol/sip-protocol/issues/1103)). Legacy `SIP:1` announcements remain parseable.
+  - Fixed a stale `SIP:1` comment in the Solana send path and documented claiming legacy `SIP:1` payments via `claimStealthPayment({ version: '1' })` ([#1105](https://github.com/sip-protocol/sip-protocol/issues/1105)).
+
 ## 0.10.0
 
 ### Minor Changes
