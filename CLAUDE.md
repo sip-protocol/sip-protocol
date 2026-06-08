@@ -18,7 +18,7 @@
 
 | Repo | Purpose | Tech Stack | Version |
 |------|---------|------------|---------|
-| `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.9.0 |
+| `sip-protocol/sip-protocol` | **Core** - SDK, React, CLI, API packages | TypeScript, Vitest | v0.11.0 |
 | `sip-protocol/sip-app` | **App** - Privacy applications (payments, wallet, DEX) | Next.js 16, Tailwind | v0.1.0 |
 | `sip-protocol/sip-mobile` | **Mobile** - Native iOS/Android/Seeker privacy wallet | Expo 52, NativeWind | v0.1.0 |
 | `sip-protocol/sip-arcium-program` | **Arcium** - MPC program for confidential DeFi | Rust, Anchor, Arcium SDK | - |
@@ -494,12 +494,12 @@ pnpm build
 
 | Package | Version | Tests | Location |
 |---------|---------|-------|----------|
-| @sip-protocol/sdk | 0.9.0 | 6,716 | `packages/sdk/tests/` |
+| @sip-protocol/sdk | 0.11.0 | 6,716 | `packages/sdk/tests/` |
 | contracts/sip-ethereum | - | 294 | `contracts/sip-ethereum/test/` |
-| @sip-protocol/react | 0.1.0 | 543 | `packages/react/tests/` |
-| @sip-protocol/cli | 0.2.0 | 62 | `packages/cli/tests/` |
-| @sip-protocol/api | 0.1.0 | 198 | `packages/api/tests/` |
-| @sip-protocol/react-native | 0.1.1 | 10 | `packages/react-native/tests/` |
+| @sip-protocol/react | 0.1.1 | 543 | `packages/react/tests/` |
+| @sip-protocol/cli | 0.2.1 | 62 | `packages/cli/tests/` |
+| @sip-protocol/api | 0.1.1 | 198 | `packages/api/tests/` |
+| @sip-protocol/react-native | 0.1.2 | 10 | `packages/react-native/tests/` |
 
 ### SDK Test Categories
 
@@ -624,7 +624,7 @@ See `~/.claude/sip-protocol/STRATEGY.md` for detailed strategy (private).
 ```
 sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 ├── packages/
-│   ├── sdk/                  # @sip-protocol/sdk v0.9.0 - Core SDK (6,691 tests)
+│   ├── sdk/                  # @sip-protocol/sdk v0.11.0 - Core SDK (6,691 tests)
 │   │   ├── src/
 │   │   │   ├── adapters/     # NEAR, wallet, settlement adapters
 │   │   │   ├── proofs/       # ZK proof providers (Mock, Noir, Browser)
@@ -906,5 +906,5 @@ See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas rep
 
 ---
 
-**Last Updated:** 2026-06-03
+**Last Updated:** 2026-06-08
 **Status:** M17 Complete (Mainnet Live) | M18 Near-Complete (22/24 done) | T3 Growth Phase active | 7,552+ Tests + 294 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 Superteam Grant $6K/$10K paid (T3 pending)
