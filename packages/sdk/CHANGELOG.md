@@ -1,5 +1,11 @@
 # @sip-protocol/sdk
 
+## 0.11.1
+
+### Patch Changes
+
+- [#1124](https://github.com/sip-protocol/sip-protocol/pull/1124) [`215093b`](https://github.com/sip-protocol/sip-protocol/commit/215093bd7a348a1b163a694e1801fe227fd5eb53) Thanks [@rz1989s](https://github.com/rz1989s)! - Export `SIP_MEMO_PREFIX_V2` (`'SIP:2:'`) and `SIP_MEMO_PREFIX_ANY` (`'SIP:'`) from the package entry. Both constants were defined in `chains/solana/constants.ts` and re-exported from the `chains/solana` sub-barrel, but were missing from the public `src/index.ts`, so ESM/TypeScript consumers could not import them by name (they resolved to `undefined` under bundlers that tolerate missing named ESM imports, and errored under `tsc`). Closes [#1123](https://github.com/sip-protocol/sip-protocol/issues/1123).
+
 ## 0.11.0
 
 ### Minor Changes
