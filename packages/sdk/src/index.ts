@@ -1016,6 +1016,8 @@ export {
   SOLANA_EXPLORER_URLS,
   MEMO_PROGRAM_ID,
   SIP_MEMO_PREFIX,
+  SIP_MEMO_PREFIX_V2,
+  SIP_MEMO_PREFIX_ANY,
   getExplorerUrl as getSolanaExplorerUrl,
   getTokenMint,
   getSolanaTokenDecimals,
