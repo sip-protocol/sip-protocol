@@ -98,7 +98,7 @@
     "https-proxy-agent": "^7.0.0",
     "socks-proxy-agent": "^8.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.3.0",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.0"
   },
   "keywords": [
