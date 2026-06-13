@@ -41,7 +41,7 @@ jobs:
         run: pnpm -r --filter '!@sip-protocol/sdk' --if-present test -- --run
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           files: ./packages/sdk/coverage/lcov.info
           flags: sdk
