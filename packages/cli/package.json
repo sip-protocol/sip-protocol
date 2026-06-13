@@ -42,7 +42,7 @@
     "prompts": "^2.4.2"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.2",
     "@types/prompts": "^2.4.9",
     "tsup": "^8.0.0",
     "typescript": "^5.3.0",
