@@ -348,8 +348,8 @@ importers:
         specifier: 1.0.0-beta.18
         version: 1.0.0-beta.18
       '@noir-lang/types':
-        specifier: 1.0.0-beta.18
-        version: 1.0.0-beta.18
+        specifier: 1.0.0-beta.22
+        version: 1.0.0-beta.22
       '@radr/shadowwire':
         specifier: ^1.1.15
         version: 1.1.15(bufferutil@4.1.0)(encoding@0.1.13)(typescript@5.9.3)(utf-8-validate@6.0.6)
@@ -1257,6 +1257,9 @@ packages:
 
   '@noir-lang/types@1.0.0-beta.18':
     resolution: {integrity: sha512-/1nsk8qFd27P6bW4W5ayUjMQpN6PustwTJEqZPNP//DZ6TrolnWxT/Y+7v9d2/a4OZal61sx177VjQY3U2GZvw==}
+
+  '@noir-lang/types@1.0.0-beta.22':
+    resolution: {integrity: sha512-PXD8cmvMT4wybDe1pUPwv2Uz1FYh9B/hdXrY5eOMf1elNVxomj2tHDDYoKI/zNDrJ1JzTL0xhbAX1vBTMMFvBw==}
 
   '@npmcli/fs@2.1.2':
     resolution: {integrity: sha512-yOJKRvohFOaLqipNtwYB9WugyZKhC/DZC4VYPmpaCzDBrA8YpK3qHZ8/HGscMnE4GqbkLNuVcCnxkeQEdGt6LQ==}
@@ -6311,6 +6314,8 @@ snapshots:
       '@noir-lang/types': 1.0.0-beta.18
 
   '@noir-lang/types@1.0.0-beta.18': {}
+
+  '@noir-lang/types@1.0.0-beta.22': {}
 
   '@npmcli/fs@2.1.2':
     dependencies:
