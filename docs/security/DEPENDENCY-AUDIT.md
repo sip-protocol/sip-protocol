@@ -3,8 +3,8 @@
 | Field | Value |
 |-------|-------|
 | **Document** | DEP-AUDIT-001 |
-| **Version** | 2.0.0 |
-| **Date** | 2026-06-06 |
+| **Version** | 2.1.0 |
+| **Date** | 2026-06-13 |
 | **Tool** | GitHub Dependabot · `pnpm audit` · `cargo`/Cargo.lock review |
 | **Status** | Active |
 
@@ -258,7 +258,30 @@ dedicated, `anchor build`-verified effort, **not** a Dependabot auto-bump.
 | Monthly | Evaluate minor version updates |
 | Quarterly | Evaluate major version updates |
 | On Advisory | Immediate triage of critical/high CVEs |
-| Toolchain upgrade | Re-evaluate deferred Cargo alerts (§2.4) |
+| Toolchain upgrade | Re-evaluate deferred Cargo alerts (§2.4) and major upgrades (§7.1) |
+
+## 7.1 Deferred Major Upgrades (breaking changes — non-security)
+
+Dependabot **major** version-bump PRs that break at build or runtime and need coordinated work
+to land. These are functional/build breaks, **not CVEs** — recorded here for a single
+"why isn't dep X upgraded yet" reference. Each was verified before deferral.
+
+| Dep | Bump | PR / Issue | Disposition | Why deferred |
+|-----|------|-----------|-------------|--------------|
+| `@aztec/bb.js` | 3.0.2 → 4.3.1 | #1120 · #1129 | Closed · `ignore` major | v4 switched circuit/witness serialization to **msgpack**; the vendored Noir-`1.0.0-beta.15` circuits are rejected at prove time (`generateFundingProof()` fails — `deserialize_msgpack_compact: expected … got 1`, **verified in Node**; 3.0.2 proves fine). Needs a coordinated Noir-toolchain upgrade + circuit recompile. |
+| `commander` | 14.0.2 → 15.0.0 | #1117 | Closed · `ignore` major | v15 is **ESM-only** (`exports` has no `require` condition) and requires **Node ≥22.12**; `packages/cli` is `type: commonjs`, `bin/sip.js` does `require('../dist/index.js')`, and CI runs Node 20 → `ERR_REQUIRE_ESM` at runtime. Needs a CLI ESM-output migration + Node 22.12 bump. |
+| `typescript` | 5.9.3 → 6.0.3 | #1116 | Open · deferred | v6 fails the `@sip-protocol/types` dts build (`TS5101: 'baseUrl' is deprecated`); only band-aid is `ignoreDeprecations: '6.0'`. Compiles the **published** SDK and rollup-plugin-dts TS6 support is still settling. Needs a dedicated compiler migration. |
+
+> **CI blind spot (tracked in #1129):** the bb.js break passed CI because real ZK proving is
+> never exercised — `noir-provider.test.ts` uses `describe.skip('… requires WASM')` and
+> `validity-proof.test.ts` wraps `initialize()`/`generateValidityProof()` in a try/catch that
+> swallows failures as *"WASM not available"*. A broken proving backend passes the suite. Fixing
+> this (a non-swallowing real-proving smoke lane) is a prerequisite for safely landing bb.js 4.
+> A pre-existing `verifyProof()` bug (un-prefixed hex public input → `BigInt` throw on 3.0.2) was
+> also surfaced and is logged in #1129.
+
+**Re-evaluate** at: the next ZK toolchain upgrade (`bb.js`), a CLI ESM migration (`commander`),
+and when TS 6 build tooling matures (`typescript`).
 
 ## 8. Audit Commands
 
@@ -290,5 +313,6 @@ For security concerns related to SIP Protocol dependencies:
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-06-13 | 2.1.0 | Added §7.1 Deferred Major Upgrades — `@aztec/bb.js` 3→4 (msgpack circuit-format break, #1129), `commander` 14→15 (ESM-only/Node 22.12 vs CJS CLI), `typescript` 5.9→6 (dts-build deprecation). Documents the real-proving CI blind spot. |
 | 2026-06-06 | 2.0.0 | Resolved prior HIGHs (bigint-buffer, qs) via the 2026-06-05 sweep. Added full triage of the 10 deferred Dependabot alerts (uuid, elliptic, borsh, ed25519-dalek, curve25519-dalek, rand, atty) with advisory analysis, reverse-dep paths, and per-alert disposition (8 not-affected, 2 deferred). Added §5 Anchor/Solana toolchain pin. |
 | 2026-01-13 | 1.0.0 | Initial dependency audit |
