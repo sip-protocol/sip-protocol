@@ -12,6 +12,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "ignoreDeprecations": "6.0",
     "incremental": true
   },
   "exclude": ["node_modules"]
