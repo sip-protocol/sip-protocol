@@ -798,7 +798,9 @@ ssh core      # Admin user for nginx/system config
 
 **Config:** Fee 50 bps, Authority `S1P6j1yeTm6zkewQVeihrTZvmfoHABRkHDhabWTuWMd`
 
-**Instructions (8):** `initialize`, `shielded_transfer`, `shielded_token_transfer`, `create_transfer_announcement`, `claim_transfer`, `claim_token_transfer`, `verify_commitment`, `verify_zk_proof`, `set_paused`, `update_fee`
+**Instructions (10):** `initialize`, `shielded_transfer`, `shielded_token_transfer`, `create_transfer_announcement`, `claim_transfer`, `claim_token_transfer`, `verify_commitment`, `verify_zk_proof`, `set_paused`, `update_fee`
+
+**Privacy model (current — verified 2026-06-12):** same-tx sender→stealth. `actual_amount` is a **plaintext instruction arg** (amount visible on-chain + balance deltas) and `TransferRecord.sender` is recorded, so the sender↔stealth graph is public. The Pedersen commitment is stored for claim/compliance — it does **not** hide the settlement amount. On-chain ZK verification is stubbed (format-checked, verified off-chain). `claim_transfer` requires the stealth account + recipient as co-signers.
 
 **Latest Mainnet Deploy TX:** [`m5oJybe...qVwv`](https://solscan.io/tx/m5oJybeGj3GVMr8GxCKz817nr28NugasFDduyLHqW74kQTZcWXTWYgRH7VbNCKjezdeXaQDiVqFsqg3LHxdqVwv) (Mar 7, 2026 — added `create_transfer_announcement` for private swaps)
 
@@ -819,9 +821,11 @@ solana program deploy target/deploy/sip_privacy.so \
 
 **Config:** Fee 10 bps, Refund timeout 86400s (24h), Authority `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr` (devnet wallet)
 
-**Instructions (7):** `initialize`, `create_vault_token`, `create_fee_token`, `deposit`, `withdraw_private`, `refund`, `collect_fee`
+**Instructions (9):** `initialize`, `create_vault_token`, `create_fee_token`, `deposit`, `withdraw_private`, `refund`, `authority_refund`, `collect_fee`, `set_paused`
 
-**Tests:** 14 passing, 1 pending | **Binary:** 353KB
+**Privacy model (current — verified 2026-06-12):** deposit-first **commingling vault** (devnet only). Funds pool in a shared PDA, but `withdraw_private` requires the **depositor as signer** (`DepositRecord` is keyed/`has_one` by depositor; `VaultWithdrawEvent.depositor` is recorded). It is a per-depositor debit-first ledger, **not** a trustless ZK/nullifier mixer — the deposit→withdraw link is preserved on-chain. Integrator unlinkability holds **only when the depositor is a shared/aggregating wallet** (commingling + batching), not when an end-user deposits directly. Trustless nullifier-authorized withdrawal is the M19 co-build. `withdraw_private` CPIs `create_transfer_announcement` so the payout is scannable + carries a Pedersen commitment.
+
+**Tests:** 17 passing, 1 pending (unit: initialize/deposit/refund/collect-fee) — `withdraw_private` covered by the e2e CPI script | **Binary:** 353KB
 
 ```bash
 # Deploy sipher_vault
@@ -906,5 +910,5 @@ See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas rep
 
 ---
 
-**Last Updated:** 2026-06-08
+**Last Updated:** 2026-06-12
 **Status:** M17 Complete (Mainnet Live) | M18 Near-Complete (22/24 done) | T3 Growth Phase active | 7,552+ Tests + 294 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 Superteam Grant $6K/$10K paid (T3 pending)
