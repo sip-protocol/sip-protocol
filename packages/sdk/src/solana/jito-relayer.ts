@@ -472,9 +472,7 @@ export class JitoRelayer {
     if (tx instanceof VersionedTransaction) {
       return null
     }
-    const lastValidBlockHeight = (
-      tx as Transaction & { lastValidBlockHeight?: number }
-    ).lastValidBlockHeight
+    const lastValidBlockHeight = tx.lastValidBlockHeight
     if (tx.recentBlockhash && typeof lastValidBlockHeight === 'number') {
       return { blockhash: tx.recentBlockhash, lastValidBlockHeight }
     }
