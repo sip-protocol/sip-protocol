@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/cli",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Command-line tool for Shielded Intents Protocol (SIP) operations",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",
