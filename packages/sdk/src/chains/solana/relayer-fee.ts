@@ -22,7 +22,7 @@ export interface RelayerFeeConfig {
  * @param amount - Gross amount available in the stealth token account (base units)
  * @param config - Fee model
  * @returns Fee in the token's base units (always >= flatFloor)
- * @throws If `bps` is negative or non-integer, or if `amount` is negative
+ * @throws If `bps` is negative or non-integer, or if `amount` is negative, or if flatFloor is negative
  */
 export function computeRelayerFee(amount: bigint, config: RelayerFeeConfig): bigint {
   if (!Number.isInteger(config.bps) || config.bps < 0) {
@@ -30,6 +30,9 @@ export function computeRelayerFee(amount: bigint, config: RelayerFeeConfig): big
   }
   if (amount < 0n) {
     throw new Error('amount must be a non-negative bigint')
+  }
+  if (typeof config.flatFloor !== 'bigint' || config.flatFloor < 0n) {
+    throw new Error('flatFloor must be a non-negative bigint')
   }
   const bpsFee = (amount * BigInt(config.bps)) / 10_000n
   return bpsFee > config.flatFloor ? bpsFee : config.flatFloor

@@ -39,6 +39,16 @@ describe('computeRelayerFee', () => {
     expect(() => computeRelayerFee(-1n, cfg)).toThrow('amount must be')
   })
 
+  it('rejects a negative flatFloor', () => {
+    expect(() => computeRelayerFee(1_000n, { flatFloor: -1n, bps: 0 })).toThrow(
+      'flatFloor must be a non-negative bigint'
+    )
+  })
+
+  it('accepts a zero flatFloor', () => {
+    expect(computeRelayerFee(1_000n, { flatFloor: 0n, bps: 10 })).toBe(1n)
+  })
+
   it('switches to the bps fee just past the crossover', () => {
     // floor=10_000; bps fee overtakes the floor once amount*10/10_000 > 10_000,
     // i.e. amount >= 10_001_000 (integer division floors). 10_001_000*10/10_000 = 10_001.
