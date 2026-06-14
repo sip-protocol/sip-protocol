@@ -132,28 +132,40 @@ export async function buildGaslessCashout(
     )
   }
 
-  // Validate the relayer fee account is a token account for `mint` — otherwise the fee
-  // transfer would fail (mint mismatch) or the fee would be unrecoverable.
-  let feeAccount
-  try {
-    feeAccount = await getAccount(connection, relayerFeeAccount, undefined, tokenProgramId)
-  } catch {
+  // The three RPC reads below are independent — fire them concurrently and then
+  // validate the settled results in a FIXED order so failures stay deterministic
+  // (Promise.all would surface whichever rejects first, which is nondeterministic).
+  const [feeAccountSettled, balanceSettled, blockhashSettled] = await Promise.allSettled([
+    // Validate the relayer fee account is a token account for `mint` — otherwise the fee
+    // transfer would fail (mint mismatch) or the fee would be unrecoverable.
+    getAccount(connection, relayerFeeAccount, undefined, tokenProgramId),
+    // Gross balance held by the stealth ATA.
+    connection.getTokenAccountBalance(stealthATA),
+    connection.getLatestBlockhash(),
+  ])
+
+  // 1. Relayer fee account: existence first, then mint match.
+  if (feeAccountSettled.status === 'rejected') {
     throw new Error('relayerFeeAccount does not exist or is not a token account')
   }
-  if (!feeAccount.mint.equals(mint)) {
+  if (!feeAccountSettled.value.mint.equals(mint)) {
     throw new Error('relayerFeeAccount is not an associated token account for the given mint')
   }
 
-  // Gross balance held by the stealth ATA
-  let balanceResp
-  try {
-    balanceResp = await connection.getTokenAccountBalance(stealthATA)
-  } catch {
+  // 2. Stealth ATA balance.
+  if (balanceSettled.status === 'rejected') {
     throw new Error(
       `Stealth token account ${stealthATA.toBase58()} for mint ${mint.toBase58()} does not exist or holds no balance; nothing to cash out`
     )
   }
-  const grossAmount = BigInt(balanceResp.value.amount)
+  const grossAmount = BigInt(balanceSettled.value.value.amount)
+
+  // 3. Recent blockhash — bound below after the fee guard so we never sign a tx with
+  // a stale/absent blockhash; surface a clear error instead of an unhandled rejection.
+  if (blockhashSettled.status === 'rejected') {
+    throw new Error('Failed to fetch a recent blockhash for the cash-out transaction')
+  }
+  const { blockhash, lastValidBlockHeight } = blockhashSettled.value
 
   const relayerFee = computeRelayerFee(grossAmount, feeConfig)
   if (relayerFee >= grossAmount) {
@@ -189,7 +201,7 @@ export async function buildGaslessCashout(
     createTransferInstruction(stealthATA, destinationATA, stealthPubkey, netAmount, [], tokenProgramId)
   )
 
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+  // Blockhash was fetched concurrently above and validated before this point.
   transaction.recentBlockhash = blockhash
   transaction.lastValidBlockHeight = lastValidBlockHeight
   transaction.feePayer = relayerPublicKey

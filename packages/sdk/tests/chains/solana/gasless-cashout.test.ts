@@ -234,6 +234,47 @@ describe('buildGaslessCashout', () => {
     })).rejects.toThrow(/relayerFeeAccount does not exist or is not a token account/)
   })
 
+  // D4 — deterministic precedence: when the fee account AND the stealth balance both
+  // fail, the fee-account error must win (validation order is fixed, not first-to-reject).
+  it('reports the fee-account error first even when the stealth balance also fails', async () => {
+    const s = scenario()
+    const conn = mockConn({ gross: 0n, balanceThrows: true })
+    const wrapped = {
+      ...conn,
+      getAccountInfo: async () => null, // fee account missing too
+    } as unknown as Connection
+    await expect(buildGaslessCashout({
+      connection: wrapped,
+      ...baseParams(s),
+    })).rejects.toThrow(/relayerFeeAccount does not exist or is not a token account/)
+  })
+
+  // D4 — a wrong-mint fee account still wins over a failing stealth balance.
+  it('reports the fee-account mint mismatch before the stealth-balance failure', async () => {
+    const s = scenario()
+    const otherMint = new PublicKey('So11111111111111111111111111111111111111112')
+    await expect(buildGaslessCashout({
+      connection: mockConn({ gross: 0n, balanceThrows: true, feeAccountMint: otherMint }),
+      ...baseParams(s),
+    })).rejects.toThrow(/not an associated token account for the given mint/)
+  })
+
+  // D4 — a blockhash fetch failure surfaces a clear error (not an unhandled rejection).
+  it('throws a clear error when the recent blockhash cannot be fetched', async () => {
+    const s = scenario()
+    const conn = mockConn({ gross: 1_000_000_000n })
+    const wrapped = {
+      ...conn,
+      getLatestBlockhash: async () => {
+        throw new Error('429 Too Many Requests')
+      },
+    } as unknown as Connection
+    await expect(buildGaslessCashout({
+      connection: wrapped,
+      ...baseParams(s),
+    })).rejects.toThrow(/blockhash/i)
+  })
+
   // S1 — Token-2022 support: program id must flow into ATA derivation + instructions
   it('derives Token-2022 ATAs and targets the Token-2022 program when tokenProgramId is set', async () => {
     const s = scenario()
