@@ -146,7 +146,14 @@ describe('submitGaslessCashout', () => {
     } as unknown as Connection
 
     const build = await buildFor(relayer)
+
+    // Before submit: stealth has signed but relayer hasn't — verifySignatures(true) requires ALL.
+    expect(build.transaction.verifySignatures(true)).toBe(false)
+
     const result = await submitGaslessCashout({ connection, build, relayerKeypair: relayer })
+
+    // After submit: partialSign(relayer) mutates build.transaction — both signatures now present.
+    expect(build.transaction.verifySignatures(true)).toBe(true)
 
     expect(result.viaJito).toBe(false)
     expect(result.txSignature).toMatch(/^[1-9A-HJ-NP-Za-km-z]+$/) // base58
