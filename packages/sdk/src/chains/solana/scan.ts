@@ -197,6 +197,7 @@ export async function scanForPayments(
               results.push({
                 stealthAddress: announcement.stealthAddress || '',
                 ephemeralPublicKey: announcement.ephemeralPublicKey,
+                version: announcement.version as '1' | '2',
                 amount,
                 mint: transferInfo.mint,
                 tokenSymbol,

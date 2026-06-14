@@ -666,6 +666,7 @@ async function processRawTransaction(
       const payment: SolanaScanResult = {
         stealthAddress: announcement.stealthAddress || '',
         ephemeralPublicKey: announcement.ephemeralPublicKey,
+        version: announcement.version as '1' | '2',
         amount: transferInfo?.amount ?? 0n,
         mint: transferInfo?.mint ?? '',
         tokenSymbol: transferInfo?.mint ? getTokenSymbol(transferInfo.mint) : undefined,

@@ -520,6 +520,7 @@ export class SolanaPrivacyAdapter {
       spendingPrivateKey: params.spendingPrivateKey,
       destinationAddress: params.destinationAddress,
       mint: new PublicKey(params.payment.mint),
+      version: params.payment.version,
     })
   }
 

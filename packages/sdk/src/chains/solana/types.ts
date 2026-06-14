@@ -99,6 +99,8 @@ export interface SolanaScanResult {
   stealthAddress: string
   /** Ephemeral public key from the sender (base58) */
   ephemeralPublicKey: string
+  /** Announcement scheme version ('1' legacy | '2' canonical) — pass to claim */
+  version: '1' | '2'
   /** Amount received (in token's smallest unit) */
   amount: bigint
   /** Token mint address */

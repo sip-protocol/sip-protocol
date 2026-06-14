@@ -161,4 +161,38 @@ describe('claimStealthPayment', () => {
     // The feePayer must be the stealth address itself (not a relayer).
     expect(sentTx.feePayer?.toBase58()).toBe(s.stealthB58)
   })
+
+  // ─── (c) version is forwarded to the derivation ─────────────────────────────
+  // Regression guard for the scan->claim version-threading bug: the `version`
+  // passed to claimStealthPayment must reach deriveStealthSigner so it picks the
+  // matching derivation. We prove forwarding by claiming a CANONICAL (SIP:2)
+  // stealth address with version '1': that routes to the legacy derivation, whose
+  // scalar does NOT reproduce the canonical public key, so deriveStealthSigner
+  // throws. (With version '2' the same claim succeeds — see test (b).)
+  it("(c) forwards version to deriveStealthSigner (canonical address + version '1' -> derivation mismatch)", async () => {
+    const s = scenario()
+    const stealthPubkey = new PublicKey(s.stealthB58)
+    const tokenAccountInfo = makeTokenAccountInfo(stealthPubkey, 5_000_000n)
+
+    // Sufficient SOL + a valid token account so execution reaches the signer
+    // derivation rather than tripping the low-SOL guard.
+    const connection = {
+      rpcEndpoint: 'https://api.devnet.solana.com',
+      getBalance: async (_pk: PublicKey) => 10_000_000,
+      getAccountInfo: async (_address: PublicKey) => tokenAccountInfo,
+    } as unknown as Connection
+
+    await expect(
+      claimStealthPayment({
+        connection,
+        stealthAddress: s.stealthB58,
+        ephemeralPublicKey: s.ephemeralB58,
+        viewingPrivateKey: s.recipient.viewingPrivateKey,
+        spendingPrivateKey: s.recipient.spendingPrivateKey,
+        destinationAddress: 'So11111111111111111111111111111111111111112',
+        mint: USDC_MINT,
+        version: '1', // wrong scheme for a canonical address — must route to V1 derivation
+      })
+    ).rejects.toThrow('Stealth key derivation failed')
+  })
 })
