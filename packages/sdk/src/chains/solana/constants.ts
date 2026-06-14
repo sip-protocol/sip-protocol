@@ -132,6 +132,29 @@ export const HELIUS_API_KEY_MIN_LENGTH = 8
 export const WEBHOOK_MAX_BATCH_SIZE = 100
 
 /**
+ * Detect the Solana cluster from an RPC endpoint URL.
+ *
+ * Inspects the endpoint hostname for well-known cluster markers. Anything that
+ * does not match devnet/testnet/localnet is treated as mainnet-beta, so custom
+ * mainnet RPC providers (Helius, QuickNode, Triton, …) resolve correctly.
+ *
+ * @param endpoint - RPC endpoint URL (e.g. `connection.rpcEndpoint`)
+ * @returns Detected cluster name
+ */
+export function detectCluster(endpoint: string): SolanaCluster {
+  if (endpoint.includes('devnet')) {
+    return 'devnet'
+  }
+  if (endpoint.includes('testnet')) {
+    return 'testnet'
+  }
+  if (endpoint.includes('localhost') || endpoint.includes('127.0.0.1')) {
+    return 'localnet'
+  }
+  return 'mainnet-beta'
+}
+
+/**
  * Get explorer URL for a transaction
  */
 export function getExplorerUrl(

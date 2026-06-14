@@ -24,7 +24,7 @@ import {
 import type { HexString } from '@sip-protocol/types'
 import { deriveStealthSigner } from './stealth-signer'
 import { computeRelayerFee, type RelayerFeeConfig } from './relayer-fee'
-import { getExplorerUrl, type SolanaCluster } from './constants'
+import { detectCluster, getExplorerUrl } from './constants'
 import type { JitoRelayer } from '../../solana/jito-relayer'
 
 /** Parameters for building a gasless cash-out transaction. */
@@ -194,20 +194,6 @@ export async function buildGaslessCashout(
     blockhash,
     lastValidBlockHeight,
   }
-}
-
-/** Detect the Solana cluster from an RPC endpoint URL. */
-function detectCluster(endpoint: string): SolanaCluster {
-  if (endpoint.includes('devnet')) {
-    return 'devnet'
-  }
-  if (endpoint.includes('testnet')) {
-    return 'testnet'
-  }
-  if (endpoint.includes('localhost') || endpoint.includes('127.0.0.1')) {
-    return 'localnet'
-  }
-  return 'mainnet-beta'
 }
 
 /** Parameters for submitting a built gasless cash-out. */

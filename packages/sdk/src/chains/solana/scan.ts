@@ -28,10 +28,10 @@ import { parseAnnouncement } from './types'
 import {
   SIP_MEMO_PREFIX_ANY,
   MEMO_PROGRAM_ID,
+  detectCluster,
   getExplorerUrl,
   DEFAULT_SCAN_LIMIT,
   VIEW_TAG_MAX,
-  type SolanaCluster,
 } from './constants'
 import { getTokenSymbol, parseTokenTransferFromBalances } from './utils'
 import type { SolanaRPCProvider } from './providers/interface'
@@ -396,26 +396,4 @@ export async function getStealthBalance(
 }
 
 // Token transfer parsing and symbol lookup moved to ./utils.ts (L3 fix)
-
-/**
- * Detect Solana cluster from RPC endpoint URL
- *
- * Parses the endpoint URL to determine which Solana cluster it connects to.
- *
- * @param endpoint - RPC endpoint URL
- * @returns Detected cluster name
- * @internal
- */
-function detectCluster(endpoint: string): SolanaCluster {
-  if (endpoint.includes('devnet')) {
-    return 'devnet'
-  }
-  if (endpoint.includes('testnet')) {
-    return 'testnet'
-  }
-  if (endpoint.includes('localhost') || endpoint.includes('127.0.0.1')) {
-    return 'localnet'
-  }
-  return 'mainnet-beta'
-}
 
