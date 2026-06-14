@@ -54,7 +54,7 @@ export function signEd25519WithScalar(
   publicKeyBytes?: Uint8Array,
 ): Uint8Array {
   if (publicKeyBytes !== undefined && publicKeyBytes.length !== 32) {
-    throw new Error('publicKeyBytes must be 32 bytes')
+    throw new Error(`publicKeyBytes must be 32 bytes, got ${publicKeyBytes.length}`)
   }
   const a = modL(bytesToBigIntLE(scalar))
   if (a === 0n) {
@@ -96,8 +96,8 @@ export interface StealthSigner {
   /**
    * Sign arbitrary bytes with the stealth scalar, returning a 64-byte ed25519 signature.
    *
-   * This is a deliberate symmetric primitive (mirrors {@link signTransaction}'s non-transaction
-   * counterpart): it lets the controller of a stealth address produce an off-chain proof of
+   * This is the raw-bytes sibling of {@link signTransaction}: it lets the controller of a
+   * stealth address produce an off-chain proof of
    * control — e.g. authenticating to an off-chain service or attesting ownership — without
    * moving funds. The signature verifies against {@link publicKey} with any standard ed25519
    * verifier. Use {@link signTransaction} for on-chain Solana transactions.
