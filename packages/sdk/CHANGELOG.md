@@ -1,5 +1,15 @@
 # @sip-protocol/sdk
 
+## 0.12.0
+
+### Minor Changes
+
+- [#1140](https://github.com/sip-protocol/sip-protocol/pull/1140) [`46f9607`](https://github.com/sip-protocol/sip-protocol/commit/46f960790b3bf0c1d4fd06e02ccdcf1f75f9aeba) Thanks [@rz1989s](https://github.com/rz1989s)! - Add gasless cash-out relayer for stealth recipients
+  - `buildGaslessCashout` / `submitGaslessCashout`: build and submit a stealth-claim transaction where a relayer pays the network fee and recovers it from the claimed amount (direct fee-payer submission, with an optional Jito bundle path for mainnet hardening).
+  - `computeRelayerFee`: hybrid relayer-fee helper — `max(flatFloor, amount * bps / 10_000)` — with input validation.
+  - `deriveStealthSigner` / `signEd25519WithScalar`: correct ed25519 signing for scalar-derived stealth addresses. Claiming an ed25519 stealth payment via the SDK previously produced invalid signatures because the derived scalar was signed as a key seed; stealth claims now sign and verify correctly.
+  - `SolanaScanResult` (and `DetectedPayment`) now carry the announcement scheme `version`, so a scanned payment claims with the matching derivation — legacy `SIP:1` payments stay claimable.
+
 ## 0.11.1
 
 ### Patch Changes
