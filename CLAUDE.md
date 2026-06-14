@@ -717,7 +717,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ## Deployment Topology
 
-> **Migration in progress (VPS reclabs3 → Vercel).** As of 2026-06-01, **docs, blog, and cdn** are live on **Vercel** (Git-integration auto-deploy); **sip-website, sip-app, sipher, sip-umami** remain on the VPS. Per-migration status + cutover/rollback detail: `VERCEL_MIGRATION_HANDOFF.md` (repo root, untracked).
+> **VPS → Vercel migration COMPLETE + decommissioned (2026-06-14).** All 5 web properties (docs, blog, cdn, sip-app, sip-website) serve from **Vercel** (Git-integration auto-deploy). Their VPS counterparts on reclabs3 were torn down (containers, nginx sites, certs removed) after their 7-day rollback buffers. Only **sipher** + **sip-umami** remain on the VPS. Migration/decommission detail: `VERCEL_MIGRATION_HANDOFF.md` (repo root, untracked).
 
 ### On Vercel (scope `rectors-projects` — push to `main` auto-deploys)
 
@@ -726,23 +726,23 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 | docs | `sip-docs` | sip-protocol/docs-sip | docs.sip-protocol.org | 2026-05-31 |
 | blog | `sip-blog` | sip-protocol/blog-sip | blog.sip-protocol.org | 2026-05-31 |
 | cdn | `sip-cdn` | sip-protocol/cdn-sip | cdn.sip-protocol.org | 2026-06-01 |
+| sip-app | `sip-app` | sip-protocol/sip-app | app.sip-protocol.org | 2026-06-01 |
+| sip-website | `sip-website` | sip-protocol/sip-website | sip-protocol.org | 2026-06-02 |
 
 ### On VPS (151.245.137.75 — reclabs3 — Docker + GHCR + SSH)
 
 | Service | Port | Container | Domain |
 |---------|------|-----------|--------|
-| sip-website | 5000 | sip-website | sip-protocol.org |
-| sip-app | 5005 | sip-app-blue | app.sip-protocol.org |
 | sipher | 5006 | sipher + sipher-redis | sipher.sip-protocol.org |
 | sip-umami | 5010 | sip-umami + sip-umami-db | analytics.sip-protocol.org |
 
-> Migrated services keep their VPS counterpart running as **rollback** until each 7-day buffer elapses (~2026-06-08), then decommissioned (nginx site + cert removed). **sip-website + sip-app migrate next (#4 / #5)** — apex LAST.
+> The 5 migrated services were decommissioned from the VPS after their rollback buffers (docs/blog ~06-07, cdn/sip-app ~06-08, sip-website apex ~06-09; teardown finished 2026-06-14): containers + networks + images removed, nginx sites + LE certs deleted, ports freed, dead `deploy.yml` workflows removed from each repo. cdn's `/home/sip/cdn` static files kept 30+ days as backup. The `sip` Linux user stays (runs sipher + sip-umami).
 
 ### Deployment Flow
 
 ```
-VPS  (sip-website, sip-app, sipher, sip-umami): Push to main → GitHub Actions → Docker → GHCR → SSH → docker compose up
-Vercel (docs, blog, cdn):                       Push to main → Vercel Git integration → build → deploy   (no Docker/SSH)
+Vercel (docs, blog, cdn, sip-app, sip-website): Push to main → Vercel Git integration → build → deploy   (no Docker/SSH)
+VPS    (sipher, sip-umami):                     Push to main → GitHub Actions → Docker → GHCR → SSH → docker compose up
 ```
 
 ### Docker Compose Isolation
@@ -910,5 +910,5 @@ See `contracts/sip-ethereum/DEPLOYMENT.md` for full deployment guide and gas rep
 
 ---
 
-**Last Updated:** 2026-06-12
+**Last Updated:** 2026-06-14
 **Status:** M17 Complete (Mainnet Live) | M18 Near-Complete (22/24 done) | T3 Growth Phase active | 7,552+ Tests + 294 Foundry | 7 Packages | 🏆 Zypherpunk Winner ($6,500, #9/93, 3 tracks) | 💰 Superteam Grant $6K/$10K paid (T3 pending)
