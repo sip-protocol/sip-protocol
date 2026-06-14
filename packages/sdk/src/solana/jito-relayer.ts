@@ -389,9 +389,9 @@ export class JitoRelayer {
     this.log('Relaying transaction')
 
     try {
-      // Jito bundles require a tip to land. If a tipPayer is supplied, use the
-      // bundle path (which prepends a tip tx); otherwise fall through to the
-      // existing single-tx submission.
+      // Jito bundles require a tip to land. A tipPayer is therefore mandatory for
+      // the bundle path (which prepends a tip tx). Without one we fail loud below
+      // and let the catch fall back to honest direct submission.
       if (request.tipPayer) {
         const bundle = await this.submitBundle({
           transactions: [request.transaction],
@@ -410,45 +410,15 @@ export class JitoRelayer {
         }
       }
 
-      // For single transaction relay, we need to handle it differently
-      // The transaction should already be signed by the user
-      // We add it to a bundle with a tip transaction
-
-      const serializedTx = Buffer.from(request.transaction.serialize()).toString('base64')
-
-      // Submit as single-tx bundle
-      const bundleId = await this.sendBundle([serializedTx])
-
-      // Get signature
-      let signature: string
-      if (request.transaction instanceof VersionedTransaction) {
-        signature = JitoRelayer.encodeSignature(request.transaction.signatures[0])
-      } else {
-        const sig = request.transaction.signature
-        signature = sig ? JitoRelayer.encodeSignature(sig) : ''
-      }
-
-      // Wait for confirmation if requested
-      if (request.waitForConfirmation) {
-        const { lastValidBlockHeight } = await this.connection.getLatestBlockhash()
-        const status = await this.waitForBundleConfirmation(bundleId, lastValidBlockHeight)
-
-        return {
-          signature,
-          bundleId,
-          status: status.status === 'Landed' ? 'confirmed' : 'failed',
-          slot: status.landedSlot,
-          error: status.error,
-          relayed: true,
-        }
-      }
-
-      return {
-        signature,
-        bundleId,
-        status: 'submitted',
-        relayed: true,
-      }
+      // No tipPayer → there is no way to land a Jito bundle. A tip-less bundle is
+      // never included by the block engine, so reporting it as 'submitted' would
+      // be a silent lie. Fail loud here; the catch below falls back to honest
+      // direct submission (relayed:false).
+      throw new JitoRelayerError(
+        JitoRelayerErrorCode.INSUFFICIENT_TIP,
+        'Jito bundle relay requires a tipPayer; tip-less bundles are never included ' +
+          'by the block engine. Provide a tipPayer or submit directly.'
+      )
     } catch (error) {
       // Fallback to direct submission
       this.log('Relayer failed, falling back to direct submission:', error)

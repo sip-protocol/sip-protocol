@@ -138,6 +138,37 @@ describe('JitoRelayer', () => {
       expect(result.signature).toMatch(/^[1-9A-HJ-NP-Za-km-z]+$/)
       expect(fetchMock).toHaveBeenCalled()
     })
+
+    // J6: a tip-less bundle is never included by the block engine. The no-tipPayer
+    // path must NOT fabricate a 'submitted' bundle — it must fail loud inside the
+    // try and fall back to honest direct submission (relayed:false), with no
+    // /bundles call made.
+    it('does NOT submit a tip-less bundle; falls back to direct submission (J6)', async () => {
+      const fetchMock = vi.fn(async () => ({
+        ok: true,
+        json: async () => ({ result: 'should-not-be-used' }),
+      }) as unknown as Response)
+      vi.stubGlobal('fetch', fetchMock)
+
+      const payer = Keypair.generate()
+      const sendRaw = vi.fn(async () => 'directSig111')
+      const r = new JitoRelayer({ blockEngineUrl: 'https://x.test/api/v1' })
+      // @ts-expect-error override private connection for the test
+      r.connection = {
+        sendRawTransaction: sendRaw,
+        rpcEndpoint: 'https://api.mainnet-beta.solana.com',
+      }
+
+      const userTx = buildSignedTransferTx(payer)
+      const result = await r.relayTransaction({ transaction: userTx /* no tipPayer */ })
+
+      // Honest direct submission, not a doomed bundle.
+      expect(result.relayed).toBe(false)
+      expect(result.signature).toBe('directSig111')
+      expect(sendRaw).toHaveBeenCalledTimes(1)
+      // No Jito bundle endpoint should ever be hit on the tip-less path.
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
   })
 
   // J3 + J4: the prepended tip tx and the confirmation window must ADOPT the
