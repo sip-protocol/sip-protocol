@@ -160,8 +160,8 @@ export async function buildGaslessCashout(
   }
   const grossAmount = BigInt(balanceSettled.value.value.amount)
 
-  // 3. Recent blockhash — bound below after the fee guard so we never sign a tx with
-  // a stale/absent blockhash; surface a clear error instead of an unhandled rejection.
+  // 3. Recent blockhash — validated after the fee/balance guards so a transient blockhash
+  // RPC failure surfaces a clear error rather than an unhandled rejection.
   if (blockhashSettled.status === 'rejected') {
     throw new Error('Failed to fetch a recent blockhash for the cash-out transaction')
   }
@@ -194,11 +194,25 @@ export async function buildGaslessCashout(
 
   // Fee: stealth -> relayer fee account
   transaction.add(
-    createTransferInstruction(stealthATA, relayerFeeAccount, stealthPubkey, relayerFee, [], tokenProgramId)
+    createTransferInstruction(
+      stealthATA,
+      relayerFeeAccount,
+      stealthPubkey,
+      relayerFee,
+      [], // multiSigners
+      tokenProgramId
+    )
   )
   // Net: stealth -> destination
   transaction.add(
-    createTransferInstruction(stealthATA, destinationATA, stealthPubkey, netAmount, [], tokenProgramId)
+    createTransferInstruction(
+      stealthATA,
+      destinationATA,
+      stealthPubkey,
+      netAmount,
+      [], // multiSigners
+      tokenProgramId
+    )
   )
 
   // Blockhash was fetched concurrently above and validated before this point.
