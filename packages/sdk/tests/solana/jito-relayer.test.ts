@@ -41,7 +41,10 @@ const FRESH_BLOCKHASH = 'cGfHiC6Kgg3FpFZvgwGcswsCRtp4aBP2fzuXRQPizuN'
 const OWN_TX_BLOCKHASH = 'LbUiWL3xVV8hTFYBVdbTNrpDo41NKS6o3LHHuDzjfcY'
 
 describe('JitoRelayer', () => {
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
 
   describe('constructor + helpers', () => {
     it('applies defaults', () => {
