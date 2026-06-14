@@ -47,7 +47,7 @@ import {
   Keypair,
   type TransactionInstruction,
 } from '@solana/web3.js'
-import bs58 from 'bs58'
+import { bytesToBase58 } from '../stealth/utils'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -269,7 +269,7 @@ export class JitoRelayer {
 
   /** Encode a 64-byte ed25519 signature as a base58 string (Solana canonical form). */
   static encodeSignature(sig: Uint8Array): string {
-    return bs58.encode(sig)
+    return bytesToBase58(sig)
   }
 
   // ─── Public Methods ─────────────────────────────────────────────────────────

@@ -1,11 +1,15 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { Keypair, Transaction, SystemProgram } from '@solana/web3.js'
-import bs58 from 'bs58'
 import {
   JitoRelayer,
   createJitoRelayer,
   JITO_TIP_ACCOUNTS,
 } from '../../src/solana/jito-relayer'
+
+// Base58 of a 64-byte signature filled with 0x07 — captured from the historical
+// bs58.encode output so the in-repo encoder is proven byte-identical to it.
+const SIG_ALL_SEVENS_BASE58 =
+  '99eUso3aSbE9tqGSTXzo3TLfKb9RkMTURrHKQ1K7Zh3BbeqPevr5E1iCbpTjqHuTFLtfxTTD5ekfVuZFzQyEQf8'
 
 // Helper: build a signed legacy transfer tx for bundle tests.
 function buildSignedTransferTx(payer: Keypair): Transaction {
@@ -55,7 +59,7 @@ describe('JitoRelayer', () => {
     it('encodes a 64-byte signature as base58 (not hex)', () => {
       const sig = new Uint8Array(64).fill(7)
       const out = JitoRelayer.encodeSignature(sig)
-      expect(out).toBe(bs58.encode(sig))
+      expect(out).toBe(SIG_ALL_SEVENS_BASE58)
       // a hex encoding of 64 bytes would be 128 chars all in [0-9a-f]; base58 includes uppercase
       expect(out).not.toMatch(/^[0-9a-f]+$/)
     })
@@ -118,6 +122,24 @@ describe('JitoRelayer', () => {
       // user tx is the LAST entry in the bundle; signature must be base58
       expect(result.signature).toMatch(/^[1-9A-HJ-NP-Za-km-z]+$/)
       expect(fetchMock).toHaveBeenCalled()
+    })
+  })
+
+  // D2: encodeSignature must be byte-identical to the old bs58.encode after the
+  // swap to the in-repo bytesToBase58 encoder.
+  describe('encodeSignature byte-vector (D2)', () => {
+    it('matches a fixed known base58 vector', () => {
+      // Deterministic 64-byte input: bytes 0..63.
+      const sig = new Uint8Array(64)
+      for (let i = 0; i < 64; i++) sig[i] = i
+      const out = JitoRelayer.encodeSignature(sig)
+      // Hard-coded expectation (base58 of bytes 0x00..0x3f) captured from the
+      // historical bs58.encode output — proving the in-repo encoder is byte-identical.
+      const expected =
+        '1GMkH3brNXiNNs1tiFZHu4yZSRrzJwxi5wB9bHFtMinfCXNnR1adh8Vo8NTheK4evneedH4qmvjeqcBBNAefgS'
+      expect(out).toBe(expected)
+      // Leading zero byte must map to a single '1' prefix (base58 leading-zero rule).
+      expect(out.startsWith('1')).toBe(true)
     })
   })
 })
