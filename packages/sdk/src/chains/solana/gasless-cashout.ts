@@ -20,6 +20,7 @@ import {
   createTransferInstruction,
   createAssociatedTokenAccountIdempotentInstruction,
   getAccount,
+  TOKEN_PROGRAM_ID,
 } from '@solana/spl-token'
 import type { HexString } from '@sip-protocol/types'
 import { deriveStealthSigner } from './stealth-signer'
@@ -51,6 +52,12 @@ export interface GaslessCashoutParams {
   feeConfig: RelayerFeeConfig
   /** Announcement scheme version: '2' canonical (default) | '1' legacy */
   version?: '1' | '2'
+  /**
+   * SPL token program owning the mint — defaults to the classic Token program;
+   * pass TOKEN_2022_PROGRAM_ID for Token-2022 mints. A wrong program id derives the
+   * wrong ATA and targets the wrong program (on-chain failure).
+   */
+  tokenProgramId?: PublicKey
 }
 
 /** A stealth-signed gasless cash-out transaction, awaiting the relayer's fee-payer signature. */
@@ -99,6 +106,7 @@ export async function buildGaslessCashout(
     feeConfig,
     version = '2',
   } = params
+  const tokenProgramId = params.tokenProgramId ?? TOKEN_PROGRAM_ID
 
   const stealthSigner = deriveStealthSigner({
     stealthAddress,
@@ -109,9 +117,14 @@ export async function buildGaslessCashout(
   })
   const stealthPubkey = stealthSigner.publicKey
 
-  const stealthATA = await getAssociatedTokenAddress(mint, stealthPubkey, true)
+  const stealthATA = await getAssociatedTokenAddress(mint, stealthPubkey, true, tokenProgramId)
   const destinationPubkey = new PublicKey(destinationAddress)
-  const destinationATA = await getAssociatedTokenAddress(mint, destinationPubkey)
+  const destinationATA = await getAssociatedTokenAddress(
+    mint,
+    destinationPubkey,
+    false,
+    tokenProgramId
+  )
 
   if (destinationATA.equals(stealthATA)) {
     throw new Error(
@@ -123,7 +136,7 @@ export async function buildGaslessCashout(
   // transfer would fail (mint mismatch) or the fee would be unrecoverable.
   let feeAccount
   try {
-    feeAccount = await getAccount(connection, relayerFeeAccount)
+    feeAccount = await getAccount(connection, relayerFeeAccount, undefined, tokenProgramId)
   } catch {
     throw new Error('relayerFeeAccount does not exist or is not a token account')
   }
@@ -162,17 +175,18 @@ export async function buildGaslessCashout(
       relayerPublicKey, // payer (relayer pays rent)
       destinationATA,
       destinationPubkey,
-      mint
+      mint,
+      tokenProgramId
     )
   )
 
   // Fee: stealth -> relayer fee account
   transaction.add(
-    createTransferInstruction(stealthATA, relayerFeeAccount, stealthPubkey, relayerFee)
+    createTransferInstruction(stealthATA, relayerFeeAccount, stealthPubkey, relayerFee, [], tokenProgramId)
   )
   // Net: stealth -> destination
   transaction.add(
-    createTransferInstruction(stealthATA, destinationATA, stealthPubkey, netAmount)
+    createTransferInstruction(stealthATA, destinationATA, stealthPubkey, netAmount, [], tokenProgramId)
   )
 
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
