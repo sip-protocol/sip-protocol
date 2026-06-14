@@ -13,6 +13,7 @@ import {
   Connection,
   PublicKey,
   Transaction,
+  Keypair,
 } from '@solana/web3.js'
 import {
   getAssociatedTokenAddress,
@@ -22,6 +23,8 @@ import {
 import type { HexString } from '@sip-protocol/types'
 import { deriveStealthSigner } from './stealth-signer'
 import { computeRelayerFee, type RelayerFeeConfig } from './relayer-fee'
+import { getExplorerUrl, type SolanaCluster } from './constants'
+import type { JitoRelayer } from '../../solana/jito-relayer'
 
 /** Parameters for building a gasless cash-out transaction. */
 export interface GaslessCashoutParams {
@@ -165,5 +168,120 @@ export async function buildGaslessCashout(
     netAmount,
     blockhash,
     lastValidBlockHeight,
+  }
+}
+
+/** Detect the Solana cluster from an RPC endpoint URL. */
+function detectCluster(endpoint: string): SolanaCluster {
+  if (endpoint.includes('devnet')) {
+    return 'devnet'
+  }
+  if (endpoint.includes('testnet')) {
+    return 'testnet'
+  }
+  if (endpoint.includes('localhost') || endpoint.includes('127.0.0.1')) {
+    return 'localnet'
+  }
+  return 'mainnet-beta'
+}
+
+/** Parameters for submitting a built gasless cash-out. */
+export interface SubmitGaslessCashoutParams {
+  /** Solana RPC connection */
+  connection: Connection
+  /** Output of buildGaslessCashout (stealth already signed) */
+  build: GaslessCashoutBuild
+  /** Relayer keypair — must equal build.transaction.feePayer */
+  relayerKeypair: Keypair
+  /** Optional Jito relayer for the bundle path (mainnet hardening). Default: direct submit. */
+  jitoRelayer?: JitoRelayer
+  /** Tip in lamports for the Jito path (ignored on the direct path) */
+  tipLamports?: number
+}
+
+/** Result of a gasless cash-out. */
+export interface GaslessCashoutResult {
+  /** Transaction signature (base58) */
+  txSignature: string
+  /** Destination that received the net amount (base58) */
+  destinationAddress: string
+  /** Net amount forwarded (base units) */
+  amount: bigint
+  /** Relayer fee charged (base units) */
+  relayerFee: bigint
+  /** Explorer URL */
+  explorerUrl: string
+  /** Whether the Jito bundle path was used */
+  viaJito: boolean
+}
+
+/**
+ * Sign as the relayer (fee-payer) and submit a gasless cash-out.
+ *
+ * Direct submission is the primary path (works on devnet + mainnet). Supplying a
+ * `jitoRelayer` routes through a Jito bundle instead (optional mainnet hardening;
+ * Jito has no devnet block engine).
+ *
+ * @throws If `relayerKeypair` is not the transaction's fee-payer
+ */
+export async function submitGaslessCashout(
+  params: SubmitGaslessCashoutParams
+): Promise<GaslessCashoutResult> {
+  const { connection, build, relayerKeypair, jitoRelayer, tipLamports } = params
+  const { transaction, netAmount, relayerFee, destinationAddress } = build
+
+  if (!transaction.feePayer || !transaction.feePayer.equals(relayerKeypair.publicKey)) {
+    throw new Error('relayerKeypair does not match the transaction fee-payer')
+  }
+
+  // Relayer adds its fee-payer signature alongside the stealth signature.
+  transaction.partialSign(relayerKeypair)
+
+  const cluster = detectCluster(connection.rpcEndpoint)
+
+  // Optional Jito path (mainnet only — Jito has no devnet block engine).
+  if (jitoRelayer) {
+    const relayed = await jitoRelayer.relayTransaction({
+      transaction,
+      tipLamports,
+      tipPayer: relayerKeypair,
+      waitForConfirmation: true,
+    })
+    return {
+      txSignature: relayed.signature,
+      destinationAddress,
+      amount: netAmount,
+      relayerFee,
+      explorerUrl: getExplorerUrl(relayed.signature, cluster),
+      viaJito: true,
+    }
+  }
+
+  // Direct path (primary): relayer is fee-payer; sendRawTransaction returns a base58 sig.
+  const txSignature = await connection.sendRawTransaction(transaction.serialize(), {
+    skipPreflight: false,
+    preflightCommitment: 'confirmed',
+  })
+  const confirmation = await connection.confirmTransaction(
+    {
+      signature: txSignature,
+      blockhash: build.blockhash,
+      lastValidBlockHeight: build.lastValidBlockHeight,
+    },
+    'confirmed'
+  )
+  if (confirmation.value.err) {
+    throw new Error(
+      `Gasless cash-out landed but failed on-chain: ${JSON.stringify(confirmation.value.err)}`
+    )
+  }
+
+  return {
+    txSignature,
+    destinationAddress,
+    amount: netAmount,
+    relayerFee,
+    explorerUrl: getExplorerUrl(txSignature, cluster),
+    viaJito: false,
   }
 }

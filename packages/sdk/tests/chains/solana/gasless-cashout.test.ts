@@ -7,7 +7,8 @@ import {
   generateEd25519StealthAddress,
   ed25519PublicKeyToSolanaAddress,
 } from '../../../src/stealth'
-import { buildGaslessCashout } from '../../../src/chains/solana/gasless-cashout'
+import { buildGaslessCashout, submitGaslessCashout } from '../../../src/chains/solana/gasless-cashout'
+import type { JitoRelayer } from '../../../src/solana/jito-relayer'
 
 const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
 
@@ -110,5 +111,92 @@ describe('buildGaslessCashout', () => {
       relayerFeeAccount,
       feeConfig: { flatFloor: 10_000n, bps: 10 },
     })).rejects.toThrow('exceeds the claim amount')
+  })
+})
+
+describe('submitGaslessCashout', () => {
+  const relayerFeeAccount = Keypair.generate().publicKey
+
+  async function buildFor(relayer: Keypair) {
+    const s = scenario()
+    return buildGaslessCashout({
+      connection: mockConn(1_000_000_000n),
+      stealthAddress: s.stealthB58,
+      ephemeralPublicKey: s.ephemeralB58,
+      viewingPrivateKey: s.recipient.viewingPrivateKey,
+      spendingPrivateKey: s.recipient.spendingPrivateKey,
+      destinationAddress: Keypair.generate().publicKey.toBase58(),
+      mint: USDC_MINT,
+      relayerPublicKey: relayer.publicKey,
+      relayerFeeAccount,
+      feeConfig: { flatFloor: 10_000n, bps: 10 },
+    })
+  }
+
+  it('direct path: relayer co-signs as fee-payer, sends, returns the base58 signature', async () => {
+    const relayer = Keypair.generate()
+    let sentRaw: Uint8Array | null = null
+    const connection = {
+      rpcEndpoint: 'https://api.devnet.solana.com',
+      sendRawTransaction: async (raw: Uint8Array) => {
+        sentRaw = raw
+        return '5wHu1qwD4kT3zr8nF2sZ9q7vXpYbN6cM1aE4dR7tG9hJ2kL3mP8qS5vT6wX9yZ1aB2cD3eF4gH5iJ6kL7mN8oP9qR'
+      },
+      confirmTransaction: async () => ({ value: { err: null } }),
+    } as unknown as Connection
+
+    const build = await buildFor(relayer)
+    const result = await submitGaslessCashout({ connection, build, relayerKeypair: relayer })
+
+    expect(result.viaJito).toBe(false)
+    expect(result.txSignature).toMatch(/^[1-9A-HJ-NP-Za-km-z]+$/) // base58
+    expect(result.amount).toBe(build.netAmount)
+    expect(result.relayerFee).toBe(build.relayerFee)
+    expect(result.destinationAddress).toBe(build.destinationAddress)
+    expect(sentRaw).not.toBeNull() // a fully-signed tx was serialized + sent
+  })
+
+  it('rejects if the relayer keypair does not match the build fee-payer', async () => {
+    const relayer = Keypair.generate()
+    const wrong = Keypair.generate()
+    const build = await buildFor(relayer)
+    const connection = { rpcEndpoint: 'x' } as unknown as Connection
+    await expect(
+      submitGaslessCashout({ connection, build, relayerKeypair: wrong })
+    ).rejects.toThrow('does not match')
+  })
+
+  it('throws if the transaction lands but fails on-chain', async () => {
+    const relayer = Keypair.generate()
+    const connection = {
+      rpcEndpoint: 'https://api.devnet.solana.com',
+      sendRawTransaction: async () =>
+        '5wHu1qwD4kT3zr8nF2sZ9q7vXpYbN6cM1aE4dR7tG9hJ2kL3mP8qS5vT6wX9yZ1aB2cD3eF4gH5iJ6kL7mN8oP9qR',
+      confirmTransaction: async () => ({ value: { err: { InstructionError: [1, 'Custom'] } } }),
+    } as unknown as Connection
+
+    const build = await buildFor(relayer)
+    await expect(
+      submitGaslessCashout({ connection, build, relayerKeypair: relayer })
+    ).rejects.toThrow('failed on-chain')
+  })
+
+  it('Jito path: routes through the relayer when jitoRelayer is provided', async () => {
+    const relayer = Keypair.generate()
+    const build = await buildFor(relayer)
+    const connection = { rpcEndpoint: 'https://api.mainnet-beta.solana.com' } as unknown as Connection
+    const jitoRelayer = {
+      relayTransaction: async () => ({
+        signature: 'JitoSig1111111111111111111111111111111111111',
+        bundleId: 'bundle-1',
+        status: 'submitted',
+        relayed: true,
+      }),
+    } as unknown as JitoRelayer
+
+    const result = await submitGaslessCashout({ connection, build, relayerKeypair: relayer, jitoRelayer })
+    expect(result.viaJito).toBe(true)
+    expect(result.txSignature).toBe('JitoSig1111111111111111111111111111111111111')
+    expect(result.amount).toBe(build.netAmount)
   })
 })
