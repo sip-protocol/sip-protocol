@@ -143,6 +143,32 @@ describe('scanForPayments end-to-end (view-only, canonical SIP:2)', () => {
     expect(payment.txSignature).toBe(TEST_SIGNATURE)
     expect(payment.slot).toBe(TEST_SLOT)
     expect(payment.timestamp).toBe(TEST_BLOCK_TIME)
+    // The result carries the announcement scheme version so the claim path can
+    // route to the matching derivation. A canonical memo reports '2'.
+    expect(payment.version).toBe('2')
+  })
+
+  it('carries version "1" for a legacy SIP:1 announcement so claim can route correctly', async () => {
+    // The announcement version label is independent of the cryptographic content:
+    // a canonical stealth address wrapped in a SIP:1-prefixed memo is still
+    // detectable via the same view-only check, and the scan result must surface
+    // the parsed '1' so claimStealthPayment can pick the legacy derivation.
+    const s = buildScenario()
+    const legacyMemo = `SIP:1:${s.ephemeralB58}:${s.stealthAddress.viewTag
+      .toString(16)
+      .padStart(2, '0')}:${s.stealthAddressB58}`
+    expect(parseAnnouncement(legacyMemo)?.version).toBe('1')
+
+    const connection = createMockConnection(legacyMemo, s.preTokenBalances, s.postTokenBalances)
+
+    const results = await scanForPayments({
+      connection,
+      viewingPrivateKey: s.recipient.viewingPrivateKey,
+      spendingPublicKey: s.recipient.metaAddress.spendingKey,
+    })
+
+    expect(results).toHaveLength(1)
+    expect(results[0].version).toBe('1')
   })
 
   it('returns no results for a DIFFERENT (wrong) viewing private key', async () => {

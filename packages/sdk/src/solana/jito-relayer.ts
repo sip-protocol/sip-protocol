@@ -44,10 +44,10 @@ import {
   VersionedTransaction,
   Transaction,
   SystemProgram,
-  type Keypair,
+  Keypair,
   type TransactionInstruction,
 } from '@solana/web3.js'
-import { bytesToHex } from '@noble/hashes/utils'
+import bs58 from 'bs58'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -156,6 +156,8 @@ export interface RelayedTransactionRequest {
   transaction: Transaction | VersionedTransaction
   /** Tip amount in lamports (paid by relayer, recovered from user) */
   tipLamports?: number
+  /** Keypair that pays the Jito tip. Required for the Jito-bundle path to land. */
+  tipPayer?: Keypair
   /** Whether to wait for confirmation */
   waitForConfirmation?: boolean
 }
@@ -233,10 +235,11 @@ export class JitoRelayerError extends Error {
  *   blockEngineUrl: 'https://ny.mainnet.block-engine.jito.wtf/api/v1',
  * })
  *
- * // Submit a signed transaction via relayer
+ * // Submit a signed transaction via the relayer (tipPayer is required for the bundle to land)
  * const result = await relayer.relayTransaction({
  *   transaction: signedTx,
  *   tipLamports: 10_000, // 0.00001 SOL tip
+ *   tipPayer: relayerKeypair,
  * })
  *
  * console.log('Transaction relayed:', result.signature)
@@ -260,6 +263,13 @@ export class JitoRelayer {
     this.debug = config.debug ?? false
     this.maxRetries = config.maxRetries ?? JITO_DEFAULTS.maxRetries
     this.submissionTimeout = config.submissionTimeout ?? JITO_DEFAULTS.submissionTimeout
+  }
+
+  // ─── Static Helpers ─────────────────────────────────────────────────────────
+
+  /** Encode a 64-byte ed25519 signature as a base58 string (Solana canonical form). */
+  static encodeSignature(sig: Uint8Array): string {
+    return bs58.encode(sig)
   }
 
   // ─── Public Methods ─────────────────────────────────────────────────────────
@@ -331,10 +341,10 @@ export class JitoRelayer {
     // Extract signatures
     const signatures = bundleTransactions.map(tx => {
       if (tx instanceof VersionedTransaction) {
-        return bytesToHex(tx.signatures[0])
-      } else {
-        return tx.signature?.toString() ?? ''
+        return JitoRelayer.encodeSignature(tx.signatures[0])
       }
+      const sig = tx.signature
+      return sig ? JitoRelayer.encodeSignature(sig) : ''
     })
 
     // Wait for confirmation if requested
@@ -373,6 +383,27 @@ export class JitoRelayer {
     this.log('Relaying transaction')
 
     try {
+      // Jito bundles require a tip to land. If a tipPayer is supplied, use the
+      // bundle path (which prepends a tip tx); otherwise fall through to the
+      // existing single-tx submission.
+      if (request.tipPayer) {
+        const bundle = await this.submitBundle({
+          transactions: [request.transaction],
+          tipLamports: request.tipLamports,
+          tipPayer: request.tipPayer,
+          waitForConfirmation: request.waitForConfirmation,
+        })
+        return {
+          signature: bundle.signatures[bundle.signatures.length - 1] ?? '',
+          bundleId: bundle.bundleId,
+          status: bundle.status === 'landed' ? 'confirmed'
+            : bundle.status === 'submitted' ? 'submitted' : 'failed',
+          slot: bundle.slot,
+          error: bundle.error,
+          relayed: true,
+        }
+      }
+
       // For single transaction relay, we need to handle it differently
       // The transaction should already be signed by the user
       // We add it to a bundle with a tip transaction
@@ -385,9 +416,10 @@ export class JitoRelayer {
       // Get signature
       let signature: string
       if (request.transaction instanceof VersionedTransaction) {
-        signature = bytesToHex(request.transaction.signatures[0])
+        signature = JitoRelayer.encodeSignature(request.transaction.signatures[0])
       } else {
-        signature = request.transaction.signature?.toString() ?? ''
+        const sig = request.transaction.signature
+        signature = sig ? JitoRelayer.encodeSignature(sig) : ''
       }
 
       // Wait for confirmation if requested

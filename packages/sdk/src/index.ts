@@ -1036,6 +1036,12 @@ export {
   // Helius Enhanced Transactions (Human-readable TX data)
   HeliusEnhanced,
   createHeliusEnhanced,
+  // Gasless Cash-Out (relayer fee-payer for stealth recipients)
+  buildGaslessCashout,
+  submitGaslessCashout,
+  computeRelayerFee,
+  signEd25519WithScalar,
+  deriveStealthSigner,
 } from './chains/solana'
 
 // Solana Noir Verification (Aztec/Noir bounty)
@@ -1132,6 +1138,14 @@ export type {
   SIPTransactionMetadata,
   SIPEnhancedTransaction,
   TransactionSummary,
+  // Gasless Cash-Out types (relayer fee-payer for stealth recipients)
+  GaslessCashoutParams,
+  GaslessCashoutBuild,
+  SubmitGaslessCashoutParams,
+  GaslessCashoutResult,
+  RelayerFeeConfig,
+  StealthSigner,
+  DeriveStealthSignerParams,
 } from './chains/solana'
 
 // NEAR Same-Chain Privacy (M17-NEAR)

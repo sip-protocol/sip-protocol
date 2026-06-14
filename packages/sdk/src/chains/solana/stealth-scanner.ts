@@ -116,6 +116,13 @@ export interface DetectedPayment {
   ephemeralPublicKey: string
 
   /**
+   * Announcement scheme version ('1' legacy | '2' canonical).
+   * Pass to the claim path so it routes to the matching derivation.
+   * Optional for back-compat with payments detected before version threading.
+   */
+  version?: '1' | '2'
+
+  /**
    * View tag for efficient scanning
    */
   viewTag: number
@@ -548,6 +555,7 @@ export class StealthScanner {
           return {
             stealthAddress: announcement.stealthAddress || '',
             ephemeralPublicKey: announcement.ephemeralPublicKey,
+            version: announcement.version as '1' | '2',
             viewTag: viewTagNumber,
             amount,
             mint: transferInfo.mint,
