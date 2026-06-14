@@ -299,8 +299,14 @@ export class JitoRelayer {
     // Create tip instruction
     const tipInstruction = this.createTipInstruction(request.tipPayer.publicKey, tipLamports)
 
-    // Get recent blockhash
-    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
+    // The relayer cannot re-sign the user (cash-out) transaction — it lacks the
+    // signing key. So the prepended tip tx and the confirmation window must ADOPT
+    // the user tx's blockhash window; a fresh blockhash would orphan the bundle
+    // (the user tx could be expired yet the tip tx still look valid). Fall back to
+    // a fresh blockhash only when the user tx carries no window (e.g. versioned tx).
+    const ctx = this.extractBlockhashContext(request.transactions[0])
+    const { blockhash, lastValidBlockHeight } =
+      ctx ?? (await this.connection.getLatestBlockhash())
 
     // Add tip to the first transaction or create a standalone tip tx
     const bundleTransactions = await this.prepareBundleTransactions(
@@ -485,6 +491,27 @@ export class JitoRelayer {
   // ─── Private Methods ────────────────────────────────────────────────────────
 
   /**
+   * Extract a legacy transaction's blockhash window so the tip tx and the
+   * confirmation window can be reconciled against the SAME window the user tx is
+   * signed for. Returns `null` for versioned transactions, or when either field
+   * is missing — callers then fall back to a freshly fetched blockhash.
+   */
+  private extractBlockhashContext(
+    tx: Transaction | VersionedTransaction
+  ): { blockhash: string; lastValidBlockHeight: number } | null {
+    if (tx instanceof VersionedTransaction) {
+      return null
+    }
+    const lastValidBlockHeight = (
+      tx as Transaction & { lastValidBlockHeight?: number }
+    ).lastValidBlockHeight
+    if (tx.recentBlockhash && typeof lastValidBlockHeight === 'number') {
+      return { blockhash: tx.recentBlockhash, lastValidBlockHeight }
+    }
+    return null
+  }
+
+  /**
    * Create tip instruction
    */
   private createTipInstruction(
@@ -657,7 +684,12 @@ export class JitoRelayer {
     )
 
     if (waitForConfirmation) {
-      const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
+      // Confirm against the SENT tx's own blockhash window — a freshly fetched
+      // blockhash could report a different (later) window and misjudge expiry.
+      // Fall back to a fresh blockhash only for versioned txs that carry no window.
+      const ctx = this.extractBlockhashContext(transaction)
+      const { blockhash, lastValidBlockHeight } =
+        ctx ?? (await this.connection.getLatestBlockhash())
       const confirmation = await this.connection.confirmTransaction({
         signature,
         blockhash,
