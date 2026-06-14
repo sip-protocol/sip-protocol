@@ -93,7 +93,15 @@ export interface DeriveStealthSignerParams {
 export interface StealthSigner {
   /** The stealth address this signer controls */
   readonly publicKey: PublicKey
-  /** Sign arbitrary bytes, returning a 64-byte ed25519 signature */
+  /**
+   * Sign arbitrary bytes with the stealth scalar, returning a 64-byte ed25519 signature.
+   *
+   * This is a deliberate symmetric primitive (mirrors {@link signTransaction}'s non-transaction
+   * counterpart): it lets the controller of a stealth address produce an off-chain proof of
+   * control — e.g. authenticating to an off-chain service or attesting ownership — without
+   * moving funds. The signature verifies against {@link publicKey} with any standard ed25519
+   * verifier. Use {@link signTransaction} for on-chain Solana transactions.
+   */
   signMessage(message: Uint8Array): Uint8Array
   /** Attach this stealth address's signature to a transaction. Call LAST — after feePayer, recentBlockhash, and all instructions are finalized (the signature covers the serialized message at call time). */
   signTransaction(transaction: Transaction): void
