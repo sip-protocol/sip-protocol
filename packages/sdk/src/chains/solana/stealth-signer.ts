@@ -38,15 +38,29 @@ function modL(value: bigint): bigint {
  *
  * @param message - Exact bytes to sign (e.g. a compiled transaction message)
  * @param scalar - 32-byte little-endian ed25519 scalar (the stealth private key)
+ * @param publicKeyBytes - Optional 32-byte compressed public key `A = a·G`. When supplied,
+ *   it is used directly as `A` to skip one scalar multiplication per signature — a pure
+ *   performance shortcut for callers that already hold the public key (e.g.
+ *   {@link deriveStealthSigner}, which proves `A` equals the stealth address before signing).
+ *   It is NOT a second independent input: it MUST equal `a·G`. Supplying a wrong value does
+ *   not raise an error — it silently produces an invalid signature (`A` feeds the challenge
+ *   `k = H(R‖A‖message)`). When omitted, `A` is computed from `a`. Must be exactly 32 bytes.
  * @returns 64-byte signature (R ‖ S)
- * @throws If the scalar reduces to zero
+ * @throws If the scalar reduces to zero, or if `publicKeyBytes` is supplied but not 32 bytes
  */
-export function signEd25519WithScalar(message: Uint8Array, scalar: Uint8Array): Uint8Array {
+export function signEd25519WithScalar(
+  message: Uint8Array,
+  scalar: Uint8Array,
+  publicKeyBytes?: Uint8Array,
+): Uint8Array {
+  if (publicKeyBytes !== undefined && publicKeyBytes.length !== 32) {
+    throw new Error('publicKeyBytes must be 32 bytes')
+  }
   const a = modL(bytesToBigIntLE(scalar))
   if (a === 0n) {
     throw new Error('Invalid stealth scalar: reduces to zero')
   }
-  const A = ed25519.ExtendedPoint.BASE.multiply(a).toRawBytes()
+  const A = publicKeyBytes ?? ed25519.ExtendedPoint.BASE.multiply(a).toRawBytes()
 
   const prefix = sha512(scalar).slice(32, 64)
   const r = modL(bytesToBigIntLE(sha512(new Uint8Array([...prefix, ...message]))))
@@ -134,11 +148,11 @@ export function deriveStealthSigner(params: DeriveStealthSignerParams): StealthS
   return {
     publicKey,
     signMessage(message: Uint8Array): Uint8Array {
-      return signEd25519WithScalar(message, scalar)
+      return signEd25519WithScalar(message, scalar, derivedPubKeyBytes)
     },
     signTransaction(transaction: Transaction): void {
       const message = transaction.serializeMessage()
-      const signature = signEd25519WithScalar(message, scalar)
+      const signature = signEd25519WithScalar(message, scalar, derivedPubKeyBytes)
       transaction.addSignature(publicKey, Buffer.from(signature))
     },
   }

@@ -91,6 +91,35 @@ describe('signEd25519WithScalar', () => {
   it('throws on a zero scalar', () => {
     expect(() => signEd25519WithScalar(new Uint8Array([1]), new Uint8Array(32))).toThrow('reduces to zero')
   })
+
+  it('with a supplied (correct) public key produces a byte-identical signature to the 2-arg form', () => {
+    const scalar = hexToBytes('0a'.repeat(32))
+    const msg = new Uint8Array([1, 2, 3, 4, 5])
+    const A = pubFromScalar(scalar)
+    const sigDefault = signEd25519WithScalar(msg, scalar)
+    const sigSupplied = signEd25519WithScalar(msg, scalar, A)
+    // The third arg is a pure performance shortcut: with the correct A, R/k/S are
+    // unchanged, so the output MUST be byte-for-byte identical.
+    expect(bytesToHex(sigSupplied)).toBe(bytesToHex(sigDefault))
+  })
+
+  it('consumes the supplied public key: a WRONG A yields a signature that fails verification', () => {
+    const scalar = hexToBytes('0a'.repeat(32))
+    const msg = new Uint8Array([9, 8, 7])
+    // A valid-but-wrong 32-byte point (public key of a different scalar).
+    const wrongA = pubFromScalar(hexToBytes('0b'.repeat(32)))
+    const sig = signEd25519WithScalar(msg, scalar, wrongA)
+    // The param is genuinely fed into the k = H(R‖A‖msg) hash, so a wrong A corrupts S
+    // and the signature cannot verify against the real public key.
+    expect(ed25519.verify(sig, msg, pubFromScalar(scalar))).toBe(false)
+  })
+
+  it('throws when the supplied public key is not exactly 32 bytes', () => {
+    const scalar = hexToBytes('0a'.repeat(32))
+    const msg = new Uint8Array([1, 2, 3])
+    expect(() => signEd25519WithScalar(msg, scalar, new Uint8Array(31))).toThrow('publicKeyBytes must be 32 bytes')
+    expect(() => signEd25519WithScalar(msg, scalar, new Uint8Array(33))).toThrow('publicKeyBytes must be 32 bytes')
+  })
 })
 
 describe('deriveStealthSigner', () => {
