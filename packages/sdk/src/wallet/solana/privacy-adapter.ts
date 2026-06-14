@@ -23,6 +23,20 @@ import {
   checkEd25519StealthAddress,
   ed25519PublicKeyToSolanaAddress,
 } from '../../stealth'
+// Imported from the source module (not the barrel) to avoid a circular-import
+// cycle that leaves the barrel re-export undefined at call time — matching the
+// pattern in chains/solana/stealth-signer.ts and chains/ethereum/stealth.ts.
+// Using the canonical primitives here (rather than local copies) guarantees the
+// stealth address this adapter reconstructs is byte-for-byte consistent with the
+// key deriveEd25519StealthPrivateKey returns — they must share the SAME
+// bytesToBigInt (big-endian) and curve order.
+import {
+  getEd25519Scalar,
+  bytesToBigInt,
+  bytesToHex,
+  hexToBytes,
+  ED25519_ORDER,
+} from '../../stealth/utils'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -87,7 +101,12 @@ export interface ScannedPayment {
  * Result of claiming a stealth payment
  */
 export interface ClaimResult {
-  /** Derived private key for spending */
+  /**
+   * Derived spending key — a RAW ed25519 scalar (hex), NOT a 32-byte Keypair seed.
+   * Do NOT pass to `new Keypair(...)` / `Keypair.fromSecretKey(...)` — it produces
+   * INVALID signatures. Sign with `signEd25519WithScalar` (or `deriveStealthSigner`)
+   * from `@sip-protocol/sdk` instead.
+   */
   privateKey: HexString
   /** Public key (stealth address) */
   publicKey: HexString
@@ -134,7 +153,8 @@ export interface ClaimResult {
  * const payments = wallet.scanPayments([announcement1, announcement2])
  * for (const payment of payments.filter(p => p.isOwned)) {
  *   const claim = wallet.deriveClaimKey(payment.ephemeralPublicKey, payment.viewTag)
- *   // Use claim.privateKey to sign transactions
+ *   // claim.privateKey is a RAW scalar — sign via signEd25519WithScalar, NOT a Keypair:
+ *   const sig = signEd25519WithScalar(message, hexToBytes(claim.privateKey.slice(2)))
  * }
  * ```
  */
@@ -358,10 +378,13 @@ export class PrivacySolanaWalletAdapter extends SolanaWalletAdapter {
     // Compute stealth address from ephemeral key
     const ephemeralPubBytes = hexToBytes(ephemeralPublicKey.slice(2))
 
-    // Compute shared secret: S = viewing_scalar * R (canonical EIP-5564)
-    const viewingScalar = getEd25519ScalarFromPrivate(
-      hexToBytes(this.stealthKeys.viewingPrivateKey.slice(2))
-    )
+    // Compute shared secret: S = viewing_scalar * R (canonical EIP-5564).
+    // Must use the canonical ed25519 scalar (SHA-512 + little-endian +
+    // reduction mod L) so the address this reconstructs matches the key
+    // deriveEd25519StealthPrivateKey returns below.
+    const viewingScalar =
+      getEd25519Scalar(hexToBytes(this.stealthKeys.viewingPrivateKey.slice(2))) %
+      ED25519_ORDER
 
     const ephemeralPoint = ed25519.ExtendedPoint.fromHex(ephemeralPubBytes)
     const sharedSecretPoint = ephemeralPoint.multiply(viewingScalar)
@@ -476,66 +499,6 @@ export class PrivacySolanaWalletAdapter extends SolanaWalletAdapter {
       viewingPrivateKey: `0x${bytesToHex(viewingPrivateKey)}` as HexString,
     }
   }
-}
-
-// ─── Utilities ──────────────────────────────────────────────────────────────
-
-/** ed25519 curve order */
-const ED25519_ORDER = BigInt('0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed')
-
-/**
- * Convert bytes to BigInt (little-endian)
- */
-function bytesToBigInt(bytes: Uint8Array): bigint {
-  let result = 0n
-  for (let i = bytes.length - 1; i >= 0; i--) {
-    result = (result << 8n) | BigInt(bytes[i])
-  }
-  return result
-}
-
-/**
- * Convert hex string to bytes
- */
-function hexToBytes(hex: string): Uint8Array {
-  const bytes = new Uint8Array(hex.length / 2)
-  for (let i = 0; i < hex.length; i += 2) {
-    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16)
-  }
-  return bytes
-}
-
-/**
- * Convert bytes to hex string
- */
-function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
-}
-
-/**
- * Get ed25519 scalar from private key seed
- *
- * ed25519 derives the actual scalar by hashing the seed and taking
- * the lower 32 bytes with specific bit manipulations.
- */
-function getEd25519ScalarFromPrivate(seed: Uint8Array): bigint {
-  // Hash the seed to get 64 bytes
-  const h = sha256(seed)
-
-  // Take lower 32 bytes and apply ed25519 clamping
-  const scalar = new Uint8Array(32)
-  for (let i = 0; i < 32; i++) {
-    scalar[i] = h[i]
-  }
-
-  // Clamp: clear low 3 bits, clear high bit, set second-high bit
-  scalar[0] &= 248
-  scalar[31] &= 127
-  scalar[31] |= 64
-
-  return bytesToBigInt(scalar)
 }
 
 // ─── Factory ────────────────────────────────────────────────────────────────
