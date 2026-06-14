@@ -6,7 +6,7 @@
  * stealth address signs only the token transfers (via its raw ed25519 scalar — see
  * deriveStealthSigner). The relayer recovers its SOL cost as an SPL fee deducted from
  * the tokens being moved (fee-from-claim). Direct submission is the primary path; a
- * Jito bundle is an optional mainnet hardening layer (see submitGaslessCashout, Task 5).
+ * Jito bundle is an optional mainnet hardening layer (see submitGaslessCashout).
  */
 
 import {

@@ -68,6 +68,20 @@ describe('signEd25519WithScalar', () => {
     expect(ed25519.verify(sig, msg, pubFromScalar(scalar))).toBe(true)
   })
 
+  it('is deterministic per message but derives a distinct nonce per message (no nonce reuse)', () => {
+    const scalar = hexToBytes('0a'.repeat(32))
+    const msg1 = new Uint8Array([1, 2, 3])
+    const msg2 = new Uint8Array([1, 2, 4])
+    const sigA = signEd25519WithScalar(msg1, scalar)
+    const sigB = signEd25519WithScalar(msg1, scalar)
+    const sigC = signEd25519WithScalar(msg2, scalar)
+    // Deterministic: same (scalar, message) -> identical signature (safe retries).
+    expect(bytesToHex(sigA)).toBe(bytesToHex(sigB))
+    // Distinct messages -> distinct nonce R (first 32 bytes). Equal R across different
+    // messages would leak the scalar (catastrophic ed25519 nonce reuse).
+    expect(bytesToHex(sigC.slice(0, 32))).not.toBe(bytesToHex(sigA.slice(0, 32)))
+  })
+
   it('does not verify against a tampered message', () => {
     const scalar = hexToBytes('0a'.repeat(32))
     const sig = signEd25519WithScalar(new Uint8Array([1, 2, 3]), scalar)
