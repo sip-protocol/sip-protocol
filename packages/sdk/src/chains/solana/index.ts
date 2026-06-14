@@ -359,3 +359,19 @@ export {
   type VerifyProofResult,
   type Groth16Proof,
 } from './sunspot-verifier'
+
+// Gasless Cash-Out (relayer fee-payer for stealth recipients)
+export {
+  buildGaslessCashout,
+  submitGaslessCashout,
+} from './gasless-cashout'
+export type {
+  GaslessCashoutParams,
+  GaslessCashoutBuild,
+  SubmitGaslessCashoutParams,
+  GaslessCashoutResult,
+} from './gasless-cashout'
+export { computeRelayerFee } from './relayer-fee'
+export type { RelayerFeeConfig } from './relayer-fee'
+export { signEd25519WithScalar, deriveStealthSigner } from './stealth-signer'
+export type { StealthSigner, DeriveStealthSignerParams } from './stealth-signer'
