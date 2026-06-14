@@ -18,7 +18,8 @@ import {
 import {
   getAssociatedTokenAddress,
   createTransferInstruction,
-  createAssociatedTokenAccountInstruction,
+  createAssociatedTokenAccountIdempotentInstruction,
+  getAccount,
 } from '@solana/spl-token'
 import type { HexString } from '@sip-protocol/types'
 import { deriveStealthSigner } from './stealth-signer'
@@ -112,8 +113,33 @@ export async function buildGaslessCashout(
   const destinationPubkey = new PublicKey(destinationAddress)
   const destinationATA = await getAssociatedTokenAddress(mint, destinationPubkey)
 
+  if (destinationATA.equals(stealthATA)) {
+    throw new Error(
+      'destinationAddress resolves to the stealth token account; choose a different destination'
+    )
+  }
+
+  // Validate the relayer fee account is a token account for `mint` — otherwise the fee
+  // transfer would fail (mint mismatch) or the fee would be unrecoverable.
+  let feeAccount
+  try {
+    feeAccount = await getAccount(connection, relayerFeeAccount)
+  } catch {
+    throw new Error('relayerFeeAccount does not exist or is not a token account')
+  }
+  if (!feeAccount.mint.equals(mint)) {
+    throw new Error('relayerFeeAccount is not an associated token account for the given mint')
+  }
+
   // Gross balance held by the stealth ATA
-  const balanceResp = await connection.getTokenAccountBalance(stealthATA)
+  let balanceResp
+  try {
+    balanceResp = await connection.getTokenAccountBalance(stealthATA)
+  } catch {
+    throw new Error(
+      `Stealth token account ${stealthATA.toBase58()} for mint ${mint.toBase58()} does not exist or holds no balance; nothing to cash out`
+    )
+  }
   const grossAmount = BigInt(balanceResp.value.amount)
 
   const relayerFee = computeRelayerFee(grossAmount, feeConfig)
@@ -126,20 +152,19 @@ export async function buildGaslessCashout(
 
   const transaction = new Transaction()
 
-  // Create the destination ATA if missing — relayer pays rent. The flat-floor fee is
-  // intended to cover this, but it is denominated in token base units (no price oracle
-  // in v1), so SOL-rent recovery is approximate, not guaranteed.
-  const destInfo = await connection.getAccountInfo(destinationATA)
-  if (destInfo === null) {
-    transaction.add(
-      createAssociatedTokenAccountInstruction(
-        relayerPublicKey, // payer
-        destinationATA,
-        destinationPubkey,
-        mint
-      )
+  // Idempotently create the destination ATA — relayer pays rent. Idempotent means a
+  // no-op if it already exists, so no separate existence read is needed (one fewer RPC,
+  // and no TOCTOU gap between the read and broadcast). The flat-floor fee is intended to
+  // cover this rent, but it is denominated in token base units (no price oracle in v1),
+  // so SOL-rent recovery is approximate, not guaranteed.
+  transaction.add(
+    createAssociatedTokenAccountIdempotentInstruction(
+      relayerPublicKey, // payer (relayer pays rent)
+      destinationATA,
+      destinationPubkey,
+      mint
     )
-  }
+  )
 
   // Fee: stealth -> relayer fee account
   transaction.add(
@@ -234,8 +259,15 @@ export async function submitGaslessCashout(
     throw new Error('relayerKeypair does not match the transaction fee-payer')
   }
 
-  // Relayer adds its fee-payer signature alongside the stealth signature.
-  transaction.partialSign(relayerKeypair)
+  // Relayer adds its fee-payer signature alongside the stealth signature. Guard against
+  // re-signing when the same build is retried after a transient send failure — a second
+  // partialSign is wasteful and could surprise callers inspecting the signature set.
+  const relayerAlreadySigned = transaction.signatures.some(
+    (s) => s.publicKey.equals(relayerKeypair.publicKey) && s.signature !== null
+  )
+  if (!relayerAlreadySigned) {
+    transaction.partialSign(relayerKeypair)
+  }
 
   const cluster = detectCluster(connection.rpcEndpoint)
 
@@ -247,13 +279,25 @@ export async function submitGaslessCashout(
       tipPayer: relayerKeypair,
       waitForConfirmation: true,
     })
+    // Only a confirmed bundle means the funds actually moved. A 'submitted'/'failed'
+    // status is NOT success — surfacing it as one would silently lose the cash-out.
+    if (relayed.status !== 'confirmed') {
+      throw new Error(
+        `Gasless cash-out via Jito did not confirm (status: ${relayed.status})` +
+        (relayed.error ? `: ${relayed.error}` : '')
+      )
+    }
+    if (!relayed.signature) {
+      throw new Error('Gasless cash-out via Jito returned an empty transaction signature')
+    }
     return {
       txSignature: relayed.signature,
       destinationAddress,
       amount: netAmount,
       relayerFee,
       explorerUrl: getExplorerUrl(relayed.signature, cluster),
-      viaJito: true,
+      // Report the TRUE path: the relayer may have fallen back to direct submission.
+      viaJito: relayed.relayed,
     }
   }
 
