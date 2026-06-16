@@ -50,11 +50,11 @@ export interface PrivacyTierFee {
 }
 
 /** Canonical tier ordering, lowest privacy → highest. Drives ordinal comparisons and the monotonic invariant. */
-const PRIVACY_TIER_ORDER: readonly PrivacyTier[] = [
+const PRIVACY_TIER_ORDER: readonly PrivacyTier[] = Object.freeze([
   PrivacyTier.TIER_1,
   PrivacyTier.TIER_2,
   PrivacyTier.TIER_3,
-]
+])
 
 /** Static facts per tier. `isActive` is derived at read time, never stored here. */
 interface PrivacyTierSpec {
@@ -89,24 +89,36 @@ const PRIVACY_TIER_SCHEDULE: Readonly<Record<PrivacyTier, PrivacyTierSpec>> = Ob
 export const CURRENT_PRIVACY_TIER: PrivacyTier = PrivacyTier.TIER_1
 
 /**
- * Enforce the monotonic invariant at module load: the fee schedule must be
- * non-decreasing across tiers (equal is allowed; a decrease is not). Fails
- * fast if a future edit lowers a tier's fee below a less-private tier's.
+ * Validate the whole fee model at module load, so a bad future edit fails fast
+ * at import instead of crashing cryptically at call time. Asserts that every
+ * ordered tier has a schedule entry with a non-negative integer bps, that the
+ * bps values are non-decreasing across tiers (equal is allowed; a decrease is
+ * not), and that CURRENT_PRIVACY_TIER is one of the ordered tiers. This is what
+ * makes the "frozen public commitment" a real load-time invariant.
  */
-function assertScheduleMonotonic(): void {
+function assertScheduleIntegrity(): void {
   let prevBps = -1
   for (const tier of PRIVACY_TIER_ORDER) {
-    const bps = PRIVACY_TIER_SCHEDULE[tier].bps
-    if (bps < prevBps) {
+    const spec = PRIVACY_TIER_SCHEDULE[tier]
+    if (!spec) {
+      throw new Error(`Privacy-tier fee schedule is missing an entry for ${tier}`)
+    }
+    if (!Number.isInteger(spec.bps) || spec.bps < 0) {
+      throw new Error(`Privacy-tier fee for ${tier} must be a non-negative integer bps, got ${String(spec.bps)}`)
+    }
+    if (spec.bps < prevBps) {
       throw new Error(
-        `Privacy-tier fee schedule must be non-decreasing; ${tier} (${bps} bps) is below the preceding tier (${prevBps} bps)`,
+        `Privacy-tier fee schedule must be non-decreasing; ${tier} (${spec.bps} bps) is below the preceding tier (${prevBps} bps)`,
       )
     }
-    prevBps = bps
+    prevBps = spec.bps
+  }
+  if (!PRIVACY_TIER_ORDER.includes(CURRENT_PRIVACY_TIER)) {
+    throw new Error(`CURRENT_PRIVACY_TIER (${String(CURRENT_PRIVACY_TIER)}) must be one of the ordered privacy tiers`)
   }
 }
 
-assertScheduleMonotonic()
+assertScheduleIntegrity()
 
 function tierOrdinal(tier: PrivacyTier): number {
   const idx = PRIVACY_TIER_ORDER.indexOf(tier)

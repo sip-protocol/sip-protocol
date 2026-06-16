@@ -13,7 +13,7 @@ describe('privacy-tier fee public exports', () => {
     expect(sdk.CURRENT_PRIVACY_TIER).toBe(sdk.PrivacyTier.TIER_1)
   })
 
-  it('exposes the same surface from the fees subpath', () => {
+  it('exposes the same surface from the fees barrel module', () => {
     expect(typeof fees.getPrivacyTierFee).toBe('function')
     expect(typeof fees.computePrivacyTierFee).toBe('function')
     expect(fees.PrivacyTier.TIER_2).toBe('tier_2')
