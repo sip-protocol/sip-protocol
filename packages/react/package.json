@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/react",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "React hooks for Shielded Intents Protocol",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",

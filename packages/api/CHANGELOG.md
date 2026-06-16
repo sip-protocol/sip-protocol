@@ -1,5 +1,12 @@
 # @sip-protocol/api
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [[`77a2813`](https://github.com/sip-protocol/sip-protocol/commit/77a28132fea9840c9f7ea0bcba8ee13f8955e6d8)]:
+  - @sip-protocol/sdk@0.14.0
+
 ## 0.1.4
 
 ### Patch Changes
