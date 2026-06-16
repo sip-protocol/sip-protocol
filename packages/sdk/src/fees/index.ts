@@ -85,3 +85,16 @@ export {
   type FeeCollectionParams,
   type FeeCollectionResult,
 } from './near-contract'
+
+// ─── Privacy-Tier Fee ──────────────────────────────────────────────────────────
+
+export {
+  PrivacyTier,
+  CURRENT_PRIVACY_TIER,
+  getPrivacyTierFee,
+  getPrivacyTierFeeBps,
+  getCurrentPrivacyTierFee,
+  getPrivacyTierSchedule,
+  computePrivacyTierFee,
+} from './privacy-tier'
+export type { PrivacyTierFee } from './privacy-tier'

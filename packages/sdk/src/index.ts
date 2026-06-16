@@ -1580,6 +1580,14 @@ export {
   calculateFeeForSwap,
   NEAR_FEE_CONTRACTS,
   DEFAULT_TREASURY,
+  // Privacy-Tier Fee
+  PrivacyTier,
+  CURRENT_PRIVACY_TIER,
+  getPrivacyTierFee,
+  getPrivacyTierFeeBps,
+  getCurrentPrivacyTierFee,
+  getPrivacyTierSchedule,
+  computePrivacyTierFee,
 } from './fees'
 
 export type {
@@ -1602,4 +1610,5 @@ export type {
   NEARFeeContractOptions,
   FeeCollectionParams,
   FeeCollectionResult,
+  PrivacyTierFee,
 } from './fees'
