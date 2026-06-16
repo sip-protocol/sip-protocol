@@ -1,5 +1,12 @@
 # @sip-protocol/react-native
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [[`08f7e13`](https://github.com/sip-protocol/sip-protocol/commit/08f7e132288dce9562212b050a964add28079d06)]:
+  - @sip-protocol/sdk@0.13.0
+
 ## 0.1.4
 
 ### Patch Changes
