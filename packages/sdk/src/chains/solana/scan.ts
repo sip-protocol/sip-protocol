@@ -12,6 +12,7 @@ import {
   getAssociatedTokenAddress,
   createTransferInstruction,
   getAccount,
+  TOKEN_PROGRAM_ID,
 } from '@solana/spl-token'
 import {
   checkEd25519StealthAddress,
@@ -28,10 +29,10 @@ import { parseAnnouncement } from './types'
 import {
   SIP_MEMO_PREFIX_ANY,
   MEMO_PROGRAM_ID,
+  detectCluster,
   getExplorerUrl,
   DEFAULT_SCAN_LIMIT,
   VIEW_TAG_MAX,
-  type SolanaCluster,
 } from './constants'
 import { getTokenSymbol, parseTokenTransferFromBalances } from './utils'
 import type { SolanaRPCProvider } from './providers/interface'
@@ -261,6 +262,7 @@ export async function claimStealthPayment(
     mint,
     version = '2',
   } = params
+  const tokenProgramId = params.tokenProgramId ?? TOKEN_PROGRAM_ID
 
   // M7 FIX: Check SOL balance for fees before attempting claim
   const stealthPubkeyForBalance = new PublicKey(stealthAddress)
@@ -286,17 +288,20 @@ export async function claimStealthPayment(
   const stealthATA = await getAssociatedTokenAddress(
     mint,
     stealthPubkey,
-    true
+    true,
+    tokenProgramId
   )
 
   const destinationPubkey = new PublicKey(destinationAddress)
   const destinationATA = await getAssociatedTokenAddress(
     mint,
-    destinationPubkey
+    destinationPubkey,
+    false,
+    tokenProgramId
   )
 
   // Get balance
-  const stealthAccount = await getAccount(connection, stealthATA)
+  const stealthAccount = await getAccount(connection, stealthATA, undefined, tokenProgramId)
   const amount = stealthAccount.amount
 
   // Build transfer transaction
@@ -307,7 +312,9 @@ export async function claimStealthPayment(
       stealthATA,
       destinationATA,
       stealthPubkey,
-      amount
+      amount,
+      [],
+      tokenProgramId
     )
   )
 
@@ -357,6 +364,8 @@ export async function claimStealthPayment(
  * @param stealthAddress - Stealth address to check (base58)
  * @param mint - SPL token mint address
  * @param provider - Optional RPC provider for efficient queries
+ * @param tokenProgramId - SPL token program owning the mint (default: classic Token
+ *   program; pass TOKEN_2022_PROGRAM_ID for Token-2022 mints)
  * @returns Token balance in smallest unit
  *
  * @example
@@ -373,7 +382,8 @@ export async function getStealthBalance(
   connection: SolanaScanParams['connection'],
   stealthAddress: string,
   mint: PublicKey,
-  provider?: SolanaRPCProvider
+  provider?: SolanaRPCProvider,
+  tokenProgramId: PublicKey = TOKEN_PROGRAM_ID
 ): Promise<bigint> {
   // Use provider if available for efficient queries
   if (provider) {
@@ -387,8 +397,8 @@ export async function getStealthBalance(
   // Standard RPC fallback
   try {
     const stealthPubkey = new PublicKey(stealthAddress)
-    const ata = await getAssociatedTokenAddress(mint, stealthPubkey, true)
-    const account = await getAccount(connection, ata)
+    const ata = await getAssociatedTokenAddress(mint, stealthPubkey, true, tokenProgramId)
+    const account = await getAccount(connection, ata, undefined, tokenProgramId)
     return account.amount
   } catch {
     return 0n
@@ -396,26 +406,4 @@ export async function getStealthBalance(
 }
 
 // Token transfer parsing and symbol lookup moved to ./utils.ts (L3 fix)
-
-/**
- * Detect Solana cluster from RPC endpoint URL
- *
- * Parses the endpoint URL to determine which Solana cluster it connects to.
- *
- * @param endpoint - RPC endpoint URL
- * @returns Detected cluster name
- * @internal
- */
-function detectCluster(endpoint: string): SolanaCluster {
-  if (endpoint.includes('devnet')) {
-    return 'devnet'
-  }
-  if (endpoint.includes('testnet')) {
-    return 'testnet'
-  }
-  if (endpoint.includes('localhost') || endpoint.includes('127.0.0.1')) {
-    return 'localnet'
-  }
-  return 'mainnet-beta'
-}
 

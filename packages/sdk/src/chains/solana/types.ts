@@ -155,6 +155,12 @@ export interface SolanaClaimParams {
    * Pass the `version` returned by {@link parseAnnouncement}.
    */
   version?: '1' | '2'
+  /**
+   * SPL token program owning the mint — defaults to the classic Token program;
+   * pass TOKEN_2022_PROGRAM_ID for Token-2022 mints. A wrong program id derives the
+   * wrong ATA and targets the wrong program (on-chain failure).
+   */
+  tokenProgramId?: PublicKey
 }
 
 /**

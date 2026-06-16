@@ -47,7 +47,7 @@ import {
   Keypair,
   type TransactionInstruction,
 } from '@solana/web3.js'
-import bs58 from 'bs58'
+import { bytesToBase58 } from '../stealth/utils'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -269,7 +269,7 @@ export class JitoRelayer {
 
   /** Encode a 64-byte ed25519 signature as a base58 string (Solana canonical form). */
   static encodeSignature(sig: Uint8Array): string {
-    return bs58.encode(sig)
+    return bytesToBase58(sig)
   }
 
   // ─── Public Methods ─────────────────────────────────────────────────────────
@@ -299,8 +299,14 @@ export class JitoRelayer {
     // Create tip instruction
     const tipInstruction = this.createTipInstruction(request.tipPayer.publicKey, tipLamports)
 
-    // Get recent blockhash
-    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
+    // The relayer cannot re-sign the user (cash-out) transaction — it lacks the
+    // signing key. So the prepended tip tx and the confirmation window must ADOPT
+    // the user tx's blockhash window; a fresh blockhash would orphan the bundle
+    // (the user tx could be expired yet the tip tx still look valid). Fall back to
+    // a fresh blockhash only when the user tx carries no window (e.g. versioned tx).
+    const ctx = this.extractBlockhashContext(request.transactions[0])
+    const { blockhash, lastValidBlockHeight } =
+      ctx ?? (await this.connection.getLatestBlockhash())
 
     // Add tip to the first transaction or create a standalone tip tx
     const bundleTransactions = await this.prepareBundleTransactions(
@@ -383,9 +389,9 @@ export class JitoRelayer {
     this.log('Relaying transaction')
 
     try {
-      // Jito bundles require a tip to land. If a tipPayer is supplied, use the
-      // bundle path (which prepends a tip tx); otherwise fall through to the
-      // existing single-tx submission.
+      // Jito bundles require a tip to land. A tipPayer is therefore mandatory for
+      // the bundle path (which prepends a tip tx). Without one we fail loud below
+      // and let the catch fall back to honest direct submission.
       if (request.tipPayer) {
         const bundle = await this.submitBundle({
           transactions: [request.transaction],
@@ -404,45 +410,15 @@ export class JitoRelayer {
         }
       }
 
-      // For single transaction relay, we need to handle it differently
-      // The transaction should already be signed by the user
-      // We add it to a bundle with a tip transaction
-
-      const serializedTx = Buffer.from(request.transaction.serialize()).toString('base64')
-
-      // Submit as single-tx bundle
-      const bundleId = await this.sendBundle([serializedTx])
-
-      // Get signature
-      let signature: string
-      if (request.transaction instanceof VersionedTransaction) {
-        signature = JitoRelayer.encodeSignature(request.transaction.signatures[0])
-      } else {
-        const sig = request.transaction.signature
-        signature = sig ? JitoRelayer.encodeSignature(sig) : ''
-      }
-
-      // Wait for confirmation if requested
-      if (request.waitForConfirmation) {
-        const { lastValidBlockHeight } = await this.connection.getLatestBlockhash()
-        const status = await this.waitForBundleConfirmation(bundleId, lastValidBlockHeight)
-
-        return {
-          signature,
-          bundleId,
-          status: status.status === 'Landed' ? 'confirmed' : 'failed',
-          slot: status.landedSlot,
-          error: status.error,
-          relayed: true,
-        }
-      }
-
-      return {
-        signature,
-        bundleId,
-        status: 'submitted',
-        relayed: true,
-      }
+      // No tipPayer → there is no way to land a Jito bundle. A tip-less bundle is
+      // never included by the block engine, so reporting it as 'submitted' would
+      // be a silent lie. Fail loud here; the catch below falls back to honest
+      // direct submission (relayed:false).
+      throw new JitoRelayerError(
+        JitoRelayerErrorCode.INSUFFICIENT_TIP,
+        'Jito bundle relay requires a tipPayer; tip-less bundles are never included ' +
+          'by the block engine. Provide a tipPayer or submit directly.'
+      )
     } catch (error) {
       // Fallback to direct submission
       this.log('Relayer failed, falling back to direct submission:', error)
@@ -483,6 +459,25 @@ export class JitoRelayer {
   }
 
   // ─── Private Methods ────────────────────────────────────────────────────────
+
+  /**
+   * Extract a legacy transaction's blockhash window so the tip tx and the
+   * confirmation window can be reconciled against the SAME window the user tx is
+   * signed for. Returns `null` for versioned transactions, or when either field
+   * is missing — callers then fall back to a freshly fetched blockhash.
+   */
+  private extractBlockhashContext(
+    tx: Transaction | VersionedTransaction
+  ): { blockhash: string; lastValidBlockHeight: number } | null {
+    if (tx instanceof VersionedTransaction) {
+      return null
+    }
+    const lastValidBlockHeight = tx.lastValidBlockHeight
+    if (tx.recentBlockhash && typeof lastValidBlockHeight === 'number') {
+      return { blockhash: tx.recentBlockhash, lastValidBlockHeight }
+    }
+    return null
+  }
 
   /**
    * Create tip instruction
@@ -657,7 +652,12 @@ export class JitoRelayer {
     )
 
     if (waitForConfirmation) {
-      const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
+      // Confirm against the SENT tx's own blockhash window — a freshly fetched
+      // blockhash could report a different (later) window and misjudge expiry.
+      // Fall back to a fresh blockhash only for versioned txs that carry no window.
+      const ctx = this.extractBlockhashContext(transaction)
+      const { blockhash, lastValidBlockHeight } =
+        ctx ?? (await this.connection.getLatestBlockhash())
       const confirmation = await this.connection.confirmTransaction({
         signature,
         blockhash,

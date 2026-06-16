@@ -2,10 +2,12 @@ import { describe, it, expect } from 'vitest'
 import { Keypair, PublicKey, type Connection, type AccountInfo } from '@solana/web3.js'
 import {
   TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   AccountLayout,
   ACCOUNT_SIZE,
   AccountState,
+  getAssociatedTokenAddressSync,
 } from '@solana/spl-token'
 import type { ChainId } from '@sip-protocol/types'
 import {
@@ -28,8 +30,19 @@ function scenario() {
   }
 }
 
-/** Encode a valid, initialized SPL token-account buffer so `getAccount` decodes it. */
-function encodeTokenAccountInfo(mint: PublicKey, owner: PublicKey): AccountInfo<Buffer> {
+/**
+ * Encode a valid, initialized SPL token-account buffer so `getAccount` decodes it.
+ *
+ * @param mint - mint the account holds
+ * @param owner - wallet owner stored inside the account data
+ * @param tokenProgramId - program that OWNS the account (must match the programId
+ *   `getAccount` unpacks with, else unpackAccount throws TokenInvalidAccountOwnerError)
+ */
+function encodeTokenAccountInfo(
+  mint: PublicKey,
+  owner: PublicKey,
+  tokenProgramId: PublicKey = TOKEN_PROGRAM_ID
+): AccountInfo<Buffer> {
   const data = Buffer.alloc(ACCOUNT_SIZE)
   AccountLayout.encode(
     {
@@ -49,7 +62,7 @@ function encodeTokenAccountInfo(mint: PublicKey, owner: PublicKey): AccountInfo<
   )
   return {
     lamports: 2_039_280,
-    owner: TOKEN_PROGRAM_ID,
+    owner: tokenProgramId,
     executable: false,
     rentEpoch: 0,
     data,
@@ -65,6 +78,11 @@ interface MockConnOptions {
   feeAccountMint?: PublicKey
   /** Owner to report on the relayerFeeAccount token account (default: a fresh key) */
   feeAccountOwner?: PublicKey
+  /**
+   * Token program that owns the relayerFeeAccount (default: classic TOKEN_PROGRAM_ID).
+   * Must match the `tokenProgramId` passed to buildGaslessCashout so `getAccount` unpacks.
+   */
+  feeAccountProgram?: PublicKey
 }
 
 /**
@@ -75,6 +93,7 @@ interface MockConnOptions {
 function mockConn(opts: MockConnOptions): Connection {
   const feeMint = opts.feeAccountMint ?? USDC_MINT
   const feeOwner = opts.feeAccountOwner ?? Keypair.generate().publicKey
+  const feeProgram = opts.feeAccountProgram ?? TOKEN_PROGRAM_ID
   return {
     rpcEndpoint: 'https://api.devnet.solana.com',
     getLatestBlockhash: async () => ({
@@ -89,7 +108,7 @@ function mockConn(opts: MockConnOptions): Connection {
         value: { amount: opts.gross.toString(), decimals: 6, uiAmount: 0, uiAmountString: '0' },
       }
     },
-    getAccountInfo: async () => encodeTokenAccountInfo(feeMint, feeOwner),
+    getAccountInfo: async () => encodeTokenAccountInfo(feeMint, feeOwner, feeProgram),
   } as unknown as Connection
 }
 
@@ -213,6 +232,111 @@ describe('buildGaslessCashout', () => {
       connection: wrapped,
       ...baseParams(s),
     })).rejects.toThrow(/relayerFeeAccount does not exist or is not a token account/)
+  })
+
+  // D4 — deterministic precedence: when the fee account AND the stealth balance both
+  // fail, the fee-account error must win (validation order is fixed, not first-to-reject).
+  it('reports the fee-account error first even when the stealth balance also fails', async () => {
+    const s = scenario()
+    const conn = mockConn({ gross: 0n, balanceThrows: true })
+    const wrapped = {
+      ...conn,
+      getAccountInfo: async () => null, // fee account missing too
+    } as unknown as Connection
+    await expect(buildGaslessCashout({
+      connection: wrapped,
+      ...baseParams(s),
+    })).rejects.toThrow(/relayerFeeAccount does not exist or is not a token account/)
+  })
+
+  // D4 — a wrong-mint fee account still wins over a failing stealth balance.
+  it('reports the fee-account mint mismatch before the stealth-balance failure', async () => {
+    const s = scenario()
+    const otherMint = new PublicKey('So11111111111111111111111111111111111111112')
+    await expect(buildGaslessCashout({
+      connection: mockConn({ gross: 0n, balanceThrows: true, feeAccountMint: otherMint }),
+      ...baseParams(s),
+    })).rejects.toThrow(/not an associated token account for the given mint/)
+  })
+
+  // D4 — a blockhash fetch failure surfaces a clear error (not an unhandled rejection).
+  it('throws a clear error when the recent blockhash cannot be fetched', async () => {
+    const s = scenario()
+    const conn = mockConn({ gross: 1_000_000_000n })
+    const wrapped = {
+      ...conn,
+      getLatestBlockhash: async () => {
+        throw new Error('429 Too Many Requests')
+      },
+    } as unknown as Connection
+    await expect(buildGaslessCashout({
+      connection: wrapped,
+      ...baseParams(s),
+    })).rejects.toThrow(/blockhash/i)
+  })
+
+  // S1 — Token-2022 support: program id must flow into ATA derivation + instructions
+  it('derives Token-2022 ATAs and targets the Token-2022 program when tokenProgramId is set', async () => {
+    const s = scenario()
+    const build = await buildGaslessCashout({
+      connection: mockConn({
+        gross: 1_000_000_000n,
+        feeAccountProgram: TOKEN_2022_PROGRAM_ID, // fee account owned by Token-2022
+      }),
+      ...baseParams(s),
+      tokenProgramId: TOKEN_2022_PROGRAM_ID,
+    })
+
+    // The two transfer instructions (fee + net) must target the Token-2022 program.
+    const transfers = build.transaction.instructions.filter((ix) =>
+      ix.programId.equals(TOKEN_2022_PROGRAM_ID)
+    )
+    expect(transfers.length).toBe(2)
+    // No classic-program transfer leaked in.
+    expect(
+      build.transaction.instructions.some((ix) => ix.programId.equals(TOKEN_PROGRAM_ID))
+    ).toBe(false)
+    // The idempotent create-ATA still routes through the associated-token program,
+    // but is told to create a Token-2022 account (program id is a passed key/arg).
+    expect(
+      build.transaction.instructions[0].programId.equals(ASSOCIATED_TOKEN_PROGRAM_ID)
+    ).toBe(true)
+
+    // The source account (stealth ATA, keys[0]) must be the Token-2022-derived ATA,
+    // which differs from the classic-program ATA for the same mint+owner.
+    const feeTransfer = build.transaction.instructions[1]
+    const stealthATA_2022 = feeTransfer.keys[0].pubkey
+    const stealthPubkey = new PublicKey(s.stealthB58)
+    const classicATA = getAssociatedTokenAddressSync(USDC_MINT, stealthPubkey, true, TOKEN_PROGRAM_ID)
+    const expected2022ATA = getAssociatedTokenAddressSync(
+      USDC_MINT,
+      stealthPubkey,
+      true,
+      TOKEN_2022_PROGRAM_ID
+    )
+    expect(stealthATA_2022.equals(expected2022ATA)).toBe(true)
+    expect(stealthATA_2022.equals(classicATA)).toBe(false)
+  })
+
+  // S1 regression: default (no tokenProgramId) stays classic — derivation + instructions
+  it('defaults to the classic token program and ATA when tokenProgramId is omitted', async () => {
+    const s = scenario()
+    const build = await buildGaslessCashout({
+      connection: mockConn({ gross: 1_000_000_000n }),
+      ...baseParams(s),
+    })
+
+    const transfers = build.transaction.instructions.filter((ix) =>
+      ix.programId.equals(TOKEN_PROGRAM_ID)
+    )
+    expect(transfers.length).toBe(2)
+    expect(
+      build.transaction.instructions.some((ix) => ix.programId.equals(TOKEN_2022_PROGRAM_ID))
+    ).toBe(false)
+
+    const stealthPubkey = new PublicKey(s.stealthB58)
+    const classicATA = getAssociatedTokenAddressSync(USDC_MINT, stealthPubkey, true, TOKEN_PROGRAM_ID)
+    expect(build.transaction.instructions[1].keys[0].pubkey.equals(classicATA)).toBe(true)
   })
 })
 

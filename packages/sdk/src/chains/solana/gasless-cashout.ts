@@ -20,11 +20,12 @@ import {
   createTransferInstruction,
   createAssociatedTokenAccountIdempotentInstruction,
   getAccount,
+  TOKEN_PROGRAM_ID,
 } from '@solana/spl-token'
 import type { HexString } from '@sip-protocol/types'
 import { deriveStealthSigner } from './stealth-signer'
 import { computeRelayerFee, type RelayerFeeConfig } from './relayer-fee'
-import { getExplorerUrl, type SolanaCluster } from './constants'
+import { detectCluster, getExplorerUrl } from './constants'
 import type { JitoRelayer } from '../../solana/jito-relayer'
 
 /** Parameters for building a gasless cash-out transaction. */
@@ -51,6 +52,12 @@ export interface GaslessCashoutParams {
   feeConfig: RelayerFeeConfig
   /** Announcement scheme version: '2' canonical (default) | '1' legacy */
   version?: '1' | '2'
+  /**
+   * SPL token program owning the mint — defaults to the classic Token program;
+   * pass TOKEN_2022_PROGRAM_ID for Token-2022 mints. A wrong program id derives the
+   * wrong ATA and targets the wrong program (on-chain failure).
+   */
+  tokenProgramId?: PublicKey
 }
 
 /** A stealth-signed gasless cash-out transaction, awaiting the relayer's fee-payer signature. */
@@ -99,6 +106,7 @@ export async function buildGaslessCashout(
     feeConfig,
     version = '2',
   } = params
+  const tokenProgramId = params.tokenProgramId ?? TOKEN_PROGRAM_ID
 
   const stealthSigner = deriveStealthSigner({
     stealthAddress,
@@ -109,9 +117,14 @@ export async function buildGaslessCashout(
   })
   const stealthPubkey = stealthSigner.publicKey
 
-  const stealthATA = await getAssociatedTokenAddress(mint, stealthPubkey, true)
+  const stealthATA = await getAssociatedTokenAddress(mint, stealthPubkey, true, tokenProgramId)
   const destinationPubkey = new PublicKey(destinationAddress)
-  const destinationATA = await getAssociatedTokenAddress(mint, destinationPubkey)
+  const destinationATA = await getAssociatedTokenAddress(
+    mint,
+    destinationPubkey,
+    false,
+    tokenProgramId
+  )
 
   if (destinationATA.equals(stealthATA)) {
     throw new Error(
@@ -119,28 +132,40 @@ export async function buildGaslessCashout(
     )
   }
 
-  // Validate the relayer fee account is a token account for `mint` — otherwise the fee
-  // transfer would fail (mint mismatch) or the fee would be unrecoverable.
-  let feeAccount
-  try {
-    feeAccount = await getAccount(connection, relayerFeeAccount)
-  } catch {
+  // The three RPC reads below are independent — fire them concurrently and then
+  // validate the settled results in a FIXED order so failures stay deterministic
+  // (Promise.all would surface whichever rejects first, which is nondeterministic).
+  const [feeAccountSettled, balanceSettled, blockhashSettled] = await Promise.allSettled([
+    // Validate the relayer fee account is a token account for `mint` — otherwise the fee
+    // transfer would fail (mint mismatch) or the fee would be unrecoverable.
+    getAccount(connection, relayerFeeAccount, undefined, tokenProgramId),
+    // Gross balance held by the stealth ATA.
+    connection.getTokenAccountBalance(stealthATA),
+    connection.getLatestBlockhash(),
+  ])
+
+  // 1. Relayer fee account: existence first, then mint match.
+  if (feeAccountSettled.status === 'rejected') {
     throw new Error('relayerFeeAccount does not exist or is not a token account')
   }
-  if (!feeAccount.mint.equals(mint)) {
+  if (!feeAccountSettled.value.mint.equals(mint)) {
     throw new Error('relayerFeeAccount is not an associated token account for the given mint')
   }
 
-  // Gross balance held by the stealth ATA
-  let balanceResp
-  try {
-    balanceResp = await connection.getTokenAccountBalance(stealthATA)
-  } catch {
+  // 2. Stealth ATA balance.
+  if (balanceSettled.status === 'rejected') {
     throw new Error(
       `Stealth token account ${stealthATA.toBase58()} for mint ${mint.toBase58()} does not exist or holds no balance; nothing to cash out`
     )
   }
-  const grossAmount = BigInt(balanceResp.value.amount)
+  const grossAmount = BigInt(balanceSettled.value.value.amount)
+
+  // 3. Recent blockhash — validated after the fee/balance guards so a transient blockhash
+  // RPC failure surfaces a clear error rather than an unhandled rejection.
+  if (blockhashSettled.status === 'rejected') {
+    throw new Error('Failed to fetch a recent blockhash for the cash-out transaction')
+  }
+  const { blockhash, lastValidBlockHeight } = blockhashSettled.value
 
   const relayerFee = computeRelayerFee(grossAmount, feeConfig)
   if (relayerFee >= grossAmount) {
@@ -162,20 +187,35 @@ export async function buildGaslessCashout(
       relayerPublicKey, // payer (relayer pays rent)
       destinationATA,
       destinationPubkey,
-      mint
+      mint,
+      tokenProgramId
     )
   )
 
   // Fee: stealth -> relayer fee account
   transaction.add(
-    createTransferInstruction(stealthATA, relayerFeeAccount, stealthPubkey, relayerFee)
+    createTransferInstruction(
+      stealthATA,
+      relayerFeeAccount,
+      stealthPubkey,
+      relayerFee,
+      [], // multiSigners
+      tokenProgramId
+    )
   )
   // Net: stealth -> destination
   transaction.add(
-    createTransferInstruction(stealthATA, destinationATA, stealthPubkey, netAmount)
+    createTransferInstruction(
+      stealthATA,
+      destinationATA,
+      stealthPubkey,
+      netAmount,
+      [], // multiSigners
+      tokenProgramId
+    )
   )
 
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+  // Blockhash was fetched concurrently above and validated before this point.
   transaction.recentBlockhash = blockhash
   transaction.lastValidBlockHeight = lastValidBlockHeight
   transaction.feePayer = relayerPublicKey
@@ -194,20 +234,6 @@ export async function buildGaslessCashout(
     blockhash,
     lastValidBlockHeight,
   }
-}
-
-/** Detect the Solana cluster from an RPC endpoint URL. */
-function detectCluster(endpoint: string): SolanaCluster {
-  if (endpoint.includes('devnet')) {
-    return 'devnet'
-  }
-  if (endpoint.includes('testnet')) {
-    return 'testnet'
-  }
-  if (endpoint.includes('localhost') || endpoint.includes('127.0.0.1')) {
-    return 'localnet'
-  }
-  return 'mainnet-beta'
 }
 
 /** Parameters for submitting a built gasless cash-out. */

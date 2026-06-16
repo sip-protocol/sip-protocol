@@ -25,6 +25,7 @@ import type { StealthMetaAddress } from '@sip-protocol/types'
 import { createAnnouncementMemo } from './types'
 import {
   MEMO_PROGRAM_ID,
+  detectCluster,
   getExplorerUrl,
   ESTIMATED_TX_FEE_LAMPORTS,
   type SolanaCluster,
@@ -721,12 +722,3 @@ export async function getSOLBalance(
   }
 }
 
-/**
- * Detect Solana cluster from RPC endpoint
- */
-function detectCluster(endpoint: string): SolanaCluster {
-  if (endpoint.includes('devnet')) return 'devnet'
-  if (endpoint.includes('testnet')) return 'testnet'
-  if (endpoint.includes('localhost') || endpoint.includes('127.0.0.1')) return 'localnet'
-  return 'mainnet-beta'
-}
