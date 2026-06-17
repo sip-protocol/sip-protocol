@@ -17,7 +17,6 @@ import {
   createMintToInstruction,
   getAssociatedTokenAddressSync,
   getMintLen,
-  MintLayout,
 } from '@solana/spl-token'
 import { ProgramTestContext, Clock } from 'solana-bankrun'
 import { randomBytes } from 'crypto'

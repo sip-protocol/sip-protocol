@@ -678,10 +678,12 @@ pub mod sipher_vault {
 
   /// Pause or unpause the vault. Authority-only.
   ///
-  /// While paused (`config.paused == true`), `deposit`, `withdraw_private`, and
-  /// `authority_refund` revert with `VaultError::ProgramPaused`. The `refund` and
-  /// `collect_fee` paths intentionally remain available so depositors can recover
-  /// funds and the authority can still drain accumulated fees during an emergency.
+  /// While paused (`config.paused == true`), `deposit`, `withdraw_private`,
+  /// `authority_refund`, `deposit_sol`, `withdraw_private_sol`, and
+  /// `authority_refund_sol` revert with `VaultError::ProgramPaused`. The
+  /// `refund`, `collect_fee`, `refund_sol`, and `collect_fee_sol` paths
+  /// intentionally remain available so depositors can always self-recover funds
+  /// and the authority can still drain accumulated fees during an emergency.
   ///
   /// Idempotent — calling with the current state is a no-op success.
   ///
