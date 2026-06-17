@@ -510,6 +510,41 @@ export function ixCreateSolVault(payer: PublicKey): TransactionInstruction {
 }
 
 /**
+ * deposit_sol(amount: u64)
+ *
+ * Accounts (DepositSol):
+ *   config         mut, PDA
+ *   deposit_record mut, PDA (init_if_needed)
+ *   sol_vault      mut, PDA
+ *   depositor      mut, signer
+ *   system_program
+ */
+export function ixDepositSol(
+  depositor: PublicKey,
+  amount: bigint,
+): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+  // NATIVE_SOL_MINT = all-zero pubkey (PublicKey.default())
+  const NATIVE_SOL_MINT = new PublicKey(new Uint8Array(32))
+  const [depositRecordPda] = getDepositRecordPDA(depositor, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+  const [solVaultPda] = getSolVaultPDA(VAULT_PROGRAM_ID)
+
+  const data = Buffer.concat([disc('deposit_sol'), u64le(amount)])
+
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: true },
+      { pubkey: depositRecordPda, isSigner: false, isWritable: true },
+      { pubkey: solVaultPda, isSigner: false, isWritable: true },
+      { pubkey: depositor, isSigner: true, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data,
+  })
+}
+
+/**
  * sip_privacy::initialize(fee_bps: u16) — creates the Config PDA.
  * Must be called once before any CPI from withdraw_private.
  *

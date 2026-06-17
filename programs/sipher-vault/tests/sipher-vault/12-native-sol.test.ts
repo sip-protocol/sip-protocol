@@ -7,12 +7,16 @@
 // Task 5 scope: create_sol_vault
 //   - before(): startVault() + initialize + create_sol_vault
 //   - it(): both sol_vault PDA and sol_fee PDA exist, owned by vault program
+//
+// Task 6 scope: deposit_sol
+//   - it(): deposit 1_000_000 lamports → DepositRecord.balance + sol_vault lamport delta
+//   - it(): rejects zero-amount deposit
 
 import { assert } from 'chai'
 import { Keypair, PublicKey } from '@solana/web3.js'
 import { ProgramTestContext } from 'solana-bankrun'
 
-import { getSolVaultPDA, getSolFeePDA } from './setup'
+import { getSolVaultPDA, getSolFeePDA, getDepositRecordPDA } from './setup'
 
 import {
   VAULT_PROGRAM_ID,
@@ -20,7 +24,13 @@ import {
   sendIx,
   ixInitialize,
   ixCreateSolVault,
+  ixDepositSol,
+  getAccountData,
+  parseDepositRecord,
 } from './bankrun-helpers'
+
+// NATIVE_SOL_MINT sentinel — all-zero pubkey
+const NATIVE_SOL_MINT = new PublicKey(new Uint8Array(32))
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -80,5 +90,67 @@ describe('12 · native SOL vault track', function () {
       new PublicKey(solFeeAcct.owner).equals(VAULT_PROGRAM_ID),
       `sol_fee owner mismatch: expected ${VAULT_PROGRAM_ID.toBase58()}, got ${new PublicKey(solFeeAcct.owner).toBase58()}`,
     )
+  })
+
+  // ── Task 6: deposit_sol ──────────────────────────────────────────────────
+
+  it('deposit_sol → DepositRecord balance equals deposited lamports and sol_vault lamports increase by exact amount', async function () {
+    const depositAmount = 1_000_000n // 1M lamports
+
+    // Read sol_vault lamports before deposit
+    const solVaultBefore = await ctx.banksClient.getAccount(solVaultPda)
+    assert.ok(solVaultBefore, 'sol_vault PDA not found before deposit')
+    const lamportsBefore = BigInt(solVaultBefore.lamports)
+
+    // Execute deposit
+    await sendIx(ctx, [
+      ixDepositSol(authority.publicKey, depositAmount),
+    ], [authority])
+
+    // Read sol_vault lamports after deposit
+    const solVaultAfter = await ctx.banksClient.getAccount(solVaultPda)
+    assert.ok(solVaultAfter, 'sol_vault PDA not found after deposit')
+    const lamportsAfter = BigInt(solVaultAfter.lamports)
+
+    // Assert lamport delta is exactly depositAmount
+    assert.strictEqual(
+      lamportsAfter - lamportsBefore,
+      depositAmount,
+      `sol_vault lamport delta mismatch: expected +${depositAmount}, got +${lamportsAfter - lamportsBefore}`,
+    )
+
+    // Assert DepositRecord balance
+    const [depositRecordPda] = getDepositRecordPDA(authority.publicKey, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+    const recordData = await getAccountData(ctx, depositRecordPda)
+    const record = parseDepositRecord(recordData)
+
+    assert.strictEqual(
+      record.balance,
+      depositAmount,
+      `DepositRecord.balance mismatch: expected ${depositAmount}, got ${record.balance}`,
+    )
+    assert.ok(
+      record.tokenMint.equals(NATIVE_SOL_MINT),
+      `DepositRecord.token_mint mismatch: expected ${NATIVE_SOL_MINT.toBase58()}, got ${record.tokenMint.toBase58()}`,
+    )
+    assert.ok(
+      record.depositor.equals(authority.publicKey),
+      `DepositRecord.depositor mismatch: expected ${authority.publicKey.toBase58()}, got ${record.depositor.toBase58()}`,
+    )
+  })
+
+  it('deposit_sol → rejects zero-amount deposit with ZeroDeposit error', async function () {
+    try {
+      await sendIx(ctx, [
+        ixDepositSol(authority.publicKey, 0n),
+      ], [authority])
+      assert.fail('Expected ZeroDeposit error but transaction succeeded')
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      assert.ok(
+        msg.includes('ZeroDeposit') || msg.includes('Deposit amount must be greater than zero') || msg.includes('custom program error'),
+        `Expected ZeroDeposit error, got: ${msg}`,
+      )
+    }
   })
 })

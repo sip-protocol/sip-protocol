@@ -122,6 +122,50 @@ pub mod sipher_vault {
     Ok(())
   }
 
+  /// Deposit native SOL into the vault. Creates DepositRecord keyed by
+  /// (depositor, NATIVE_SOL_MINT) on first deposit; accumulates on repeat calls.
+  pub fn deposit_sol(ctx: Context<DepositSol>, amount: u64) -> Result<()> {
+    require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
+    require!(amount > 0, VaultError::ZeroDeposit);
+
+    // Transfer SOL from depositor to sol_vault PDA via system_program::transfer
+    let cpi = CpiContext::new(
+      ctx.accounts.system_program.to_account_info(),
+      anchor_lang::system_program::Transfer {
+        from: ctx.accounts.depositor.to_account_info(),
+        to: ctx.accounts.sol_vault.to_account_info(),
+      },
+    );
+    anchor_lang::system_program::transfer(cpi, amount)?;
+
+    // Update deposit record
+    let record = &mut ctx.accounts.deposit_record;
+    let is_new = record.balance == 0 && record.cumulative_volume == 0;
+
+    record.depositor = ctx.accounts.depositor.key();
+    record.token_mint = NATIVE_SOL_MINT;
+    record.balance = record.balance
+      .checked_add(amount)
+      .ok_or(VaultError::MathOverflow)?;
+    record.cumulative_volume = record.cumulative_volume
+      .checked_add(amount)
+      .ok_or(VaultError::MathOverflow)?;
+    record.last_deposit_at = Clock::get()?.unix_timestamp;
+    record.bump = ctx.bumps.deposit_record;
+
+    // Update global counters
+    let config = &mut ctx.accounts.config;
+    config.total_deposits = config.total_deposits.saturating_add(1);
+    if is_new {
+      config.total_depositors = config.total_depositors
+        .checked_add(1)
+        .ok_or(VaultError::MathOverflow)?;
+    }
+
+    msg!("Deposited {} lamports (native SOL)", amount);
+    Ok(())
+  }
+
   /// Create the singleton native-SOL vault + fee PDAs.
   /// Called once per deployment before any native-SOL deposits.
   /// Payer funds the rent-exempt reserve for both PDAs.
@@ -556,6 +600,37 @@ pub struct CreateSolVault<'info> {
 
   #[account(mut)]
   pub payer: Signer<'info>,
+
+  pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct DepositSol<'info> {
+  #[account(
+    mut,
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  #[account(
+    init_if_needed,
+    payer = depositor,
+    space = 8 + DepositRecord::INIT_SPACE,
+    seeds = [DEPOSIT_RECORD_SEED, depositor.key().as_ref(), NATIVE_SOL_MINT.as_ref()],
+    bump,
+  )]
+  pub deposit_record: Account<'info, DepositRecord>,
+
+  #[account(
+    mut,
+    seeds = [VAULT_SOL_SEED],
+    bump = sol_vault.bump,
+  )]
+  pub sol_vault: Account<'info, SolVault>,
+
+  #[account(mut)]
+  pub depositor: Signer<'info>,
 
   pub system_program: Program<'info, System>,
 }
