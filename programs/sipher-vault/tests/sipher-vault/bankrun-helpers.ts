@@ -31,6 +31,8 @@ import {
   getFeeTokenPDA,
   getSipConfigPDA,
   getSipTransferRecordPDA,
+  getSolVaultPDA,
+  getSolFeePDA,
 } from './setup'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -478,6 +480,34 @@ export function ixRefund(
 // ─────────────────────────────────────────────────────────────────────────────
 // sip_privacy instruction builder (CPI prerequisite)
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * create_sol_vault() — no args
+ *
+ * Accounts (CreateSolVault):
+ *   config      readonly PDA
+ *   sol_vault   mut, PDA (init)
+ *   sol_fee     mut, PDA (init)
+ *   payer       mut, signer
+ *   system_program
+ */
+export function ixCreateSolVault(payer: PublicKey): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+  const [solVaultPda] = getSolVaultPDA(VAULT_PROGRAM_ID)
+  const [solFeePda] = getSolFeePDA(VAULT_PROGRAM_ID)
+
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: false },
+      { pubkey: solVaultPda, isSigner: false, isWritable: true },
+      { pubkey: solFeePda, isSigner: false, isWritable: true },
+      { pubkey: payer, isSigner: true, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data: disc('create_sol_vault'),
+  })
+}
 
 /**
  * sip_privacy::initialize(fee_bps: u16) — creates the Config PDA.

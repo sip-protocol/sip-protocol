@@ -27,7 +27,7 @@ pub mod state;
 
 use constants::*;
 use errors::VaultError;
-use state::{DepositRecord, VaultConfig};
+use state::{DepositRecord, SolFee, SolVault, VaultConfig};
 
 /// SIP Privacy program ID — used for CPI to create_transfer_announcement
 /// S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at
@@ -119,6 +119,16 @@ pub mod sipher_vault {
       "Fee token PDA created for mint {}",
       ctx.accounts.token_mint.key()
     );
+    Ok(())
+  }
+
+  /// Create the singleton native-SOL vault + fee PDAs.
+  /// Called once per deployment before any native-SOL deposits.
+  /// Payer funds the rent-exempt reserve for both PDAs.
+  pub fn create_sol_vault(ctx: Context<CreateSolVault>) -> Result<()> {
+    ctx.accounts.sol_vault.bump = ctx.bumps.sol_vault;
+    ctx.accounts.sol_fee.bump = ctx.bumps.sol_fee;
+    msg!("SOL vault + fee PDAs created");
     Ok(())
   }
 
@@ -518,6 +528,35 @@ pub struct CreateFeeToken<'info> {
   pub payer: Signer<'info>,
 
   pub token_program: Interface<'info, TokenInterface>,
+  pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct CreateSolVault<'info> {
+  #[account(seeds = [VAULT_CONFIG_SEED], bump = config.bump)]
+  pub config: Account<'info, VaultConfig>,
+
+  #[account(
+    init,
+    payer = payer,
+    space = 8 + SolVault::INIT_SPACE,
+    seeds = [VAULT_SOL_SEED],
+    bump,
+  )]
+  pub sol_vault: Account<'info, SolVault>,
+
+  #[account(
+    init,
+    payer = payer,
+    space = 8 + SolFee::INIT_SPACE,
+    seeds = [FEE_SOL_SEED],
+    bump,
+  )]
+  pub sol_fee: Account<'info, SolFee>,
+
+  #[account(mut)]
+  pub payer: Signer<'info>,
+
   pub system_program: Program<'info, System>,
 }
 
