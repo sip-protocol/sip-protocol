@@ -15,7 +15,7 @@
 
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program;
-use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface, TransferChecked};
 
 pub mod constants;
 pub mod errors;
@@ -95,13 +95,14 @@ pub mod sipher_vault {
     // Transfer tokens from depositor to vault
     let transfer_ctx = CpiContext::new(
       ctx.accounts.token_program.to_account_info(),
-      Transfer {
+      TransferChecked {
         from: ctx.accounts.depositor_token.to_account_info(),
+        mint: ctx.accounts.token_mint.to_account_info(),
         to: ctx.accounts.vault_token.to_account_info(),
         authority: ctx.accounts.depositor.to_account_info(),
       },
     );
-    token::transfer(transfer_ctx, amount)?;
+    token_interface::transfer_checked(transfer_ctx, amount, ctx.accounts.token_mint.decimals)?;
 
     // Update deposit record
     let record = &mut ctx.accounts.deposit_record;
@@ -177,27 +178,29 @@ pub mod sipher_vault {
 
     let transfer_to_stealth = CpiContext::new_with_signer(
       ctx.accounts.token_program.to_account_info(),
-      Transfer {
+      TransferChecked {
         from: ctx.accounts.vault_token.to_account_info(),
+        mint: ctx.accounts.token_mint.to_account_info(),
         to: ctx.accounts.stealth_token.to_account_info(),
         authority: ctx.accounts.config.to_account_info(),
       },
       signer_seeds,
     );
-    token::transfer(transfer_to_stealth, net_amount)?;
+    token_interface::transfer_checked(transfer_to_stealth, net_amount, ctx.accounts.token_mint.decimals)?;
 
     // 4. Transfer fee to fee token account (PDA signs)
     if fee > 0 {
       let transfer_fee = CpiContext::new_with_signer(
         ctx.accounts.token_program.to_account_info(),
-        Transfer {
+        TransferChecked {
           from: ctx.accounts.vault_token.to_account_info(),
+          mint: ctx.accounts.token_mint.to_account_info(),
           to: ctx.accounts.fee_token.to_account_info(),
           authority: ctx.accounts.config.to_account_info(),
         },
         signer_seeds,
       );
-      token::transfer(transfer_fee, fee)?;
+      token_interface::transfer_checked(transfer_fee, fee, ctx.accounts.token_mint.decimals)?;
     }
 
     // 5. CPI to sip_privacy::create_transfer_announcement
@@ -291,14 +294,15 @@ pub mod sipher_vault {
 
     let transfer_ctx = CpiContext::new_with_signer(
       ctx.accounts.token_program.to_account_info(),
-      Transfer {
+      TransferChecked {
         from: ctx.accounts.vault_token.to_account_info(),
+        mint: ctx.accounts.token_mint.to_account_info(),
         to: ctx.accounts.depositor_token.to_account_info(),
         authority: ctx.accounts.config.to_account_info(),
       },
       signer_seeds,
     );
-    token::transfer(transfer_ctx, available)?;
+    token_interface::transfer_checked(transfer_ctx, available, ctx.accounts.token_mint.decimals)?;
 
     // Zero out refunded balance
     record.balance = record.locked_amount;
@@ -336,14 +340,15 @@ pub mod sipher_vault {
 
     let transfer_ctx = CpiContext::new_with_signer(
       ctx.accounts.token_program.to_account_info(),
-      Transfer {
+      TransferChecked {
         from: ctx.accounts.vault_token.to_account_info(),
+        mint: ctx.accounts.token_mint.to_account_info(),
         to: ctx.accounts.depositor_token.to_account_info(),
         authority: ctx.accounts.config.to_account_info(),
       },
       signer_seeds,
     );
-    token::transfer(transfer_ctx, available)?;
+    token_interface::transfer_checked(transfer_ctx, available, ctx.accounts.token_mint.decimals)?;
 
     // Zero out refunded balance (locked_amount preserved)
     record.balance = record.locked_amount;
@@ -368,14 +373,15 @@ pub mod sipher_vault {
 
     let transfer_ctx = CpiContext::new_with_signer(
       ctx.accounts.token_program.to_account_info(),
-      Transfer {
+      TransferChecked {
         from: ctx.accounts.fee_token.to_account_info(),
+        mint: ctx.accounts.token_mint.to_account_info(),
         to: ctx.accounts.authority_token.to_account_info(),
         authority: ctx.accounts.config.to_account_info(),
       },
       signer_seeds,
     );
-    token::transfer(transfer_ctx, withdraw_amount)?;
+    token_interface::transfer_checked(transfer_ctx, withdraw_amount, ctx.accounts.token_mint.decimals)?;
 
     msg!("Collected {} fees", withdraw_amount);
     Ok(())
@@ -442,14 +448,14 @@ pub struct CreateVaultToken<'info> {
     token::mint = token_mint,
     token::authority = config,
   )]
-  pub vault_token: Account<'info, TokenAccount>,
+  pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
-  pub token_mint: Account<'info, Mint>,
+  pub token_mint: InterfaceAccount<'info, Mint>,
 
   #[account(mut)]
   pub payer: Signer<'info>,
 
-  pub token_program: Program<'info, Token>,
+  pub token_program: Interface<'info, TokenInterface>,
   pub system_program: Program<'info, System>,
 }
 
@@ -469,14 +475,14 @@ pub struct CreateFeeToken<'info> {
     token::mint = token_mint,
     token::authority = config,
   )]
-  pub fee_token: Account<'info, TokenAccount>,
+  pub fee_token: InterfaceAccount<'info, TokenAccount>,
 
-  pub token_mint: Account<'info, Mint>,
+  pub token_mint: InterfaceAccount<'info, Mint>,
 
   #[account(mut)]
   pub payer: Signer<'info>,
 
-  pub token_program: Program<'info, Token>,
+  pub token_program: Interface<'info, TokenInterface>,
   pub system_program: Program<'info, System>,
 }
 
@@ -505,21 +511,21 @@ pub struct Deposit<'info> {
     token::mint = token_mint,
     token::authority = config,
   )]
-  pub vault_token: Account<'info, TokenAccount>,
+  pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
   #[account(
     mut,
     constraint = depositor_token.owner == depositor.key() @ VaultError::Unauthorized,
     constraint = depositor_token.mint == token_mint.key() @ VaultError::InvalidMint,
   )]
-  pub depositor_token: Account<'info, TokenAccount>,
+  pub depositor_token: InterfaceAccount<'info, TokenAccount>,
 
-  pub token_mint: Account<'info, Mint>,
+  pub token_mint: InterfaceAccount<'info, Mint>,
 
   #[account(mut)]
   pub depositor: Signer<'info>,
 
-  pub token_program: Program<'info, Token>,
+  pub token_program: Interface<'info, TokenInterface>,
   pub system_program: Program<'info, System>,
 }
 
@@ -546,7 +552,7 @@ pub struct WithdrawPrivate<'info> {
     token::mint = token_mint,
     token::authority = config,
   )]
-  pub vault_token: Account<'info, TokenAccount>,
+  pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
   #[account(
     mut,
@@ -555,7 +561,7 @@ pub struct WithdrawPrivate<'info> {
     token::mint = token_mint,
     token::authority = config,
   )]
-  pub fee_token: Account<'info, TokenAccount>,
+  pub fee_token: InterfaceAccount<'info, TokenAccount>,
 
   /// The stealth token account to receive the net amount.
   /// Owned by any pubkey (the stealth address), we just verify the mint.
@@ -563,14 +569,14 @@ pub struct WithdrawPrivate<'info> {
     mut,
     constraint = stealth_token.mint == token_mint.key() @ VaultError::InvalidMint,
   )]
-  pub stealth_token: Account<'info, TokenAccount>,
+  pub stealth_token: InterfaceAccount<'info, TokenAccount>,
 
-  pub token_mint: Account<'info, Mint>,
+  pub token_mint: InterfaceAccount<'info, Mint>,
 
   #[account(mut)]
   pub depositor: Signer<'info>,
 
-  pub token_program: Program<'info, Token>,
+  pub token_program: Interface<'info, TokenInterface>,
 
   // ── CPI accounts for sip_privacy::create_transfer_announcement ──
 
@@ -621,19 +627,25 @@ pub struct Refund<'info> {
     token::mint = deposit_record.token_mint,
     token::authority = config,
   )]
-  pub vault_token: Account<'info, TokenAccount>,
+  pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
   #[account(
     mut,
     constraint = depositor_token.owner == depositor.key() @ VaultError::Unauthorized,
     constraint = depositor_token.mint == deposit_record.token_mint @ VaultError::InvalidMint,
   )]
-  pub depositor_token: Account<'info, TokenAccount>,
+  pub depositor_token: InterfaceAccount<'info, TokenAccount>,
+
+  /// Mint account required by transfer_checked (must match deposit_record.token_mint)
+  #[account(
+    address = deposit_record.token_mint @ VaultError::InvalidMint,
+  )]
+  pub token_mint: InterfaceAccount<'info, Mint>,
 
   #[account(mut)]
   pub depositor: Signer<'info>,
 
-  pub token_program: Program<'info, Token>,
+  pub token_program: Interface<'info, TokenInterface>,
 }
 
 #[derive(Accounts)]
@@ -660,14 +672,20 @@ pub struct AuthorityRefund<'info> {
     token::mint = deposit_record.token_mint,
     token::authority = config,
   )]
-  pub vault_token: Account<'info, TokenAccount>,
+  pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
   #[account(
     mut,
     constraint = depositor_token.owner == depositor.key() @ VaultError::Unauthorized,
     constraint = depositor_token.mint == deposit_record.token_mint @ VaultError::InvalidMint,
   )]
-  pub depositor_token: Account<'info, TokenAccount>,
+  pub depositor_token: InterfaceAccount<'info, TokenAccount>,
+
+  /// Mint account required by transfer_checked (must match deposit_record.token_mint)
+  #[account(
+    address = deposit_record.token_mint @ VaultError::InvalidMint,
+  )]
+  pub token_mint: InterfaceAccount<'info, Mint>,
 
   /// CHECK: Not a signer — validated by deposit_record.has_one. Used for PDA
   /// derivation and token account ownership check. The authority (not depositor)
@@ -677,7 +695,7 @@ pub struct AuthorityRefund<'info> {
   #[account(mut)]
   pub authority: Signer<'info>,
 
-  pub token_program: Program<'info, Token>,
+  pub token_program: Interface<'info, TokenInterface>,
 }
 
 #[derive(Accounts)]
@@ -696,21 +714,21 @@ pub struct CollectFee<'info> {
     token::mint = token_mint,
     token::authority = config,
   )]
-  pub fee_token: Account<'info, TokenAccount>,
+  pub fee_token: InterfaceAccount<'info, TokenAccount>,
 
   #[account(
     mut,
     constraint = authority_token.owner == authority.key() @ VaultError::Unauthorized,
     constraint = authority_token.mint == token_mint.key() @ VaultError::InvalidMint,
   )]
-  pub authority_token: Account<'info, TokenAccount>,
+  pub authority_token: InterfaceAccount<'info, TokenAccount>,
 
-  pub token_mint: Account<'info, Mint>,
+  pub token_mint: InterfaceAccount<'info, Mint>,
 
   #[account(mut)]
   pub authority: Signer<'info>,
 
-  pub token_program: Program<'info, Token>,
+  pub token_program: Interface<'info, TokenInterface>,
 }
 
 #[derive(Accounts)]

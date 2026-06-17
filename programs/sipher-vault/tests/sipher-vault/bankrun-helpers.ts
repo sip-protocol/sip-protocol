@@ -443,6 +443,7 @@ export function ixWithdrawPrivate(
  *   deposit_record   mut, PDA
  *   vault_token      mut, PDA
  *   depositor_token  mut
+ *   token_mint       readonly  ← added for transfer_checked
  *   depositor        mut, signer
  *   token_program
  */
@@ -462,6 +463,7 @@ export function ixRefund(
       { pubkey: depositRecordPda, isSigner: false, isWritable: true },
       { pubkey: vaultTokenPda, isSigner: false, isWritable: true },
       { pubkey: depositorToken, isSigner: false, isWritable: true },
+      { pubkey: tokenMint, isSigner: false, isWritable: false },
       { pubkey: depositor, isSigner: true, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
     ],
