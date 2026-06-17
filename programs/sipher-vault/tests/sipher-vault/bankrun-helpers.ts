@@ -41,6 +41,13 @@ import {
 
 export const VAULT_PROGRAM_ID = new PublicKey('S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB')
 
+/**
+ * Sentinel mint pubkey for native SOL deposits — all-zero (PublicKey.default()).
+ * Used as the token_mint in DepositRecord and deposit_record PDA derivation
+ * for native SOL. Exported for all test suites in the native-SOL track.
+ */
+export const NATIVE_SOL_MINT = new PublicKey(new Uint8Array(32))
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Core utilities
 // ─────────────────────────────────────────────────────────────────────────────
@@ -524,8 +531,6 @@ export function ixDepositSol(
   amount: bigint,
 ): TransactionInstruction {
   const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
-  // NATIVE_SOL_MINT = all-zero pubkey (PublicKey.default())
-  const NATIVE_SOL_MINT = new PublicKey(new Uint8Array(32))
   const [depositRecordPda] = getDepositRecordPDA(depositor, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
   const [solVaultPda] = getSolVaultPDA(VAULT_PROGRAM_ID)
 

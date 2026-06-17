@@ -16,10 +16,11 @@ import { assert } from 'chai'
 import { Keypair, PublicKey } from '@solana/web3.js'
 import { ProgramTestContext } from 'solana-bankrun'
 
-import { getSolVaultPDA, getSolFeePDA, getDepositRecordPDA } from './setup'
+import { getSolVaultPDA, getSolFeePDA, getDepositRecordPDA, getVaultConfigPDA } from './setup'
 
 import {
   VAULT_PROGRAM_ID,
+  NATIVE_SOL_MINT,
   startVault,
   sendIx,
   ixInitialize,
@@ -27,10 +28,8 @@ import {
   ixDepositSol,
   getAccountData,
   parseDepositRecord,
+  parseVaultConfig,
 } from './bankrun-helpers'
-
-// NATIVE_SOL_MINT sentinel — all-zero pubkey
-const NATIVE_SOL_MINT = new PublicKey(new Uint8Array(32))
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -137,19 +136,47 @@ describe('12 · native SOL vault track', function () {
       record.depositor.equals(authority.publicKey),
       `DepositRecord.depositor mismatch: expected ${authority.publicKey.toBase58()}, got ${record.depositor.toBase58()}`,
     )
+
+    // Assert VaultConfig counters — is_new=true means both incremented on first deposit
+    const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+    const configData = await getAccountData(ctx, configPda)
+    const config = parseVaultConfig(configData)
+
+    assert.strictEqual(
+      config.totalDeposits,
+      1n,
+      `VaultConfig.total_deposits mismatch: expected 1, got ${config.totalDeposits}`,
+    )
+    assert.strictEqual(
+      config.totalDepositors,
+      1n,
+      `VaultConfig.total_depositors mismatch: expected 1, got ${config.totalDepositors}`,
+    )
   })
 
-  it('deposit_sol → rejects zero-amount deposit with ZeroDeposit error', async function () {
+  // Anchor custom errors start at 6000; ZeroDeposit is index 4 → code 6004 (0x1774)
+  const ZERO_DEPOSIT_CODE = 6004
+  const ZERO_DEPOSIT_HEX = ZERO_DEPOSIT_CODE.toString(16) // '1774'
+
+  it('deposit_sol → rejects zero-amount deposit with ZeroDeposit error (6004 / 0x1774)', async function () {
     try {
       await sendIx(ctx, [
         ixDepositSol(authority.publicKey, 0n),
       ], [authority])
       assert.fail('Expected ZeroDeposit error but transaction succeeded')
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err)
+    } catch (e: unknown) {
+      const err = e as Error
+      if (err.message && err.message.includes('Expected ZeroDeposit error but transaction succeeded')) {
+        throw err // re-throw the assert.fail
+      }
+      const msg = (err?.message ?? String(err)).toLowerCase()
+      const matchesCode =
+        msg.includes(String(ZERO_DEPOSIT_CODE)) ||
+        msg.includes(ZERO_DEPOSIT_HEX) ||
+        msg.includes('zerodeposit')
       assert.ok(
-        msg.includes('ZeroDeposit') || msg.includes('Deposit amount must be greater than zero') || msg.includes('custom program error'),
-        `Expected ZeroDeposit error, got: ${msg}`,
+        matchesCode,
+        `Expected ZeroDeposit (${ZERO_DEPOSIT_CODE} / 0x${ZERO_DEPOSIT_HEX}), got: ${err?.message ?? String(err)}`,
       )
     }
   })
