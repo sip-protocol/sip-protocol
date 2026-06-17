@@ -37,6 +37,7 @@ import {
   ixWithdrawPrivateSol,
   ixRefundSol,
   ixAuthorityRefundSol,
+  ixCollectFeeSol,
   ixSipPrivacyInitialize,
   getAccountData,
   parseDepositRecord,
@@ -688,6 +689,146 @@ describe('12 · native SOL vault track', function () {
     try {
       await sendIx(ctx, [
         ixAuthorityRefundSol(refunder.publicKey, wrongAuthority.publicKey),
+      ], [wrongAuthority])
+      assert.fail('Expected Unauthorized error but transaction succeeded')
+    } catch (e: unknown) {
+      const err = e as Error
+      if (err.message && err.message.includes('Expected Unauthorized error but transaction succeeded')) {
+        throw err
+      }
+      const msg = (err?.message ?? String(err)).toLowerCase()
+      const matchesCode =
+        msg.includes(String(UNAUTHORIZED_CODE)) ||
+        msg.includes(UNAUTHORIZED_HEX) ||
+        msg.includes('unauthorized')
+      assert.ok(
+        matchesCode,
+        `Expected Unauthorized (${UNAUTHORIZED_CODE} / 0x${UNAUTHORIZED_HEX}), got: ${err?.message ?? String(err)}`,
+      )
+    }
+  })
+
+  // ── Task 9: collect_fee_sol ──────────────────────────────────────────────
+  //
+  // Authority drains lamports above the rent-exempt floor from the SolFee PDA.
+  // Fees accrue during withdraw_private_sol (10 bps per withdrawal).
+  // collect_fee_sol(0) drains ALL collectable lamports; partial amounts also
+  // supported. Wrong authority → Unauthorized (6001 / 0x1771).
+  //
+  // NoFeesToCollect = index 8 → 6008 / 0x1778
+  const NO_FEES_CODE = 6008
+  const NO_FEES_HEX = NO_FEES_CODE.toString(16) // '1778'
+
+  // Dedicated keypair for collect_fee_sol tests — ensures the withdrawal that
+  // accrues the fee is independent of refund_sol tests that zero out balances.
+  const feeCollector = Keypair.generate()
+  let feeCollectorSetup = false
+
+  async function ensureFeeCollectorSetup(): Promise<void> {
+    if (!feeCollectorSetup) {
+      await ensureWithdrawSetup() // ensures sip_privacy initialized
+      await sendIx(ctx, [
+        SystemProgram.transfer({
+          fromPubkey: authority.publicKey,
+          toPubkey: feeCollector.publicKey,
+          lamports: 50_000_000,
+        }),
+      ], [authority])
+      feeCollectorSetup = true
+    }
+  }
+
+  it('collect_fee_sol → drains all collectable lamports to authority, sol_fee left at rent_min', async function () {
+    await ensureFeeCollectorSetup()
+
+    // Accrue a fee: deposit + withdraw. Fee = 10 bps of 1_000_000 = 1_000 lamports (floor div).
+    const depositAmt = 5_000_000n
+    const withdrawAmt = 1_000_000n
+    const expectedFee = (withdrawAmt * BigInt(FEE_BPS)) / FEE_DENOM // 500 lamports
+
+    await sendIx(ctx, [ixDepositSol(feeCollector.publicKey, depositAmt)], [feeCollector])
+
+    const rent = await ctx.banksClient.getRent()
+    const stealthRentMin = rent.minimumBalance(0n)
+    const stealth = Keypair.generate().publicKey
+    await sendIx(ctx, [
+      SystemProgram.transfer({
+        fromPubkey: authority.publicKey,
+        toPubkey: stealth,
+        lamports: Number(stealthRentMin),
+      }),
+    ], [authority])
+
+    const [sipConfigPda] = getSipConfigPDA()
+    const { totalTransfers } = parseSipConfig(await getAccountData(ctx, sipConfigPda))
+    const [sipTransferRecordPda] = getSipTransferRecordPDA(feeCollector.publicKey, totalTransfers)
+
+    const p = announceParams()
+    await sendIx(ctx, [
+      ixWithdrawPrivateSol(
+        feeCollector.publicKey,
+        stealth,
+        sipTransferRecordPda,
+        withdrawAmt,
+        p.amountCommitment,
+        stealth,
+        p.ephemeralPubkey,
+        p.viewingKeyHash,
+        p.encryptedAmount,
+        p.proof,
+      ),
+    ], [feeCollector])
+
+    // Confirm the fee landed in sol_fee PDA.
+    const solFeeAfterWithdraw = BigInt((await ctx.banksClient.getAccount(solFeePda))!.lamports)
+    const solFeeAcct = (await ctx.banksClient.getAccount(solFeePda))!
+    const rentMin = rent.minimumBalance(BigInt(solFeeAcct.data.length))
+    const collectable = solFeeAfterWithdraw - rentMin
+    assert.ok(collectable > 0n, `Expected collectable > 0, got ${collectable} (fee accrued: ${expectedFee})`)
+
+    // Snapshot authority lamports before collect.
+    const authorityBefore = BigInt((await ctx.banksClient.getAccount(authority.publicKey))!.lamports)
+
+    // collect_fee_sol(0) → drain ALL collectable.
+    await sendIx(ctx, [
+      ixCollectFeeSol(authority.publicKey, 0n),
+    ], [authority])
+
+    // sol_fee must be left at exactly rent_min.
+    const solFeeAfterCollect = BigInt((await ctx.banksClient.getAccount(solFeePda))!.lamports)
+    assert.strictEqual(
+      solFeeAfterCollect,
+      rentMin,
+      `sol_fee after collect: expected ${rentMin} (rent_min), got ${solFeeAfterCollect}`,
+    )
+
+    // Authority must have received exactly collectable lamports (net of tx fee).
+    // We tolerate a small tx-fee window (< 10_000 lamports) in the same way
+    // as the refund_sol tests above.
+    const authorityAfter = BigInt((await ctx.banksClient.getAccount(authority.publicKey))!.lamports)
+    const authorityGain = authorityAfter - authorityBefore
+    // authorityGain = collectable - tx_fees. Tx fees are tiny (< 10_000 lamports).
+    assert.ok(
+      authorityGain >= collectable - 10_000n && authorityGain <= collectable,
+      `authority lamport gain: expected ~+${collectable}, got +${authorityGain}`,
+    )
+  })
+
+  it('collect_fee_sol → wrong authority is rejected with Unauthorized (6001 / 0x1771)', async function () {
+    await ensureFeeCollectorSetup()
+
+    const wrongAuthority = Keypair.generate()
+    await sendIx(ctx, [
+      SystemProgram.transfer({
+        fromPubkey: authority.publicKey,
+        toPubkey: wrongAuthority.publicKey,
+        lamports: 5_000_000,
+      }),
+    ], [authority])
+
+    try {
+      await sendIx(ctx, [
+        ixCollectFeeSol(wrongAuthority.publicKey, 0n),
       ], [wrongAuthority])
       assert.fail('Expected Unauthorized error but transaction succeeded')
     } catch (e: unknown) {

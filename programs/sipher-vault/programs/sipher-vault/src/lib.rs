@@ -11,7 +11,8 @@
 //! - `deposit` — Transfer tokens from user to vault PDA, create/update DepositRecord
 //! - `withdraw_private` — Debit-first withdrawal to stealth address + fee split
 //! - `refund` — Return available (unlocked) balance to depositor
-//! - `collect_fee` — Authority-only fee withdrawal
+//! - `collect_fee` — Authority-only token-fee withdrawal
+//! - `collect_fee_sol` — Authority-only native-SOL fee withdrawal (above rent floor)
 
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program;
@@ -646,6 +647,35 @@ pub mod sipher_vault {
     Ok(())
   }
 
+  /// Authority-only: drain lamports above the rent-exempt minimum from the native
+  /// SOL fee PDA (`sol_fee`). Fees accrue during `withdraw_private_sol` (fee_bps
+  /// per withdrawal). Pass `amount = 0` to collect ALL collectable lamports.
+  ///
+  /// Safety: Uses the Task-7 checked lamport mutation pattern — every new balance
+  /// is computed with `checked_sub`/`checked_add` before any assignment. The rent
+  /// floor of `sol_fee` is preserved; the instruction reverts with `NoFeesToCollect`
+  /// if there is nothing above the floor.
+  pub fn collect_fee_sol(ctx: Context<CollectFeeSol>, amount: u64) -> Result<()> {
+    let fee_ai = ctx.accounts.sol_fee.to_account_info();
+    let rent_min = Rent::get()?.minimum_balance(fee_ai.data_len());
+    let collectable = fee_ai.lamports()
+      .checked_sub(rent_min)
+      .ok_or(VaultError::MathOverflow)?;
+    require!(collectable > 0, VaultError::NoFeesToCollect);
+    let take = if amount == 0 || amount > collectable { collectable } else { amount };
+    let auth_ai = ctx.accounts.authority.to_account_info();
+    let new_fee = fee_ai.lamports()
+      .checked_sub(take)
+      .ok_or(VaultError::MathOverflow)?;
+    let new_auth = auth_ai.lamports()
+      .checked_add(take)
+      .ok_or(VaultError::MathOverflow)?;
+    **fee_ai.try_borrow_mut_lamports()? = new_fee;
+    **auth_ai.try_borrow_mut_lamports()? = new_auth;
+    msg!("Collected {} native-SOL lamports from fee PDA", take);
+    Ok(())
+  }
+
   /// Pause or unpause the vault. Authority-only.
   ///
   /// While paused (`config.paused == true`), `deposit`, `withdraw_private`, and
@@ -1267,6 +1297,29 @@ pub struct CollectFee<'info> {
   pub authority: Signer<'info>,
 
   pub token_program: Interface<'info, TokenInterface>,
+}
+
+/// Authority-only context for draining native-SOL fees above the rent floor
+/// from the `sol_fee` PDA. `has_one = authority` on `config` enforces that only
+/// the vault authority can call this instruction (wrong authority → Unauthorized).
+#[derive(Accounts)]
+pub struct CollectFeeSol<'info> {
+  #[account(
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+    has_one = authority @ VaultError::Unauthorized,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  #[account(
+    mut,
+    seeds = [FEE_SOL_SEED],
+    bump = sol_fee.bump,
+  )]
+  pub sol_fee: Account<'info, SolFee>,
+
+  #[account(mut)]
+  pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]

@@ -726,6 +726,37 @@ export function ixAuthorityRefundSol(
 }
 
 /**
+ * collect_fee_sol(amount: u64) — pass 0n to drain all collectable lamports
+ *
+ * Drains lamports above the rent-exempt minimum from the SolFee PDA to the
+ * authority. amount=0 or amount > collectable both drain everything available.
+ *
+ * Accounts (CollectFeeSol):
+ *   config    readonly PDA  seeds=[VAULT_CONFIG_SEED], has_one = authority
+ *   sol_fee   mut, PDA      seeds=[FEE_SOL_SEED]
+ *   authority mut, signer
+ */
+export function ixCollectFeeSol(
+  authority: PublicKey,
+  amount: bigint,
+): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+  const [solFeePda] = getSolFeePDA(VAULT_PROGRAM_ID)
+
+  const data = Buffer.concat([disc('collect_fee_sol'), u64le(amount)])
+
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: false },
+      { pubkey: solFeePda, isSigner: false, isWritable: true },
+      { pubkey: authority, isSigner: true, isWritable: true },
+    ],
+    data,
+  })
+}
+
+/**
  * collect_fee(amount: u64) — pass 0n to drain all
  *
  * Accounts (CollectFee):
