@@ -35,6 +35,8 @@ import {
   ixCreateSolVault,
   ixDepositSol,
   ixWithdrawPrivateSol,
+  ixRefundSol,
+  ixAuthorityRefundSol,
   ixSipPrivacyInitialize,
   getAccountData,
   parseDepositRecord,
@@ -474,5 +476,234 @@ describe('12 · native SOL vault track', function () {
       })
     }
     assert.ok(threw, 'rent-guard test did not throw')
+  })
+
+  // ── Task 8: refund_sol + authority_refund_sol ────────────────────────────
+  //
+  // Anchor custom error codes (6000-base, enum order from errors.rs):
+  //   RefundNotExpired = index 5 → 6005 / 0x1775
+  //   NothingToRefund  = index 6 → 6006 / 0x1776
+  //   Unauthorized     = index 1 → 6001 / 0x1771
+  const REFUND_NOT_EXPIRED_CODE = 6005
+  const REFUND_NOT_EXPIRED_HEX = REFUND_NOT_EXPIRED_CODE.toString(16) // '1775'
+  const UNAUTHORIZED_CODE = 6001
+  const UNAUTHORIZED_HEX = UNAUTHORIZED_CODE.toString(16) // '1771'
+
+  // Dedicated keypair for refund_sol tests — independent of wd (withdraw tests above).
+  const refunder = Keypair.generate()
+  let refunderSetup = false
+
+  async function ensureRefunderSetup(): Promise<void> {
+    if (!refunderSetup) {
+      // ensureWithdrawSetup runs sip_privacy initialize + funds wd; we only need the sip init.
+      await ensureWithdrawSetup()
+      // Fund the refunder (covers rent for DepositRecord + deposit + tx fees).
+      await sendIx(ctx, [
+        SystemProgram.transfer({
+          fromPubkey: authority.publicKey,
+          toPubkey: refunder.publicKey,
+          lamports: 20_000_000,
+        }),
+      ], [authority])
+      refunderSetup = true
+    }
+  }
+
+  it('refund_sol → depositor receives unlocked lamports and record.balance equals locked_amount', async function () {
+    await ensureRefunderSetup()
+
+    const depositAmount = 2_000_000n
+
+    // Deposit so there is something to refund.
+    await sendIx(ctx, [ixDepositSol(refunder.publicKey, depositAmount)], [refunder])
+
+    // Confirm the record before the refund.
+    const [recordPda] = getDepositRecordPDA(refunder.publicKey, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+    const recBefore = parseDepositRecord(await getAccountData(ctx, recordPda))
+    const available = recBefore.balance - recBefore.lockedAmount
+    assert.ok(available > 0n, 'no available balance to refund — test state error')
+
+    // Snapshot depositor lamports before refund (lamports live on the system account).
+    const refunderBefore = BigInt((await ctx.banksClient.getAccount(refunder.publicKey))!.lamports)
+
+    // Advance the clock past the refund_timeout to satisfy the on-chain check.
+    const currentClock = await ctx.banksClient.getClock()
+    const { Clock } = await import('solana-bankrun')
+    const newClock = new Clock(
+      currentClock.slot,
+      currentClock.epochStartTimestamp,
+      currentClock.epoch,
+      currentClock.leaderScheduleEpoch,
+      recBefore.lastDepositAt + REFUND_TIMEOUT + 10n,
+    )
+    ctx.setClock(newClock)
+
+    await sendIx(ctx, [ixRefundSol(refunder.publicKey)], [refunder])
+
+    // ── depositor lamports increased by exactly the available amount ──
+    const refunderAfter = BigInt((await ctx.banksClient.getAccount(refunder.publicKey))!.lamports)
+    // The depositor also pays tx fees, so we check the net gain ignoring fees:
+    // lamports_after should be > lamports_before + available - some_fee_budget
+    // To be precise, use a tolerance rather than an exact check since tx fees vary.
+    const lamportGain = refunderAfter - refunderBefore
+    // lamportGain = +available - tx_fees. tx_fees are tiny (< 10_000 lamports typically).
+    // Assert the gain is within [available - 10_000, available] to confirm the transfer.
+    assert.ok(
+      lamportGain >= available - 10_000n && lamportGain <= available,
+      `depositor lamport gain: expected ~+${available}, got +${lamportGain}`,
+    )
+
+    // ── record.balance == locked_amount (available portion zeroed) ──
+    const recAfter = parseDepositRecord(await getAccountData(ctx, recordPda))
+    assert.strictEqual(
+      recAfter.balance,
+      recAfter.lockedAmount,
+      `record.balance should equal locked_amount after refund_sol`,
+    )
+    // Since locked_amount was 0, balance should also be 0.
+    assert.strictEqual(recAfter.balance, 0n, 'balance should be 0 when locked_amount is 0')
+  })
+
+  it('refund_sol → rejects before timeout with RefundNotExpired (6005 / 0x1775)', async function () {
+    await ensureRefunderSetup()
+
+    const depositAmount2 = 1_000_000n
+
+    // Deposit a fresh amount using a new keypair so the refund_timeout restarts.
+    const prematureRefunder = Keypair.generate()
+    await sendIx(ctx, [
+      SystemProgram.transfer({
+        fromPubkey: authority.publicKey,
+        toPubkey: prematureRefunder.publicKey,
+        lamports: 10_000_000,
+      }),
+    ], [authority])
+    await sendIx(ctx, [ixDepositSol(prematureRefunder.publicKey, depositAmount2)], [prematureRefunder])
+
+    // Reset clock to the current timestamp WITHOUT advancing past the timeout.
+    const currentClock2 = await ctx.banksClient.getClock()
+    const { Clock: Clock2 } = await import('solana-bankrun')
+    // Set the unix_timestamp to "just now" — way before last_deposit_at + REFUND_TIMEOUT.
+    const nowClock = new Clock2(
+      currentClock2.slot,
+      currentClock2.epochStartTimestamp,
+      currentClock2.epoch,
+      currentClock2.leaderScheduleEpoch,
+      currentClock2.unixTimestamp, // do NOT advance
+    )
+    ctx.setClock(nowClock)
+
+    try {
+      await sendIx(ctx, [ixRefundSol(prematureRefunder.publicKey)], [prematureRefunder])
+      assert.fail('Expected RefundNotExpired error but transaction succeeded')
+    } catch (e: unknown) {
+      const err = e as Error
+      if (err.message && err.message.includes('Expected RefundNotExpired error but transaction succeeded')) {
+        throw err
+      }
+      const msg = (err?.message ?? String(err)).toLowerCase()
+      const matchesCode =
+        msg.includes(String(REFUND_NOT_EXPIRED_CODE)) ||
+        msg.includes(REFUND_NOT_EXPIRED_HEX) ||
+        msg.includes('refundnotexpired')
+      assert.ok(
+        matchesCode,
+        `Expected RefundNotExpired (${REFUND_NOT_EXPIRED_CODE} / 0x${REFUND_NOT_EXPIRED_HEX}), got: ${err?.message ?? String(err)}`,
+      )
+    }
+  })
+
+  it('authority_refund_sol → authority returns lamports to original depositor (non-signer) after timeout', async function () {
+    await ensureRefunderSetup()
+
+    const depositAmount3 = 3_000_000n
+    const authorityRefundDepositor = Keypair.generate()
+    await sendIx(ctx, [
+      SystemProgram.transfer({
+        fromPubkey: authority.publicKey,
+        toPubkey: authorityRefundDepositor.publicKey,
+        lamports: 15_000_000,
+      }),
+    ], [authority])
+    await sendIx(ctx, [ixDepositSol(authorityRefundDepositor.publicKey, depositAmount3)], [authorityRefundDepositor])
+
+    const [recordPda3] = getDepositRecordPDA(authorityRefundDepositor.publicKey, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+    const rec3 = parseDepositRecord(await getAccountData(ctx, recordPda3))
+    const available3 = rec3.balance - rec3.lockedAmount
+    assert.ok(available3 > 0n, 'no available balance — test state error')
+
+    // Snapshot depositor lamports before the authority refund.
+    const depositorBefore = BigInt((await ctx.banksClient.getAccount(authorityRefundDepositor.publicKey))!.lamports)
+
+    // Advance clock past the timeout.
+    const currentClock3 = await ctx.banksClient.getClock()
+    const { Clock: Clock3 } = await import('solana-bankrun')
+    const fastClock = new Clock3(
+      currentClock3.slot,
+      currentClock3.epochStartTimestamp,
+      currentClock3.epoch,
+      currentClock3.leaderScheduleEpoch,
+      rec3.lastDepositAt + REFUND_TIMEOUT + 10n,
+    )
+    ctx.setClock(fastClock)
+
+    // authority signs; authorityRefundDepositor is the non-signer lamport destination.
+    await sendIx(ctx, [
+      ixAuthorityRefundSol(authorityRefundDepositor.publicKey, authority.publicKey),
+    ], [authority])
+
+    // ── depositor (non-signer) received the lamports ──
+    const depositorAfter = BigInt((await ctx.banksClient.getAccount(authorityRefundDepositor.publicKey))!.lamports)
+    assert.strictEqual(
+      depositorAfter - depositorBefore,
+      available3,
+      `depositor lamport gain: expected +${available3}, got +${depositorAfter - depositorBefore}`,
+    )
+
+    // ── record.balance == locked_amount ──
+    const rec3After = parseDepositRecord(await getAccountData(ctx, recordPda3))
+    assert.strictEqual(
+      rec3After.balance,
+      rec3After.lockedAmount,
+      'record.balance should equal locked_amount after authority_refund_sol',
+    )
+  })
+
+  it('authority_refund_sol → wrong authority is rejected with Unauthorized (6001 / 0x1771)', async function () {
+    await ensureRefunderSetup()
+
+    const wrongAuthority = Keypair.generate()
+    await sendIx(ctx, [
+      SystemProgram.transfer({
+        fromPubkey: authority.publicKey,
+        toPubkey: wrongAuthority.publicKey,
+        lamports: 5_000_000,
+      }),
+    ], [authority])
+
+    // Use the refunder's deposit_record that was created in the happy-path test.
+    // We don't need a fresh deposit — the record may already have balance=0,
+    // but the Unauthorized check fires BEFORE the balance check, so the record
+    // only needs to exist (which it does from the first refund_sol test above).
+    try {
+      await sendIx(ctx, [
+        ixAuthorityRefundSol(refunder.publicKey, wrongAuthority.publicKey),
+      ], [wrongAuthority])
+      assert.fail('Expected Unauthorized error but transaction succeeded')
+    } catch (e: unknown) {
+      const err = e as Error
+      if (err.message && err.message.includes('Expected Unauthorized error but transaction succeeded')) {
+        throw err
+      }
+      const msg = (err?.message ?? String(err)).toLowerCase()
+      const matchesCode =
+        msg.includes(String(UNAUTHORIZED_CODE)) ||
+        msg.includes(UNAUTHORIZED_HEX) ||
+        msg.includes('unauthorized')
+      assert.ok(
+        matchesCode,
+        `Expected Unauthorized (${UNAUTHORIZED_CODE} / 0x${UNAUTHORIZED_HEX}), got: ${err?.message ?? String(err)}`,
+      )
+    }
   })
 })

@@ -662,6 +662,70 @@ export function ixSipPrivacyInitialize(
 }
 
 /**
+ * refund_sol() — no args
+ *
+ * Returns the available (unlocked) native-SOL balance to the original depositor.
+ * Depositor is the signer and lamport destination.
+ *
+ * Accounts (RefundSol):
+ *   config          readonly PDA
+ *   deposit_record  mut, PDA  seeds=[DEPOSIT_RECORD_SEED, depositor, NATIVE_SOL_MINT]
+ *   sol_vault       mut, PDA  seeds=[VAULT_SOL_SEED]
+ *   depositor       mut, signer
+ */
+export function ixRefundSol(depositor: PublicKey): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+  const [depositRecordPda] = getDepositRecordPDA(depositor, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+  const [solVaultPda] = getSolVaultPDA(VAULT_PROGRAM_ID)
+
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: false },
+      { pubkey: depositRecordPda, isSigner: false, isWritable: true },
+      { pubkey: solVaultPda, isSigner: false, isWritable: true },
+      { pubkey: depositor, isSigner: true, isWritable: true },
+    ],
+    data: disc('refund_sol'),
+  })
+}
+
+/**
+ * authority_refund_sol() — no args
+ *
+ * Authority-signed refund: returns the available (unlocked) native-SOL balance
+ * to the original depositor. Depositor is a NON-signer account (lamport destination).
+ * Timeout is still enforced on-chain.
+ *
+ * Accounts (AuthorityRefundSol):
+ *   config          readonly PDA  has_one = authority
+ *   deposit_record  mut, PDA      seeds=[DEPOSIT_RECORD_SEED, depositor, NATIVE_SOL_MINT]
+ *   sol_vault       mut, PDA      seeds=[VAULT_SOL_SEED]
+ *   depositor       mut, SystemAccount (non-signer — lamport destination + seed source)
+ *   authority       mut, signer
+ */
+export function ixAuthorityRefundSol(
+  depositor: PublicKey,
+  authority: PublicKey,
+): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+  const [depositRecordPda] = getDepositRecordPDA(depositor, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+  const [solVaultPda] = getSolVaultPDA(VAULT_PROGRAM_ID)
+
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: false },
+      { pubkey: depositRecordPda, isSigner: false, isWritable: true },
+      { pubkey: solVaultPda, isSigner: false, isWritable: true },
+      { pubkey: depositor, isSigner: false, isWritable: true },
+      { pubkey: authority, isSigner: true, isWritable: true },
+    ],
+    data: disc('authority_refund_sol'),
+  })
+}
+
+/**
  * collect_fee(amount: u64) — pass 0n to drain all
  *
  * Accounts (CollectFee):

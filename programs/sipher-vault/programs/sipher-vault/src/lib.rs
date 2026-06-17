@@ -525,6 +525,97 @@ pub mod sipher_vault {
     Ok(())
   }
 
+  /// Refund available (unlocked) native SOL balance back to the depositor.
+  /// Depositor is the signer and the lamport destination.
+  /// Timeout is enforced on-chain — the depositor must wait `refund_timeout` seconds
+  /// since their last deposit before reclaiming funds.
+  pub fn refund_sol(ctx: Context<RefundSol>) -> Result<()> {
+    let record = &mut ctx.accounts.deposit_record;
+    let available = record.balance
+      .checked_sub(record.locked_amount)
+      .ok_or(VaultError::MathOverflow)?;
+    require!(available > 0, VaultError::NothingToRefund);
+
+    // Enforce refund timeout
+    let now = Clock::get()?.unix_timestamp;
+    let elapsed = now
+      .checked_sub(record.last_deposit_at)
+      .ok_or(VaultError::MathOverflow)?;
+    require!(
+      elapsed >= ctx.accounts.config.refund_timeout,
+      VaultError::RefundNotExpired
+    );
+
+    // CHECKED lamport mutation: sol_vault → depositor.
+    // BPF release mode silently WRAPS on `+=`/`-=` for u64 — compute all new
+    // values with checked ops and enforce the rent-reserve guard FIRST, then assign.
+    let vault_ai = ctx.accounts.sol_vault.to_account_info();
+    let new_vault = vault_ai.lamports()
+      .checked_sub(available)
+      .ok_or(VaultError::MathOverflow)?;
+    let rent_min = Rent::get()?.minimum_balance(vault_ai.data_len());
+    require!(new_vault >= rent_min, VaultError::RentReserveViolation);
+    let dep_ai = ctx.accounts.depositor.to_account_info();
+    let new_dep = dep_ai.lamports()
+      .checked_add(available)
+      .ok_or(VaultError::MathOverflow)?;
+    **vault_ai.try_borrow_mut_lamports()? = new_vault;
+    **dep_ai.try_borrow_mut_lamports()? = new_dep;
+
+    // Zero out the refunded (unlocked) portion; locked_amount is preserved.
+    record.balance = record.locked_amount;
+
+    msg!("Refunded {} lamports (native SOL)", available);
+    Ok(())
+  }
+
+  /// Authority-signed refund of available (unlocked) native SOL to the original depositor.
+  /// Mirrors `refund_sol` exactly except:
+  ///   - the authority signs instead of the depositor,
+  ///   - `config` carries `has_one = authority` (so wrong authority → Unauthorized),
+  ///   - the vault MUST NOT be paused (authority cannot bypass the emergency gate),
+  ///   - `depositor` is a non-signer SystemAccount (lamport destination + seed source).
+  /// Timeout is still enforced on-chain — authority does NOT bypass the cooldown.
+  pub fn authority_refund_sol(ctx: Context<AuthorityRefundSol>) -> Result<()> {
+    require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
+
+    let record = &mut ctx.accounts.deposit_record;
+    let available = record.balance
+      .checked_sub(record.locked_amount)
+      .ok_or(VaultError::MathOverflow)?;
+    require!(available > 0, VaultError::NothingToRefund);
+
+    // Enforce refund timeout — authority does NOT bypass the cooldown
+    let now = Clock::get()?.unix_timestamp;
+    let elapsed = now
+      .checked_sub(record.last_deposit_at)
+      .ok_or(VaultError::MathOverflow)?;
+    require!(
+      elapsed >= ctx.accounts.config.refund_timeout,
+      VaultError::RefundNotExpired
+    );
+
+    // CHECKED lamport mutation: sol_vault → depositor (identical pattern to refund_sol).
+    let vault_ai = ctx.accounts.sol_vault.to_account_info();
+    let new_vault = vault_ai.lamports()
+      .checked_sub(available)
+      .ok_or(VaultError::MathOverflow)?;
+    let rent_min = Rent::get()?.minimum_balance(vault_ai.data_len());
+    require!(new_vault >= rent_min, VaultError::RentReserveViolation);
+    let dep_ai = ctx.accounts.depositor.to_account_info();
+    let new_dep = dep_ai.lamports()
+      .checked_add(available)
+      .ok_or(VaultError::MathOverflow)?;
+    **vault_ai.try_borrow_mut_lamports()? = new_vault;
+    **dep_ai.try_borrow_mut_lamports()? = new_dep;
+
+    // Zero out the refunded (unlocked) portion; locked_amount is preserved.
+    record.balance = record.locked_amount;
+
+    msg!("Authority refunded {} lamports (native SOL) to {}", available, ctx.accounts.depositor.key());
+    Ok(())
+  }
+
   /// Authority-only: collect accumulated fees from the fee token account.
   /// Pass amount=0 to collect all available fees.
   pub fn collect_fee(ctx: Context<CollectFee>, amount: u64) -> Result<()> {
@@ -1073,6 +1164,76 @@ pub struct AuthorityRefund<'info> {
   pub authority: Signer<'info>,
 
   pub token_program: Interface<'info, TokenInterface>,
+}
+
+/// Native-SOL self-refund context. Depositor is the signer and the lamport
+/// destination. The `deposit_record` PDA is derived from the depositor's pubkey
+/// and NATIVE_SOL_MINT; `has_one = depositor` guards that only the original
+/// depositor can reclaim their own balance.
+#[derive(Accounts)]
+pub struct RefundSol<'info> {
+  #[account(
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  #[account(
+    mut,
+    seeds = [DEPOSIT_RECORD_SEED, depositor.key().as_ref(), NATIVE_SOL_MINT.as_ref()],
+    bump = deposit_record.bump,
+    has_one = depositor @ VaultError::Unauthorized,
+  )]
+  pub deposit_record: Account<'info, DepositRecord>,
+
+  #[account(
+    mut,
+    seeds = [VAULT_SOL_SEED],
+    bump = sol_vault.bump,
+  )]
+  pub sol_vault: Account<'info, SolVault>,
+
+  #[account(mut)]
+  pub depositor: Signer<'info>,
+}
+
+/// Authority-signed native-SOL refund context. The authority signs on behalf of
+/// the depositor (e.g., SENTINEL autonomous refunds). The depositor is a
+/// non-signer SystemAccount that receives the lamports — `has_one = depositor`
+/// on the `deposit_record` ensures the principal always returns to the original
+/// depositor, NOT to any authority-chosen address. Wrong authority → Unauthorized
+/// via `has_one = authority` on `config`.
+#[derive(Accounts)]
+pub struct AuthorityRefundSol<'info> {
+  #[account(
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+    has_one = authority @ VaultError::Unauthorized,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  #[account(
+    mut,
+    seeds = [DEPOSIT_RECORD_SEED, depositor.key().as_ref(), NATIVE_SOL_MINT.as_ref()],
+    bump = deposit_record.bump,
+    has_one = depositor @ VaultError::Unauthorized,
+  )]
+  pub deposit_record: Account<'info, DepositRecord>,
+
+  #[account(
+    mut,
+    seeds = [VAULT_SOL_SEED],
+    bump = sol_vault.bump,
+  )]
+  pub sol_vault: Account<'info, SolVault>,
+
+  /// Non-signer lamport destination + seed source for the deposit_record PDA.
+  /// Validated by the deposit_record.has_one constraint above.
+  #[account(mut)]
+  pub depositor: SystemAccount<'info>,
+
+  #[account(mut)]
+  pub authority: Signer<'info>,
 }
 
 #[derive(Accounts)]
