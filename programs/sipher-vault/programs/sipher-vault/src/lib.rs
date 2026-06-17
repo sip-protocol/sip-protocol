@@ -15,6 +15,10 @@
 
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program;
+use anchor_spl::token_2022::spl_token_2022::{
+  extension::{BaseStateWithExtensions, ExtensionType, StateWithExtensions},
+  state::Mint as Token2022Mint,
+};
 use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface, TransferChecked};
 
 pub mod constants;
@@ -69,7 +73,34 @@ pub mod sipher_vault {
 
   /// Create the vault token PDA for a given mint.
   /// Anyone can call this (first depositor pays rent). Must be called before deposit.
+  ///
+  /// For Token-2022 mints, a fail-closed extension allowlist is enforced.
+  /// Only MetadataPointer, TokenMetadata, and InterestBearingConfig are allowed.
+  /// Any other extension (TransferFeeConfig, PermanentDelegate, TransferHook,
+  /// NonTransferable, DefaultAccountState, MintCloseAuthority, etc.) is rejected
+  /// with UnsupportedMintExtension to protect the vault's transfer invariants.
   pub fn create_vault_token(ctx: Context<CreateVaultToken>) -> Result<()> {
+    // ── Token-2022 extension allowlist (fail-closed) ──────────────────────
+    // If the mint belongs to the Token-2022 program, inspect its extensions.
+    // Classic SPL mints are owned by TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA;
+    // StateWithExtensions::unpack will return Err on classic mint layout (no
+    // extension TLV area) so the if-let silently skips the check for classic mints.
+    {
+      let mint_ai = ctx.accounts.token_mint.to_account_info();
+      let data = mint_ai.try_borrow_data()?;
+      if let Ok(state) = StateWithExtensions::<Token2022Mint>::unpack(&data) {
+        for ext in state.get_extension_types()? {
+          let allowed = matches!(
+            ext,
+            ExtensionType::MetadataPointer
+              | ExtensionType::TokenMetadata
+              | ExtensionType::InterestBearingConfig
+          );
+          require!(allowed, VaultError::UnsupportedMintExtension);
+        }
+      }
+    }
+
     msg!(
       "Vault token PDA created for mint {}",
       ctx.accounts.token_mint.key()

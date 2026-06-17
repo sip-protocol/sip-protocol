@@ -257,10 +257,14 @@ export function ixInitialize(
  *   payer        mut, signer
  *   token_program
  *   system_program
+ *
+ * @param tokenProgram - Defaults to TOKEN_PROGRAM_ID (classic SPL).
+ *   Pass TOKEN_2022_PROGRAM_ID for Token-2022 mints.
  */
 export function ixCreateVaultToken(
   tokenMint: PublicKey,
   payer: PublicKey,
+  tokenProgram: PublicKey = TOKEN_PROGRAM_ID,
 ): TransactionInstruction {
   const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
   const [vaultTokenPda] = getVaultTokenPDA(tokenMint, VAULT_PROGRAM_ID)
@@ -272,7 +276,7 @@ export function ixCreateVaultToken(
       { pubkey: vaultTokenPda, isSigner: false, isWritable: true },
       { pubkey: tokenMint, isSigner: false, isWritable: false },
       { pubkey: payer, isSigner: true, isWritable: true },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: tokenProgram, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
     data: disc('create_vault_token'),
