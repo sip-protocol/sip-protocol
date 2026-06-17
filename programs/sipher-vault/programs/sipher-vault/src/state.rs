@@ -23,3 +23,15 @@ pub struct DepositRecord {
   pub last_deposit_at: i64,
   pub bump: u8,
 }
+
+#[account]
+#[derive(InitSpace)]
+pub struct SolVault {
+  pub bump: u8,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct SolFee {
+  pub bump: u8,
+}

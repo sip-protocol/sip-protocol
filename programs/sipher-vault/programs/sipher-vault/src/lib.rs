@@ -253,6 +253,7 @@ pub mod sipher_vault {
     // 6. Emit event
     emit!(VaultWithdrawEvent {
       depositor: ctx.accounts.depositor.key(),
+      mint: ctx.accounts.token_mint.key(),
       stealth_recipient: stealth_pubkey,
       amount_commitment,
       ephemeral_pubkey,
@@ -732,6 +733,7 @@ pub struct SetPaused<'info> {
 #[event]
 pub struct VaultWithdrawEvent {
   pub depositor: Pubkey,
+  pub mint: Pubkey,
   pub stealth_recipient: Pubkey,
   pub amount_commitment: [u8; 33],
   pub ephemeral_pubkey: [u8; 33],
