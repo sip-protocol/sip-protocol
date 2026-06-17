@@ -2,7 +2,7 @@
   "name": "sipher-vault-tests",
   "private": true,
   "scripts": {
-    "test": "ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
+    "test": "ts-mocha -p ./tsconfig.json -t 1000000 \"tests/sipher-vault/{10,11,12}-*.ts\""
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",

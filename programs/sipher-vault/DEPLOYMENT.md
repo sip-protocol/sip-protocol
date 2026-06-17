@@ -26,6 +26,41 @@ Deployment records and procedures for the `sipher_vault` Anchor program — a pr
 > the on-chain SBF binary is unaffected. The IDL artifact at `target/idl/sipher_vault.json`
 > is regenerated from earlier compatible host toolchains.
 
+## Instruction Inventory
+
+The program currently exposes **15 instructions** (9 original + 6 native-SOL track added in the universal-asset feature).
+
+### Token-track instructions (original 9)
+
+| # | Instruction | Description |
+|---|-------------|-------------|
+| 1 | `initialize` | Create `VaultConfig` PDA; set fee_bps, refund_timeout, authority |
+| 2 | `create_vault_token` | Create the per-mint `vault_token` PDA (classic SPL + Token-2022, fail-closed extension allowlist). Must be called before `deposit` |
+| 3 | `create_fee_token` | Create the per-mint `fee_token` PDA. Separate instruction — NOT invoked by `create_vault_token`; must be called before the first `withdraw_private` |
+| 4 | `deposit` | Deposit SPL tokens from depositor ATA into `vault_token` PDA |
+| 5 | `withdraw_private` | Deduct from `deposit_record`, pay fee → `fee_token`, CPI `sip_privacy::create_transfer_announcement` to stealth ATA |
+| 6 | `refund` | Return tokens after `refund_timeout` has elapsed (depositor-signed) |
+| 7 | `authority_refund` | Emergency authority-gated refund (bypasses timeout) |
+| 8 | `collect_fee` | Sweep accumulated `fee_token` balance to authority ATA |
+| 9 | `set_paused` | Authority-gated pause/unpause; emits `VaultPausedEvent` |
+
+### Native-SOL track instructions (added in universal-asset feature)
+
+| # | Instruction | Description |
+|---|-------------|-------------|
+| 10 | `create_sol_vault` | Init singleton `SolVault` PDA (`b"vault_sol"`) + `SolFee` PDA (`b"fee_sol"`) |
+| 11 | `deposit_sol` | Transfer lamports from depositor → `SolVault` PDA via `system_program::transfer`; upsert `DepositRecord` keyed by `NATIVE_SOL_MINT` sentinel |
+| 12 | `withdraw_private_sol` | Debit `deposit_record`, pay fee → `SolFee`, checked-lamport transfer to stealth system account; CPI `sip_privacy::create_transfer_announcement`; rent-reserve guard on `SolVault` |
+| 13 | `refund_sol` | Return lamports after `refund_timeout` (depositor-signed); checked-lamport transfer from `SolVault` |
+| 14 | `authority_refund_sol` | Emergency authority-gated SOL refund |
+| 15 | `collect_fee_sol` | Sweep `SolFee` lamports to authority; preserves rent-exempt floor |
+
+> **SDK/relayer integrators:** native `withdraw_private_sol` sends lamports to a stealth system account. If
+> the stealth account is freshly created (zero balance), the receiving transaction must leave it at or above
+> the rent-exempt minimum (currently ~890,880 lamports for a 0-byte account). Pre-fund the stealth account
+> or ensure the withdrawn amount ≥ rent-exempt minimum; the Solana runtime will reject the transaction
+> otherwise.
+
 ## Devnet Deployments
 
 ### Devnet — Initial Deploy (2026-03-31)
@@ -81,11 +116,50 @@ emergency lever works before mainnet (PR-B1 Risk B2/B3).
 - Verified script: `programs/sipher-vault/scripts/set-paused.ts`
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
+### Devnet — Universal-Asset Upgrade (PENDING — to be filled in by RECTOR)
+
+Universal-asset feature branch adds native SOL support (6 new instructions, 9 → 15 total).
+Binary: `492536` bytes (Δ from `383144` — ~107 KB for two new account structs + 6 instruction handlers).
+
+- **Upgrade TX:** `[TODO — run scripts/upgrade-devnet.ts and paste TX signature here]`
+- **New deployed slot:** `[TODO — paste slot from upgrade-devnet.ts output]`
+- **SOL vault init TX:** `[TODO — run scripts/create-sol-vault.ts after redeploy and paste TX here]`
+- **SolVault PDA:** `[TODO — paste from create-sol-vault.ts output]`
+- **SolFee PDA:** `[TODO — paste from create-sol-vault.ts output]`
+- Binary size: `492536` bytes
+- Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
+
 ## Mainnet Deployments
 
-_Not deployed. See Phase 4b plan for mainnet rollout sequencing._
+_Not deployed. Mainnet deploy is gated on the self-audit completing (B6) — out of scope for this feature branch._
 
 ## Procedures
+
+### Running the Bankrun Test Suite
+
+The test suite is IDL-free (solana-bankrun raw-ix). It requires the `sip_privacy.so` fixture for CPI tests:
+
+```bash
+# Step 1: Build sip_privacy to get its .so (from the repo root or programs/sip-privacy)
+cd programs/sip-privacy
+anchor build --no-idl
+cp target/deploy/sip_privacy.so ../sipher-vault/tests/fixtures/sip_privacy.so
+cd ../sipher-vault
+```
+
+Then run the suite:
+
+```bash
+# All three test files (10 = token-track, 11 = SOL-track, 12 = cross-track)
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/{10,11,12}-*.ts'
+
+# Or individually:
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/10-*.ts'
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/11-*.ts'
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/12-*.ts'
+```
+
+Expected: **25 passing**, 0 failing.
 
 ### Devnet Upgrade
 
@@ -102,6 +176,19 @@ The script verifies the program keypair, runs `anchor build --no-idl` (increment
 preserves the IDL artifact), deploys via `BPFLoaderUpgradeable`, and prints the new
 deployed slot. Idempotent — running again redeploys.
 
+### Initialize Native SOL Vault on Devnet
+
+After the universal-asset binary is deployed, run:
+
+```bash
+cd programs/sipher-vault
+ANCHOR_WALLET=~/Documents/secret/solana-devnet.json \
+ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
+pnpm exec tsx scripts/create-sol-vault.ts
+```
+
+This creates the `SolVault` and `SolFee` PDAs. Idempotent — safe to re-run.
+
 ### Mainnet Upgrade
 
-_TODO: add `upgrade-mainnet.ts` in PR-B1._
+_TODO: add `upgrade-mainnet.ts` in PR-B1. Mainnet deploy is B6-gated (self-audit)._

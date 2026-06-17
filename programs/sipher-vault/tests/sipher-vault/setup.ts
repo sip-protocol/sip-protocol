@@ -16,6 +16,8 @@ export const VAULT_CONFIG_SEED = Buffer.from('vault_config')
 export const DEPOSIT_RECORD_SEED = Buffer.from('deposit_record')
 export const VAULT_TOKEN_SEED = Buffer.from('vault_token')
 export const FEE_TOKEN_SEED = Buffer.from('fee_token')
+export const VAULT_SOL_SEED = Buffer.from('vault_sol')
+export const FEE_SOL_SEED = Buffer.from('fee_sol')
 
 // SIP Privacy program seeds (must match sip_privacy constants)
 export const SIP_CONFIG_SEED = Buffer.from('config')
@@ -91,6 +93,22 @@ export function getSipConfigPDA(): [PublicKey, number] {
     [SIP_CONFIG_SEED],
     SIP_PRIVACY_PROGRAM_ID,
   )
+}
+
+/**
+ * Derive the native-SOL vault PDA.
+ * Seeds: [b"vault_sol"]
+ */
+export function getSolVaultPDA(programId: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync([VAULT_SOL_SEED], programId)
+}
+
+/**
+ * Derive the native-SOL fee PDA.
+ * Seeds: [b"fee_sol"]
+ */
+export function getSolFeePDA(programId: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync([FEE_SOL_SEED], programId)
 }
 
 /**

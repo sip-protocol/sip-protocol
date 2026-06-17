@@ -4,3 +4,6 @@ target/
 
 # Node
 node_modules/
+
+# Compiled program fixtures (large binaries, rebuilt from source)
+tests/fixtures/*.so
