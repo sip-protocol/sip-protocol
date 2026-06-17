@@ -13,10 +13,18 @@
 //   - it(): rejects zero-amount deposit
 
 import { assert } from 'chai'
-import { Keypair, PublicKey } from '@solana/web3.js'
+import { Keypair, PublicKey, SystemProgram } from '@solana/web3.js'
 import { ProgramTestContext } from 'solana-bankrun'
+import { randomBytes } from 'crypto'
 
-import { getSolVaultPDA, getSolFeePDA, getDepositRecordPDA, getVaultConfigPDA } from './setup'
+import {
+  getSolVaultPDA,
+  getSolFeePDA,
+  getDepositRecordPDA,
+  getVaultConfigPDA,
+  getSipConfigPDA,
+  getSipTransferRecordPDA,
+} from './setup'
 
 import {
   VAULT_PROGRAM_ID,
@@ -26,9 +34,12 @@ import {
   ixInitialize,
   ixCreateSolVault,
   ixDepositSol,
+  ixWithdrawPrivateSol,
+  ixSipPrivacyInitialize,
   getAccountData,
   parseDepositRecord,
   parseVaultConfig,
+  parseSipConfig,
 } from './bankrun-helpers'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -179,5 +190,289 @@ describe('12 · native SOL vault track', function () {
         `Expected ZeroDeposit (${ZERO_DEPOSIT_CODE} / 0x${ZERO_DEPOSIT_HEX}), got: ${err?.message ?? String(err)}`,
       )
     }
+  })
+
+  // ── Task 7: withdraw_private_sol ─────────────────────────────────────────
+  //
+  // High-risk: moves lamports OUT of the program-owned sol_vault PDA via checked
+  // lamport mutation. These tests use a dedicated depositor (`wd`) funded from the
+  // bankrun payer so they are independent of the deposit_sol tests above (which
+  // key their DepositRecord to `authority`). sip_privacy's Config PDA is NOT
+  // initialized by startVault(), so the first withdraw test bootstraps it (bankrun
+  // deploys sip_privacy.so but does not run its `initialize`).
+
+  // Anchor custom errors start at 6000. Enum order in errors.rs:
+  //   ProgramPaused=6000, Unauthorized=6001, InsufficientBalance=6002,
+  //   MathOverflow=6003, ZeroDeposit=6004, … , RentReserveViolation=6013.
+  const INSUFFICIENT_BALANCE_CODE = 6002
+  const INSUFFICIENT_BALANCE_HEX = INSUFFICIENT_BALANCE_CODE.toString(16) // '1772'
+  const RENT_RESERVE_CODE = 6013
+  const RENT_RESERVE_HEX = RENT_RESERVE_CODE.toString(16) // '177d'
+
+  const FEE_DENOM = 10_000n
+
+  // Dedicated withdraw depositor — funded once in a guarded helper below.
+  const wd = Keypair.generate()
+  let sipPrivacyInitialized = false
+
+  // Fund `wd` from the bankrun payer and (once) initialize sip_privacy Config.
+  async function ensureWithdrawSetup(): Promise<void> {
+    if (!sipPrivacyInitialized) {
+      // Bootstrap sip_privacy Config (CPI target for the announcement).
+      await sendIx(ctx, [
+        ixSipPrivacyInitialize(authority.publicKey, 50), // 50 bps = sip_privacy default
+      ], [authority])
+      // Fund the dedicated withdraw depositor (rent for DepositRecord + deposit + tx fees).
+      await sendIx(ctx, [
+        SystemProgram.transfer({
+          fromPubkey: authority.publicKey,
+          toPubkey: wd.publicKey,
+          lamports: 50_000_000, // generous: covers rent + deposits across all wd tests
+        }),
+      ], [authority])
+      sipPrivacyInitialized = true
+    }
+  }
+
+  // Build deterministic-but-valid announcement params. sip_privacy validates the
+  // commitment prefix is 0x02/0x03, so honor that (the 33-byte commitment is a
+  // compressed-point shape; the value is otherwise opaque to the program).
+  function announceParams() {
+    return {
+      amountCommitment: Buffer.concat([Buffer.from([0x02]), randomBytes(32)]), // 33 bytes
+      ephemeralPubkey: Buffer.concat([Buffer.from([0x02]), randomBytes(32)]),  // 33 bytes
+      viewingKeyHash: randomBytes(32),                                          // 32 bytes
+      encryptedAmount: Buffer.from([]),                                         // empty
+      proof: Buffer.from([]),                                                   // empty (stub-verified)
+    }
+  }
+
+  it('withdraw_private_sol → net to stealth, fee to sol_fee, vault debited, TransferRecord created', async function () {
+    await ensureWithdrawSetup()
+
+    const depositAmount = 1_000_000n
+    const withdrawAmount = 500_000n
+    const expectedFee = (withdrawAmount * BigInt(FEE_BPS)) / FEE_DENOM // floor → 500
+    const expectedNet = withdrawAmount - expectedFee                   // 499_500
+
+    // Deposit 1_000_000 from the dedicated withdraw depositor.
+    await sendIx(ctx, [ixDepositSol(wd.publicKey, depositAmount)], [wd])
+
+    // Snapshot sol_vault + sol_fee lamports before the withdrawal.
+    const solVaultBefore = BigInt((await ctx.banksClient.getAccount(solVaultPda))!.lamports)
+    const solFeeBefore = BigInt((await ctx.banksClient.getAccount(solFeePda))!.lamports)
+
+    // Stealth recipient. The on-chain program adds NO minimum-payout floor (spec
+    // §8), but the Solana runtime's post-transaction rent check rejects a tx that
+    // leaves a freshly-funded system account below the rent-exempt minimum
+    // (≈890_880 lamports for 0 data). A real stealth recipient already exists
+    // (created/funded by the relayer), so we pre-fund it to rent-exemption and
+    // then assert the *delta* from the withdrawal is exactly `net`.
+    const rent = await ctx.banksClient.getRent()
+    const stealthRentMin = rent.minimumBalance(0n)
+    const stealth = Keypair.generate().publicKey
+    await sendIx(ctx, [
+      SystemProgram.transfer({
+        fromPubkey: authority.publicKey,
+        toPubkey: stealth,
+        lamports: Number(stealthRentMin),
+      }),
+    ], [authority])
+    const stealthBefore = BigInt((await ctx.banksClient.getAccount(stealth))!.lamports)
+    assert.strictEqual(stealthBefore, stealthRentMin, 'stealth should be pre-funded to rent-exempt min')
+
+    // Derive the sip_privacy TransferRecord PDA from current total_transfers.
+    const [sipConfigPda] = getSipConfigPDA()
+    const { totalTransfers } = parseSipConfig(await getAccountData(ctx, sipConfigPda))
+    const [sipTransferRecordPda] = getSipTransferRecordPDA(wd.publicKey, totalTransfers)
+
+    const p = announceParams()
+    await sendIx(ctx, [
+      ixWithdrawPrivateSol(
+        wd.publicKey,
+        stealth,
+        sipTransferRecordPda,
+        withdrawAmount,
+        p.amountCommitment,
+        stealth, // stealth_pubkey arg == the recipient account here
+        p.ephemeralPubkey,
+        p.viewingKeyHash,
+        p.encryptedAmount,
+        p.proof,
+      ),
+    ], [wd])
+
+    // ── stealth received exactly net ──
+    const stealthAfter = BigInt((await ctx.banksClient.getAccount(stealth))!.lamports)
+    assert.strictEqual(
+      stealthAfter - BigInt(stealthBefore),
+      expectedNet,
+      `stealth lamport delta: expected +${expectedNet}, got +${stealthAfter - BigInt(stealthBefore)}`,
+    )
+
+    // ── sol_fee received exactly fee ──
+    const solFeeAfter = BigInt((await ctx.banksClient.getAccount(solFeePda))!.lamports)
+    assert.strictEqual(
+      solFeeAfter - solFeeBefore,
+      expectedFee,
+      `sol_fee lamport delta: expected +${expectedFee}, got +${solFeeAfter - solFeeBefore}`,
+    )
+
+    // ── sol_vault debited by the full gross amount ──
+    const solVaultAfter = BigInt((await ctx.banksClient.getAccount(solVaultPda))!.lamports)
+    assert.strictEqual(
+      solVaultBefore - solVaultAfter,
+      withdrawAmount,
+      `sol_vault lamport delta: expected -${withdrawAmount}, got -${solVaultBefore - solVaultAfter}`,
+    )
+
+    // ── DepositRecord.balance reduced by the gross amount ──
+    const [recordPda] = getDepositRecordPDA(wd.publicKey, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+    const record = parseDepositRecord(await getAccountData(ctx, recordPda))
+    assert.strictEqual(
+      record.balance,
+      depositAmount - withdrawAmount, // 500_000
+      `DepositRecord.balance: expected ${depositAmount - withdrawAmount}, got ${record.balance}`,
+    )
+
+    // ── sip_privacy TransferRecord PDA created by the announcement CPI ──
+    const transferRecord = await ctx.banksClient.getAccount(sipTransferRecordPda)
+    assert.ok(transferRecord, 'sip_privacy TransferRecord PDA not created — announcement CPI failed')
+    assert.ok(
+      new PublicKey(transferRecord.owner).equals(
+        new PublicKey('S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at'),
+      ),
+      'TransferRecord owner should be the sip_privacy program',
+    )
+  })
+
+  it('withdraw_private_sol → rejects withdrawal exceeding available (InsufficientBalance 6002 / 0x1772)', async function () {
+    await ensureWithdrawSetup()
+
+    // After the happy path, wd's record balance is 500_000. Ask for more.
+    const [recordPda] = getDepositRecordPDA(wd.publicKey, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+    const record = parseDepositRecord(await getAccountData(ctx, recordPda))
+    const overAsk = record.balance + 1n // 1 lamport above available
+
+    const [sipConfigPda] = getSipConfigPDA()
+    const { totalTransfers } = parseSipConfig(await getAccountData(ctx, sipConfigPda))
+    const [sipTransferRecordPda] = getSipTransferRecordPDA(wd.publicKey, totalTransfers)
+
+    const stealth = Keypair.generate().publicKey
+    const p = announceParams()
+
+    try {
+      await sendIx(ctx, [
+        ixWithdrawPrivateSol(
+          wd.publicKey, stealth, sipTransferRecordPda, overAsk,
+          p.amountCommitment, stealth, p.ephemeralPubkey, p.viewingKeyHash,
+          p.encryptedAmount, p.proof,
+        ),
+      ], [wd])
+      assert.fail('Expected InsufficientBalance error but transaction succeeded')
+    } catch (e: unknown) {
+      const err = e as Error
+      if (err.message && err.message.includes('Expected InsufficientBalance error but transaction succeeded')) {
+        throw err
+      }
+      const msg = (err?.message ?? String(err)).toLowerCase()
+      const matchesCode =
+        msg.includes(String(INSUFFICIENT_BALANCE_CODE)) ||
+        msg.includes(INSUFFICIENT_BALANCE_HEX) ||
+        msg.includes('insufficientbalance')
+      assert.ok(
+        matchesCode,
+        `Expected InsufficientBalance (${INSUFFICIENT_BALANCE_CODE} / 0x${INSUFFICIENT_BALANCE_HEX}), got: ${err?.message ?? String(err)}`,
+      )
+    }
+  })
+
+  it('withdraw_private_sol → rent guard fires when vault lamports are desynced below backing (RentReserveViolation 6013 / 0x177d)', async function () {
+    await ensureWithdrawSetup()
+
+    // Use a FRESH depositor so `available` is large and unrelated to wd's balance.
+    const rentDepositor = Keypair.generate()
+    await sendIx(ctx, [
+      SystemProgram.transfer({
+        fromPubkey: authority.publicKey,
+        toPubkey: rentDepositor.publicKey,
+        lamports: 10_000_000,
+      }),
+    ], [authority])
+
+    // (a) Deposit 1_000_000 so the depositor's available balance ≫ the tiny withdraw.
+    await sendIx(ctx, [ixDepositSol(rentDepositor.publicKey, 1_000_000n)], [rentDepositor])
+
+    // (b) Read the SolVault account, compute its rent-exempt minimum, then desync:
+    //     lower the vault's lamports to (rent_min + 100) while preserving its real
+    //     data + owner. This makes the *backing* lamports inconsistent with the
+    //     accounting (Σ balances), so a withdrawal that the balance check allows
+    //     can still breach the rent floor.
+    const solVaultAcct = (await ctx.banksClient.getAccount(solVaultPda))!
+    const rent = await ctx.banksClient.getRent()
+    const rentMin = rent.minimumBalance(BigInt(solVaultAcct.data.length)) // data = 8 + 1 = 9 bytes
+
+    // Snapshot the real account to restore afterward (keep the file order-independent).
+    const originalLamports = BigInt(solVaultAcct.lamports)
+    const originalData = Buffer.from(solVaultAcct.data)
+    const originalOwner = new PublicKey(solVaultAcct.owner)
+    const originalRentEpoch = solVaultAcct.rentEpoch
+    const originalExecutable = solVaultAcct.executable
+
+    ctx.setAccount(solVaultPda, {
+      lamports: Number(rentMin + 100n),
+      data: originalData,
+      owner: originalOwner,
+      executable: originalExecutable,
+      rentEpoch: originalRentEpoch,
+    })
+
+    // (c) Withdraw 200 lamports:
+    //   available (1_000_000) ≥ 200             → passes InsufficientBalance check
+    //   checked_sub(rentMin+100 − 200) ≥ 0      → no MathOverflow (rentMin ≫ 200)
+    //   (rentMin+100 − 200) < rentMin           → RentReserveViolation fires
+    const [sipConfigPda] = getSipConfigPDA()
+    const { totalTransfers } = parseSipConfig(await getAccountData(ctx, sipConfigPda))
+    const [sipTransferRecordPda] = getSipTransferRecordPDA(rentDepositor.publicKey, totalTransfers)
+
+    const stealth = Keypair.generate().publicKey
+    const p = announceParams()
+
+    let threw = false
+    try {
+      await sendIx(ctx, [
+        ixWithdrawPrivateSol(
+          rentDepositor.publicKey, stealth, sipTransferRecordPda, 200n,
+          p.amountCommitment, stealth, p.ephemeralPubkey, p.viewingKeyHash,
+          p.encryptedAmount, p.proof,
+        ),
+      ], [rentDepositor])
+      assert.fail('Expected RentReserveViolation error but transaction succeeded')
+    } catch (e: unknown) {
+      const err = e as Error
+      if (err.message && err.message.includes('Expected RentReserveViolation error but transaction succeeded')) {
+        throw err
+      }
+      threw = true
+      const msg = (err?.message ?? String(err)).toLowerCase()
+      const matchesCode =
+        msg.includes(String(RENT_RESERVE_CODE)) ||
+        msg.includes(RENT_RESERVE_HEX) ||
+        msg.includes('rentreserveviolation')
+      assert.ok(
+        matchesCode,
+        `Expected RentReserveViolation (${RENT_RESERVE_CODE} / 0x${RENT_RESERVE_HEX}), got: ${err?.message ?? String(err)}`,
+      )
+    } finally {
+      // Restore the real sol_vault account so later test files / runs are unaffected.
+      ctx.setAccount(solVaultPda, {
+        lamports: Number(originalLamports),
+        data: originalData,
+        owner: originalOwner,
+        executable: originalExecutable,
+        rentEpoch: originalRentEpoch,
+      })
+    }
+    assert.ok(threw, 'rent-guard test did not throw')
   })
 })

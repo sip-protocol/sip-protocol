@@ -227,6 +227,7 @@ pub mod sipher_vault {
   /// 3. Transfer net amount to stealth token account
   /// 4. Transfer fee to fee token account
   /// 5. Emit VaultWithdrawEvent
+  #[allow(clippy::too_many_arguments)]
   pub fn withdraw_private(
     ctx: Context<WithdrawPrivate>,
     amount: u64,
@@ -324,6 +325,116 @@ pub mod sipher_vault {
     });
 
     msg!("Private withdrawal: {} net, {} fee", net_amount, fee);
+    Ok(())
+  }
+
+  /// Withdraw native SOL privately to a stealth address. The native-track analog
+  /// of `withdraw_private`. Debit-first pattern, then a **checked lamport mutation**
+  /// of the program-owned `SolVault` PDA (no system CPI — the source is PDA-owned):
+  ///   1. Guards: not paused, amount > 0.
+  ///   2. Debit-first: reduce `DepositRecord.balance` before moving any lamports.
+  ///   3. Fee split: `fee = amount · fee_bps / 10_000`, `net = amount − fee`.
+  ///   4. Checked lamport mutation: compute every new balance with checked ops
+  ///      (BPF release WRAPS on `+=`/`-=`, which would be a vault drain), enforce
+  ///      the rent-reserve guard on the vault debit, THEN assign.
+  ///   5. CPI `create_transfer_announcement` (shared helper, mint = NATIVE_SOL_MINT).
+  ///   6. Emit `VaultWithdrawEvent` (mint = NATIVE_SOL_MINT).
+  ///
+  /// `encrypted_amount` / `proof` mirror the token signature — carried for
+  /// announcement parity + off-chain verification; format-checked, unused on-chain.
+  #[allow(clippy::too_many_arguments)]
+  pub fn withdraw_private_sol(
+    ctx: Context<WithdrawPrivateSol>,
+    amount: u64,
+    amount_commitment: [u8; 33],
+    stealth_pubkey: Pubkey,
+    ephemeral_pubkey: [u8; 33],
+    viewing_key_hash: [u8; 32],
+    _encrypted_amount: Vec<u8>,
+    _proof: Vec<u8>,
+  ) -> Result<()> {
+    require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
+    require!(amount > 0, VaultError::ZeroDeposit);
+
+    // 1. Debit-first: reduce balance before any lamport movement.
+    let record = &mut ctx.accounts.deposit_record;
+    let available = record.balance
+      .checked_sub(record.locked_amount)
+      .ok_or(VaultError::MathOverflow)?;
+    require!(available >= amount, VaultError::InsufficientBalance);
+
+    record.balance = record.balance
+      .checked_sub(amount)
+      .ok_or(VaultError::MathOverflow)?;
+
+    // 2. Compute fee + net (checked).
+    let fee = (amount as u128)
+      .checked_mul(ctx.accounts.config.fee_bps as u128)
+      .ok_or(VaultError::MathOverflow)?
+      .checked_div(10_000)
+      .ok_or(VaultError::MathOverflow)? as u64;
+    let net = amount
+      .checked_sub(fee)
+      .ok_or(VaultError::MathOverflow)?;
+
+    // 3. CHECKED lamport mutation — the load-bearing safety code.
+    //    BPF release mode silently WRAPS on `+=`/`-=` for u64, so a wrap here
+    //    would be a vault drain. Compute every new value with checked ops and the
+    //    rent-reserve guard FIRST, then assign via try_borrow_mut_lamports. Never
+    //    use `**x -= n` / `**x += n` on these accounts.
+    let vault_ai = ctx.accounts.sol_vault.to_account_info();
+    let stealth_ai = ctx.accounts.stealth.to_account_info();
+    let fee_ai = ctx.accounts.sol_fee.to_account_info();
+
+    let new_vault = vault_ai.lamports()
+      .checked_sub(amount)
+      .ok_or(VaultError::MathOverflow)?;
+    // Rent-reserve guard: the SolVault must never be drained below its own
+    // rent-exempt minimum. Under correct accounting the reserve sits beneath all
+    // depositor balances and is never reached; this is a fail-safe.
+    let rent_min = Rent::get()?.minimum_balance(vault_ai.data_len());
+    require!(new_vault >= rent_min, VaultError::RentReserveViolation);
+
+    let new_stealth = stealth_ai.lamports()
+      .checked_add(net)
+      .ok_or(VaultError::MathOverflow)?;
+    let new_fee = fee_ai.lamports()
+      .checked_add(fee)
+      .ok_or(VaultError::MathOverflow)?;
+
+    **vault_ai.try_borrow_mut_lamports()? = new_vault;
+    **stealth_ai.try_borrow_mut_lamports()? = new_stealth;
+    **fee_ai.try_borrow_mut_lamports()? = new_fee;
+
+    // 4. CPI announcement — shared helper, mint = NATIVE_SOL_MINT.
+    emit_transfer_announcement(
+      &ctx.accounts.sip_privacy_program,
+      &ctx.accounts.sip_config,
+      &ctx.accounts.sip_transfer_record,
+      &ctx.accounts.depositor.to_account_info(),
+      &ctx.accounts.system_program.to_account_info(),
+      NATIVE_SOL_MINT,
+      &amount_commitment,
+      stealth_pubkey,
+      &ephemeral_pubkey,
+      &viewing_key_hash,
+      &_encrypted_amount,
+    )?;
+
+    // 5. Emit event.
+    emit!(VaultWithdrawEvent {
+      depositor: ctx.accounts.depositor.key(),
+      mint: NATIVE_SOL_MINT,
+      stealth_recipient: stealth_pubkey,
+      amount_commitment,
+      ephemeral_pubkey,
+      viewing_key_hash,
+      transfer_amount: net,
+      fee_amount: fee,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
+
+    msg!("Private SOL withdrawal: {} net, {} fee", net, fee);
     Ok(())
   }
 
@@ -773,6 +884,76 @@ pub struct WithdrawPrivate<'info> {
   pub depositor: Signer<'info>,
 
   pub token_program: Interface<'info, TokenInterface>,
+
+  // ── CPI accounts for sip_privacy::create_transfer_announcement ──
+
+  /// SIP Privacy program config PDA
+  /// CHECK: Validated by seeds against sip_privacy program
+  #[account(
+    mut,
+    seeds = [SIP_CONFIG_SEED],
+    bump,
+    seeds::program = SIP_PRIVACY_PROGRAM_ID,
+  )]
+  pub sip_config: AccountInfo<'info>,
+
+  /// Transfer record PDA — will be initialized by CPI to sip_privacy
+  /// CHECK: Initialized and validated by the CPI call to sip_privacy
+  #[account(mut)]
+  pub sip_transfer_record: AccountInfo<'info>,
+
+  /// SIP Privacy program for CPI
+  /// CHECK: Validated by address constraint
+  #[account(address = SIP_PRIVACY_PROGRAM_ID)]
+  pub sip_privacy_program: AccountInfo<'info>,
+
+  /// System program (needed by sip_privacy to init the transfer record)
+  pub system_program: Program<'info, System>,
+}
+
+/// Native-SOL withdrawal context. Mirrors `WithdrawPrivate` with every token
+/// account removed: the source is the lamport-holding `sol_vault` PDA, the fee
+/// sink is the `sol_fee` PDA, and the recipient is a plain writable system
+/// account (no ATA, no mint check). The three sip_privacy CPI accounts + the
+/// system program are identical to the token context.
+#[derive(Accounts)]
+pub struct WithdrawPrivateSol<'info> {
+  #[account(
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  #[account(
+    mut,
+    seeds = [DEPOSIT_RECORD_SEED, depositor.key().as_ref(), NATIVE_SOL_MINT.as_ref()],
+    bump = deposit_record.bump,
+    has_one = depositor @ VaultError::Unauthorized,
+  )]
+  pub deposit_record: Account<'info, DepositRecord>,
+
+  #[account(
+    mut,
+    seeds = [VAULT_SOL_SEED],
+    bump = sol_vault.bump,
+  )]
+  pub sol_vault: Account<'info, SolVault>,
+
+  #[account(
+    mut,
+    seeds = [FEE_SOL_SEED],
+    bump = sol_fee.bump,
+  )]
+  pub sol_fee: Account<'info, SolFee>,
+
+  /// The stealth recipient — a plain writable system account that receives the
+  /// net lamports. No mint check (native SOL); may be below the rent-exempt
+  /// minimum after a small payout (documented in the design — no fund loss).
+  #[account(mut)]
+  pub stealth: SystemAccount<'info>,
+
+  #[account(mut)]
+  pub depositor: Signer<'info>,
 
   // ── CPI accounts for sip_privacy::create_transfer_announcement ──
 

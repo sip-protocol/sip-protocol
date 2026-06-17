@@ -550,6 +550,87 @@ export function ixDepositSol(
 }
 
 /**
+ * withdraw_private_sol(
+ *   amount: u64,
+ *   amount_commitment: [u8;33],
+ *   stealth_pubkey: Pubkey,
+ *   ephemeral_pubkey: [u8;33],
+ *   viewing_key_hash: [u8;32],
+ *   encrypted_amount: Vec<u8>,
+ *   proof: Vec<u8>,
+ * )
+ *
+ * Accounts (WithdrawPrivateSol) — mirrors WithdrawPrivate minus all token accounts:
+ *   config               readonly PDA
+ *   deposit_record       mut, PDA  seeds=[…, depositor, NATIVE_SOL_MINT]
+ *   sol_vault            mut, PDA  seeds=[VAULT_SOL_SEED]
+ *   sol_fee              mut, PDA  seeds=[FEE_SOL_SEED]
+ *   stealth              mut (plain writable system account — no ATA, no mint check)
+ *   depositor            mut, signer
+ *   sip_config           mut, CPI PDA
+ *   sip_transfer_record  mut, CPI PDA (new)
+ *   sip_privacy_program  readonly
+ *   system_program
+ *
+ * Arg layout is identical to withdraw_private (the on-chain encoding is shared via
+ * emit_transfer_announcement); only the native track has no token-specific args.
+ */
+export function ixWithdrawPrivateSol(
+  depositor: PublicKey,
+  stealth: PublicKey,
+  sipTransferRecord: PublicKey,
+  amount: bigint,
+  amountCommitment: Buffer,   // 33 bytes
+  stealthPubkey: PublicKey,
+  ephemeralPubkey: Buffer,    // 33 bytes
+  viewingKeyHash: Buffer,     // 32 bytes
+  encryptedAmount: Buffer,
+  proof: Buffer,
+): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+  const [depositRecordPda] = getDepositRecordPDA(depositor, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+  const [solVaultPda] = getSolVaultPDA(VAULT_PROGRAM_ID)
+  const [solFeePda] = getSolFeePDA(VAULT_PROGRAM_ID)
+  const [sipConfigPda] = getSipConfigPDA()
+
+  // Arg layout: disc(8) + amount(8) + commitment(33) + stealth_pk(32) +
+  //             ephemeral(33) + vk_hash(32) + enc_len(4) + enc + proof_len(4) + proof
+  const encLen = Buffer.alloc(4); encLen.writeUInt32LE(encryptedAmount.length)
+  const proofLen = Buffer.alloc(4); proofLen.writeUInt32LE(proof.length)
+
+  const data = Buffer.concat([
+    disc('withdraw_private_sol'),
+    u64le(amount),
+    amountCommitment,
+    stealthPubkey.toBuffer(),
+    ephemeralPubkey,
+    viewingKeyHash,
+    encLen,
+    encryptedAmount,
+    proofLen,
+    proof,
+  ])
+
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: false },
+      { pubkey: depositRecordPda, isSigner: false, isWritable: true },
+      { pubkey: solVaultPda, isSigner: false, isWritable: true },
+      { pubkey: solFeePda, isSigner: false, isWritable: true },
+      { pubkey: stealth, isSigner: false, isWritable: true },
+      { pubkey: depositor, isSigner: true, isWritable: true },
+      // CPI accounts
+      { pubkey: sipConfigPda, isSigner: false, isWritable: true },
+      { pubkey: sipTransferRecord, isSigner: false, isWritable: true },
+      { pubkey: SIP_PRIVACY_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data,
+  })
+}
+
+/**
  * sip_privacy::initialize(fee_bps: u16) — creates the Config PDA.
  * Must be called once before any CPI from withdraw_private.
  *
