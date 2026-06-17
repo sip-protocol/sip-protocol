@@ -28,7 +28,8 @@ import {
 } from '@solana/spl-token'
 import { ProgramTestContext } from 'solana-bankrun'
 
-import { ixInitialize, ixCreateVaultToken, sendIx, startVault } from './bankrun-helpers'
+import { ixInitialize, ixCreateVaultToken, sendIx, startVault, VAULT_PROGRAM_ID } from './bankrun-helpers'
+import { getVaultTokenPDA } from './setup'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -76,7 +77,7 @@ async function assertUnsupportedMintExtension(fn: () => Promise<void>): Promise<
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('11 · Token-2022 extension allowlist (fail-closed)', function () {
-  this.timeout(180_000) // anchor build + bankrun startup
+  this.timeout(30_000)
 
   let ctx: ProgramTestContext
   let authority: Keypair
@@ -120,7 +121,16 @@ describe('11 · Token-2022 extension allowlist (fail-closed)', function () {
     await sendIx(ctx, [
       ixCreateVaultToken(mintKp.publicKey, authority.publicKey, TOKEN_2022_PROGRAM_ID),
     ], [authority])
-    // No assertion needed — no throw = pass
+
+    // Assert vault token PDA was actually created and is owned by the program
+    const [vaultTokenPda] = getVaultTokenPDA(mintKp.publicKey, VAULT_PROGRAM_ID)
+    const pdaAccount = await ctx.banksClient.getAccount(vaultTokenPda)
+    assert.isNotNull(pdaAccount, 'vault token PDA should exist after create_vault_token')
+    assert.strictEqual(
+      pdaAccount!.owner.toBase58(),
+      TOKEN_2022_PROGRAM_ID.toBase58(),
+      'vault token PDA should be owned by Token-2022 program',
+    )
   })
 
   // ── ACCEPT: MetadataPointer ─────────────────────────────────────────────
@@ -160,7 +170,16 @@ describe('11 · Token-2022 extension allowlist (fail-closed)', function () {
     await sendIx(ctx, [
       ixCreateVaultToken(mintKp.publicKey, authority.publicKey, TOKEN_2022_PROGRAM_ID),
     ], [authority])
-    // No assertion needed — no throw = pass
+
+    // Assert vault token PDA was actually created and is owned by the program
+    const [vaultTokenPda] = getVaultTokenPDA(mintKp.publicKey, VAULT_PROGRAM_ID)
+    const pdaAccount = await ctx.banksClient.getAccount(vaultTokenPda)
+    assert.isNotNull(pdaAccount, 'vault token PDA should exist after create_vault_token')
+    assert.strictEqual(
+      pdaAccount!.owner.toBase58(),
+      TOKEN_2022_PROGRAM_ID.toBase58(),
+      'vault token PDA should be owned by Token-2022 program',
+    )
   })
 
   // ── REJECT: PermanentDelegate ───────────────────────────────────────────

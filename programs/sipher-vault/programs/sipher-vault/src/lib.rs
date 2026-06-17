@@ -81,14 +81,18 @@ pub mod sipher_vault {
   /// with UnsupportedMintExtension to protect the vault's transfer invariants.
   pub fn create_vault_token(ctx: Context<CreateVaultToken>) -> Result<()> {
     // ── Token-2022 extension allowlist (fail-closed) ──────────────────────
-    // If the mint belongs to the Token-2022 program, inspect its extensions.
-    // Classic SPL mints are owned by TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA;
-    // StateWithExtensions::unpack will return Err on classic mint layout (no
-    // extension TLV area) so the if-let silently skips the check for classic mints.
+    // Gate on the mint's program owner so the allowlist is truly fail-closed:
+    // - Classic SPL mints (owned by TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA)
+    //   have no TLV extension area — skip the check entirely.
+    // - Token-2022 mints (owned by anchor_spl::token_2022::ID) MUST unpack
+    //   successfully; a malformed TLV that causes Err is treated as a rejected
+    //   mint (fail-closed), not silently accepted (fail-open).
     {
       let mint_ai = ctx.accounts.token_mint.to_account_info();
-      let data = mint_ai.try_borrow_data()?;
-      if let Ok(state) = StateWithExtensions::<Token2022Mint>::unpack(&data) {
+      if *mint_ai.owner == anchor_spl::token_2022::ID {
+        let data = mint_ai.try_borrow_data()?;
+        let state = StateWithExtensions::<Token2022Mint>::unpack(&data)
+          .map_err(|_| VaultError::UnsupportedMintExtension)?;
         for ext in state.get_extension_types()? {
           let allowed = matches!(
             ext,
