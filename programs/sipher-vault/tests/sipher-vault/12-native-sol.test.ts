@@ -526,6 +526,9 @@ describe('12 · native SOL vault track', function () {
 
     // Snapshot depositor lamports before refund (lamports live on the system account).
     const refunderBefore = BigInt((await ctx.banksClient.getAccount(refunder.publicKey))!.lamports)
+    // Snapshot sol_vault before refund — the vault side is exact (the depositor pays
+    // tx fees from their own account, but the vault debit is precisely `available`).
+    const solVaultBefore = BigInt((await ctx.banksClient.getAccount(solVaultPda))!.lamports)
 
     // Advance the clock past the refund_timeout to satisfy the on-chain check.
     const currentClock = await ctx.banksClient.getClock()
@@ -552,6 +555,14 @@ describe('12 · native SOL vault track', function () {
     assert.ok(
       lamportGain >= available - 10_000n && lamportGain <= available,
       `depositor lamport gain: expected ~+${available}, got +${lamportGain}`,
+    )
+
+    // ── sol_vault debited by exactly `available` (conservation — exact, no fee tolerance) ──
+    const solVaultAfter = BigInt((await ctx.banksClient.getAccount(solVaultPda))!.lamports)
+    assert.strictEqual(
+      solVaultBefore - solVaultAfter,
+      available,
+      `sol_vault lamport delta: expected -${available}, got -${solVaultBefore - solVaultAfter}`,
     )
 
     // ── record.balance == locked_amount (available portion zeroed) ──
@@ -635,6 +646,8 @@ describe('12 · native SOL vault track', function () {
 
     // Snapshot depositor lamports before the authority refund.
     const depositorBefore = BigInt((await ctx.banksClient.getAccount(authorityRefundDepositor.publicKey))!.lamports)
+    // Snapshot sol_vault before the refund (conservation: vault debit == depositor credit).
+    const solVaultBefore = BigInt((await ctx.banksClient.getAccount(solVaultPda))!.lamports)
 
     // Advance clock past the timeout.
     const currentClock3 = await ctx.banksClient.getClock()
@@ -659,6 +672,14 @@ describe('12 · native SOL vault track', function () {
       depositorAfter - depositorBefore,
       available3,
       `depositor lamport gain: expected +${available3}, got +${depositorAfter - depositorBefore}`,
+    )
+
+    // ── sol_vault debited by exactly the amount the depositor received (conservation) ──
+    const solVaultAfter = BigInt((await ctx.banksClient.getAccount(solVaultPda))!.lamports)
+    assert.strictEqual(
+      solVaultBefore - solVaultAfter,
+      available3,
+      `sol_vault lamport delta: expected -${available3}, got -${solVaultBefore - solVaultAfter}`,
     )
 
     // ── record.balance == locked_amount ──

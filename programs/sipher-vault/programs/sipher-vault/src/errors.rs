@@ -30,6 +30,4 @@ pub enum VaultError {
   UnsupportedMintExtension,
   #[msg("Operation would drain a SOL PDA below its rent-exempt minimum")]
   RentReserveViolation,
-  #[msg("Invalid SOL vault or fee PDA")]
-  InvalidSolVault,
 }

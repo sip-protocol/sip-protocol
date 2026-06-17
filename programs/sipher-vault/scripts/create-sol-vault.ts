@@ -41,6 +41,17 @@ async function main() {
   const rpc = process.env.ANCHOR_PROVIDER_URL ?? 'https://api.devnet.solana.com'
   const conn = new Connection(rpc, 'confirmed')
 
+  // Guard: refuse to run on mainnet-beta. This is a devnet-only initializer; the
+  // SOL vault PDAs on mainnet must be created through the gated mainnet deploy
+  // (self-audit → mainnet), never via this helper. A stray ANCHOR_PROVIDER_URL
+  // must not be able to initialize the singletons on the wrong cluster.
+  const MAINNET_GENESIS = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d'
+  const genesisHash = await conn.getGenesisHash()
+  if (genesisHash === MAINNET_GENESIS) {
+    console.error('ERROR: refusing to run against mainnet-beta — this initializer is devnet-only')
+    process.exit(1)
+  }
+
   const walletPath = process.env.ANCHOR_WALLET ?? `${homedir()}/Documents/secret/solana-devnet.json`
   const payer = Keypair.fromSecretKey(
     Uint8Array.from(JSON.parse(readFileSync(walletPath, 'utf-8')))

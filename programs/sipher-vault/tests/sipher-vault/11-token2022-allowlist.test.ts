@@ -24,6 +24,7 @@ import {
   createInitializeTransferHookInstruction,
   createInitializeMetadataPointerInstruction,
   createInitializeMintCloseAuthorityInstruction,
+  createInitializeInterestBearingMintInstruction,
   AccountState,
 } from '@solana/spl-token'
 import { ProgramTestContext } from 'solana-bankrun'
@@ -158,6 +159,53 @@ describe('11 · Token-2022 extension allowlist (fail-closed)', function () {
         programId: TOKEN_2022_PROGRAM_ID,
       }),
       metadataPointerIx,
+      createInitializeMintInstruction(
+        mintKp.publicKey,
+        6,
+        authority.publicKey,
+        null,
+        TOKEN_2022_PROGRAM_ID,
+      ),
+    ], [authority, mintKp])
+
+    await sendIx(ctx, [
+      ixCreateVaultToken(mintKp.publicKey, authority.publicKey, TOKEN_2022_PROGRAM_ID),
+    ], [authority])
+
+    // Assert vault token PDA was actually created and is owned by the program
+    const [vaultTokenPda] = getVaultTokenPDA(mintKp.publicKey, VAULT_PROGRAM_ID)
+    const pdaAccount = await ctx.banksClient.getAccount(vaultTokenPda)
+    assert.isNotNull(pdaAccount, 'vault token PDA should exist after create_vault_token')
+    assert.strictEqual(
+      pdaAccount!.owner.toBase58(),
+      TOKEN_2022_PROGRAM_ID.toBase58(),
+      'vault token PDA should be owned by Token-2022 program',
+    )
+  })
+
+  // ── ACCEPT: InterestBearingConfig ───────────────────────────────────────
+
+  it('ACCEPT: InterestBearingConfig mint → create_vault_token succeeds', async function () {
+    const mintKp = Keypair.generate()
+    const extTypes = [ExtensionType.InterestBearingConfig]
+    const space = getMintLen(extTypes)
+    const rent = await ctx.banksClient.getRent()
+    const mintLamports = Number(rent.minimumBalance(BigInt(space)))
+
+    await sendIx(ctx, [
+      SystemProgram.createAccount({
+        fromPubkey: authority.publicKey,
+        newAccountPubkey: mintKp.publicKey,
+        lamports: mintLamports,
+        space,
+        programId: TOKEN_2022_PROGRAM_ID,
+      }),
+      createInitializeInterestBearingMintInstruction(
+        mintKp.publicKey,
+        authority.publicKey, // rateAuthority
+        100,                 // rate (bps) — interest is UI-only; raw vault accounting is unaffected
+        TOKEN_2022_PROGRAM_ID,
+      ),
       createInitializeMintInstruction(
         mintKp.publicKey,
         6,

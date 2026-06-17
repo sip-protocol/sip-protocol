@@ -35,8 +35,8 @@ The program currently exposes **15 instructions** (9 original + 6 native-SOL tra
 | # | Instruction | Description |
 |---|-------------|-------------|
 | 1 | `initialize` | Create `VaultConfig` PDA; set fee_bps, refund_timeout, authority |
-| 2 | `create_vault_token` | Create per-mint `VaultToken` + `FeeToken` SPL ATAs (classic SPL + Token-2022, fail-closed allowlist) |
-| 3 | `create_fee_token` | (unused standalone path — called internally via `create_vault_token`) |
+| 2 | `create_vault_token` | Create the per-mint `vault_token` PDA (classic SPL + Token-2022, fail-closed extension allowlist). Must be called before `deposit` |
+| 3 | `create_fee_token` | Create the per-mint `fee_token` PDA. Separate instruction — NOT invoked by `create_vault_token`; must be called before the first `withdraw_private` |
 | 4 | `deposit` | Deposit SPL tokens from depositor ATA into `vault_token` PDA |
 | 5 | `withdraw_private` | Deduct from `deposit_record`, pay fee → `fee_token`, CPI `sip_privacy::create_transfer_announcement` to stealth ATA |
 | 6 | `refund` | Return tokens after `refund_timeout` has elapsed (depositor-signed) |
@@ -119,14 +119,14 @@ emergency lever works before mainnet (PR-B1 Risk B2/B3).
 ### Devnet — Universal-Asset Upgrade (PENDING — to be filled in by RECTOR)
 
 Universal-asset feature branch adds native SOL support (6 new instructions, 9 → 15 total).
-Binary: `492888` bytes (Δ from `383144` — +109 KB for two new account structs + 6 instruction handlers).
+Binary: `492536` bytes (Δ from `383144` — ~107 KB for two new account structs + 6 instruction handlers).
 
 - **Upgrade TX:** `[TODO — run scripts/upgrade-devnet.ts and paste TX signature here]`
 - **New deployed slot:** `[TODO — paste slot from upgrade-devnet.ts output]`
 - **SOL vault init TX:** `[TODO — run scripts/create-sol-vault.ts after redeploy and paste TX here]`
 - **SolVault PDA:** `[TODO — paste from create-sol-vault.ts output]`
 - **SolFee PDA:** `[TODO — paste from create-sol-vault.ts output]`
-- Binary size: `492888` bytes
+- Binary size: `492536` bytes
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
 ## Mainnet Deployments
