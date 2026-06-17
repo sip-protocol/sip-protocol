@@ -295,52 +295,20 @@ pub mod sipher_vault {
     // 5. CPI to sip_privacy::create_transfer_announcement
     //    Creates a TransferRecord PDA so the payment is scannable by recipients.
     //    This is metadata-only — no token movement happens here.
-    {
-      // Anchor discriminator: sha256("global:create_transfer_announcement")[..8]
-      let disc = solana_program::hash::hash(
-        b"global:create_transfer_announcement"
-      ).to_bytes();
-
-      let mut cpi_data = Vec::with_capacity(8 + 33 + 32 + 33 + 32 + 4 + _encrypted_amount.len() + 32);
-      cpi_data.extend_from_slice(&disc[..8]);
-      // amount_commitment: [u8; 33]
-      cpi_data.extend_from_slice(&amount_commitment);
-      // stealth_pubkey: Pubkey (32 bytes)
-      cpi_data.extend_from_slice(stealth_pubkey.as_ref());
-      // ephemeral_pubkey: [u8; 33]
-      cpi_data.extend_from_slice(&ephemeral_pubkey);
-      // viewing_key_hash: [u8; 32]
-      cpi_data.extend_from_slice(&viewing_key_hash);
-      // encrypted_amount: Vec<u8> (4-byte LE length prefix + data)
-      let enc_amt = &_encrypted_amount;
-      cpi_data.extend_from_slice(&(enc_amt.len() as u32).to_le_bytes());
-      cpi_data.extend_from_slice(enc_amt);
-      // token_mint: Pubkey (32 bytes)
-      cpi_data.extend_from_slice(ctx.accounts.token_mint.key().as_ref());
-
-      let cpi_accounts = vec![
-        AccountMeta::new(ctx.accounts.sip_config.key(), false),
-        AccountMeta::new(ctx.accounts.sip_transfer_record.key(), false),
-        AccountMeta::new(ctx.accounts.depositor.key(), true),
-        AccountMeta::new_readonly(ctx.accounts.system_program.key(), false),
-      ];
-
-      let cpi_ix = solana_program::instruction::Instruction {
-        program_id: ctx.accounts.sip_privacy_program.key(),
-        accounts: cpi_accounts,
-        data: cpi_data,
-      };
-
-      solana_program::program::invoke(
-        &cpi_ix,
-        &[
-          ctx.accounts.sip_config.to_account_info(),
-          ctx.accounts.sip_transfer_record.to_account_info(),
-          ctx.accounts.depositor.to_account_info(),
-          ctx.accounts.system_program.to_account_info(),
-        ],
-      )?;
-    }
+    //    Shared with `withdraw_private_sol`; only the `mint` argument differs.
+    emit_transfer_announcement(
+      &ctx.accounts.sip_privacy_program,
+      &ctx.accounts.sip_config,
+      &ctx.accounts.sip_transfer_record,
+      &ctx.accounts.depositor.to_account_info(),
+      &ctx.accounts.system_program.to_account_info(),
+      ctx.accounts.token_mint.key(),
+      &amount_commitment,
+      stealth_pubkey,
+      &ephemeral_pubkey,
+      &viewing_key_hash,
+      &_encrypted_amount,
+    )?;
 
     // 6. Emit event
     emit!(VaultWithdrawEvent {
@@ -498,6 +466,85 @@ pub mod sipher_vault {
     });
     Ok(())
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Emit a `sip_privacy::create_transfer_announcement` CPI so a vault withdrawal
+/// becomes a scannable, Pedersen-committed announcement (a `TransferRecord` PDA).
+///
+/// Shared verbatim by `withdraw_private` (token track) and `withdraw_private_sol`
+/// (native track) — the ONLY difference between the two call sites is the `mint`
+/// value (`token_mint` for tokens, `NATIVE_SOL_MINT` for native SOL). The Borsh
+/// argument layout, discriminator, account metas, and signer wiring are identical
+/// to the token-only encoding that shipped before this extraction.
+///
+/// The CPI is metadata-only: it moves no funds. `depositor` is the announcement
+/// signer / rent payer for the new `TransferRecord` PDA.
+///
+/// Argument byte layout (matches `create_transfer_announcement`):
+///   disc(8) ‖ amount_commitment([u8;33]) ‖ stealth_pubkey(Pubkey,32)
+///   ‖ ephemeral_pubkey([u8;33]) ‖ viewing_key_hash([u8;32])
+///   ‖ encrypted_amount(Vec<u8>: u32-LE len ‖ bytes) ‖ token_mint(Pubkey,32)
+#[allow(clippy::too_many_arguments)]
+fn emit_transfer_announcement<'info>(
+  sip_privacy_program: &AccountInfo<'info>,
+  sip_config: &AccountInfo<'info>,
+  sip_transfer_record: &AccountInfo<'info>,
+  depositor: &AccountInfo<'info>,
+  system_program: &AccountInfo<'info>,
+  mint: Pubkey,
+  amount_commitment: &[u8; 33],
+  stealth_pubkey: Pubkey,
+  ephemeral_pubkey: &[u8; 33],
+  viewing_key_hash: &[u8; 32],
+  encrypted_amount: &[u8],
+) -> Result<()> {
+  // Anchor discriminator: sha256("global:create_transfer_announcement")[..8]
+  let disc = solana_program::hash::hash(b"global:create_transfer_announcement").to_bytes();
+
+  let mut cpi_data = Vec::with_capacity(8 + 33 + 32 + 33 + 32 + 4 + encrypted_amount.len() + 32);
+  cpi_data.extend_from_slice(&disc[..8]);
+  // amount_commitment: [u8; 33]
+  cpi_data.extend_from_slice(amount_commitment);
+  // stealth_pubkey: Pubkey (32 bytes)
+  cpi_data.extend_from_slice(stealth_pubkey.as_ref());
+  // ephemeral_pubkey: [u8; 33]
+  cpi_data.extend_from_slice(ephemeral_pubkey);
+  // viewing_key_hash: [u8; 32]
+  cpi_data.extend_from_slice(viewing_key_hash);
+  // encrypted_amount: Vec<u8> (4-byte LE length prefix + data)
+  cpi_data.extend_from_slice(&(encrypted_amount.len() as u32).to_le_bytes());
+  cpi_data.extend_from_slice(encrypted_amount);
+  // token_mint: Pubkey (32 bytes)
+  cpi_data.extend_from_slice(mint.as_ref());
+
+  let cpi_accounts = vec![
+    AccountMeta::new(sip_config.key(), false),
+    AccountMeta::new(sip_transfer_record.key(), false),
+    AccountMeta::new(depositor.key(), true),
+    AccountMeta::new_readonly(system_program.key(), false),
+  ];
+
+  let cpi_ix = solana_program::instruction::Instruction {
+    program_id: sip_privacy_program.key(),
+    accounts: cpi_accounts,
+    data: cpi_data,
+  };
+
+  solana_program::program::invoke(
+    &cpi_ix,
+    &[
+      sip_config.clone(),
+      sip_transfer_record.clone(),
+      depositor.clone(),
+      system_program.clone(),
+    ],
+  )?;
+
+  Ok(())
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
