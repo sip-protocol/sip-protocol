@@ -4,6 +4,7 @@
  * @packageDocumentation
  */
 import { ValidationError } from '../errors'
+import { PrivacyTier } from '../fees/privacy-tier'
 import type { FlowInput, WindowWithdrawal, AnonSetOptions } from './types'
 
 /** Validate a FlowInput, throwing ValidationError on the first problem. */
@@ -43,4 +44,10 @@ export function validateAnonSetOptions(opts: AnonSetOptions): void {
     (!Number.isFinite(amountToleranceRatio) || amountToleranceRatio <= 0 || amountToleranceRatio > 1)
   )
     throw new ValidationError('amountToleranceRatio must be in (0, 1]', 'amountToleranceRatio')
+}
+
+/** Validate that a value is a known PrivacyTier. */
+export function validateTier(tier: PrivacyTier): void {
+  if (!Object.values(PrivacyTier).includes(tier))
+    throw new ValidationError('tier must be a valid PrivacyTier', 'tier')
 }
