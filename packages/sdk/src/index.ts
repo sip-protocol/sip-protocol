@@ -1612,3 +1612,23 @@ export type {
   FeeCollectionResult,
   PrivacyTierFee,
 } from './fees'
+
+// ─── Flow Privacy (per-flow privacy-score primitives) ────────────────────────
+export {
+  anonSetInWindow,
+  gaslessFlag,
+  amountHidingStatus,
+  assessFlowPrivacy,
+} from './flow-privacy'
+
+export type {
+  FlowInput,
+  WindowWithdrawal,
+  AnonSetOptions,
+  AnonymitySet,
+  PrivacyBand,
+  FactorLevel,
+  AmountHiding,
+  FlowPrivacyAssessment,
+  AssessFlowOptions,
+} from './flow-privacy'
