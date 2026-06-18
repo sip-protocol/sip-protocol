@@ -46,7 +46,7 @@ function buildCaveats(
   const caveats: string[] = []
   if (!amountHiding.cryptographicallyHidden)
     caveats.push(
-      `Withdrawal amount (${flow.transferAmount}) is visible on-chain — commingled, not cryptographically hidden.`,
+      `Withdrawal amount (${flow.transferAmount}) is ${amountHiding.label} on-chain — not cryptographically hidden.`,
     )
   if (!anonymityStrong) {
     const minutes = Math.round(anonymitySet.windowSeconds / 60)
