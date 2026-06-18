@@ -1,6 +1,6 @@
 {
   "name": "@sip-protocol/api",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "REST API service for SIP Protocol SDK - Optional wrapper for non-JS backends",
   "author": "SIP Protocol <hello@sip-protocol.org>",
   "homepage": "https://sip-protocol.org",

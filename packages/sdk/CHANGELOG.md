@@ -1,5 +1,11 @@
 # @sip-protocol/sdk
 
+## 0.15.0
+
+### Minor Changes
+
+- [#1164](https://github.com/sip-protocol/sip-protocol/pull/1164) [`a87e597`](https://github.com/sip-protocol/sip-protocol/commit/a87e597222608033e4dfe165aa9f21587a59bef4) Thanks [@rz1989s](https://github.com/rz1989s)! - Add per-flow privacy-score primitives (`flow-privacy` module): `anonSetInWindow`, `gaslessFlag`, `amountHidingStatus`, and the `assessFlowPrivacy` composer. They honestly score a single commingling-vault flow — a tier-capped 0–100 score plus an anonymity-set / gasless / amount-hiding factor breakdown with caveats — over caller-supplied data (no RPC).
+
 ## 0.14.0
 
 ### Minor Changes
