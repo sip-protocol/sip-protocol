@@ -1,21 +1,47 @@
 version: 2
 updates:
-  # npm dependencies
+  # npm — root pnpm workspace + standalone Anchor program test harnesses
   - package-ecosystem: "npm"
-    directory: "/"
+    directories:
+      - "/"
+      - "/programs/sip-privacy"
+      - "/programs/sipher-vault"
     schedule:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 10
     groups:
+      # Packages that must version together (they fail CI individually)
+      solana:
+        patterns:
+          - "@solana/*"
+      langchain:
+        patterns:
+          - "@langchain/*"
+          - "langchain"
       minor-and-patch:
         update-types:
           - "minor"
           - "patch"
     ignore:
-      # Ignore major version updates for critical crypto libs (review manually)
+      # Critical crypto libs — major bumps reviewed manually
       - dependency-name: "@noble/*"
         update-types: ["version-update:semver-major"]
+
+  # Cargo — deployed on-chain programs (security-critical)
+  - package-ecosystem: "cargo"
+    directories:
+      - "/programs/sip-privacy"
+      - "/programs/sipher-vault"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      cargo-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
