@@ -14,8 +14,8 @@ export function validateFlowInput(flow: FlowInput): void {
     throw new ValidationError('mint must be a non-empty string', 'flow.mint')
   if (typeof flow.transferAmount !== 'bigint' || flow.transferAmount < 0n)
     throw new ValidationError('transferAmount must be a non-negative bigint', 'flow.transferAmount')
-  if (!Number.isFinite(flow.timestamp))
-    throw new ValidationError('timestamp must be a finite number', 'flow.timestamp')
+  if (!Number.isInteger(flow.timestamp) || flow.timestamp < 0)
+    throw new ValidationError('timestamp must be a non-negative integer (unix seconds)', 'flow.timestamp')
   if (typeof flow.gasless !== 'boolean')
     throw new ValidationError('gasless must be a boolean', 'flow.gasless')
 }
@@ -29,8 +29,8 @@ export function validateWindowWithdrawals(candidates: WindowWithdrawal[]): void 
       throw new ValidationError('mint must be a non-empty string', `candidates[${i}].mint`)
     if (typeof c.transferAmount !== 'bigint' || c.transferAmount < 0n)
       throw new ValidationError('transferAmount must be a non-negative bigint', `candidates[${i}].transferAmount`)
-    if (!Number.isFinite(c.timestamp))
-      throw new ValidationError('timestamp must be a finite number', `candidates[${i}].timestamp`)
+    if (!Number.isInteger(c.timestamp) || c.timestamp < 0)
+      throw new ValidationError('timestamp must be a non-negative integer (unix seconds)', `candidates[${i}].timestamp`)
   })
 }
 

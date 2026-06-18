@@ -69,6 +69,18 @@ describe('anonSetInWindow', () => {
     expect(byTriple.matched).toEqual(['other'])
   })
 
+  it('excludes the flow own un-signed copy even when the flow has a signature', () => {
+    // flow.signature is 'SELF'; its own withdrawal appears in candidates WITHOUT a
+    // signature (e.g. indexed before the field was populated). It must be excluded,
+    // not counted as a peer — counting it would overstate the anonymity set.
+    const set = anonSetInWindow(flow, [
+      { mint: SOL, transferAmount: 5_000_000_000n, timestamp: 1_000_000 }, // self, no sig
+      w({ signature: 'peer' }),
+    ])
+    expect(set.size).toBe(1)
+    expect(set.matched).toEqual(['peer'])
+  })
+
   it('honors custom window and tolerance', () => {
     const set = anonSetInWindow(flow, [w({ timestamp: 1_000_300, signature: 'c' })], {
       windowSeconds: 120,
@@ -84,5 +96,6 @@ describe('anonSetInWindow', () => {
     expect(() => anonSetInWindow({ ...flow, transferAmount: -1n }, [])).toThrow('flow.transferAmount')
     expect(() => anonSetInWindow(flow, [], { windowSeconds: 0 })).toThrow('windowSeconds')
     expect(() => anonSetInWindow(flow, [], { amountToleranceRatio: 1.5 })).toThrow('amountToleranceRatio')
+    expect(() => anonSetInWindow({ ...flow, timestamp: 1.5 }, [])).toThrow('flow.timestamp')
   })
 })

@@ -28,12 +28,16 @@ export function anonSetInWindow(
   const amountToleranceRatio = opts.amountToleranceRatio ?? DEFAULT_AMOUNT_TOLERANCE_RATIO
 
   const isSelf = (c: WindowWithdrawal): boolean => {
-    // If both have signatures, signature equality is the definitive check.
+    // Both have signatures: signature equality is the definitive check.
     if (flow.signature && c.signature) return c.signature === flow.signature
-    // If the candidate has a signature but flow does not (or vice versa), they are
-    // distinguishable — treat as distinct flows.
-    if (flow.signature || c.signature) return false
-    // Neither has a signature: fall back to the exact (mint, amount, timestamp) triple.
+    // Candidate has a signature but the flow does not: the candidate is a
+    // distinct, identified withdrawal — not this flow.
+    if (!flow.signature && c.signature) return false
+    // Neither has a signature, OR the flow knows its signature but the candidate's
+    // is not populated (e.g. indexed before the field was filled): fall back to the
+    // exact (mint, amount, timestamp) triple, so the flow's own un-signed copy is
+    // still excluded rather than counted as a peer — counting it would overstate
+    // the anonymity set (the dangerous, privacy-overclaiming direction).
     return (
       c.mint === flow.mint &&
       c.transferAmount === flow.transferAmount &&
@@ -47,8 +51,9 @@ export function anonSetInWindow(
   )
 
   // amount bucket: min/max >= 1 - tol, computed in integer space to avoid bigint/float mixing.
-  // scale the float threshold by 1000 (3-decimal precision on the ratio).
-  const scaledThreshold = BigInt(Math.round((1 - amountToleranceRatio) * 1000))
+  // scale the float threshold by 1e6 (6-decimal precision on the ratio, so sub-0.001
+  // tolerances are not silently collapsed to exact-match-only).
+  const scaledThreshold = BigInt(Math.round((1 - amountToleranceRatio) * 1_000_000))
   const withinBucket = (c: WindowWithdrawal): boolean => {
     const a = flow.transferAmount
     const b = c.transferAmount
@@ -56,7 +61,7 @@ export function anonSetInWindow(
     if (a === 0n || b === 0n) return false
     const lo = a < b ? a : b
     const hi = a < b ? b : a
-    return lo * 1000n >= hi * scaledThreshold
+    return lo * 1_000_000n >= hi * scaledThreshold
   }
 
   const matchedFlows = inWindowSameMint.filter(withinBucket)

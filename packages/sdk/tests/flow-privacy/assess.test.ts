@@ -21,9 +21,10 @@ describe('assessFlowPrivacy', () => {
     expect(a.score).toBe(59) // min(round(70), 59)
     expect(a.band).toBe('moderate')
     expect(a.amountHiding.tier).toBe(PrivacyTier.TIER_1)
-    expect(a.caveats).toContain(
+    // strong anon + gasless → the amount caveat is the ONLY one (toEqual, not toContain)
+    expect(a.caveats).toEqual([
       'Withdrawal amount (5000000000) is visible-but-commingled on-chain — not cryptographically hidden.',
-    )
+    ])
   })
 
   it('reaches strong only when amounts are cryptographically hidden (TIER_3)', () => {
@@ -38,9 +39,10 @@ describe('assessFlowPrivacy', () => {
     const a = assessFlowPrivacy(flow, bigCrowd, { tier: PrivacyTier.TIER_2 })
     expect(a.score).toBe(70) // min(round(70), 84)
     expect(a.band).toBe('strong')
-    expect(a.caveats).toContain(
+    // tier-accurate wording, and the ONLY caveat for a strong+gasless TIER_2 flow
+    expect(a.caveats).toEqual([
       'Withdrawal amount (5000000000) is visible-but-unlinkable on-chain — not cryptographically hidden.',
-    )
+    ])
   })
 
   it('empty crowd → limited band, thin-set caveat', () => {

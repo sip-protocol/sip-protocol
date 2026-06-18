@@ -17,14 +17,20 @@ describe('flow-privacy public surface', () => {
     expect(typeof sdk.assessFlowPrivacy).toBe('function')
   })
 
-  it('the main-entry composer produces a complete assessment', () => {
+  it('the main-entry composer produces a complete, well-formed assessment', () => {
     const a = sdk.assessFlowPrivacy(
       { mint: '11111111111111111111111111111111', transferAmount: 5_000_000_000n, timestamp: 1_000_000, gasless: true },
       [],
     )
-    expect(a).toHaveProperty('score')
-    expect(a).toHaveProperty('band')
-    expect(a).toHaveProperty('factors')
-    expect(a).toHaveProperty('caveats')
+    // assert real values, not just property existence — a NaN/garbage result must fail here
+    expect(typeof a.score).toBe('number')
+    expect(a.score).toBeGreaterThanOrEqual(0)
+    expect(a.score).toBeLessThanOrEqual(100)
+    expect(['limited', 'moderate', 'strong']).toContain(a.band)
+    expect(a.gasless).toBe(true)
+    expect(['weak', 'moderate', 'strong']).toContain(a.factors.anonymity)
+    expect(['weak', 'moderate', 'strong']).toContain(a.factors.linkability)
+    expect(['weak', 'moderate', 'strong']).toContain(a.factors.amount)
+    expect(Array.isArray(a.caveats)).toBe(true)
   })
 })
