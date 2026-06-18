@@ -333,8 +333,8 @@ importers:
         specifier: ^0.4.2
         version: 0.4.9(@langchain/core@0.3.80(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(openai@4.104.0(encoding@0.1.13)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(zod@4.4.3))(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)))(encoding@0.1.13)(ws@8.21.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))
       '@magicblock-labs/ephemeral-rollups-sdk':
-        specifier: ^0.15.4
-        version: 0.15.4(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)
+        specifier: ^0.15.5
+        version: 0.15.5(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)
       '@noble/ciphers':
         specifier: ^2.2.0
         version: 2.2.0
@@ -366,8 +366,8 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2
       '@solana-program/compute-budget':
-        specifier: ^0.15.0
-        version: 0.15.0(@solana/kit@5.4.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))
+        specifier: ^0.16.0
+        version: 0.16.0(@solana/kit@5.4.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))
       '@solana-program/system':
         specifier: ^0.12.2
         version: 0.12.2(@solana/kit@5.4.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))
@@ -1045,8 +1045,8 @@ packages:
   '@ledgerhq/logs@6.17.0':
     resolution: {integrity: sha512-yra33g5q/AU7+PwAws+GaVpQGUuxnDREjVBnviJjcaJLVKuLzI4pnj8Bd3nY3fypM5k1yZEYKEXfUuGFUjP2+w==}
 
-  '@magicblock-labs/ephemeral-rollups-sdk@0.15.4':
-    resolution: {integrity: sha512-lhR3ii218y+XXV9PoOI3x+tOcPmSqwjbZ9BqD7LtVut8K/cvATAbC/HSLkDiPcL69NtMlJ0LHH3oxPKviEnxiQ==}
+  '@magicblock-labs/ephemeral-rollups-sdk@0.15.5':
+    resolution: {integrity: sha512-X8X4RGfiMaqaWZEw3OKE6zg32ng/OMyalbnWTRJ7O+h6Xu2A9Zj+YC9yWp0aIxi5spMmIfNtEZwyxzTs1fXszQ==}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -1593,10 +1593,11 @@ packages:
   '@sip-protocol/types@0.2.2':
     resolution: {integrity: sha512-FvJosQIp/dnADchEFmjdqCBlKolL4RrW15W2MPR1zlSZax9UbIR3vZjkm/j3mWewjO/bBfXii3FSxnqFlSBSkQ==}
 
-  '@solana-program/compute-budget@0.15.0':
-    resolution: {integrity: sha512-toejNdIkzpUTqLSIzP0Nofr/EFel8QpPWuTtIKzfCcjn+mXpkThHxPJaNesk251rSTiWaxDZ3WxG7RxYwTWTqA==}
+  '@solana-program/compute-budget@0.16.0':
+    resolution: {integrity: sha512-tNBH2AK163yLh+rMn64z1vEKKHsMmrc+UM5dHsWzy5DVnfKRIbdG54RPA1LWgjssch3RF88EXa82iPnkLZjtgw==}
+    engines: {node: '>=24.0.0'}
     peerDependencies:
-      '@solana/kit': ^6.3.0
+      '@solana/kit': ^6.4.0
 
   '@solana-program/system@0.12.2':
     resolution: {integrity: sha512-MaBeOxlvTruQhA7UYkOb3hVTEHPPagOtd+PvTm6a8rGgvEAP0kD4BbC37NceOaR4ABNqdaCmD5OMVRKgrE6KAg==}
@@ -6195,7 +6196,7 @@ snapshots:
 
   '@ledgerhq/logs@6.17.0': {}
 
-  '@magicblock-labs/ephemeral-rollups-sdk@0.15.4(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)':
+  '@magicblock-labs/ephemeral-rollups-sdk@0.15.5(bufferutil@4.1.0)(encoding@0.1.13)(utf-8-validate@6.0.6)':
     dependencies:
       '@noble/curves': 1.9.7
       '@noble/hashes': 1.8.0
@@ -6688,7 +6689,7 @@ snapshots:
 
   '@sip-protocol/types@0.2.2': {}
 
-  '@solana-program/compute-budget@0.15.0(@solana/kit@5.4.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))':
+  '@solana-program/compute-budget@0.16.0(@solana/kit@5.4.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6))':
     dependencies:
       '@solana/kit': 5.4.0(bufferutil@4.1.0)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@6.0.3)(utf-8-validate@6.0.6)
 
