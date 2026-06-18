@@ -5,6 +5,7 @@
  * @packageDocumentation
  */
 import { PrivacyTier } from '../fees/privacy-tier'
+import type { FactorLevel } from './types'
 
 /** Default half-width of the anonymity-set time window (seconds). */
 export const DEFAULT_WINDOW_SECONDS = 600
@@ -24,3 +25,28 @@ export const AMOUNT_HIDING_LABELS: Record<PrivacyTier, string> = {
   [PrivacyTier.TIER_2]: 'visible-but-unlinkable',
   [PrivacyTier.TIER_3]: 'cryptographically-hidden',
 }
+
+/** Weight of each factor in the raw score (sum to 1). */
+export const FACTOR_WEIGHTS: Record<'anonymity' | 'linkability' | 'amount', number> = {
+  anonymity: 0.4,
+  linkability: 0.3,
+  amount: 0.3,
+}
+
+/** Points awarded per factor level. */
+export const FACTOR_POINTS: Record<FactorLevel, number> = {
+  weak: 0,
+  moderate: 0.5,
+  strong: 1,
+}
+
+/** Maximum score per tier — the honesty cap. TIER_1 cannot exceed 'moderate'. */
+export const TIER_SCORE_CAP: Record<PrivacyTier, number> = {
+  [PrivacyTier.TIER_1]: 59,
+  [PrivacyTier.TIER_2]: 84,
+  [PrivacyTier.TIER_3]: 100,
+}
+
+/** Band cutoffs on the capped score. */
+export const BAND_MODERATE_MIN = 40
+export const BAND_STRONG_MIN = 70
