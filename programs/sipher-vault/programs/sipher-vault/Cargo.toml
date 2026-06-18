@@ -25,7 +25,7 @@ anchor-spl = "0.30.1"
 
 # Pin blake3/constant_time_eq to avoid edition2024 requirement
 # (Solana platform-tools BPF toolchain uses Cargo 1.84 which doesn't support it)
-blake3 = "=1.5.5"
+blake3 = "=1.8.5"
 constant_time_eq = "=0.3.1"
 
 [lints.rust]
