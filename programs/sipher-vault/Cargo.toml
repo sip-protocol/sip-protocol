@@ -17,5 +17,5 @@ codegen-units = 1
 # which requires Rust edition2024 (not supported by Solana platform-tools v1.52)
 # See: https://github.com/sip-protocol/sip-protocol/issues/780
 [workspace.dependencies]
-blake3 = "=1.5.5"
+blake3 = "=1.8.5"
 constant_time_eq = "=0.3.1"
