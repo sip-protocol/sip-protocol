@@ -22,7 +22,7 @@ custom-panic = []
 
 [dependencies]
 # Use Anchor 0.30.1 for compatibility with solana platform-tools v1.51 (rustc 1.84.1)
-anchor-lang = "0.30.1"
+anchor-lang = "1.0.2"
 anchor-spl = "0.30.1"
 bytemuck = { version = "1.19.0", features = ["derive"] }
 
