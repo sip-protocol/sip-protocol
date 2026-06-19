@@ -43,17 +43,17 @@ import {
 } from '@solana/spl-token'
 import Client, {
   CommitmentLevel,
+  type ClientDuplexStream,
   type SubscribeRequest,
   type SubscribeUpdate,
 } from '@triton-one/yellowstone-grpc'
-import type { ClientDuplexStream } from '@grpc/grpc-js'
 import { base58 } from '@scure/base'
 import type { SolanaRPCProvider, TokenAsset, ProviderConfig } from './interface'
 
 /**
  * Type alias for Yellowstone gRPC subscription stream
  */
-type GrpcSubscriptionStream = ClientDuplexStream<SubscribeRequest, SubscribeUpdate>
+type GrpcSubscriptionStream = ClientDuplexStream
 
 import { ValidationError, ErrorCode } from '../../../errors'
 
@@ -303,7 +303,7 @@ export class TritonProvider implements SolanaRPCProvider {
     this.activeStreams.add(stream)
 
     // Handle incoming data
-    stream.on('data', (update) => {
+    stream.on('data', (update: SubscribeUpdate) => {
       // Check for account update
       if (update.account?.account) {
         const accountData = update.account.account
