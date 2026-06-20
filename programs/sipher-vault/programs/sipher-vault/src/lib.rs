@@ -41,6 +41,16 @@ pub const SIP_PRIVACY_PROGRAM_ID: Pubkey = Pubkey::new_from_array([
 pub const SIP_CONFIG_SEED: &[u8] = b"config";
 pub const SIP_TRANSFER_RECORD_SEED: &[u8] = b"transfer_record";
 
+/// Anchor instruction discriminator for `sip_privacy::create_transfer_announcement`
+/// = `sha256("global:create_transfer_announcement")[..8]`.
+///
+/// Hardcoded as a constant — like `SIP_PRIVACY_PROGRAM_ID` above — because Anchor 1.0's
+/// granular `solana_program` facade no longer re-exports a `hash` module. The value is
+/// verified end-to-end by the `withdraw_private` / `withdraw_private_sol` bankrun CPI
+/// tests: a wrong discriminator makes the announcement CPI fail.
+pub const CREATE_TRANSFER_ANNOUNCEMENT_DISC: [u8; 8] =
+  [0x9b, 0x34, 0xb1, 0x8f, 0xd3, 0x5b, 0xcd, 0x66];
+
 declare_id!("S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -131,7 +141,7 @@ pub mod sipher_vault {
 
     // Transfer SOL from depositor to sol_vault PDA via system_program::transfer
     let cpi = CpiContext::new(
-      ctx.accounts.system_program.to_account_info(),
+      ctx.accounts.system_program.key(),
       anchor_lang::system_program::Transfer {
         from: ctx.accounts.depositor.to_account_info(),
         to: ctx.accounts.sol_vault.to_account_info(),
@@ -184,7 +194,7 @@ pub mod sipher_vault {
 
     // Transfer tokens from depositor to vault
     let transfer_ctx = CpiContext::new(
-      ctx.accounts.token_program.to_account_info(),
+      ctx.accounts.token_program.key(),
       TransferChecked {
         from: ctx.accounts.depositor_token.to_account_info(),
         mint: ctx.accounts.token_mint.to_account_info(),
@@ -268,7 +278,7 @@ pub mod sipher_vault {
     let signer_seeds: &[&[&[u8]]] = &[&[VAULT_CONFIG_SEED, &[config_bump]]];
 
     let transfer_to_stealth = CpiContext::new_with_signer(
-      ctx.accounts.token_program.to_account_info(),
+      ctx.accounts.token_program.key(),
       TransferChecked {
         from: ctx.accounts.vault_token.to_account_info(),
         mint: ctx.accounts.token_mint.to_account_info(),
@@ -282,7 +292,7 @@ pub mod sipher_vault {
     // 4. Transfer fee to fee token account (PDA signs)
     if fee > 0 {
       let transfer_fee = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
+        ctx.accounts.token_program.key(),
         TransferChecked {
           from: ctx.accounts.vault_token.to_account_info(),
           mint: ctx.accounts.token_mint.to_account_info(),
@@ -462,7 +472,7 @@ pub mod sipher_vault {
     let signer_seeds: &[&[&[u8]]] = &[&[VAULT_CONFIG_SEED, &[config_bump]]];
 
     let transfer_ctx = CpiContext::new_with_signer(
-      ctx.accounts.token_program.to_account_info(),
+      ctx.accounts.token_program.key(),
       TransferChecked {
         from: ctx.accounts.vault_token.to_account_info(),
         mint: ctx.accounts.token_mint.to_account_info(),
@@ -508,7 +518,7 @@ pub mod sipher_vault {
     let signer_seeds: &[&[&[u8]]] = &[&[VAULT_CONFIG_SEED, &[config_bump]]];
 
     let transfer_ctx = CpiContext::new_with_signer(
-      ctx.accounts.token_program.to_account_info(),
+      ctx.accounts.token_program.key(),
       TransferChecked {
         from: ctx.accounts.vault_token.to_account_info(),
         mint: ctx.accounts.token_mint.to_account_info(),
@@ -632,7 +642,7 @@ pub mod sipher_vault {
     let signer_seeds: &[&[&[u8]]] = &[&[VAULT_CONFIG_SEED, &[config_bump]]];
 
     let transfer_ctx = CpiContext::new_with_signer(
-      ctx.accounts.token_program.to_account_info(),
+      ctx.accounts.token_program.key(),
       TransferChecked {
         from: ctx.accounts.fee_token.to_account_info(),
         mint: ctx.accounts.token_mint.to_account_info(),
@@ -736,11 +746,8 @@ fn emit_transfer_announcement<'info>(
   viewing_key_hash: &[u8; 32],
   encrypted_amount: &[u8],
 ) -> Result<()> {
-  // Anchor discriminator: sha256("global:create_transfer_announcement")[..8]
-  let disc = solana_program::hash::hash(b"global:create_transfer_announcement").to_bytes();
-
   let mut cpi_data = Vec::with_capacity(8 + 33 + 32 + 33 + 32 + 4 + encrypted_amount.len() + 32);
-  cpi_data.extend_from_slice(&disc[..8]);
+  cpi_data.extend_from_slice(&CREATE_TRANSFER_ANNOUNCEMENT_DISC);
   // amount_commitment: [u8; 33]
   cpi_data.extend_from_slice(amount_commitment);
   // stealth_pubkey: Pubkey (32 bytes)
@@ -975,6 +982,12 @@ pub struct WithdrawPrivate<'info> {
   )]
   pub deposit_record: Account<'info, DepositRecord>,
 
+  // The heavy `InterfaceAccount`s below are boxed to keep `WithdrawPrivate::try_accounts`
+  // under the 4 KiB BPF stack-frame limit. Anchor 1.0's duplicate-mutable-key check
+  // enlarged the generated account-validation frame for this account-heavy context;
+  // boxing moves the deserialized token/mint state to the heap. Box is wire-identical
+  // (account order + discriminators unchanged) and transparent to the handler via
+  // Deref. (Resolves self-audit M6.)
   #[account(
     mut,
     seeds = [VAULT_TOKEN_SEED, token_mint.key().as_ref()],
@@ -982,7 +995,7 @@ pub struct WithdrawPrivate<'info> {
     token::mint = token_mint,
     token::authority = config,
   )]
-  pub vault_token: InterfaceAccount<'info, TokenAccount>,
+  pub vault_token: Box<InterfaceAccount<'info, TokenAccount>>,
 
   #[account(
     mut,
@@ -991,7 +1004,7 @@ pub struct WithdrawPrivate<'info> {
     token::mint = token_mint,
     token::authority = config,
   )]
-  pub fee_token: InterfaceAccount<'info, TokenAccount>,
+  pub fee_token: Box<InterfaceAccount<'info, TokenAccount>>,
 
   /// The stealth token account to receive the net amount.
   /// Owned by any pubkey (the stealth address), we just verify the mint.
@@ -999,9 +1012,9 @@ pub struct WithdrawPrivate<'info> {
     mut,
     constraint = stealth_token.mint == token_mint.key() @ VaultError::InvalidMint,
   )]
-  pub stealth_token: InterfaceAccount<'info, TokenAccount>,
+  pub stealth_token: Box<InterfaceAccount<'info, TokenAccount>>,
 
-  pub token_mint: InterfaceAccount<'info, Mint>,
+  pub token_mint: Box<InterfaceAccount<'info, Mint>>,
 
   #[account(mut)]
   pub depositor: Signer<'info>,
