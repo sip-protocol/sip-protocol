@@ -211,6 +211,8 @@ describe('12 · native SOL vault track', function () {
   const INSUFFICIENT_BALANCE_HEX = INSUFFICIENT_BALANCE_CODE.toString(16) // '1772'
   const RENT_RESERVE_CODE = 6012
   const RENT_RESERVE_HEX = RENT_RESERVE_CODE.toString(16) // '177c'
+  const ENCRYPTED_AMOUNT_TOO_LONG_CODE = 6013
+  const ENCRYPTED_AMOUNT_TOO_LONG_HEX = ENCRYPTED_AMOUNT_TOO_LONG_CODE.toString(16) // '177d'
 
   const FEE_DENOM = 10_000n
 
@@ -388,6 +390,54 @@ describe('12 · native SOL vault track', function () {
         `Expected InsufficientBalance (${INSUFFICIENT_BALANCE_CODE} / 0x${INSUFFICIENT_BALANCE_HEX}), got: ${err?.message ?? String(err)}`,
       )
     }
+  })
+
+  it('withdraw_private_sol → rejects encrypted_amount longer than 64 bytes (EncryptedAmountTooLong 6013 / 0x177d)', async function () {
+    await ensureWithdrawSetup()
+
+    // Fund the record so the guard provably fires BEFORE the debit (balance unchanged).
+    // Unique amount → distinct tx signature (bankrun reuses one blockhash, so a
+    // byte-identical deposit from a prior test would be rejected as a duplicate).
+    await sendIx(ctx, [ixDepositSol(wd.publicKey, 1_111_111n)], [wd])
+    const [recordPda] = getDepositRecordPDA(wd.publicKey, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+    const balanceBefore = parseDepositRecord(await getAccountData(ctx, recordPda)).balance
+
+    const [sipConfigPda] = getSipConfigPDA()
+    const { totalTransfers } = parseSipConfig(await getAccountData(ctx, sipConfigPda))
+    const [sipTransferRecordPda] = getSipTransferRecordPDA(wd.publicKey, totalTransfers)
+
+    const stealth = Keypair.generate().publicKey
+    const p = announceParams()
+    const tooLong = randomBytes(65) // 65 > the 64-byte cap
+
+    try {
+      await sendIx(ctx, [
+        ixWithdrawPrivateSol(
+          wd.publicKey, stealth, sipTransferRecordPda, 100_000n,
+          p.amountCommitment, stealth, p.ephemeralPubkey, p.viewingKeyHash,
+          tooLong, p.proof,
+        ),
+      ], [wd])
+      assert.fail('Expected EncryptedAmountTooLong error but transaction succeeded')
+    } catch (e: unknown) {
+      const err = e as Error
+      if (err.message && err.message.includes('Expected EncryptedAmountTooLong error but transaction succeeded')) {
+        throw err
+      }
+      const msg = (err?.message ?? String(err)).toLowerCase()
+      const matchesCode =
+        msg.includes(String(ENCRYPTED_AMOUNT_TOO_LONG_CODE)) ||
+        msg.includes(ENCRYPTED_AMOUNT_TOO_LONG_HEX) ||
+        msg.includes('encryptedamounttoolong')
+      assert.ok(
+        matchesCode,
+        `Expected EncryptedAmountTooLong (${ENCRYPTED_AMOUNT_TOO_LONG_CODE} / 0x${ENCRYPTED_AMOUNT_TOO_LONG_HEX}), got: ${err?.message ?? String(err)}`,
+      )
+    }
+
+    // Fail-fast: the guard rejects before the debit — balance is unchanged.
+    const balanceAfter = parseDepositRecord(await getAccountData(ctx, recordPda)).balance
+    assert.strictEqual(balanceAfter, balanceBefore, 'balance must be unchanged (guard rejects before debit)')
   })
 
   it('withdraw_private_sol → rent guard fires when vault lamports are desynced below backing (RentReserveViolation 6012 / 0x177c)', async function () {

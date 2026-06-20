@@ -28,4 +28,6 @@ pub enum VaultError {
   UnsupportedMintExtension,
   #[msg("Operation would drain a SOL PDA below its rent-exempt minimum")]
   RentReserveViolation,
+  #[msg("Encrypted amount exceeds the 64-byte maximum")]
+  EncryptedAmountTooLong,
 }

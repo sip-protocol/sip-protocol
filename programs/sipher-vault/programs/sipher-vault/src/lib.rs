@@ -251,6 +251,9 @@ pub mod sipher_vault {
   ) -> Result<()> {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
     require!(amount > 0, VaultError::ZeroDeposit);
+    // Fail-fast before the debit: the callee caps encrypted_amount at 64 bytes,
+    // so reject an over-long blob early with a vault-native error.
+    require!(_encrypted_amount.len() <= 64, VaultError::EncryptedAmountTooLong);
 
     // 1. Debit-first: reduce balance before any transfers
     let record = &mut ctx.accounts.deposit_record;
@@ -364,6 +367,9 @@ pub mod sipher_vault {
   ) -> Result<()> {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
     require!(amount > 0, VaultError::ZeroDeposit);
+    // Fail-fast before the debit: the callee caps encrypted_amount at 64 bytes,
+    // so reject an over-long blob early with a vault-native error.
+    require!(_encrypted_amount.len() <= 64, VaultError::EncryptedAmountTooLong);
 
     // 1. Debit-first: reduce balance before any lamport movement.
     let record = &mut ctx.accounts.deposit_record;
