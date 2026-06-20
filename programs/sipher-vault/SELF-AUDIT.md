@@ -151,6 +151,18 @@ This boundary is intrinsic to the current design and must appear in any integrat
 
 This is a **self-audit, not an independent external review.** For a fund-custody program, an external audit is recommended **before scaling real user funds**; a devnet pilot and a limited-value mainnet launch on the strength of this self-audit + the hardening PR is the planned, accepted posture.
 
+> **⚠️ Breaking account-layout change (this hardening PR).** M1 adds
+> `VaultConfig.pending_authority` and M2 removes `DepositRecord.locked_amount`,
+> changing both struct layouts. There is no migration/`realloc` instruction, so
+> the new-layout program is **not a safe in-place upgrade** over any program
+> holding old-layout accounts — the existing devnet config/records would be
+> bricked (`AccountDidNotDeserialize` on `config`; shifted/corrupt deposit
+> records → unwithdrawable). The **held devnet redeploy** must use fresh accounts
+> (new program ID + fresh `initialize`, or close/recreate). Mainnet B7 is a fresh
+> deploy → unaffected. Surfaced + verified against live devnet account sizes by
+> the post-hardening independent review; full runbook detail in `DEPLOYMENT.md` →
+> "Devnet Upgrade".
+
 Before the mainnet deploy (B7):
 
 - [x] **M1 landed** (`de065b4`) — `update_authority` (two-step) + `update_fee` present and tested.
@@ -160,7 +172,7 @@ Before the mainnet deploy (B7):
 - [x] **I1/I2/I3/I4 landed** (`8a047d3`, `399fa33`) — dead constant removed; token-program bindings; fee-token allowlist; init_if_needed invariant comment.
 - [ ] **Authority = Squads v4 2-of-3 multisig** set at (or handed off immediately after) `initialize`; both the BPF upgrade authority and the in-program `config.authority` point at the multisig.
 - [ ] **`sip_privacy` and `sipher_vault` pause authorities governed coherently** under the same multisig (L1).
-- [ ] **Deploy runbook** documents: the privacy boundary (§7), the `sip_privacy` liveness coupling (L1), the SDK rent pre-funding obligation for native payouts (M5), and the build toolchain requirement (Appendix B).
+- [ ] **Deploy runbook** documents: the privacy boundary (§7), the `sip_privacy` liveness coupling (L1), the SDK rent pre-funding obligation for native payouts (M5), the build toolchain requirement (Appendix B), and the **breaking account-layout change** (M1/M2 — no safe in-place upgrade; fresh accounts required; see `DEPLOYMENT.md`).
 - [ ] **External audit** scheduled before scaling beyond limited mainnet value.
 
 ---

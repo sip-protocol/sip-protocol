@@ -121,6 +121,11 @@ emergency lever works before mainnet (PR-B1 Risk B2/B3).
 Universal-asset feature branch adds native SOL support (6 new instructions, 9 → 15 total).
 Binary: `492536` bytes (Δ from `383144` — ~107 KB for two new account structs + 6 instruction handlers).
 
+> **⚠️ If the B6 audit-hardening (M1/M2) is included in this redeploy, the
+> account layouts change and an in-place upgrade is NOT safe — see the breaking-change
+> warning under "Devnet Upgrade" below. Fresh accounts (new program ID or recreate)
+> are required.**
+
 - **Upgrade TX:** `[TODO — run scripts/upgrade-devnet.ts and paste TX signature here]`
 - **New deployed slot:** `[TODO — paste slot from upgrade-devnet.ts output]`
 - **SOL vault init TX:** `[TODO — run scripts/create-sol-vault.ts after redeploy and paste TX here]`
@@ -163,7 +168,29 @@ Expected: **25 passing**, 0 failing.
 
 ### Devnet Upgrade
 
-Use the atomic upgrade script:
+> **⚠️ BREAKING ACCOUNT-LAYOUT CHANGE in the B6 audit-hardening — an in-place upgrade across this boundary will BRICK the existing vault.**
+> The hardening adds `VaultConfig.pending_authority` (M1, +33 bytes) and removes
+> `DepositRecord.locked_amount` (M2, −8 bytes mid-struct), changing both struct
+> layouts. The existing devnet `VaultConfig` PDA
+> (`CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u`, initialized 2026-03-31 at the
+> old layout) and any existing `DepositRecord` accounts are **byte-incompatible**:
+> - `VaultConfig` is now too short for the trailing `Option<Pubkey>` → every
+>   instruction that loads `config` reverts with `AccountDidNotDeserialize`
+>   (fully bricked, including the `refund`/`refund_sol` self-recovery paths).
+> - old `DepositRecord` accounts deserialize **shifted** (garbage
+>   `last_deposit_at`/`bump`); the corrupted `bump` then fails the
+>   `bump = deposit_record.bump` seeds check → that depositor's funds become
+>   unwithdrawable.
+>
+> There is **no migration/`realloc` instruction**, so `upgrade-devnet.ts`
+> (in-place `BPFLoaderUpgradeable`) is unsafe here. Bring the new-layout program
+> up against **fresh** accounts — deploy to a **new program ID** + fresh
+> `initialize`, or close/recreate the config + records first. **This is RECTOR's
+> deploy decision.** (Mainnet B7 is a fresh deploy with no pre-existing accounts
+> → unaffected. Verified against live devnet account sizes by the post-hardening
+> independent review.)
+
+Use the atomic upgrade script (only safe for layout-compatible upgrades):
 
 ```bash
 cd programs/sipher-vault
