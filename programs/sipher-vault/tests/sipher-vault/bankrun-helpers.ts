@@ -144,7 +144,6 @@ export async function getAccountData(ctx: ProgramTestContext, pk: PublicKey): Pr
  *   depositor:         Pubkey  (32)
  *   token_mint:        Pubkey  (32)
  *   balance:           u64     (8)
- *   locked_amount:     u64     (8)
  *   cumulative_volume: u64     (8)
  *   last_deposit_at:   i64     (8)
  *   bump:              u8      (1)
@@ -153,7 +152,6 @@ export function parseDepositRecord(d: Buffer): {
   depositor: PublicKey
   tokenMint: PublicKey
   balance: bigint
-  lockedAmount: bigint
   cumulativeVolume: bigint
   lastDepositAt: bigint
   bump: number
@@ -162,11 +160,10 @@ export function parseDepositRecord(d: Buffer): {
   const depositor = new PublicKey(d.subarray(o, o += 32))
   const tokenMint = new PublicKey(d.subarray(o, o += 32))
   const balance = d.readBigUInt64LE(o); o += 8
-  const lockedAmount = d.readBigUInt64LE(o); o += 8
   const cumulativeVolume = d.readBigUInt64LE(o); o += 8
   const lastDepositAt = d.readBigInt64LE(o); o += 8
   const bump = d.readUInt8(o)
-  return { depositor, tokenMint, balance, lockedAmount, cumulativeVolume, lastDepositAt, bump }
+  return { depositor, tokenMint, balance, cumulativeVolume, lastDepositAt, bump }
 }
 
 /**

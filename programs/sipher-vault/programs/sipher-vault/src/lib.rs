@@ -10,7 +10,7 @@
 //! - `create_fee_token` — Create fee token PDA for a given mint
 //! - `deposit` — Transfer tokens from user to vault PDA, create/update DepositRecord
 //! - `withdraw_private` — Debit-first withdrawal to stealth address + fee split
-//! - `refund` — Return available (unlocked) balance to depositor
+//! - `refund` — Return available balance to depositor
 //! - `collect_fee` — Authority-only token-fee withdrawal
 //! - `collect_fee_sol` — Authority-only native-SOL fee withdrawal (above rent floor)
 
@@ -254,9 +254,7 @@ pub mod sipher_vault {
 
     // 1. Debit-first: reduce balance before any transfers
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available >= amount, VaultError::InsufficientBalance);
 
     record.balance = record.balance
@@ -369,9 +367,7 @@ pub mod sipher_vault {
 
     // 1. Debit-first: reduce balance before any lamport movement.
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available >= amount, VaultError::InsufficientBalance);
 
     record.balance = record.balance
@@ -449,12 +445,10 @@ pub mod sipher_vault {
     Ok(())
   }
 
-  /// Refund available (unlocked) balance back to depositor.
+  /// Refund available balance back to depositor.
   pub fn refund(ctx: Context<Refund>) -> Result<()> {
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available > 0, VaultError::NothingToRefund);
 
     // Check refund timeout
@@ -484,13 +478,13 @@ pub mod sipher_vault {
     token_interface::transfer_checked(transfer_ctx, available, ctx.accounts.token_mint.decimals)?;
 
     // Zero out refunded balance
-    record.balance = record.locked_amount;
+    record.balance = 0;
 
     msg!("Refunded {} tokens", available);
     Ok(())
   }
 
-  /// Authority-signed refund: return available (unlocked) balance to depositor.
+  /// Authority-signed refund: return available balance to depositor.
   /// Mirrors `refund` exactly except the authority signs instead of the depositor.
   /// Used by SENTINEL for autonomous refunds of expired deposits.
   /// Timeout is still enforced on-chain — authority does NOT bypass the cooldown.
@@ -498,9 +492,7 @@ pub mod sipher_vault {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
 
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available > 0, VaultError::NothingToRefund);
 
     // Enforce refund timeout — authority does NOT bypass the cooldown
@@ -529,22 +521,20 @@ pub mod sipher_vault {
     );
     token_interface::transfer_checked(transfer_ctx, available, ctx.accounts.token_mint.decimals)?;
 
-    // Zero out refunded balance (locked_amount preserved)
-    record.balance = record.locked_amount;
+    // Zero out refunded balance
+    record.balance = 0;
 
     msg!("Authority refunded {} tokens to {}", available, ctx.accounts.depositor.key());
     Ok(())
   }
 
-  /// Refund available (unlocked) native SOL balance back to the depositor.
+  /// Refund available native SOL balance back to the depositor.
   /// Depositor is the signer and the lamport destination.
   /// Timeout is enforced on-chain — the depositor must wait `refund_timeout` seconds
   /// since their last deposit before reclaiming funds.
   pub fn refund_sol(ctx: Context<RefundSol>) -> Result<()> {
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available > 0, VaultError::NothingToRefund);
 
     // Enforce refund timeout
@@ -573,14 +563,14 @@ pub mod sipher_vault {
     **vault_ai.try_borrow_mut_lamports()? = new_vault;
     **dep_ai.try_borrow_mut_lamports()? = new_dep;
 
-    // Zero out the refunded (unlocked) portion; locked_amount is preserved.
-    record.balance = record.locked_amount;
+    // Zero out the refunded balance.
+    record.balance = 0;
 
     msg!("Refunded {} lamports (native SOL)", available);
     Ok(())
   }
 
-  /// Authority-signed refund of available (unlocked) native SOL to the original depositor.
+  /// Authority-signed refund of available native SOL to the original depositor.
   /// Mirrors `refund_sol` exactly except:
   ///   - the authority signs instead of the depositor,
   ///   - `config` carries `has_one = authority` (so wrong authority → Unauthorized),
@@ -591,9 +581,7 @@ pub mod sipher_vault {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
 
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available > 0, VaultError::NothingToRefund);
 
     // Enforce refund timeout — authority does NOT bypass the cooldown
@@ -620,8 +608,8 @@ pub mod sipher_vault {
     **vault_ai.try_borrow_mut_lamports()? = new_vault;
     **dep_ai.try_borrow_mut_lamports()? = new_dep;
 
-    // Zero out the refunded (unlocked) portion; locked_amount is preserved.
-    record.balance = record.locked_amount;
+    // Zero out the refunded balance.
+    record.balance = 0;
 
     msg!("Authority refunded {} lamports (native SOL) to {}", available, ctx.accounts.depositor.key());
     Ok(())

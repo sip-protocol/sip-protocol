@@ -22,8 +22,6 @@ pub enum VaultError {
   NoFeesToCollect,
   #[msg("Invalid token mint")]
   InvalidMint,
-  #[msg("Balance locked by scheduled operations")]
-  BalanceLocked,
   #[msg("CPI to SIP Privacy program failed")]
   AnnouncementCpiFailed,
   #[msg("Mint carries an unsupported Token-2022 extension")]

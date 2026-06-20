@@ -18,7 +18,6 @@ pub struct DepositRecord {
   pub depositor: Pubkey,
   pub token_mint: Pubkey,
   pub balance: u64,
-  pub locked_amount: u64,
   pub cumulative_volume: u64,
   pub last_deposit_at: i64,
   pub bump: u8,

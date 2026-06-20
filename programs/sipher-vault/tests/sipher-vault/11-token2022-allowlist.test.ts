@@ -8,7 +8,7 @@
 //             NonTransferable, DefaultAccountState, MintCloseAuthority
 //
 // All tests use fresh mints per case. The vault config is shared (initialized
-// once in before()). Error code for UnsupportedMintExtension: 6012 (0x177c).
+// once in before()). Error code for UnsupportedMintExtension: 6011 (0x177b).
 
 import { assert } from 'chai'
 import { Keypair, SystemProgram } from '@solana/web3.js'
@@ -36,10 +36,10 @@ import { getVaultTokenPDA } from './setup'
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Anchor custom errors start at 6000. UnsupportedMintExtension is index 12.
-const UNSUPPORTED_MINT_EXTENSION_CODE = 6012
+// Anchor custom errors start at 6000. UnsupportedMintExtension is index 11.
+const UNSUPPORTED_MINT_EXTENSION_CODE = 6011
 // Hex representation for log/message matching
-const UNSUPPORTED_MINT_EXTENSION_HEX = (UNSUPPORTED_MINT_EXTENSION_CODE).toString(16) // '177c'
+const UNSUPPORTED_MINT_EXTENSION_HEX = (UNSUPPORTED_MINT_EXTENSION_CODE).toString(16) // '177b'
 
 const FEE_BPS = 10
 const REFUND_TIMEOUT = 86400n // 24h — not relevant for these tests
@@ -49,7 +49,7 @@ const REFUND_TIMEOUT = 86400n // 24h — not relevant for these tests
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Assert a promise rejects with UnsupportedMintExtension (6012 / 0x177c).
+ * Assert a promise rejects with UnsupportedMintExtension (6011 / 0x177b).
  * Bankrun embeds the error code in the transaction failure message.
  */
 async function assertUnsupportedMintExtension(fn: () => Promise<void>): Promise<void> {

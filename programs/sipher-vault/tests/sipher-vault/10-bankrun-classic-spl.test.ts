@@ -171,7 +171,6 @@ describe('10 · bankrun classic-SPL regression baseline', function () {
     const rec = parseDepositRecord(recData)
 
     assert.strictEqual(rec.balance, DEPOSIT_AMOUNT, 'deposit_record.balance mismatch')
-    assert.strictEqual(rec.lockedAmount, 0n, 'locked_amount should be 0 after deposit')
     assert.strictEqual(rec.cumulativeVolume, DEPOSIT_AMOUNT, 'cumulative_volume mismatch')
     assert.ok(rec.depositor.equals(authority.publicKey), 'depositor pubkey mismatch')
     assert.ok(rec.tokenMint.equals(mint), 'token_mint mismatch')
@@ -290,7 +289,7 @@ describe('10 · bankrun classic-SPL regression baseline', function () {
 
     // Read current deposit record to know what's available
     const recBefore = parseDepositRecord(await getAccountData(ctx, depositRecordPda))
-    const available = recBefore.balance - recBefore.lockedAmount
+    const available = recBefore.balance
     assert.ok(available > 0n, 'nothing to refund — test state error')
 
     // Snapshot depositor ATA before refund
@@ -322,7 +321,7 @@ describe('10 · bankrun classic-SPL regression baseline', function () {
       `depositor did not receive correct refund amount`,
     )
 
-    // ── Assert: DepositRecord.balance is now 0 (locked_amount was 0) ──
+    // ── Assert: DepositRecord.balance is now 0 after full refund ──
     const recAfter = parseDepositRecord(await getAccountData(ctx, depositRecordPda))
     assert.strictEqual(recAfter.balance, 0n, 'deposit_record.balance should be 0 after full refund')
 
