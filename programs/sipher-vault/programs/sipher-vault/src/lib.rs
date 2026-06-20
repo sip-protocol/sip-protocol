@@ -13,6 +13,8 @@
 //! - `refund` — Return available balance to depositor
 //! - `collect_fee` — Authority-only token-fee withdrawal
 //! - `collect_fee_sol` — Authority-only native-SOL fee withdrawal (above rent floor)
+//! - `update_authority` / `accept_authority` — Two-step authority transfer
+//! - `update_fee` — Authority-only fee update (capped at MAX_FEE_BPS)
 
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program;
@@ -77,6 +79,7 @@ pub mod sipher_vault {
     config.total_deposits = 0;
     config.total_depositors = 0;
     config.bump = ctx.bumps.config;
+    config.pending_authority = None;
 
     msg!("Vault initialized: fee={}bps, timeout={}s", fee_bps, refund_timeout);
     Ok(())
@@ -702,6 +705,43 @@ pub mod sipher_vault {
       paused,
       timestamp: Clock::get()?.unix_timestamp,
     });
+    Ok(())
+  }
+
+  /// Propose a new authority (step 1 of a two-step transfer). The current
+  /// authority signs; the proposed key is recorded in `pending_authority` but
+  /// does not take effect until it calls `accept_authority`. This lets the
+  /// program hand control to e.g. a multisig without a redeploy, and lets a
+  /// fat-fingered or compromised proposal be overwritten by another
+  /// `update_authority` before it is ever accepted.
+  pub fn update_authority(ctx: Context<UpdateAuthority>, new_authority: Pubkey) -> Result<()> {
+    ctx.accounts.config.pending_authority = Some(new_authority);
+    msg!("Authority transfer proposed: {}", new_authority);
+    Ok(())
+  }
+
+  /// Accept a pending authority transfer (step 2). The proposed authority must
+  /// sign — proving control of the key — before `config.authority` changes, so
+  /// the authority can never be handed to a key nobody controls. Clears the
+  /// pending slot on success.
+  pub fn accept_authority(ctx: Context<AcceptAuthority>) -> Result<()> {
+    let config = &mut ctx.accounts.config;
+    require!(
+      config.pending_authority == Some(ctx.accounts.new_authority.key()),
+      VaultError::Unauthorized
+    );
+    config.authority = ctx.accounts.new_authority.key();
+    config.pending_authority = None;
+    msg!("Authority transfer accepted: {}", config.authority);
+    Ok(())
+  }
+
+  /// Update the protocol fee (basis points). Authority-only, capped at
+  /// MAX_FEE_BPS. Lets the authority adjust the fee without a redeploy.
+  pub fn update_fee(ctx: Context<UpdateFee>, new_fee_bps: u16) -> Result<()> {
+    require!(new_fee_bps <= MAX_FEE_BPS, VaultError::FeeTooHigh);
+    ctx.accounts.config.fee_bps = new_fee_bps;
+    msg!("Fee updated: {} bps", new_fee_bps);
     Ok(())
   }
 }
@@ -1333,6 +1373,47 @@ pub struct CollectFeeSol<'info> {
 
 #[derive(Accounts)]
 pub struct SetPaused<'info> {
+  #[account(
+    mut,
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+    has_one = authority @ VaultError::Unauthorized,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  pub authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateAuthority<'info> {
+  #[account(
+    mut,
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+    has_one = authority @ VaultError::Unauthorized,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  pub authority: Signer<'info>,
+}
+
+/// Accept context — the *proposed* authority signs. No `has_one`: the new
+/// authority is, by definition, not yet the current authority. The match
+/// against `pending_authority` is enforced in the instruction body.
+#[derive(Accounts)]
+pub struct AcceptAuthority<'info> {
+  #[account(
+    mut,
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  pub new_authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateFee<'info> {
   #[account(
     mut,
     seeds = [VAULT_CONFIG_SEED],

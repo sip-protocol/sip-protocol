@@ -174,9 +174,10 @@ export function parseDepositRecord(d: Buffer): {
  *   fee_bps:           u16     (2)
  *   refund_timeout:    i64     (8)
  *   paused:            bool    (1)
- *   total_deposits:    u64     (8)
- *   total_depositors:  u64     (8)
- *   bump:              u8      (1)
+ *   total_deposits:    u64            (8)
+ *   total_depositors:  u64            (8)
+ *   bump:              u8             (1)
+ *   pending_authority: Option<Pubkey> (1 tag, + 32 if Some) — trailing
  */
 export function parseVaultConfig(d: Buffer): {
   authority: PublicKey
@@ -186,6 +187,7 @@ export function parseVaultConfig(d: Buffer): {
   totalDeposits: bigint
   totalDepositors: bigint
   bump: number
+  pendingAuthority: PublicKey | null
 } {
   let o = 8 // skip 8-byte Anchor discriminator
   const authority = new PublicKey(d.subarray(o, o += 32))
@@ -194,8 +196,14 @@ export function parseVaultConfig(d: Buffer): {
   const paused = d.readUInt8(o) !== 0; o += 1
   const totalDeposits = d.readBigUInt64LE(o); o += 8
   const totalDepositors = d.readBigUInt64LE(o); o += 8
-  const bump = d.readUInt8(o)
-  return { authority, feeBps, refundTimeout, paused, totalDeposits, totalDepositors, bump }
+  const bump = d.readUInt8(o); o += 1
+  // pending_authority: Option<Pubkey>, trailing. 0x00 => None; 0x01 + 32 => Some.
+  // Guarded read so a pre-M1 config layout (no trailing field) parses as null.
+  let pendingAuthority: PublicKey | null = null
+  if (o < d.length && d.readUInt8(o) === 1) {
+    pendingAuthority = new PublicKey(d.subarray(o + 1, o + 33))
+  }
+  return { authority, feeBps, refundTimeout, paused, totalDeposits, totalDepositors, bump, pendingAuthority }
 }
 
 /**
@@ -784,6 +792,74 @@ export function ixCollectFee(
       { pubkey: tokenMint, isSigner: false, isWritable: false },
       { pubkey: authority, isSigner: true, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    ],
+    data,
+  })
+}
+
+/**
+ * update_authority(new_authority: Pubkey) — propose a new authority (step 1 of 2).
+ *
+ * Accounts (UpdateAuthority):
+ *   config    mut, PDA  has_one = authority
+ *   authority signer (current authority; fee payer → writable)
+ */
+export function ixUpdateAuthority(
+  authority: PublicKey,
+  newAuthority: PublicKey,
+): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+  const data = Buffer.concat([disc('update_authority'), newAuthority.toBuffer()])
+
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: true },
+      { pubkey: authority, isSigner: true, isWritable: true },
+    ],
+    data,
+  })
+}
+
+/**
+ * accept_authority() — accept a pending authority transfer (step 2 of 2).
+ *
+ * Accounts (AcceptAuthority):
+ *   config        mut, PDA
+ *   new_authority signer (the proposed authority; fee payer → writable)
+ */
+export function ixAcceptAuthority(newAuthority: PublicKey): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: true },
+      { pubkey: newAuthority, isSigner: true, isWritable: true },
+    ],
+    data: disc('accept_authority'),
+  })
+}
+
+/**
+ * update_fee(new_fee_bps: u16) — authority-only fee update, capped at MAX_FEE_BPS.
+ *
+ * Accounts (UpdateFee):
+ *   config    mut, PDA  has_one = authority
+ *   authority signer (fee payer → writable)
+ */
+export function ixUpdateFee(
+  authority: PublicKey,
+  newFeeBps: number,
+): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+  const data = Buffer.concat([disc('update_fee'), u16le(newFeeBps)])
+
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: true },
+      { pubkey: authority, isSigner: true, isWritable: true },
     ],
     data,
   })
