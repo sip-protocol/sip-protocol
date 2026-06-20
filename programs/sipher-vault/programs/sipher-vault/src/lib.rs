@@ -93,30 +93,7 @@ pub mod sipher_vault {
   /// NonTransferable, DefaultAccountState, MintCloseAuthority, etc.) is rejected
   /// with UnsupportedMintExtension to protect the vault's transfer invariants.
   pub fn create_vault_token(ctx: Context<CreateVaultToken>) -> Result<()> {
-    // ── Token-2022 extension allowlist (fail-closed) ──────────────────────
-    // Gate on the mint's program owner so the allowlist is truly fail-closed:
-    // - Classic SPL mints (owned by TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA)
-    //   have no TLV extension area — skip the check entirely.
-    // - Token-2022 mints (owned by anchor_spl::token_2022::ID) MUST unpack
-    //   successfully; a malformed TLV that causes Err is treated as a rejected
-    //   mint (fail-closed), not silently accepted (fail-open).
-    {
-      let mint_ai = ctx.accounts.token_mint.to_account_info();
-      if *mint_ai.owner == anchor_spl::token_2022::ID {
-        let data = mint_ai.try_borrow_data()?;
-        let state = StateWithExtensions::<Token2022Mint>::unpack(&data)
-          .map_err(|_| VaultError::UnsupportedMintExtension)?;
-        for ext in state.get_extension_types()? {
-          let allowed = matches!(
-            ext,
-            ExtensionType::MetadataPointer
-              | ExtensionType::TokenMetadata
-              | ExtensionType::InterestBearingConfig
-          );
-          require!(allowed, VaultError::UnsupportedMintExtension);
-        }
-      }
-    }
+    enforce_token2022_allowlist(&ctx.accounts.token_mint.to_account_info())?;
 
     msg!(
       "Vault token PDA created for mint {}",
@@ -128,6 +105,9 @@ pub mod sipher_vault {
   /// Create the fee token PDA for a given mint.
   /// Anyone can call this. Must exist before withdraw_private.
   pub fn create_fee_token(ctx: Context<CreateFeeToken>) -> Result<()> {
+    // Mirror the create_vault_token allowlist (shared helper) so the two
+    // token-PDA creation paths can never diverge on extension safety.
+    enforce_token2022_allowlist(&ctx.accounts.token_mint.to_account_info())?;
     msg!(
       "Fee token PDA created for mint {}",
       ctx.accounts.token_mint.key()
@@ -748,6 +728,33 @@ pub mod sipher_vault {
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+/// Fail-closed Token-2022 extension allowlist. Classic SPL mints (no TLV
+/// extension area) pass untouched; Token-2022 mints MUST unpack and may carry
+/// ONLY transfer-neutral extensions (MetadataPointer, TokenMetadata,
+/// InterestBearingConfig). A malformed TLV (Err on unpack) or ANY other /
+/// unknown / future extension is rejected with `UnsupportedMintExtension`, to
+/// protect the vault's raw-amount transfer invariants.
+///
+/// Shared by `create_vault_token` and `create_fee_token` so the two token-PDA
+/// creation paths can never diverge on extension safety.
+fn enforce_token2022_allowlist(mint_ai: &AccountInfo) -> Result<()> {
+  if *mint_ai.owner == anchor_spl::token_2022::ID {
+    let data = mint_ai.try_borrow_data()?;
+    let state = StateWithExtensions::<Token2022Mint>::unpack(&data)
+      .map_err(|_| VaultError::UnsupportedMintExtension)?;
+    for ext in state.get_extension_types()? {
+      let allowed = matches!(
+        ext,
+        ExtensionType::MetadataPointer
+          | ExtensionType::TokenMetadata
+          | ExtensionType::InterestBearingConfig
+      );
+      require!(allowed, VaultError::UnsupportedMintExtension);
+    }
+  }
+  Ok(())
+}
 
 /// Emit a `sip_privacy::create_transfer_announcement` CPI so a vault withdrawal
 /// becomes a scannable, Pedersen-committed announcement (a `TransferRecord` PDA).

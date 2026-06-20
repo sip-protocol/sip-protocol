@@ -29,7 +29,7 @@ import {
 } from '@solana/spl-token'
 import { ProgramTestContext } from 'solana-bankrun'
 
-import { ixInitialize, ixCreateVaultToken, sendIx, startVault, VAULT_PROGRAM_ID } from './bankrun-helpers'
+import { ixInitialize, ixCreateVaultToken, ixCreateFeeToken, sendIx, startVault, VAULT_PROGRAM_ID } from './bankrun-helpers'
 import { getVaultTokenPDA } from './setup'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -458,6 +458,44 @@ describe('11 · Token-2022 extension allowlist (fail-closed)', function () {
     await assertUnsupportedMintExtension(async () => {
       await sendIx(ctx, [
         ixCreateVaultToken(mintKp.publicKey, authority.publicKey, TOKEN_2022_PROGRAM_ID),
+      ], [authority])
+    })
+  })
+
+  // ── REJECT: create_fee_token mirrors the same allowlist (I3) ────────────
+
+  it('REJECT: PermanentDelegate mint → create_fee_token fails with UnsupportedMintExtension', async function () {
+    const mintKp = Keypair.generate()
+    const extTypes = [ExtensionType.PermanentDelegate]
+    const space = getMintLen(extTypes)
+    const rent = await ctx.banksClient.getRent()
+    const mintLamports = Number(rent.minimumBalance(BigInt(space)))
+
+    await sendIx(ctx, [
+      SystemProgram.createAccount({
+        fromPubkey: authority.publicKey,
+        newAccountPubkey: mintKp.publicKey,
+        lamports: mintLamports,
+        space,
+        programId: TOKEN_2022_PROGRAM_ID,
+      }),
+      createInitializePermanentDelegateInstruction(
+        mintKp.publicKey,
+        authority.publicKey, // permanent delegate
+        TOKEN_2022_PROGRAM_ID,
+      ),
+      createInitializeMintInstruction(
+        mintKp.publicKey,
+        6,
+        authority.publicKey,
+        null,
+        TOKEN_2022_PROGRAM_ID,
+      ),
+    ], [authority, mintKp])
+
+    await assertUnsupportedMintExtension(async () => {
+      await sendIx(ctx, [
+        ixCreateFeeToken(mintKp.publicKey, authority.publicKey, TOKEN_2022_PROGRAM_ID),
       ], [authority])
     })
   })

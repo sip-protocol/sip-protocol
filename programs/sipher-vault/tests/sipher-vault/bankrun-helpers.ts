@@ -311,6 +311,7 @@ export function ixCreateVaultToken(
 export function ixCreateFeeToken(
   tokenMint: PublicKey,
   payer: PublicKey,
+  tokenProgram: PublicKey = TOKEN_PROGRAM_ID,
 ): TransactionInstruction {
   const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
   const [feeTokenPda] = getFeeTokenPDA(tokenMint, VAULT_PROGRAM_ID)
@@ -322,7 +323,7 @@ export function ixCreateFeeToken(
       { pubkey: feeTokenPda, isSigner: false, isWritable: true },
       { pubkey: tokenMint, isSigner: false, isWritable: false },
       { pubkey: payer, isSigner: true, isWritable: true },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: tokenProgram, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
     data: disc('create_fee_token'),
