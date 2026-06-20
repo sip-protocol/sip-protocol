@@ -696,6 +696,11 @@ pub mod sipher_vault {
   pub fn update_authority(ctx: Context<UpdateAuthority>, new_authority: Pubkey) -> Result<()> {
     ctx.accounts.config.pending_authority = Some(new_authority);
     msg!("Authority transfer proposed: {}", new_authority);
+    emit!(AuthorityTransferProposedEvent {
+      current_authority: ctx.accounts.authority.key(),
+      pending_authority: new_authority,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
     Ok(())
   }
 
@@ -709,9 +714,15 @@ pub mod sipher_vault {
       config.pending_authority == Some(ctx.accounts.new_authority.key()),
       VaultError::Unauthorized
     );
+    let old_authority = config.authority;
     config.authority = ctx.accounts.new_authority.key();
     config.pending_authority = None;
     msg!("Authority transfer accepted: {}", config.authority);
+    emit!(AuthorityUpdatedEvent {
+      old_authority,
+      new_authority: config.authority,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
     Ok(())
   }
 
@@ -719,8 +730,15 @@ pub mod sipher_vault {
   /// MAX_FEE_BPS. Lets the authority adjust the fee without a redeploy.
   pub fn update_fee(ctx: Context<UpdateFee>, new_fee_bps: u16) -> Result<()> {
     require!(new_fee_bps <= MAX_FEE_BPS, VaultError::FeeTooHigh);
+    let old_fee_bps = ctx.accounts.config.fee_bps;
     ctx.accounts.config.fee_bps = new_fee_bps;
     msg!("Fee updated: {} bps", new_fee_bps);
+    emit!(FeeUpdatedEvent {
+      authority: ctx.accounts.authority.key(),
+      old_fee_bps,
+      new_fee_bps,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
     Ok(())
   }
 }
@@ -1466,5 +1484,34 @@ pub struct VaultWithdrawEvent {
 pub struct VaultPausedEvent {
   pub authority: Pubkey,
   pub paused: bool,
+  pub timestamp: i64,
+}
+
+/// Emitted when the current authority proposes a transfer (step 1). Lets
+/// off-chain monitoring (SENTINEL, indexers) react to a pending authority
+/// change without log-parsing — the same rationale as `VaultPausedEvent`.
+#[event]
+pub struct AuthorityTransferProposedEvent {
+  pub current_authority: Pubkey,
+  pub pending_authority: Pubkey,
+  pub timestamp: i64,
+}
+
+/// Emitted when a pending authority transfer is accepted (step 2) and
+/// `config.authority` actually changes — the single most alarm-worthy custody
+/// event, especially once the authority is a mainnet multisig.
+#[event]
+pub struct AuthorityUpdatedEvent {
+  pub old_authority: Pubkey,
+  pub new_authority: Pubkey,
+  pub timestamp: i64,
+}
+
+/// Emitted when the authority updates the protocol fee.
+#[event]
+pub struct FeeUpdatedEvent {
+  pub authority: Pubkey,
+  pub old_fee_bps: u16,
+  pub new_fee_bps: u16,
   pub timestamp: i64,
 }
