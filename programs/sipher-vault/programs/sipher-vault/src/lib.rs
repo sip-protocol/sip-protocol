@@ -41,7 +41,6 @@ pub const SIP_PRIVACY_PROGRAM_ID: Pubkey = Pubkey::new_from_array([
 
 /// Seeds used by the sip_privacy program
 pub const SIP_CONFIG_SEED: &[u8] = b"config";
-pub const SIP_TRANSFER_RECORD_SEED: &[u8] = b"transfer_record";
 
 /// Anchor instruction discriminator for `sip_privacy::create_transfer_announcement`
 /// = `sha256("global:create_transfer_announcement")[..8]`.
@@ -935,6 +934,10 @@ pub struct DepositSol<'info> {
   )]
   pub config: Account<'info, VaultConfig>,
 
+  // init_if_needed is safe ONLY because `deposit_sol` accumulates: `is_new` is
+  // derived from cumulative_volume, and balance/cumulative_volume are added to,
+  // never reset. A future edit that zeroes a field on re-init would reintroduce
+  // a double-credit/overwrite bug — preserve the accumulate-not-reset invariant.
   #[account(
     init_if_needed,
     payer = depositor,
@@ -966,6 +969,10 @@ pub struct Deposit<'info> {
   )]
   pub config: Account<'info, VaultConfig>,
 
+  // init_if_needed is safe ONLY because `deposit` accumulates: `is_new` is
+  // derived from cumulative_volume, and balance/cumulative_volume are added to,
+  // never reset. A future edit that zeroes a field on re-init would reintroduce
+  // a double-credit/overwrite bug — preserve the accumulate-not-reset invariant.
   #[account(
     init_if_needed,
     payer = depositor,
@@ -981,6 +988,7 @@ pub struct Deposit<'info> {
     bump,
     token::mint = token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
@@ -1028,6 +1036,7 @@ pub struct WithdrawPrivate<'info> {
     bump,
     token::mint = token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub vault_token: Box<InterfaceAccount<'info, TokenAccount>>,
 
@@ -1037,6 +1046,7 @@ pub struct WithdrawPrivate<'info> {
     bump,
     token::mint = token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub fee_token: Box<InterfaceAccount<'info, TokenAccount>>,
 
@@ -1173,6 +1183,7 @@ pub struct Refund<'info> {
     bump,
     token::mint = deposit_record.token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
@@ -1218,6 +1229,7 @@ pub struct AuthorityRefund<'info> {
     bump,
     token::mint = deposit_record.token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
@@ -1330,6 +1342,7 @@ pub struct CollectFee<'info> {
     bump,
     token::mint = token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub fee_token: InterfaceAccount<'info, TokenAccount>,
 
