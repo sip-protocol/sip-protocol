@@ -28,8 +28,6 @@ updates:
       - dependency-name: "@noble/*"
         update-types: ["version-update:semver-major"]
       # Deferred majors — require code migration (tracked in issues); minor/patch still flow
-      - dependency-name: "@triton-one/yellowstone-grpc"
-        update-types: ["version-update:semver-major"]
 
   # Cargo — deployed on-chain programs (security-critical)
   - package-ecosystem: "cargo"

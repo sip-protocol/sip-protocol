@@ -85,13 +85,12 @@
     "@solana/kit": "^6.10.0",
     "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
-    "@triton-one/yellowstone-grpc": "^4.0.2",
+    "@triton-one/yellowstone-grpc": "^5.0.9",
     "langchain": "^1.4.6",
     "pino": "^10.3.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@grpc/grpc-js": "^1.14.4",
     "@types/node": "^25.9.3",
     "@vitest/coverage-v8": "^4.1.9",
     "fast-check": "^4.8.0",
