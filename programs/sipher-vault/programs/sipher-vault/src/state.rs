@@ -10,6 +10,10 @@ pub struct VaultConfig {
   pub total_deposits: u64,
   pub total_depositors: u64,
   pub bump: u8,
+  /// Pending authority for the two-step authority transfer (None = no transfer
+  /// in flight). Set by `update_authority`, promoted/cleared by `accept_authority`.
+  /// Trailing field so the fixed-offset fields above keep their byte positions.
+  pub pending_authority: Option<Pubkey>,
 }
 
 #[account]
@@ -18,7 +22,6 @@ pub struct DepositRecord {
   pub depositor: Pubkey,
   pub token_mint: Pubkey,
   pub balance: u64,
-  pub locked_amount: u64,
   pub cumulative_volume: u64,
   pub last_deposit_at: i64,
   pub bump: u8,

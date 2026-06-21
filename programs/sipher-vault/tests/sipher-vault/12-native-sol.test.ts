@@ -206,11 +206,13 @@ describe('12 · native SOL vault track', function () {
 
   // Anchor custom errors start at 6000. Enum order in errors.rs:
   //   ProgramPaused=6000, Unauthorized=6001, InsufficientBalance=6002,
-  //   MathOverflow=6003, ZeroDeposit=6004, … , RentReserveViolation=6013.
+  //   MathOverflow=6003, ZeroDeposit=6004, … , RentReserveViolation=6012.
   const INSUFFICIENT_BALANCE_CODE = 6002
   const INSUFFICIENT_BALANCE_HEX = INSUFFICIENT_BALANCE_CODE.toString(16) // '1772'
-  const RENT_RESERVE_CODE = 6013
-  const RENT_RESERVE_HEX = RENT_RESERVE_CODE.toString(16) // '177d'
+  const RENT_RESERVE_CODE = 6012
+  const RENT_RESERVE_HEX = RENT_RESERVE_CODE.toString(16) // '177c'
+  const ENCRYPTED_AMOUNT_TOO_LONG_CODE = 6013
+  const ENCRYPTED_AMOUNT_TOO_LONG_HEX = ENCRYPTED_AMOUNT_TOO_LONG_CODE.toString(16) // '177d'
 
   const FEE_DENOM = 10_000n
 
@@ -390,7 +392,55 @@ describe('12 · native SOL vault track', function () {
     }
   })
 
-  it('withdraw_private_sol → rent guard fires when vault lamports are desynced below backing (RentReserveViolation 6013 / 0x177d)', async function () {
+  it('withdraw_private_sol → rejects encrypted_amount longer than 64 bytes (EncryptedAmountTooLong 6013 / 0x177d)', async function () {
+    await ensureWithdrawSetup()
+
+    // Fund the record so the guard provably fires BEFORE the debit (balance unchanged).
+    // Unique amount → distinct tx signature (bankrun reuses one blockhash, so a
+    // byte-identical deposit from a prior test would be rejected as a duplicate).
+    await sendIx(ctx, [ixDepositSol(wd.publicKey, 1_111_111n)], [wd])
+    const [recordPda] = getDepositRecordPDA(wd.publicKey, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
+    const balanceBefore = parseDepositRecord(await getAccountData(ctx, recordPda)).balance
+
+    const [sipConfigPda] = getSipConfigPDA()
+    const { totalTransfers } = parseSipConfig(await getAccountData(ctx, sipConfigPda))
+    const [sipTransferRecordPda] = getSipTransferRecordPDA(wd.publicKey, totalTransfers)
+
+    const stealth = Keypair.generate().publicKey
+    const p = announceParams()
+    const tooLong = randomBytes(65) // 65 > the 64-byte cap
+
+    try {
+      await sendIx(ctx, [
+        ixWithdrawPrivateSol(
+          wd.publicKey, stealth, sipTransferRecordPda, 100_000n,
+          p.amountCommitment, stealth, p.ephemeralPubkey, p.viewingKeyHash,
+          tooLong, p.proof,
+        ),
+      ], [wd])
+      assert.fail('Expected EncryptedAmountTooLong error but transaction succeeded')
+    } catch (e: unknown) {
+      const err = e as Error
+      if (err.message && err.message.includes('Expected EncryptedAmountTooLong error but transaction succeeded')) {
+        throw err
+      }
+      const msg = (err?.message ?? String(err)).toLowerCase()
+      const matchesCode =
+        msg.includes(String(ENCRYPTED_AMOUNT_TOO_LONG_CODE)) ||
+        msg.includes(ENCRYPTED_AMOUNT_TOO_LONG_HEX) ||
+        msg.includes('encryptedamounttoolong')
+      assert.ok(
+        matchesCode,
+        `Expected EncryptedAmountTooLong (${ENCRYPTED_AMOUNT_TOO_LONG_CODE} / 0x${ENCRYPTED_AMOUNT_TOO_LONG_HEX}), got: ${err?.message ?? String(err)}`,
+      )
+    }
+
+    // Fail-fast: the guard rejects before the debit — balance is unchanged.
+    const balanceAfter = parseDepositRecord(await getAccountData(ctx, recordPda)).balance
+    assert.strictEqual(balanceAfter, balanceBefore, 'balance must be unchanged (guard rejects before debit)')
+  })
+
+  it('withdraw_private_sol → rent guard fires when vault lamports are desynced below backing (RentReserveViolation 6012 / 0x177c)', async function () {
     await ensureWithdrawSetup()
 
     // Use a FRESH depositor so `available` is large and unrelated to wd's balance.
@@ -510,7 +560,7 @@ describe('12 · native SOL vault track', function () {
     }
   }
 
-  it('refund_sol → depositor receives unlocked lamports and record.balance equals locked_amount', async function () {
+  it('refund_sol → depositor receives available lamports and record.balance is zeroed', async function () {
     await ensureRefunderSetup()
 
     const depositAmount = 2_000_000n
@@ -521,7 +571,7 @@ describe('12 · native SOL vault track', function () {
     // Confirm the record before the refund.
     const [recordPda] = getDepositRecordPDA(refunder.publicKey, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
     const recBefore = parseDepositRecord(await getAccountData(ctx, recordPda))
-    const available = recBefore.balance - recBefore.lockedAmount
+    const available = recBefore.balance
     assert.ok(available > 0n, 'no available balance to refund — test state error')
 
     // Snapshot depositor lamports before refund (lamports live on the system account).
@@ -565,15 +615,9 @@ describe('12 · native SOL vault track', function () {
       `sol_vault lamport delta: expected -${available}, got -${solVaultBefore - solVaultAfter}`,
     )
 
-    // ── record.balance == locked_amount (available portion zeroed) ──
+    // ── record.balance == 0 (available portion zeroed) ──
     const recAfter = parseDepositRecord(await getAccountData(ctx, recordPda))
-    assert.strictEqual(
-      recAfter.balance,
-      recAfter.lockedAmount,
-      `record.balance should equal locked_amount after refund_sol`,
-    )
-    // Since locked_amount was 0, balance should also be 0.
-    assert.strictEqual(recAfter.balance, 0n, 'balance should be 0 when locked_amount is 0')
+    assert.strictEqual(recAfter.balance, 0n, 'record.balance should be 0 after refund_sol')
   })
 
   it('refund_sol → rejects before timeout with RefundNotExpired (6005 / 0x1775)', async function () {
@@ -641,7 +685,7 @@ describe('12 · native SOL vault track', function () {
 
     const [recordPda3] = getDepositRecordPDA(authorityRefundDepositor.publicKey, NATIVE_SOL_MINT, VAULT_PROGRAM_ID)
     const rec3 = parseDepositRecord(await getAccountData(ctx, recordPda3))
-    const available3 = rec3.balance - rec3.lockedAmount
+    const available3 = rec3.balance
     assert.ok(available3 > 0n, 'no available balance — test state error')
 
     // Snapshot depositor lamports before the authority refund.
@@ -682,13 +726,9 @@ describe('12 · native SOL vault track', function () {
       `sol_vault lamport delta: expected -${available3}, got -${solVaultBefore - solVaultAfter}`,
     )
 
-    // ── record.balance == locked_amount ──
+    // ── record.balance == 0 ──
     const rec3After = parseDepositRecord(await getAccountData(ctx, recordPda3))
-    assert.strictEqual(
-      rec3After.balance,
-      rec3After.lockedAmount,
-      'record.balance should equal locked_amount after authority_refund_sol',
-    )
+    assert.strictEqual(rec3After.balance, 0n, 'record.balance should be 0 after authority_refund_sol')
   })
 
   it('authority_refund_sol → wrong authority is rejected with Unauthorized (6001 / 0x1771)', async function () {

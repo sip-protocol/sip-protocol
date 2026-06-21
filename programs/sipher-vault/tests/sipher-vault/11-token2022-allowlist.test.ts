@@ -8,7 +8,7 @@
 //             NonTransferable, DefaultAccountState, MintCloseAuthority
 //
 // All tests use fresh mints per case. The vault config is shared (initialized
-// once in before()). Error code for UnsupportedMintExtension: 6012 (0x177c).
+// once in before()). Error code for UnsupportedMintExtension: 6011 (0x177b).
 
 import { assert } from 'chai'
 import { Keypair, SystemProgram } from '@solana/web3.js'
@@ -29,17 +29,17 @@ import {
 } from '@solana/spl-token'
 import { ProgramTestContext } from 'solana-bankrun'
 
-import { ixInitialize, ixCreateVaultToken, sendIx, startVault, VAULT_PROGRAM_ID } from './bankrun-helpers'
+import { ixInitialize, ixCreateVaultToken, ixCreateFeeToken, sendIx, startVault, VAULT_PROGRAM_ID } from './bankrun-helpers'
 import { getVaultTokenPDA } from './setup'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Anchor custom errors start at 6000. UnsupportedMintExtension is index 12.
-const UNSUPPORTED_MINT_EXTENSION_CODE = 6012
+// Anchor custom errors start at 6000. UnsupportedMintExtension is index 11.
+const UNSUPPORTED_MINT_EXTENSION_CODE = 6011
 // Hex representation for log/message matching
-const UNSUPPORTED_MINT_EXTENSION_HEX = (UNSUPPORTED_MINT_EXTENSION_CODE).toString(16) // '177c'
+const UNSUPPORTED_MINT_EXTENSION_HEX = (UNSUPPORTED_MINT_EXTENSION_CODE).toString(16) // '177b'
 
 const FEE_BPS = 10
 const REFUND_TIMEOUT = 86400n // 24h — not relevant for these tests
@@ -49,7 +49,7 @@ const REFUND_TIMEOUT = 86400n // 24h — not relevant for these tests
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Assert a promise rejects with UnsupportedMintExtension (6012 / 0x177c).
+ * Assert a promise rejects with UnsupportedMintExtension (6011 / 0x177b).
  * Bankrun embeds the error code in the transaction failure message.
  */
 async function assertUnsupportedMintExtension(fn: () => Promise<void>): Promise<void> {
@@ -458,6 +458,44 @@ describe('11 · Token-2022 extension allowlist (fail-closed)', function () {
     await assertUnsupportedMintExtension(async () => {
       await sendIx(ctx, [
         ixCreateVaultToken(mintKp.publicKey, authority.publicKey, TOKEN_2022_PROGRAM_ID),
+      ], [authority])
+    })
+  })
+
+  // ── REJECT: create_fee_token mirrors the same allowlist (I3) ────────────
+
+  it('REJECT: PermanentDelegate mint → create_fee_token fails with UnsupportedMintExtension', async function () {
+    const mintKp = Keypair.generate()
+    const extTypes = [ExtensionType.PermanentDelegate]
+    const space = getMintLen(extTypes)
+    const rent = await ctx.banksClient.getRent()
+    const mintLamports = Number(rent.minimumBalance(BigInt(space)))
+
+    await sendIx(ctx, [
+      SystemProgram.createAccount({
+        fromPubkey: authority.publicKey,
+        newAccountPubkey: mintKp.publicKey,
+        lamports: mintLamports,
+        space,
+        programId: TOKEN_2022_PROGRAM_ID,
+      }),
+      createInitializePermanentDelegateInstruction(
+        mintKp.publicKey,
+        authority.publicKey, // permanent delegate
+        TOKEN_2022_PROGRAM_ID,
+      ),
+      createInitializeMintInstruction(
+        mintKp.publicKey,
+        6,
+        authority.publicKey,
+        null,
+        TOKEN_2022_PROGRAM_ID,
+      ),
+    ], [authority, mintKp])
+
+    await assertUnsupportedMintExtension(async () => {
+      await sendIx(ctx, [
+        ixCreateFeeToken(mintKp.publicKey, authority.publicKey, TOKEN_2022_PROGRAM_ID),
       ], [authority])
     })
   })

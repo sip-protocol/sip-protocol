@@ -10,9 +10,11 @@
 //! - `create_fee_token` — Create fee token PDA for a given mint
 //! - `deposit` — Transfer tokens from user to vault PDA, create/update DepositRecord
 //! - `withdraw_private` — Debit-first withdrawal to stealth address + fee split
-//! - `refund` — Return available (unlocked) balance to depositor
+//! - `refund` — Return available balance to depositor
 //! - `collect_fee` — Authority-only token-fee withdrawal
 //! - `collect_fee_sol` — Authority-only native-SOL fee withdrawal (above rent floor)
+//! - `update_authority` / `accept_authority` — Two-step authority transfer
+//! - `update_fee` — Authority-only fee update (capped at MAX_FEE_BPS)
 
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program;
@@ -39,7 +41,6 @@ pub const SIP_PRIVACY_PROGRAM_ID: Pubkey = Pubkey::new_from_array([
 
 /// Seeds used by the sip_privacy program
 pub const SIP_CONFIG_SEED: &[u8] = b"config";
-pub const SIP_TRANSFER_RECORD_SEED: &[u8] = b"transfer_record";
 
 /// Anchor instruction discriminator for `sip_privacy::create_transfer_announcement`
 /// = `sha256("global:create_transfer_announcement")[..8]`.
@@ -50,6 +51,13 @@ pub const SIP_TRANSFER_RECORD_SEED: &[u8] = b"transfer_record";
 /// tests: a wrong discriminator makes the announcement CPI fail.
 pub const CREATE_TRANSFER_ANNOUNCEMENT_DISC: [u8; 8] =
   [0x9b, 0x34, 0xb1, 0x8f, 0xd3, 0x5b, 0xcd, 0x66];
+
+/// Maximum byte length of the opaque `encrypted_amount` blob the withdrawal
+/// paths accept. Mirrors the callee `sip_privacy`'s own cap (its
+/// `TransferRecord.encrypted_amount` is `#[max_len(64)]`); the vault re-checks
+/// it so an over-long blob fails fast with a vault-native error before the
+/// debit. Keep in sync with sip_privacy if that cap ever changes.
+pub const MAX_ENCRYPTED_AMOUNT_LEN: usize = 64;
 
 declare_id!("S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB");
 
@@ -77,6 +85,7 @@ pub mod sipher_vault {
     config.total_deposits = 0;
     config.total_depositors = 0;
     config.bump = ctx.bumps.config;
+    config.pending_authority = None;
 
     msg!("Vault initialized: fee={}bps, timeout={}s", fee_bps, refund_timeout);
     Ok(())
@@ -91,30 +100,7 @@ pub mod sipher_vault {
   /// NonTransferable, DefaultAccountState, MintCloseAuthority, etc.) is rejected
   /// with UnsupportedMintExtension to protect the vault's transfer invariants.
   pub fn create_vault_token(ctx: Context<CreateVaultToken>) -> Result<()> {
-    // ── Token-2022 extension allowlist (fail-closed) ──────────────────────
-    // Gate on the mint's program owner so the allowlist is truly fail-closed:
-    // - Classic SPL mints (owned by TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA)
-    //   have no TLV extension area — skip the check entirely.
-    // - Token-2022 mints (owned by anchor_spl::token_2022::ID) MUST unpack
-    //   successfully; a malformed TLV that causes Err is treated as a rejected
-    //   mint (fail-closed), not silently accepted (fail-open).
-    {
-      let mint_ai = ctx.accounts.token_mint.to_account_info();
-      if *mint_ai.owner == anchor_spl::token_2022::ID {
-        let data = mint_ai.try_borrow_data()?;
-        let state = StateWithExtensions::<Token2022Mint>::unpack(&data)
-          .map_err(|_| VaultError::UnsupportedMintExtension)?;
-        for ext in state.get_extension_types()? {
-          let allowed = matches!(
-            ext,
-            ExtensionType::MetadataPointer
-              | ExtensionType::TokenMetadata
-              | ExtensionType::InterestBearingConfig
-          );
-          require!(allowed, VaultError::UnsupportedMintExtension);
-        }
-      }
-    }
+    enforce_token2022_allowlist(&ctx.accounts.token_mint.to_account_info())?;
 
     msg!(
       "Vault token PDA created for mint {}",
@@ -126,6 +112,9 @@ pub mod sipher_vault {
   /// Create the fee token PDA for a given mint.
   /// Anyone can call this. Must exist before withdraw_private.
   pub fn create_fee_token(ctx: Context<CreateFeeToken>) -> Result<()> {
+    // Mirror the create_vault_token allowlist (shared helper) so the two
+    // token-PDA creation paths can never diverge on extension safety.
+    enforce_token2022_allowlist(&ctx.accounts.token_mint.to_account_info())?;
     msg!(
       "Fee token PDA created for mint {}",
       ctx.accounts.token_mint.key()
@@ -251,13 +240,13 @@ pub mod sipher_vault {
   ) -> Result<()> {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
     require!(amount > 0, VaultError::ZeroDeposit);
+    // Fail-fast before the debit: reject an over-long blob early with a
+    // vault-native error. Mirrors the callee's cap (see MAX_ENCRYPTED_AMOUNT_LEN).
+    require!(_encrypted_amount.len() <= MAX_ENCRYPTED_AMOUNT_LEN, VaultError::EncryptedAmountTooLong);
 
     // 1. Debit-first: reduce balance before any transfers
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
-    require!(available >= amount, VaultError::InsufficientBalance);
+    require!(record.balance >= amount, VaultError::InsufficientBalance);
 
     record.balance = record.balance
       .checked_sub(amount)
@@ -366,13 +355,13 @@ pub mod sipher_vault {
   ) -> Result<()> {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
     require!(amount > 0, VaultError::ZeroDeposit);
+    // Fail-fast before the debit: reject an over-long blob early with a
+    // vault-native error. Mirrors the callee's cap (see MAX_ENCRYPTED_AMOUNT_LEN).
+    require!(_encrypted_amount.len() <= MAX_ENCRYPTED_AMOUNT_LEN, VaultError::EncryptedAmountTooLong);
 
     // 1. Debit-first: reduce balance before any lamport movement.
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
-    require!(available >= amount, VaultError::InsufficientBalance);
+    require!(record.balance >= amount, VaultError::InsufficientBalance);
 
     record.balance = record.balance
       .checked_sub(amount)
@@ -449,12 +438,10 @@ pub mod sipher_vault {
     Ok(())
   }
 
-  /// Refund available (unlocked) balance back to depositor.
+  /// Refund available balance back to depositor.
   pub fn refund(ctx: Context<Refund>) -> Result<()> {
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available > 0, VaultError::NothingToRefund);
 
     // Check refund timeout
@@ -484,13 +471,13 @@ pub mod sipher_vault {
     token_interface::transfer_checked(transfer_ctx, available, ctx.accounts.token_mint.decimals)?;
 
     // Zero out refunded balance
-    record.balance = record.locked_amount;
+    record.balance = 0;
 
     msg!("Refunded {} tokens", available);
     Ok(())
   }
 
-  /// Authority-signed refund: return available (unlocked) balance to depositor.
+  /// Authority-signed refund: return available balance to depositor.
   /// Mirrors `refund` exactly except the authority signs instead of the depositor.
   /// Used by SENTINEL for autonomous refunds of expired deposits.
   /// Timeout is still enforced on-chain — authority does NOT bypass the cooldown.
@@ -498,9 +485,7 @@ pub mod sipher_vault {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
 
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available > 0, VaultError::NothingToRefund);
 
     // Enforce refund timeout — authority does NOT bypass the cooldown
@@ -529,22 +514,20 @@ pub mod sipher_vault {
     );
     token_interface::transfer_checked(transfer_ctx, available, ctx.accounts.token_mint.decimals)?;
 
-    // Zero out refunded balance (locked_amount preserved)
-    record.balance = record.locked_amount;
+    // Zero out refunded balance
+    record.balance = 0;
 
     msg!("Authority refunded {} tokens to {}", available, ctx.accounts.depositor.key());
     Ok(())
   }
 
-  /// Refund available (unlocked) native SOL balance back to the depositor.
+  /// Refund available native SOL balance back to the depositor.
   /// Depositor is the signer and the lamport destination.
   /// Timeout is enforced on-chain — the depositor must wait `refund_timeout` seconds
   /// since their last deposit before reclaiming funds.
   pub fn refund_sol(ctx: Context<RefundSol>) -> Result<()> {
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available > 0, VaultError::NothingToRefund);
 
     // Enforce refund timeout
@@ -573,14 +556,14 @@ pub mod sipher_vault {
     **vault_ai.try_borrow_mut_lamports()? = new_vault;
     **dep_ai.try_borrow_mut_lamports()? = new_dep;
 
-    // Zero out the refunded (unlocked) portion; locked_amount is preserved.
-    record.balance = record.locked_amount;
+    // Zero out the refunded balance.
+    record.balance = 0;
 
     msg!("Refunded {} lamports (native SOL)", available);
     Ok(())
   }
 
-  /// Authority-signed refund of available (unlocked) native SOL to the original depositor.
+  /// Authority-signed refund of available native SOL to the original depositor.
   /// Mirrors `refund_sol` exactly except:
   ///   - the authority signs instead of the depositor,
   ///   - `config` carries `has_one = authority` (so wrong authority → Unauthorized),
@@ -591,9 +574,7 @@ pub mod sipher_vault {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
 
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance
-      .checked_sub(record.locked_amount)
-      .ok_or(VaultError::MathOverflow)?;
+    let available = record.balance;
     require!(available > 0, VaultError::NothingToRefund);
 
     // Enforce refund timeout — authority does NOT bypass the cooldown
@@ -620,8 +601,8 @@ pub mod sipher_vault {
     **vault_ai.try_borrow_mut_lamports()? = new_vault;
     **dep_ai.try_borrow_mut_lamports()? = new_dep;
 
-    // Zero out the refunded (unlocked) portion; locked_amount is preserved.
-    record.balance = record.locked_amount;
+    // Zero out the refunded balance.
+    record.balance = 0;
 
     msg!("Authority refunded {} lamports (native SOL) to {}", available, ctx.accounts.depositor.key());
     Ok(())
@@ -710,11 +691,93 @@ pub mod sipher_vault {
     });
     Ok(())
   }
+
+  /// Propose a new authority (step 1 of a two-step transfer). The current
+  /// authority signs; the proposed key is recorded in `pending_authority` but
+  /// does not take effect until it calls `accept_authority`. This lets the
+  /// program hand control to e.g. a multisig without a redeploy, and lets a
+  /// fat-fingered or compromised proposal be overwritten by another
+  /// `update_authority` before it is ever accepted.
+  pub fn update_authority(ctx: Context<UpdateAuthority>, new_authority: Pubkey) -> Result<()> {
+    ctx.accounts.config.pending_authority = Some(new_authority);
+    msg!("Authority transfer proposed: {}", new_authority);
+    emit!(AuthorityTransferProposedEvent {
+      current_authority: ctx.accounts.authority.key(),
+      pending_authority: new_authority,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
+    Ok(())
+  }
+
+  /// Accept a pending authority transfer (step 2). The proposed authority must
+  /// sign — proving control of the key — before `config.authority` changes, so
+  /// the authority can never be handed to a key nobody controls. Clears the
+  /// pending slot on success.
+  pub fn accept_authority(ctx: Context<AcceptAuthority>) -> Result<()> {
+    let config = &mut ctx.accounts.config;
+    require!(
+      config.pending_authority == Some(ctx.accounts.new_authority.key()),
+      VaultError::Unauthorized
+    );
+    let old_authority = config.authority;
+    config.authority = ctx.accounts.new_authority.key();
+    config.pending_authority = None;
+    msg!("Authority transfer accepted: {}", config.authority);
+    emit!(AuthorityUpdatedEvent {
+      old_authority,
+      new_authority: config.authority,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
+    Ok(())
+  }
+
+  /// Update the protocol fee (basis points). Authority-only, capped at
+  /// MAX_FEE_BPS. Lets the authority adjust the fee without a redeploy.
+  pub fn update_fee(ctx: Context<UpdateFee>, new_fee_bps: u16) -> Result<()> {
+    require!(new_fee_bps <= MAX_FEE_BPS, VaultError::FeeTooHigh);
+    let old_fee_bps = ctx.accounts.config.fee_bps;
+    ctx.accounts.config.fee_bps = new_fee_bps;
+    msg!("Fee updated: {} bps", new_fee_bps);
+    emit!(FeeUpdatedEvent {
+      authority: ctx.accounts.authority.key(),
+      old_fee_bps,
+      new_fee_bps,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
+    Ok(())
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
+/// Fail-closed Token-2022 extension allowlist. Classic SPL mints (no TLV
+/// extension area) pass untouched; Token-2022 mints MUST unpack and may carry
+/// ONLY transfer-neutral extensions (MetadataPointer, TokenMetadata,
+/// InterestBearingConfig). A malformed TLV (Err on unpack) or ANY other /
+/// unknown / future extension is rejected with `UnsupportedMintExtension`, to
+/// protect the vault's raw-amount transfer invariants.
+///
+/// Shared by `create_vault_token` and `create_fee_token` so the two token-PDA
+/// creation paths can never diverge on extension safety.
+fn enforce_token2022_allowlist(mint_ai: &AccountInfo) -> Result<()> {
+  if *mint_ai.owner == anchor_spl::token_2022::ID {
+    let data = mint_ai.try_borrow_data()?;
+    let state = StateWithExtensions::<Token2022Mint>::unpack(&data)
+      .map_err(|_| VaultError::UnsupportedMintExtension)?;
+    for ext in state.get_extension_types()? {
+      let allowed = matches!(
+        ext,
+        ExtensionType::MetadataPointer
+          | ExtensionType::TokenMetadata
+          | ExtensionType::InterestBearingConfig
+      );
+      require!(allowed, VaultError::UnsupportedMintExtension);
+    }
+  }
+  Ok(())
+}
 
 /// Emit a `sip_privacy::create_transfer_announcement` CPI so a vault withdrawal
 /// becomes a scannable, Pedersen-committed announcement (a `TransferRecord` PDA).
@@ -901,6 +964,10 @@ pub struct DepositSol<'info> {
   )]
   pub config: Account<'info, VaultConfig>,
 
+  // init_if_needed is safe ONLY because `deposit_sol` accumulates: `is_new` is
+  // derived from cumulative_volume, and balance/cumulative_volume are added to,
+  // never reset. A future edit that zeroes a field on re-init would reintroduce
+  // a double-credit/overwrite bug — preserve the accumulate-not-reset invariant.
   #[account(
     init_if_needed,
     payer = depositor,
@@ -932,6 +999,10 @@ pub struct Deposit<'info> {
   )]
   pub config: Account<'info, VaultConfig>,
 
+  // init_if_needed is safe ONLY because `deposit` accumulates: `is_new` is
+  // derived from cumulative_volume, and balance/cumulative_volume are added to,
+  // never reset. A future edit that zeroes a field on re-init would reintroduce
+  // a double-credit/overwrite bug — preserve the accumulate-not-reset invariant.
   #[account(
     init_if_needed,
     payer = depositor,
@@ -947,6 +1018,7 @@ pub struct Deposit<'info> {
     bump,
     token::mint = token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
@@ -994,6 +1066,7 @@ pub struct WithdrawPrivate<'info> {
     bump,
     token::mint = token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub vault_token: Box<InterfaceAccount<'info, TokenAccount>>,
 
@@ -1003,6 +1076,7 @@ pub struct WithdrawPrivate<'info> {
     bump,
     token::mint = token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub fee_token: Box<InterfaceAccount<'info, TokenAccount>>,
 
@@ -1139,6 +1213,7 @@ pub struct Refund<'info> {
     bump,
     token::mint = deposit_record.token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
@@ -1184,6 +1259,7 @@ pub struct AuthorityRefund<'info> {
     bump,
     token::mint = deposit_record.token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub vault_token: InterfaceAccount<'info, TokenAccount>,
 
@@ -1296,6 +1372,7 @@ pub struct CollectFee<'info> {
     bump,
     token::mint = token_mint,
     token::authority = config,
+    token::token_program = token_program,
   )]
   pub fee_token: InterfaceAccount<'info, TokenAccount>,
 
@@ -1350,6 +1427,47 @@ pub struct SetPaused<'info> {
   pub authority: Signer<'info>,
 }
 
+#[derive(Accounts)]
+pub struct UpdateAuthority<'info> {
+  #[account(
+    mut,
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+    has_one = authority @ VaultError::Unauthorized,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  pub authority: Signer<'info>,
+}
+
+/// Accept context — the *proposed* authority signs. No `has_one`: the new
+/// authority is, by definition, not yet the current authority. The match
+/// against `pending_authority` is enforced in the instruction body.
+#[derive(Accounts)]
+pub struct AcceptAuthority<'info> {
+  #[account(
+    mut,
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  pub new_authority: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateFee<'info> {
+  #[account(
+    mut,
+    seeds = [VAULT_CONFIG_SEED],
+    bump = config.bump,
+    has_one = authority @ VaultError::Unauthorized,
+  )]
+  pub config: Account<'info, VaultConfig>,
+
+  pub authority: Signer<'info>,
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Events
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1371,5 +1489,34 @@ pub struct VaultWithdrawEvent {
 pub struct VaultPausedEvent {
   pub authority: Pubkey,
   pub paused: bool,
+  pub timestamp: i64,
+}
+
+/// Emitted when the current authority proposes a transfer (step 1). Lets
+/// off-chain monitoring (SENTINEL, indexers) react to a pending authority
+/// change without log-parsing — the same rationale as `VaultPausedEvent`.
+#[event]
+pub struct AuthorityTransferProposedEvent {
+  pub current_authority: Pubkey,
+  pub pending_authority: Pubkey,
+  pub timestamp: i64,
+}
+
+/// Emitted when a pending authority transfer is accepted (step 2) and
+/// `config.authority` actually changes — the single most alarm-worthy custody
+/// event, especially once the authority is a mainnet multisig.
+#[event]
+pub struct AuthorityUpdatedEvent {
+  pub old_authority: Pubkey,
+  pub new_authority: Pubkey,
+  pub timestamp: i64,
+}
+
+/// Emitted when the authority updates the protocol fee.
+#[event]
+pub struct FeeUpdatedEvent {
+  pub authority: Pubkey,
+  pub old_fee_bps: u16,
+  pub new_fee_bps: u16,
   pub timestamp: i64,
 }

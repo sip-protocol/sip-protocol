@@ -171,7 +171,6 @@ describe('10 · bankrun classic-SPL regression baseline', function () {
     const rec = parseDepositRecord(recData)
 
     assert.strictEqual(rec.balance, DEPOSIT_AMOUNT, 'deposit_record.balance mismatch')
-    assert.strictEqual(rec.lockedAmount, 0n, 'locked_amount should be 0 after deposit')
     assert.strictEqual(rec.cumulativeVolume, DEPOSIT_AMOUNT, 'cumulative_volume mismatch')
     assert.ok(rec.depositor.equals(authority.publicKey), 'depositor pubkey mismatch')
     assert.ok(rec.tokenMint.equals(mint), 'token_mint mismatch')
@@ -282,6 +281,56 @@ describe('10 · bankrun classic-SPL regression baseline', function () {
     )
   })
 
+  // ── it: withdraw_private rejects an over-long encrypted_amount (L3 guard) ──
+
+  it('withdraw_private → rejects encrypted_amount longer than 64 bytes (EncryptedAmountTooLong 6013 / 0x177d)', async function () {
+    const ENCRYPTED_AMOUNT_TOO_LONG_CODE = 6013
+    const ENCRYPTED_AMOUNT_TOO_LONG_HEX = ENCRYPTED_AMOUNT_TOO_LONG_CODE.toString(16) // '177d'
+
+    const [depositRecordPda] = getDepositRecordPDA(authority.publicKey, mint, VAULT_PROGRAM_ID)
+    const balanceBefore = parseDepositRecord(await getAccountData(ctx, depositRecordPda)).balance
+    assert.ok(balanceBefore > 0n, 'precondition: depositor has a balance to attempt withdrawing')
+
+    const [sipConfigPda] = getSipConfigPDA()
+    const { totalTransfers } = parseSipConfig(await getAccountData(ctx, sipConfigPda))
+    const [sipTransferRecordPda] = getSipTransferRecordPDA(authority.publicKey, totalTransfers)
+
+    const amountCommitment = Buffer.concat([Buffer.from([0x02]), randomBytes(32)])
+    const ephemeralPubkey = Buffer.concat([Buffer.from([0x02]), randomBytes(32)])
+    const viewingKeyHash = randomBytes(32)
+    const tooLong = randomBytes(65) // 65 > the 64-byte cap
+    const proof = Buffer.from([])
+
+    try {
+      await sendIx(ctx, [
+        ixWithdrawPrivate(
+          authority.publicKey, stealthAta, mint, sipTransferRecordPda,
+          1n, amountCommitment, stealthKp.publicKey, ephemeralPubkey,
+          viewingKeyHash, tooLong, proof,
+        ),
+      ], [authority])
+      assert.fail('Expected EncryptedAmountTooLong error but transaction succeeded')
+    } catch (e: unknown) {
+      const err = e as Error
+      if (err.message && err.message.includes('Expected EncryptedAmountTooLong error but transaction succeeded')) {
+        throw err
+      }
+      const msg = (err?.message ?? String(err)).toLowerCase()
+      const matchesCode =
+        msg.includes(String(ENCRYPTED_AMOUNT_TOO_LONG_CODE)) ||
+        msg.includes(ENCRYPTED_AMOUNT_TOO_LONG_HEX) ||
+        msg.includes('encryptedamounttoolong')
+      assert.ok(
+        matchesCode,
+        `Expected EncryptedAmountTooLong (${ENCRYPTED_AMOUNT_TOO_LONG_CODE} / 0x${ENCRYPTED_AMOUNT_TOO_LONG_HEX}), got: ${err?.message ?? String(err)}`,
+      )
+    }
+
+    // Fail-fast: the guard rejects before the debit — balance is unchanged.
+    const balanceAfter = parseDepositRecord(await getAccountData(ctx, depositRecordPda)).balance
+    assert.strictEqual(balanceAfter, balanceBefore, 'balance must be unchanged (guard rejects before debit)')
+  })
+
   // ── it: refund after timeout ─────────────────────────────────────────────
 
   it('refund after timeout → depositor receives remaining balance', async function () {
@@ -290,7 +339,7 @@ describe('10 · bankrun classic-SPL regression baseline', function () {
 
     // Read current deposit record to know what's available
     const recBefore = parseDepositRecord(await getAccountData(ctx, depositRecordPda))
-    const available = recBefore.balance - recBefore.lockedAmount
+    const available = recBefore.balance
     assert.ok(available > 0n, 'nothing to refund — test state error')
 
     // Snapshot depositor ATA before refund
@@ -322,7 +371,7 @@ describe('10 · bankrun classic-SPL regression baseline', function () {
       `depositor did not receive correct refund amount`,
     )
 
-    // ── Assert: DepositRecord.balance is now 0 (locked_amount was 0) ──
+    // ── Assert: DepositRecord.balance is now 0 after full refund ──
     const recAfter = parseDepositRecord(await getAccountData(ctx, depositRecordPda))
     assert.strictEqual(recAfter.balance, 0n, 'deposit_record.balance should be 0 after full refund')
 

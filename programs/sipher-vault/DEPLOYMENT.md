@@ -16,15 +16,16 @@ Deployment records and procedures for the `sipher_vault` Anchor program — a pr
 
 | Tool | Version |
 |------|---------|
-| Anchor CLI | `0.30.1` |
+| Anchor CLI | `1.0.2` |
 | Solana CLI | `3.0.13` (Agave) |
-| platform-tools | `v1.51` (rustc `1.84.1`, target SBF) |
-| Host rustc | `1.94.1` (build only — IDL gen requires `--no-idl`) |
+| platform-tools | `v1.52` (rustc `1.89.0`, target SBF) |
+| Host rustc | `1.94.1` |
 
-> **Build note:** anchor 0.30.1's IDL generator depends on `proc_macro2::Span::source_file()`,
-> a nightly-only proc-macro API removed from current host rustc. Use `anchor build --no-idl`;
-> the on-chain SBF binary is unaffected. The IDL artifact at `target/idl/sipher_vault.json`
-> is regenerated from earlier compatible host toolchains.
+> **Build note:** build the SBF binary with an explicit platform-tools version —
+> `cargo build-sbf --tools-version v1.52` — because Agave 3.0.13 may default to
+> v1.51 (rustc 1.84.1), below Anchor 1.0.2's MSRV. Under Anchor 1.0.2 the IDL
+> generator works on the host toolchain (`anchor idl build`); the `--no-idl`
+> workaround that Anchor 0.30.1 required is no longer needed.
 
 ## Instruction Inventory
 
@@ -121,6 +122,11 @@ emergency lever works before mainnet (PR-B1 Risk B2/B3).
 Universal-asset feature branch adds native SOL support (6 new instructions, 9 → 15 total).
 Binary: `492536` bytes (Δ from `383144` — ~107 KB for two new account structs + 6 instruction handlers).
 
+> **⚠️ If the B6 audit-hardening (M1/M2) is included in this redeploy, the
+> account layouts change and an in-place upgrade is NOT safe — see the breaking-change
+> warning under "Devnet Upgrade" below. Fresh accounts (new program ID or recreate)
+> are required.**
+
 - **Upgrade TX:** `[TODO — run scripts/upgrade-devnet.ts and paste TX signature here]`
 - **New deployed slot:** `[TODO — paste slot from upgrade-devnet.ts output]`
 - **SOL vault init TX:** `[TODO — run scripts/create-sol-vault.ts after redeploy and paste TX here]`
@@ -142,7 +148,7 @@ The test suite is IDL-free (solana-bankrun raw-ix). It requires the `sip_privacy
 ```bash
 # Step 1: Build sip_privacy to get its .so (from the repo root or programs/sip-privacy)
 cd programs/sip-privacy
-anchor build --no-idl
+cargo build-sbf --tools-version v1.52
 cp target/deploy/sip_privacy.so ../sipher-vault/tests/fixtures/sip_privacy.so
 cd ../sipher-vault
 ```
@@ -150,20 +156,51 @@ cd ../sipher-vault
 Then run the suite:
 
 ```bash
-# All three test files (10 = token-track, 11 = SOL-track, 12 = cross-track)
-pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/{10,11,12}-*.ts'
+# All four test files (10 = classic SPL, 11 = Token-2022 allowlist,
+# 12 = native SOL, 13 = authority management)
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/{10,11,12,13}-*.ts'
 
 # Or individually:
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/10-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/11-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/12-*.ts'
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/13-*.ts'
 ```
 
-Expected: **25 passing**, 0 failing.
+Expected: **39 passing**, 0 failing.
 
 ### Devnet Upgrade
 
-Use the atomic upgrade script:
+> **⚠️ BREAKING ACCOUNT-LAYOUT CHANGE in the B6 audit-hardening — an in-place upgrade across this boundary will BRICK the existing vault.**
+> The hardening adds `VaultConfig.pending_authority` (M1, +33 bytes) and removes
+> `DepositRecord.locked_amount` (M2, −8 bytes mid-struct), changing both struct
+> layouts. The existing devnet `VaultConfig` PDA
+> (`CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u`, initialized 2026-03-31 at the
+> old layout) and any existing `DepositRecord` accounts are **byte-incompatible**:
+> - `VaultConfig` is now too short for the trailing `Option<Pubkey>` → every
+>   instruction that loads `config` reverts with `AccountDidNotDeserialize`
+>   (fully bricked, including the `refund`/`refund_sol` self-recovery paths).
+> - old `DepositRecord` accounts deserialize **shifted** (garbage
+>   `last_deposit_at`/`bump`); the corrupted `bump` then fails the
+>   `bump = deposit_record.bump` seeds check → that depositor's funds become
+>   unwithdrawable.
+>
+> There is **no migration/`realloc` instruction**, so `upgrade-devnet.ts`
+> (in-place `BPFLoaderUpgradeable`) is unsafe here. Bring the new-layout program
+> up against **fresh** accounts — deploy to a **new program ID** + fresh
+> `initialize`, or close/recreate the config + records first. **This is RECTOR's
+> deploy decision.** (Mainnet B7 is a fresh deploy with no pre-existing accounts
+> → unaffected. Verified against live devnet account sizes by the post-hardening
+> independent review.)
+
+> **Downstream error-code sync (B6 M2):** removing the inert `BalanceLocked`
+> variant renumbers the later `VaultError` codes (`UnsupportedMintExtension`
+> 6012→6011, `RentReserveViolation` 6013→6012). On redeploy, regenerate the
+> consuming `sipher` repo's committed IDL (`packages/sdk/src/idl/sipher_vault.json`)
+> and update any hardcoded error numbers (e.g. `scripts/devnet-beta-gate-check.ts`)
+> in lockstep — otherwise off-chain tooling will mislabel on-chain errors.
+
+Use the atomic upgrade script (only safe for layout-compatible upgrades):
 
 ```bash
 cd programs/sipher-vault

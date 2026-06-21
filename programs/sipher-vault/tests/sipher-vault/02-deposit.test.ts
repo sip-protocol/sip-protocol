@@ -80,7 +80,6 @@ describe('sipher-vault: deposit', () => {
     expect(record.depositor.toString()).to.equal(authority.publicKey.toString())
     expect(record.tokenMint.toString()).to.equal(mint.toString())
     expect(record.balance.toNumber()).to.equal(DEPOSIT_AMOUNT_1)
-    expect(record.lockedAmount.toNumber()).to.equal(0)
     expect(record.cumulativeVolume.toNumber()).to.equal(DEPOSIT_AMOUNT_1)
     expect(record.lastDepositAt.toNumber()).to.be.greaterThan(0)
     expect(record.bump).to.be.a('number')

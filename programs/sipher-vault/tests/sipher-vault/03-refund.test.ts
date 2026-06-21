@@ -154,7 +154,6 @@ describe('sipher-vault: refund', () => {
     // Sanity: verify deposits landed
     const record = await program.account.depositRecord.fetch(depositRecordPDA)
     expect(record.balance.toNumber()).to.equal(TOTAL_DEPOSITED)
-    expect(record.lockedAmount.toNumber()).to.equal(0)
   })
 
   // ── Test 1: RefundNotExpired fires before timeout elapses ──────────────
@@ -199,8 +198,7 @@ describe('sipher-vault: refund', () => {
       depositorAta,
     )
     const vaultBalanceBefore = await getTokenBalance(provider, vaultTokenPDA)
-    const availableToRefund =
-      recordBefore.balance.toNumber() - recordBefore.lockedAmount.toNumber()
+    const availableToRefund = recordBefore.balance.toNumber()
 
     expect(availableToRefund).to.equal(TOTAL_DEPOSITED)
     expect(vaultBalanceBefore).to.equal(TOTAL_DEPOSITED)
@@ -238,12 +236,9 @@ describe('sipher-vault: refund', () => {
       })
       .rpc()
 
-    // Verify deposit record: balance should drop to locked_amount (0)
+    // Verify deposit record: balance should drop to 0
     const recordAfter = await program.account.depositRecord.fetch(
       depositRecordPDA,
-    )
-    expect(recordAfter.balance.toNumber()).to.equal(
-      recordAfter.lockedAmount.toNumber(),
     )
     expect(recordAfter.balance.toNumber()).to.equal(0)
 
@@ -273,7 +268,7 @@ describe('sipher-vault: refund', () => {
     const clock = await provider.context.banksClient.getClock()
     provider.context.warpToSlot(clock.slot + 2n)
 
-    // Post-refund: balance=0, locked_amount=0 -> available=0
+    // Post-refund: balance=0 -> available=0
     const record = await program.account.depositRecord.fetch(depositRecordPDA)
     expect(record.balance.toNumber()).to.equal(0)
 
@@ -414,7 +409,7 @@ describe('sipher-vault: refund', () => {
       const depositorBalanceBefore = await getTokenBalance(provider, depositorAta)
       const vaultBalanceBefore = await getTokenBalance(provider, vaultTokenPDA)
       const record = await program.account.depositRecord.fetch(depositRecordPDA)
-      const availableToRefund = record.balance.toNumber() - record.lockedAmount.toNumber()
+      const availableToRefund = record.balance.toNumber()
 
       expect(availableToRefund).to.equal(DEPOSIT_AMOUNT_1)
 
@@ -432,7 +427,6 @@ describe('sipher-vault: refund', () => {
 
       // Verify: deposit record balance zeroed
       const recordAfter = await program.account.depositRecord.fetch(depositRecordPDA)
-      expect(recordAfter.balance.toNumber()).to.equal(recordAfter.lockedAmount.toNumber())
       expect(recordAfter.balance.toNumber()).to.equal(0)
 
       // Verify: depositor received tokens
