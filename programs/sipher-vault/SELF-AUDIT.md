@@ -22,7 +22,7 @@
 5. **The cross-program announcement CPI is byte-exact** (Borsh layout + discriminator independently re-derived), makes no re-entrant call, and degrades to an atomic revert under any account substitution — never theft or corruption.
 6. **The SDK gasless relayer leaks no recipient secret**, its fee math cannot over-take or underflow, the ed25519 stealth scalar signer is cryptographically correct (verified on 200 random scalars, with malleated signatures rejected), and no failure mode strands funds.
 
-The findings below — **6 Medium, 5 Low, 4 Info** — are pre-mainnet hardening, latent-footgun prevention, and honest-disclosure items. **None is a fund-theft exploit.** One was an *active functional defect* rather than a latent one: M6 (the withdrawal-path stack overflow) aborted `withdraw_private` at runtime under the platform-tools v1.52 build — now fixed. **All code findings are resolved in the accompanying hardening PR (M1, M2, M3, M6, L3, I1–I4 — see Appendix A);** the disclosure items (M4, M5, L1) live in this report and the deploy runbook.
+The findings below — **6 Medium, 5 Low, 4 Info** — are pre-mainnet hardening, latent-footgun prevention, and honest-disclosure items. **None is a fund-theft exploit.** One was an *active functional defect* rather than a latent one: M6 (the withdrawal-path stack overflow) aborted `withdraw_private` at runtime under the platform-tools v1.52 build — now resolved by the Anchor 1.0.2 migration (`8c79a33`), which `Box`-es the heavy `WithdrawPrivate` accounts off the validation stack frame. **The remaining code findings are resolved in the accompanying hardening PR (M1, M2, M3, L3, I1–I4 — see Appendix A);** the disclosure items (M4, M5, L1) live in this report and the deploy runbook.
 
 ---
 
@@ -104,7 +104,7 @@ Each was an explicit hypothesis the reviewers tried to break and could not:
 **Remediation:** documented as a forward integration requirement; gate any native-gasless work on the rent pre-funding check.
 
 **M6 — `WithdrawPrivate` account-validation stack frame exceeds the BPF limit.** The SBF build reports `WithdrawPrivate::try_accounts` at an estimated 4416-byte frame, exceeding the 4096-byte BPF stack limit ("Stack offset of 4120 exceeded max offset of 4096 by 24 bytes … may cause undefined behavior during execution"). The context is account-heavy (`vault_token`, `fee_token`, `stealth_token`, `token_mint`, plus the four `sip_privacy` CPI accounts). **This was not merely latent:** the remediation pass confirmed that under the platform-tools v1.52 build `withdraw_private` aborts at runtime with "Access violation in unknown section at address 0x8 of size 8", taking the token-withdrawal path (and the dependent fee collection) down with it — only the lighter native-SOL `WithdrawPrivateSol` context was unaffected. It is a functional break of the token-withdrawal path, not a fund-theft exploit (the transaction reverts atomically). Pre-existing on `main` (introduced with the universal-asset context); surfaced by this audit's build. *(`WithdrawPrivate` context, lib.rs:962–1035; `WithdrawPrivateSol` verified within the limit.)*
-**Remediation: Resolved (`cc800a7`).** `Box<>`-ed the four heavy `InterfaceAccount` fields in `WithdrawPrivate`, moving them off the validation stack frame. The SBF build now emits no stack-offset warning, `withdraw_private` completes, and the bankrun suite is green.
+**Remediation: Resolved by the Anchor 1.0.2 migration (`8c79a33`).** The 1.0 dup-check codegen enlarges the `try_accounts` frame, which forced the migration to `Box<>` the four heavy `InterfaceAccount` fields in `WithdrawPrivate` — the same fix this finding called for — moving them off the validation stack frame. The SBF build now emits no stack-offset warning, `withdraw_private` completes, and the bankrun suite is green. *(This hardening PR is rebased onto the migrated 1.0.2 base, so it carries no separate M6 commit.)*
 
 ### Low
 
@@ -165,11 +165,11 @@ This is a **self-audit, not an independent external review.** For a fund-custody
 
 Before the mainnet deploy (B7):
 
-- [x] **M1 landed** (`de065b4`) — `update_authority` (two-step) + `update_fee` present and tested.
-- [x] **M2/M3 landed** (`d740287`) — `locked_amount` removed; refund zeroes balance.
-- [x] **L3 landed** (`871f3e2`) — `encrypted_amount` length guard.
-- [x] **M6 landed** (`cc800a7`) — `WithdrawPrivate` stack frame back under 4096 B (Box accounts); build warning cleared, `withdraw_private` completes.
-- [x] **I1/I2/I3/I4 landed** (`8a047d3`, `399fa33`) — dead constant removed; token-program bindings; fee-token allowlist; init_if_needed invariant comment.
+- [x] **M1 landed** (`0528d49`) — `update_authority` (two-step) + `update_fee` present and tested.
+- [x] **M2/M3 landed** (`3dbc44f`) — `locked_amount` removed; refund zeroes balance.
+- [x] **L3 landed** (`d915b5f`) — `encrypted_amount` length guard.
+- [x] **M6 resolved by the Anchor 1.0.2 migration** (`8c79a33`) — `WithdrawPrivate` stack frame back under 4096 B (Box accounts); build warning cleared, `withdraw_private` completes.
+- [x] **I1/I2/I3/I4 landed** (`1b540a8`, `b4668e6`) — dead constant removed; token-program bindings; fee-token allowlist; init_if_needed invariant comment.
 - [ ] **Authority = Squads v4 2-of-3 multisig** set at (or handed off immediately after) `initialize`; both the BPF upgrade authority and the in-program `config.authority` point at the multisig.
 - [ ] **`sip_privacy` and `sipher_vault` pause authorities governed coherently** under the same multisig (L1).
 - [ ] **Deploy runbook** documents: the privacy boundary (§7), the `sip_privacy` liveness coupling (L1), the SDK rent pre-funding obligation for native payouts (M5), the build toolchain requirement (Appendix B), and the **breaking account-layout change** (M1/M2 — no safe in-place upgrade; fresh accounts required; see `DEPLOYMENT.md`).
@@ -181,21 +181,21 @@ Before the mainnet deploy (B7):
 
 | ID | Severity | Title | Disposition |
 |----|----------|-------|-------------|
-| M1 | Medium | No `update_authority` / `update_fee` | ✅ Resolved `de065b4` |
-| M2 | Medium | `locked_amount` inert dead state | ✅ Resolved `d740287` |
-| M3 | Medium | `refund` assigns `= locked_amount` | ✅ Resolved `d740287` (subsumed by M2) |
+| M1 | Medium | No `update_authority` / `update_fee` | ✅ Resolved `0528d49` |
+| M2 | Medium | `locked_amount` inert dead state | ✅ Resolved `3dbc44f` |
+| M3 | Medium | `refund` assigns `= locked_amount` | ✅ Resolved `3dbc44f` (subsumed by M2) |
 | M4 | Medium | Privacy disclosure (depositor + amount public) | Documented (§7) — no code change |
 | M5 | Medium | No native-SOL gasless path (rent pre-funding) | Documented — forward integration gate |
-| M6 | Medium | `WithdrawPrivate::try_accounts` stack frame > 4096 B | ✅ Resolved `cc800a7` |
+| M6 | Medium | `WithdrawPrivate::try_accounts` stack frame > 4096 B | ✅ Resolved `8c79a33` (Anchor 1.0.2 migration) |
 | L1 | Low | `sip_privacy` liveness coupling | Documented — runbook |
-| L2 | Low | `initialize` permissionless | ✅ Resolved `de065b4` (via M1) |
-| L3 | Low | `encrypted_amount` unbounded | ✅ Resolved `871f3e2` |
+| L2 | Low | `initialize` permissionless | ✅ Resolved `0528d49` (via M1) |
+| L3 | Low | `encrypted_amount` unbounded | ✅ Resolved `d915b5f` |
 | L4 | Low | `getStealthBalance` swallows RPC errors | Deferred (SDK) |
 | L5 | Low | counter saturating vs checked | Accepted |
-| I1 | Info | dead `SIP_TRANSFER_RECORD_SEED` | ✅ Resolved `8a047d3` |
-| I2 | Info | `token::token_program` not bound | ✅ Resolved `8a047d3` |
-| I3 | Info | `create_fee_token` no allowlist | ✅ Resolved `399fa33` |
-| I4 | Info | `init_if_needed` invariant comment | ✅ Resolved `8a047d3` |
+| I1 | Info | dead `SIP_TRANSFER_RECORD_SEED` | ✅ Resolved `1b540a8` |
+| I2 | Info | `token::token_program` not bound | ✅ Resolved `1b540a8` |
+| I3 | Info | `create_fee_token` no allowlist | ✅ Resolved `b4668e6` |
+| I4 | Info | `init_if_needed` invariant comment | ✅ Resolved `1b540a8` |
 
 ## Appendix B — Build toolchain note
 
