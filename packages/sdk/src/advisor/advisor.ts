@@ -8,7 +8,7 @@
  */
 
 import { ChatOpenAI } from '@langchain/openai'
-import { HumanMessage, SystemMessage, AIMessage } from '@langchain/core/messages'
+import { HumanMessage, SystemMessage, AIMessage, type BaseMessage } from '@langchain/core/messages'
 import { StringOutputParser } from '@langchain/core/output_parsers'
 import { z } from 'zod'
 
@@ -149,7 +149,7 @@ export class PrivacyAdvisorAgent {
     const analysisPrompt = this.buildAnalysisPrompt(analysisResult, preferences)
 
     // Prepare messages
-    const messages = [
+    const messages: BaseMessage[] = [
       new SystemMessage(SYSTEM_PROMPT),
       new HumanMessage(analysisPrompt),
     ]
@@ -218,7 +218,7 @@ export class PrivacyAdvisorAgent {
    * @returns Advisor response
    */
   async chat(message: string, context?: AdvisoryContext): Promise<AdvisorResponse> {
-    const messages = [new SystemMessage(SYSTEM_PROMPT)]
+    const messages: BaseMessage[] = [new SystemMessage(SYSTEM_PROMPT)]
 
     // Add analysis context if provided
     if (context?.analysisResult) {
@@ -287,7 +287,7 @@ export class PrivacyAdvisorAgent {
     const analysisPrompt = this.buildAnalysisPrompt(analysisResult, preferences)
 
     // Prepare messages
-    const messages = [
+    const messages: BaseMessage[] = [
       new SystemMessage(SYSTEM_PROMPT),
       new HumanMessage(analysisPrompt),
     ]
