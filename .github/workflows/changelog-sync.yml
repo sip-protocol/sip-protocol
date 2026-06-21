@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sip-protocol
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Checkout docs-sip
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: sip-protocol/docs-sip
           token: ${{ secrets.DOCS_SYNC_TOKEN }}
