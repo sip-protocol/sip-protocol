@@ -63,7 +63,7 @@
     "socks-proxy-agent": "^10.1.0"
   },
   "dependencies": {
-    "@aztec/bb.js": "3.0.3",
+    "@aztec/bb.js": "4.3.1",
     "@ethereumjs/rlp": "^10.1.2",
     "@jup-ag/api": "^6.0.48",
     "@langchain/core": "^1.2.0",

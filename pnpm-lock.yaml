@@ -323,8 +323,8 @@ importers:
   packages/sdk:
     dependencies:
       '@aztec/bb.js':
-        specifier: 3.0.3
-        version: 3.0.3
+        specifier: 4.3.1
+        version: 4.3.1
       '@ethereumjs/rlp':
         specifier: ^10.1.2
         version: 10.1.2
@@ -490,8 +490,8 @@ packages:
   '@asamuzakjp/nwsapi@2.3.9':
     resolution: {integrity: sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q==}
 
-  '@aztec/bb.js@3.0.3':
-    resolution: {integrity: sha512-//PJlp9pkUfdgLYtcv6oa8QAK7A9V9N2lS8zNCRJyZGP9dM19UEAfq6+KrsLAN2VD+p02fkVdfdbWNdAcALMTQ==}
+  '@aztec/bb.js@4.3.1':
+    resolution: {integrity: sha512-qIUgIxcr0Sn8zDCGXm5L+IOhwTxUv0QPzfCeKpNkpy8IbV/0oPbPKTW1U3iqI8zXSiJ0Zkw/ysBdlCyN5cWezw==}
     hasBin: true
 
   '@babel/code-frame@7.29.7':
@@ -5483,7 +5483,7 @@ snapshots:
 
   '@asamuzakjp/nwsapi@2.3.9': {}
 
-  '@aztec/bb.js@3.0.3':
+  '@aztec/bb.js@4.3.1':
     dependencies:
       comlink: 4.4.2
       commander: 12.1.0
