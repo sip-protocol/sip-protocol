@@ -174,7 +174,7 @@ pub mod sip_privacy {
 
         // Transfer SOL to stealth address
         let cpi_context = CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
+            ctx.accounts.system_program.key(),
             anchor_lang::system_program::Transfer {
                 from: ctx.accounts.sender.to_account_info(),
                 to: ctx.accounts.stealth_account.to_account_info(),
@@ -185,7 +185,7 @@ pub mod sip_privacy {
         // Transfer fee to fee collector (if any)
         if fee_amount > 0 {
             let fee_context = CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.system_program.key(),
                 anchor_lang::system_program::Transfer {
                     from: ctx.accounts.sender.to_account_info(),
                     to: ctx.accounts.fee_collector.to_account_info(),
@@ -274,7 +274,7 @@ pub mod sip_privacy {
             to: ctx.accounts.stealth_token_account.to_account_info(),
             authority: ctx.accounts.sender.to_account_info(),
         };
-        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_program = ctx.accounts.token_program.key();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
         token::transfer(cpi_ctx, transfer_amount)?;
 
@@ -286,7 +286,7 @@ pub mod sip_privacy {
                 authority: ctx.accounts.sender.to_account_info(),
             };
             let fee_ctx = CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts.token_program.key(),
                 fee_accounts,
             );
             token::transfer(fee_ctx, fee_amount)?;
@@ -604,7 +604,7 @@ pub mod sip_privacy {
             // The stealth account is a signer (via derived private key), so this works
             // Account will be automatically closed (garbage collected) when balance hits 0
             let cpi_context = CpiContext::new(
-                ctx.accounts.system_program.to_account_info(),
+                ctx.accounts.system_program.key(),
                 anchor_lang::system_program::Transfer {
                     from: ctx.accounts.stealth_account.to_account_info(),
                     to: ctx.accounts.recipient.to_account_info(),
@@ -673,7 +673,7 @@ pub mod sip_privacy {
                 to: ctx.accounts.recipient_token_account.to_account_info(),
                 authority: ctx.accounts.stealth_authority.to_account_info(),
             };
-            let cpi_program = ctx.accounts.token_program.to_account_info();
+            let cpi_program = ctx.accounts.token_program.key();
 
             // The stealth_authority is a PDA derived from the transfer record
             let transfer_key = transfer_record.key();

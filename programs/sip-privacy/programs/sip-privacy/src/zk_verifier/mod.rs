@@ -69,7 +69,13 @@ pub const MAX_PUBLIC_INPUTS: usize = 32;
 pub const FIELD_SIZE: usize = 32;
 
 /// Supported proof types
+// borsh 1.0 (via Anchor 1.0) requires an explicit discriminant policy for enums
+// with explicit discriminants. `use_discriminant = true` makes borsh honor the
+// `= 0/1/2` values, which mirror the on-the-wire proof_type byte used by
+// `try_from_u8` / `as u8`. They equal the variant positions, so this is
+// byte-identical to the prior borsh-0.x (index-based) encoding.
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, Debug)]
+#[borsh(use_discriminant = true)]
 pub enum ProofType {
     /// Funding proof - proves balance >= minimum
     Funding = 0,
