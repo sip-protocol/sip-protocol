@@ -892,3 +892,24 @@ export function ixUpdateFee(
     data,
   })
 }
+
+/**
+ * migrate_config() — no args
+ *
+ * Accounts (MigrateConfig):
+ *   config         mut, PDA (UncheckedAccount — legacy layout)
+ *   authority      mut, signer
+ *   system_program
+ */
+export function ixMigrateConfig(authority: PublicKey): TransactionInstruction {
+  const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
+  return new TransactionInstruction({
+    programId: VAULT_PROGRAM_ID,
+    keys: [
+      { pubkey: configPda, isSigner: false, isWritable: true },
+      { pubkey: authority, isSigner: true, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data: disc('migrate_config'),
+  })
+}

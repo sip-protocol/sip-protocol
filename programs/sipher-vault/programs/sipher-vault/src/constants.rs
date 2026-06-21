@@ -13,3 +13,9 @@ pub const FEE_SOL_SEED: &[u8] = b"fee_sol";
 /// Sentinel mint representing native SOL (zero / System-Program pubkey).
 pub const NATIVE_SOL_MINT: Pubkey = Pubkey::new_from_array([0u8; 32]);
 
+/// Byte length of the legacy (pre-M1) VaultConfig account: 8-byte discriminator
+/// plus the fixed fields, WITHOUT the trailing `pending_authority: Option<Pubkey>`
+/// added by the B6 M1 hardening. `migrate_config` grows accounts of exactly this
+/// size to the current `8 + VaultConfig::INIT_SPACE` (101 bytes).
+pub const LEGACY_VAULT_CONFIG_LEN: usize = 8 + 32 + 2 + 8 + 1 + 8 + 8 + 1; // = 68
+

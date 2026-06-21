@@ -30,4 +30,6 @@ pub enum VaultError {
   RentReserveViolation,
   #[msg("Encrypted amount exceeds the 64-byte maximum")]
   EncryptedAmountTooLong,
+  #[msg("Config account is not a migratable legacy layout")]
+  InvalidConfigAccount,
 }
