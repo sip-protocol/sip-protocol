@@ -1031,17 +1031,17 @@ pub struct WithdrawPrivate<'info> {
     bump,
     seeds::program = SIP_PRIVACY_PROGRAM_ID,
   )]
-  pub sip_config: AccountInfo<'info>,
+  pub sip_config: UncheckedAccount<'info>,
 
   /// Transfer record PDA — will be initialized by CPI to sip_privacy
   /// CHECK: Initialized and validated by the CPI call to sip_privacy
   #[account(mut)]
-  pub sip_transfer_record: AccountInfo<'info>,
+  pub sip_transfer_record: UncheckedAccount<'info>,
 
   /// SIP Privacy program for CPI
   /// CHECK: Validated by address constraint
   #[account(address = SIP_PRIVACY_PROGRAM_ID)]
-  pub sip_privacy_program: AccountInfo<'info>,
+  pub sip_privacy_program: UncheckedAccount<'info>,
 
   /// System program (needed by sip_privacy to init the transfer record)
   pub system_program: Program<'info, System>,
@@ -1101,17 +1101,17 @@ pub struct WithdrawPrivateSol<'info> {
     bump,
     seeds::program = SIP_PRIVACY_PROGRAM_ID,
   )]
-  pub sip_config: AccountInfo<'info>,
+  pub sip_config: UncheckedAccount<'info>,
 
   /// Transfer record PDA — will be initialized by CPI to sip_privacy
   /// CHECK: Initialized and validated by the CPI call to sip_privacy
   #[account(mut)]
-  pub sip_transfer_record: AccountInfo<'info>,
+  pub sip_transfer_record: UncheckedAccount<'info>,
 
   /// SIP Privacy program for CPI
   /// CHECK: Validated by address constraint
   #[account(address = SIP_PRIVACY_PROGRAM_ID)]
-  pub sip_privacy_program: AccountInfo<'info>,
+  pub sip_privacy_program: UncheckedAccount<'info>,
 
   /// System program (needed by sip_privacy to init the transfer record)
   pub system_program: Program<'info, System>,
@@ -1203,7 +1203,7 @@ pub struct AuthorityRefund<'info> {
   /// CHECK: Not a signer — validated by deposit_record.has_one. Used for PDA
   /// derivation and token account ownership check. The authority (not depositor)
   /// is the signer for this instruction.
-  pub depositor: AccountInfo<'info>,
+  pub depositor: UncheckedAccount<'info>,
 
   #[account(mut)]
   pub authority: Signer<'info>,
