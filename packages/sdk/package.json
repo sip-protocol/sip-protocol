@@ -59,7 +59,7 @@
     "example:auction": "tsx examples/auction-example.ts"
   },
   "optionalDependencies": {
-    "https-proxy-agent": "^7.0.0",
+    "https-proxy-agent": "^9.1.0",
     "socks-proxy-agent": "^10.1.0"
   },
   "dependencies": {
@@ -95,7 +95,7 @@
     "@types/node": "^25.9.3",
     "@vitest/coverage-v8": "^4.1.9",
     "fast-check": "^4.8.0",
-    "https-proxy-agent": "^7.0.0",
+    "https-proxy-agent": "^9.1.0",
     "socks-proxy-agent": "^10.1.0",
     "tsup": "^8.0.0",
     "typescript": "^6.0.3",
