@@ -91,7 +91,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^25.9.3",
+    "@types/node": "^26.0.0",
     "@vitest/coverage-v8": "^4.1.9",
     "fast-check": "^4.8.0",
     "https-proxy-agent": "^9.1.0",
