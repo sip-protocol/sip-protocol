@@ -52,6 +52,13 @@ pub const SIP_CONFIG_SEED: &[u8] = b"config";
 pub const CREATE_TRANSFER_ANNOUNCEMENT_DISC: [u8; 8] =
   [0x9b, 0x34, 0xb1, 0x8f, 0xd3, 0x5b, 0xcd, 0x66];
 
+/// Maximum byte length of the opaque `encrypted_amount` blob the withdrawal
+/// paths accept. Mirrors the callee `sip_privacy`'s own cap (its
+/// `TransferRecord.encrypted_amount` is `#[max_len(64)]`); the vault re-checks
+/// it so an over-long blob fails fast with a vault-native error before the
+/// debit. Keep in sync with sip_privacy if that cap ever changes.
+pub const MAX_ENCRYPTED_AMOUNT_LEN: usize = 64;
+
 declare_id!("S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -233,14 +240,13 @@ pub mod sipher_vault {
   ) -> Result<()> {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
     require!(amount > 0, VaultError::ZeroDeposit);
-    // Fail-fast before the debit: the callee caps encrypted_amount at 64 bytes,
-    // so reject an over-long blob early with a vault-native error.
-    require!(_encrypted_amount.len() <= 64, VaultError::EncryptedAmountTooLong);
+    // Fail-fast before the debit: reject an over-long blob early with a
+    // vault-native error. Mirrors the callee's cap (see MAX_ENCRYPTED_AMOUNT_LEN).
+    require!(_encrypted_amount.len() <= MAX_ENCRYPTED_AMOUNT_LEN, VaultError::EncryptedAmountTooLong);
 
     // 1. Debit-first: reduce balance before any transfers
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance;
-    require!(available >= amount, VaultError::InsufficientBalance);
+    require!(record.balance >= amount, VaultError::InsufficientBalance);
 
     record.balance = record.balance
       .checked_sub(amount)
@@ -349,14 +355,13 @@ pub mod sipher_vault {
   ) -> Result<()> {
     require!(!ctx.accounts.config.paused, VaultError::ProgramPaused);
     require!(amount > 0, VaultError::ZeroDeposit);
-    // Fail-fast before the debit: the callee caps encrypted_amount at 64 bytes,
-    // so reject an over-long blob early with a vault-native error.
-    require!(_encrypted_amount.len() <= 64, VaultError::EncryptedAmountTooLong);
+    // Fail-fast before the debit: reject an over-long blob early with a
+    // vault-native error. Mirrors the callee's cap (see MAX_ENCRYPTED_AMOUNT_LEN).
+    require!(_encrypted_amount.len() <= MAX_ENCRYPTED_AMOUNT_LEN, VaultError::EncryptedAmountTooLong);
 
     // 1. Debit-first: reduce balance before any lamport movement.
     let record = &mut ctx.accounts.deposit_record;
-    let available = record.balance;
-    require!(available >= amount, VaultError::InsufficientBalance);
+    require!(record.balance >= amount, VaultError::InsufficientBalance);
 
     record.balance = record.balance
       .checked_sub(amount)

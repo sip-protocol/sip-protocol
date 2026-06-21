@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-06-19 |
-| **Program** | `sipher_vault` · Anchor 0.30.1 · `programs/sipher-vault/programs/sipher-vault/src/` |
+| **Program** | `sipher_vault` · Anchor 1.0.2 · `programs/sipher-vault/programs/sipher-vault/src/` |
 | **Deployment** | devnet `S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB` (this audit gates the mainnet deploy) |
 | **Audit type** | Internal self-audit (the decided milestone approach). **Not** an independent external review — see §9. |
 | **Method** | Static source review across 6 adversarial dimensions + targeted empirical verification |
@@ -52,7 +52,7 @@ Six independent reviewers, one per threat dimension, each instructed to red-team
 
 **Empirical checks beyond static review:** the CPI's manual Borsh encoding and discriminator were re-derived independently and matched byte-for-byte; the stealth scalar signer was reimplemented and verified against a standard ed25519 verifier on 200 random raw scalars (200/200 pass; non-canonical `S` rejected).
 
-**Test harness.** The Anchor IDL generator is broken on the build host (host `rustc` vs `anchor-cli 0.30.1`), so the program is tested with the **solana-bankrun raw-instruction** harness rather than the Anchor TS client. Building the `.so` currently requires platform-tools **v1.52** (see Appendix B for the toolchain regression that this audit also surfaced).
+**Test harness.** The program is tested with the **solana-bankrun raw-instruction** harness (the suite predates an Anchor TS-client setup). Building the `.so` uses platform-tools **v1.52** (rustc 1.89) — the toolchain Anchor 1.0.2 targets (see Appendix B).
 
 ---
 
@@ -199,4 +199,4 @@ Before the mainnet deploy (B7):
 
 ## Appendix B — Build toolchain note
 
-The committed lockfile resolves `blake3 1.8.5 → constant_time_eq 0.4.2`, which requires Rust `edition2024` (rustc ≥ 1.85). The Anchor-0.30.1-pinned platform-tools **v1.51** (rustc 1.84.1) cannot build it, so `anchor build` fails; building with **platform-tools v1.52** (rustc 1.89.0) succeeds. The original workaround pinned `blake3 = "=1.5.5"` to keep the dependency graph on an edition2021 `constant_time_eq 0.3.x`; a dependabot bump (`501db63`) raised it to `=1.8.5` and defeated that pin (the stale comment still reads "1.5.5"). Reverting `blake3` to `=1.5.5` in both `sipher-vault` and `sip_privacy` restores `anchor build` on v1.51 (and unblocks the devnet redeploy). Tracked alongside the Anchor/cargo toolchain alignment work.
+The program builds with **platform-tools v1.52** (rustc 1.89.0), the toolchain Anchor 1.0.2 targets: `cd programs/sipher-vault && cargo build-sbf --tools-version v1.52`. Pass the flag explicitly — Agave 3.0.13 may default to platform-tools v1.51 (rustc 1.84.1), which is below Anchor 1.0.2's MSRV. The Anchor 1.0.2 migration this PR is rebased onto also dissolved an earlier `blake3 → constant_time_eq 0.4.2` (edition2024) regression that had broken the build on the 0.30.1-era v1.51, by dropping the explicit `blake3` pins entirely.

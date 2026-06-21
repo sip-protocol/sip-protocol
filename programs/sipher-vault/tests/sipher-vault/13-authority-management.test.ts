@@ -21,6 +21,7 @@ import {
   startVault,
   getAccountData,
   parseVaultConfig,
+  assertFails,
   VAULT_PROGRAM_ID,
 } from './bankrun-helpers'
 import { getVaultConfigPDA, MAX_FEE_BPS } from './setup'
@@ -52,23 +53,6 @@ describe('13 · authority management (M1: two-step transfer + update_fee)', () =
     await sendIx(ctx, [
       SystemProgram.transfer({ fromPubkey: authority.publicKey, toPubkey: kp.publicKey, lamports }),
     ], [authority])
-  }
-
-  async function assertFails(fn: () => Promise<void>, needles: string[]): Promise<void> {
-    try {
-      await fn()
-      assert.fail('expected the transaction to fail but it succeeded')
-    } catch (e: unknown) {
-      const err = e as Error
-      if (err.message && err.message.includes('expected the transaction to fail but it succeeded')) {
-        throw err
-      }
-      const msg = (err?.message ?? String(err)).toLowerCase()
-      assert.ok(
-        needles.some((n) => msg.includes(n)),
-        `expected one of [${needles.join(', ')}], got: ${err?.message ?? String(err)}`,
-      )
-    }
   }
 
   // ── update_authority (propose) ────────────────────────────────────────────

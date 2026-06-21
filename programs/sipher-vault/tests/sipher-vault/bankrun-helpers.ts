@@ -34,6 +34,33 @@ import {
   getSolVaultPDA,
   getSolFeePDA,
 } from './setup'
+import { assert } from 'chai'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Assertion helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Assert that `fn` rejects and the (lowercased) error message contains one of
+ * `needles`. Re-throws if `fn` unexpectedly succeeds. Lives here so the bankrun
+ * suites share one fail-and-match helper instead of re-implementing it per file.
+ */
+export async function assertFails(fn: () => Promise<void>, needles: string[]): Promise<void> {
+  try {
+    await fn()
+    assert.fail('expected the transaction to fail but it succeeded')
+  } catch (e: unknown) {
+    const err = e as Error
+    if (err.message && err.message.includes('expected the transaction to fail but it succeeded')) {
+      throw err
+    }
+    const msg = (err?.message ?? String(err)).toLowerCase()
+    assert.ok(
+      needles.some((n) => msg.includes(n)),
+      `expected one of [${needles.join(', ')}], got: ${err?.message ?? String(err)}`,
+    )
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Program ID

@@ -16,15 +16,16 @@ Deployment records and procedures for the `sipher_vault` Anchor program — a pr
 
 | Tool | Version |
 |------|---------|
-| Anchor CLI | `0.30.1` |
+| Anchor CLI | `1.0.2` |
 | Solana CLI | `3.0.13` (Agave) |
-| platform-tools | `v1.51` (rustc `1.84.1`, target SBF) |
-| Host rustc | `1.94.1` (build only — IDL gen requires `--no-idl`) |
+| platform-tools | `v1.52` (rustc `1.89.0`, target SBF) |
+| Host rustc | `1.94.1` |
 
-> **Build note:** anchor 0.30.1's IDL generator depends on `proc_macro2::Span::source_file()`,
-> a nightly-only proc-macro API removed from current host rustc. Use `anchor build --no-idl`;
-> the on-chain SBF binary is unaffected. The IDL artifact at `target/idl/sipher_vault.json`
-> is regenerated from earlier compatible host toolchains.
+> **Build note:** build the SBF binary with an explicit platform-tools version —
+> `cargo build-sbf --tools-version v1.52` — because Agave 3.0.13 may default to
+> v1.51 (rustc 1.84.1), below Anchor 1.0.2's MSRV. Under Anchor 1.0.2 the IDL
+> generator works on the host toolchain (`anchor idl build`); the `--no-idl`
+> workaround that Anchor 0.30.1 required is no longer needed.
 
 ## Instruction Inventory
 
@@ -147,7 +148,7 @@ The test suite is IDL-free (solana-bankrun raw-ix). It requires the `sip_privacy
 ```bash
 # Step 1: Build sip_privacy to get its .so (from the repo root or programs/sip-privacy)
 cd programs/sip-privacy
-anchor build --no-idl
+cargo build-sbf --tools-version v1.52
 cp target/deploy/sip_privacy.so ../sipher-vault/tests/fixtures/sip_privacy.so
 cd ../sipher-vault
 ```
@@ -155,16 +156,18 @@ cd ../sipher-vault
 Then run the suite:
 
 ```bash
-# All three test files (10 = token-track, 11 = SOL-track, 12 = cross-track)
-pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/{10,11,12}-*.ts'
+# All four test files (10 = classic SPL, 11 = Token-2022 allowlist,
+# 12 = native SOL, 13 = authority management)
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/{10,11,12,13}-*.ts'
 
 # Or individually:
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/10-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/11-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/12-*.ts'
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/13-*.ts'
 ```
 
-Expected: **25 passing**, 0 failing.
+Expected: **39 passing**, 0 failing.
 
 ### Devnet Upgrade
 
@@ -189,6 +192,13 @@ Expected: **25 passing**, 0 failing.
 > deploy decision.** (Mainnet B7 is a fresh deploy with no pre-existing accounts
 > → unaffected. Verified against live devnet account sizes by the post-hardening
 > independent review.)
+
+> **Downstream error-code sync (B6 M2):** removing the inert `BalanceLocked`
+> variant renumbers the later `VaultError` codes (`UnsupportedMintExtension`
+> 6012→6011, `RentReserveViolation` 6013→6012). On redeploy, regenerate the
+> consuming `sipher` repo's committed IDL (`packages/sdk/src/idl/sipher_vault.json`)
+> and update any hardcoded error numbers (e.g. `scripts/devnet-beta-gate-check.ts`)
+> in lockstep — otherwise off-chain tooling will mislabel on-chain errors.
 
 Use the atomic upgrade script (only safe for layout-compatible upgrades):
 
