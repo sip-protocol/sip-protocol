@@ -1,5 +1,13 @@
 # @sip-protocol/sdk
 
+## 0.15.1
+
+### Patch Changes
+
+- [#1187](https://github.com/sip-protocol/sip-protocol/pull/1187) [`8a814f6`](https://github.com/sip-protocol/sip-protocol/commit/8a814f6cbb0fbe23b8d54358a986d0cb095bc0f4) Thanks [@rz1989s](https://github.com/rz1989s)! - Migrate `@langchain/core` (0.3 → 1.x) and `@langchain/openai` (0.6 → 1.x) to v1. LangChain 1.0 made `SystemMessage`/`HumanMessage`/`AIMessage` non-interchangeable (each now carries invariant `MessageStructure<MessageToolSet>` generics), so the Privacy Advisor's message arrays are explicitly typed as `BaseMessage[]`. No public API or runtime behavior change.
+
+- [#1188](https://github.com/sip-protocol/sip-protocol/pull/1188) [`840f47f`](https://github.com/sip-protocol/sip-protocol/commit/840f47f43bf735ec1b049a34d44ec6a4d10d9881) Thanks [@rz1989s](https://github.com/rz1989s)! - Migrate `@triton-one/yellowstone-grpc` (4.x → 5.x) in the Solana gRPC providers. v5 moved off `@grpc/grpc-js` (its `Client.subscribe()` now returns the library's own `ClientDuplexStream` instead of `@grpc/grpc-js`'s generic `ClientDuplexStream<SubscribeRequest, SubscribeUpdate>`). The QuickNode and Triton providers now alias the stream to v5's exported `ClientDuplexStream` and type their `data` handlers as `SubscribeUpdate`, dropping the now-unused `@grpc/grpc-js` dev dependency. No public API or runtime behavior change.
+
 ## 0.15.0
 
 ### Minor Changes
