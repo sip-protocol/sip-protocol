@@ -748,31 +748,44 @@ pub mod sipher_vault {
   }
 
   /// Grow a legacy (pre-M1, 68-byte) VaultConfig to the current 101-byte layout
-  /// by appending `pending_authority = None`. Authority-gated, idempotent.
-  /// Reusable for any future trailing-field layout migration.
+  /// by appending `pending_authority = None`. Authority-gated on every path,
+  /// idempotent. Reusable for any future trailing-field layout migration.
   ///
   /// The legacy account cannot be deserialized into `VaultConfig` (the trailing
   /// Option is absent → AccountDidNotDeserialize) and a renamed struct would fail
   /// the discriminator check, so `config` is a raw UncheckedAccount: the PDA is
-  /// verified by seeds+bump and the authority is read manually from bytes [8..40].
+  /// verified by seeds+bump and the authority is read manually from bytes [8..40]
+  /// (the authority sits at the same offset in the legacy and current layout).
   pub fn migrate_config(ctx: Context<MigrateConfig>) -> Result<()> {
     let config = ctx.accounts.config.to_account_info();
     let new_len = 8 + VaultConfig::INIT_SPACE;
+    let len = config.data_len();
 
-    // Idempotent: already current → no-op. This branch fires before any write,
-    // so a live `pending_authority` on a migrated config can never be clobbered.
-    if config.data_len() >= new_len {
-      msg!("VaultConfig already current ({} bytes); no-op", config.data_len());
-      return Ok(());
-    }
-    require!(config.data_len() == LEGACY_VAULT_CONFIG_LEN, VaultError::InvalidConfigAccount);
+    // Accept only a legacy account (to migrate) or an already-current account
+    // (to no-op). Rejecting anything else up front also guarantees the [8..40]
+    // authority read below is in bounds (both accepted sizes are ≥ 40).
+    require!(
+      len == LEGACY_VAULT_CONFIG_LEN || len >= new_len,
+      VaultError::InvalidConfigAccount
+    );
 
-    // Authority gate — read the authority from the legacy layout (offset 8..40).
+    // Authority gate FIRST — enforced on every valid path, including the no-op,
+    // so the instruction is uniformly authority-gated. Read manually because the
+    // legacy account cannot be deserialized into `VaultConfig`.
     {
       let data = config.try_borrow_data()?;
-      let stored_authority =
-        Pubkey::new_from_array(data[8..40].try_into().expect("len checked == 68 above"));
+      let stored_authority = data
+        .get(8..40)
+        .and_then(|s| Pubkey::try_from(s).ok())
+        .ok_or(VaultError::InvalidConfigAccount)?;
       require_keys_eq!(stored_authority, ctx.accounts.authority.key(), VaultError::Unauthorized);
+    }
+
+    // Idempotent: already current → no-op. Fires after the authority gate and
+    // before any write, so a live `pending_authority` can never be clobbered.
+    if len >= new_len {
+      msg!("VaultConfig already current ({} bytes); no-op", len);
+      return Ok(());
     }
 
     // Top up the rent delta so the grown account stays rent-exempt.
@@ -790,8 +803,14 @@ pub mod sipher_vault {
       anchor_lang::system_program::transfer(cpi, need)?;
     }
 
-    // Grow + zero-fill: the new byte at offset 68 becomes 0x00 = Option::None.
+    // Grow, then explicitly zero the appended region so `pending_authority`
+    // decodes as `None` (byte 68 = 0x00) — independent of the runtime's resize
+    // zero-fill behavior; a non-zero byte 68 would decode as Some(garbage).
     config.resize(new_len)?;
+    {
+      let mut data = config.try_borrow_mut_data()?;
+      data[LEGACY_VAULT_CONFIG_LEN..new_len].fill(0);
+    }
 
     emit!(VaultConfigMigratedEvent {
       authority: ctx.accounts.authority.key(),

@@ -29,7 +29,7 @@ Deployment records and procedures for the `sipher_vault` Anchor program — a pr
 
 ## Instruction Inventory
 
-The program currently exposes **15 instructions** (9 original + 6 native-SOL track added in the universal-asset feature).
+The program currently exposes **19 instructions** (9 original + 6 native-SOL track + 3 authority-management (M1) + the `migrate_config` layout migration).
 
 ### Token-track instructions (original 9)
 
@@ -55,6 +55,15 @@ The program currently exposes **15 instructions** (9 original + 6 native-SOL tra
 | 13 | `refund_sol` | Return lamports after `refund_timeout` (depositor-signed); checked-lamport transfer from `SolVault` |
 | 14 | `authority_refund_sol` | Emergency authority-gated SOL refund |
 | 15 | `collect_fee_sol` | Sweep `SolFee` lamports to authority; preserves rent-exempt floor |
+
+### Admin & migration instructions
+
+| # | Instruction | Description |
+|---|-------------|-------------|
+| 16 | `update_authority` | Propose a new authority — step 1 of the two-step M1 transfer |
+| 17 | `accept_authority` | Accept a pending authority transfer — step 2; the proposed key must sign |
+| 18 | `update_fee` | Authority-only fee update, capped at `MAX_FEE_BPS` |
+| 19 | `migrate_config` | Authority-gated, idempotent **in-place** migration of a legacy 68-byte `VaultConfig` to the current 101-byte layout (appends `pending_authority = None`). See "Devnet Upgrade" below |
 
 > **SDK/relayer integrators:** native `withdraw_private_sol` sends lamports to a stealth system account. If
 > the stealth account is freshly created (zero balance), the receiving transaction must leave it at or above
@@ -171,7 +180,7 @@ Expected: **39 passing**, 0 failing.
 
 ### Devnet Upgrade
 
-> **⚠️ BREAKING ACCOUNT-LAYOUT CHANGE in the B6 audit-hardening — an in-place upgrade across this boundary will BRICK the existing vault.**
+> **⚠️ BREAKING ACCOUNT-LAYOUT CHANGE in the B6 audit-hardening — an in-place upgrade MUST be followed by `migrate_config` (see resolution below), or the existing vault is bricked.**
 > The hardening adds `VaultConfig.pending_authority` (M1, +33 bytes) and removes
 > `DepositRecord.locked_amount` (M2, −8 bytes mid-struct), changing both struct
 > layouts. The existing devnet `VaultConfig` PDA
@@ -185,20 +194,24 @@ Expected: **39 passing**, 0 failing.
 >   `bump = deposit_record.bump` seeds check → that depositor's funds become
 >   unwithdrawable.
 >
-> There is **no migration/`realloc` instruction**, so `upgrade-devnet.ts`
-> (in-place `BPFLoaderUpgradeable`) is unsafe here. Bring the new-layout program
-> up against **fresh** accounts — deploy to a **new program ID** + fresh
-> `initialize`, or close/recreate the config + records first. **This is RECTOR's
-> deploy decision.** (Mainnet B7 is a fresh deploy with no pre-existing accounts
-> → unaffected. Verified against live devnet account sizes by the post-hardening
-> independent review.)
+> **Resolved by `migrate_config` (PR #1212).** The `VaultConfig` brick is fixed
+> by the `migrate_config` instruction, which grows the existing config PDA in
+> place (68 → 101 bytes, appending `pending_authority = None`) — so the **program
+> ID and config PDA (`CpL4qy…`) are preserved**; no new program ID or fresh
+> `initialize` is required. The safe devnet path is: `solana program extend` (the
+> B6 binary is larger than the current allocation) → in-place
+> `BPFLoaderUpgradeable` upgrade → run `migrate_config` (authority-signed) →
+> `create_sol_vault`. Legacy `DepositRecord` accounts are **not** migrated; on
+> devnet they are orphaned-but-harmless (new depositors derive fresh PDAs).
+> Mainnet B7 is a fresh deploy with no pre-existing accounts → no migration needed.
 
 > **Downstream error-code sync (B6 M2):** removing the inert `BalanceLocked`
 > variant renumbers the later `VaultError` codes (`UnsupportedMintExtension`
 > 6012→6011, `RentReserveViolation` 6013→6012). On redeploy, regenerate the
 > consuming `sipher` repo's committed IDL (`packages/sdk/src/idl/sipher_vault.json`)
 > and update any hardcoded error numbers (e.g. `scripts/devnet-beta-gate-check.ts`)
-> in lockstep — otherwise off-chain tooling will mislabel on-chain errors.
+> in lockstep — otherwise off-chain tooling will mislabel on-chain errors. PR #1212
+> additionally appends `InvalidConfigAccount` = 6014 (append-only — existing codes unchanged).
 
 Use the atomic upgrade script (only safe for layout-compatible upgrades):
 

@@ -138,6 +138,16 @@ describe('14 · migrate_config (B6 VaultConfig layout migration)', () => {
     assert.ok(cfg.pendingAuthority?.equals(pending), 'pending_authority preserved (no-op path)')
   })
 
+  it('rejects a non-authority signer even on an already-migrated config (no-op path stays gated)', async () => {
+    await plantNew(null)
+    const attacker = Keypair.generate()
+    await sendIx(ctx, [SystemProgram.transfer({ fromPubkey: authority.publicKey, toPubkey: attacker.publicKey, lamports: 5_000_000 })], [authority])
+    await assertFails(
+      () => sendIx(ctx, [ixMigrateConfig(attacker.publicKey)], [attacker]),
+      ['unauthorized', '1771'],
+    )
+  })
+
   it('rejects a non-authority signer (Unauthorized 6001/0x1771)', async () => {
     await plantLegacy({ authority: authority.publicKey, feeBps: 10, refundTimeout: 86400n, paused: false, totalDeposits: 0n, totalDepositors: 0n })
     const attacker = Keypair.generate()
