@@ -126,22 +126,18 @@ emergency lever works before mainnet (PR-B1 Risk B2/B3).
 - Verified script: `programs/sipher-vault/scripts/set-paused.ts`
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
-### Devnet — Universal-Asset Upgrade (PENDING — to be filled in by RECTOR)
+### Devnet — B6 Hardening + Universal-Asset + `migrate_config` Redeploy (2026-06-22)
 
-Universal-asset feature branch adds native SOL support (6 new instructions, 9 → 15 total).
-Binary: `492536` bytes (Δ from `383144` — ~107 KB for two new account structs + 6 instruction handlers).
+In-place `BPFLoaderUpgradeable` upgrade of the **existing** program — B6 audit-hardening (#1192) + universal-asset native-SOL track + the new `migrate_config` instruction (#1212) — followed by `migrate_config` to grow the live `VaultConfig` 68 → 101 in place, then `create_sol_vault`. **Program ID and config PDA preserved** (reuse via `migrate_config`, NOT fresh accounts — this supersedes the obsolete "fresh accounts required" note; see "Devnet Upgrade" above).
 
-> **⚠️ If the B6 audit-hardening (M1/M2) is included in this redeploy, the
-> account layouts change and an in-place upgrade is NOT safe — see the breaking-change
-> warning under "Devnet Upgrade" below. Fresh accounts (new program ID or recreate)
-> are required.**
-
-- **Upgrade TX:** `[TODO — run scripts/upgrade-devnet.ts and paste TX signature here]`
-- **New deployed slot:** `[TODO — paste slot from upgrade-devnet.ts output]`
-- **SOL vault init TX:** `[TODO — run scripts/create-sol-vault.ts after redeploy and paste TX here]`
-- **SolVault PDA:** `[TODO — paste from create-sol-vault.ts output]`
-- **SolFee PDA:** `[TODO — paste from create-sol-vault.ts output]`
-- Binary size: `492536` bytes
+- **Binary:** `513176` bytes (`.so`); programdata extended `+138224` → `521413` bytes allocated (rent ~0.963 SOL, permanent).
+- **Upgrade TX:** `2SpAab9CgbQneAiNAszxSC5AKpBuviYKETxZxD28CdqceMTX7c5ZqWaptzHKfLLiFzhWikradr1RAwMfCy9oJiUb`
+- **New deployed slot:** `471134934` (was `460376111`).
+- **`migrate_config` TX:** `2eUimGuTYRU4Biy6A8jnTjLLpL4p89ccJKddCy2KdSyYzS583onav3HiTfQRwP84iA2n4j9PHK5uZGQsopjmr1xd` — `VaultConfig` `CpL4qy…` 68 → 101; verified fields preserved (authority `FGSkt8…`, fee 10 bps, refund_timeout 86400, total_deposits 2, total_depositors 1, bump 254) with `pending_authority = None` (byte 68 = 0x00, trailing zero-filled).
+- **`create_sol_vault` TX:** `3ZW7rBK35GK1YCTQjBw9icKuS7PzUUUxJECQ9e18YYD7XwreVtKLsgKz9wkKtzJgAfiaRHDFkuoG74ytzH66jVW4`
+- **SolVault PDA:** `8ZG46epBDrRbZ2oDneuemmSuQNNG3R58LhFo8Do2p6sq` (9 bytes)
+- **SolFee PDA:** `519L2NQN16H1fnN9iPu2r2ipmjPj156yWMPQumw8PkZ4` (9 bytes)
+- **Config PDA (post-migration):** `CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u` — 101 bytes, deserializes as current `VaultConfig`.
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
 ## Mainnet Deployments
