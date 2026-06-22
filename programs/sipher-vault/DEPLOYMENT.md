@@ -161,18 +161,19 @@ cd ../sipher-vault
 Then run the suite:
 
 ```bash
-# All four test files (10 = classic SPL, 11 = Token-2022 allowlist,
-# 12 = native SOL, 13 = authority management)
-pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/{10,11,12,13}-*.ts'
+# All five test files (10 = classic SPL, 11 = Token-2022 allowlist,
+# 12 = native SOL, 13 = authority management, 14 = migrate_config)
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/{10,11,12,13,14}-*.ts'
 
 # Or individually:
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/10-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/11-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/12-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/13-*.ts'
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/14-*.ts'
 ```
 
-Expected: **39 passing**, 0 failing.
+Expected: **46 passing**, 0 failing.
 
 ### Devnet Upgrade
 

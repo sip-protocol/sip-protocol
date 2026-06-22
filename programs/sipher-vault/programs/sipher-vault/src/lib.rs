@@ -749,7 +749,11 @@ pub mod sipher_vault {
 
   /// Grow a legacy (pre-M1, 68-byte) VaultConfig to the current 101-byte layout
   /// by appending `pending_authority = None`. Authority-gated on every path,
-  /// idempotent. Reusable for any future trailing-field layout migration.
+  /// idempotent. Scoped to this one-time 68→101 migration: the accepted legacy
+  /// size is pinned to `LEGACY_VAULT_CONFIG_LEN`. The mechanism (raw realloc +
+  /// zero-fill of the appended region) would generalize to a future
+  /// trailing-field migration, but that would require bumping that constant to
+  /// the then-current size.
   ///
   /// The legacy account cannot be deserialized into `VaultConfig` (the trailing
   /// Option is absent → AccountDidNotDeserialize) and a renamed struct would fail
