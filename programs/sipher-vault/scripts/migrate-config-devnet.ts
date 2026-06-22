@@ -22,6 +22,11 @@ import * as os from 'os'
 const PROGRAM_ID = new PublicKey('S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB')
 const VAULT_CONFIG_SEED = Buffer.from('vault_config')
 
+// VaultConfig account sizes (mirror the Rust program): the pre-M1 legacy layout
+// and the current layout after `migrate_config` appends `pending_authority: None`.
+const LEGACY_VAULT_CONFIG_LEN = 68
+const NEW_VAULT_CONFIG_LEN = 101
+
 // Anchor instruction discriminator: sha256("global:<name>")[..8]
 function disc(name: string): Buffer {
   return createHash('sha256').update(`global:${name}`).digest().subarray(0, 8)
@@ -36,12 +41,24 @@ async function main() {
     new Uint8Array(JSON.parse(fs.readFileSync(walletPath, 'utf8'))),
   )
   const connection = new Connection(url, 'confirmed')
+
+  // Guard: refuse to run on mainnet-beta. `migrate_config` mutates a live config
+  // account in place; on mainnet the layout migration must go through the gated
+  // mainnet deploy (self-audit → mainnet), never this devnet helper. A stray
+  // ANCHOR_PROVIDER_URL must not be able to realloc a production config.
+  const MAINNET_GENESIS = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d'
+  const genesisHash = await connection.getGenesisHash()
+  if (genesisHash === MAINNET_GENESIS) {
+    console.error('ERROR: refusing to run against mainnet-beta — migrate_config is devnet-only here')
+    process.exit(1)
+  }
+
   const [configPda] = PublicKey.findProgramAddressSync([VAULT_CONFIG_SEED], PROGRAM_ID)
 
   const before = await connection.getAccountInfo(configPda)
   console.log('config before:', configPda.toBase58(), 'len=', before?.data.length)
-  if (before?.data.length === 101) {
-    console.log('already migrated (101 bytes) — nothing to do')
+  if (before?.data.length === NEW_VAULT_CONFIG_LEN) {
+    console.log(`already migrated (${NEW_VAULT_CONFIG_LEN} bytes) — nothing to do`)
     return
   }
 
@@ -61,9 +78,11 @@ async function main() {
   console.log('migrate_config TX:', sig)
 
   const after = await connection.getAccountInfo(configPda)
-  console.log('config after: len=', after?.data.length, '(expected 101)')
-  if (after?.data.length !== 101) throw new Error('migration did not reach 101 bytes')
-  console.log('OK — VaultConfig migrated 68 → 101')
+  console.log('config after: len=', after?.data.length, `(expected ${NEW_VAULT_CONFIG_LEN})`)
+  if (after?.data.length !== NEW_VAULT_CONFIG_LEN) {
+    throw new Error(`migration did not reach ${NEW_VAULT_CONFIG_LEN} bytes`)
+  }
+  console.log(`OK — VaultConfig migrated ${LEGACY_VAULT_CONFIG_LEN} → ${NEW_VAULT_CONFIG_LEN}`)
 }
 
 main()
