@@ -746,6 +746,83 @@ pub mod sipher_vault {
     });
     Ok(())
   }
+
+  /// Grow a legacy (pre-M1, 68-byte) VaultConfig to the current 101-byte layout
+  /// by appending `pending_authority = None`. Authority-gated on every path,
+  /// idempotent. Scoped to this one-time 68→101 migration: the accepted legacy
+  /// size is pinned to `LEGACY_VAULT_CONFIG_LEN`. The mechanism (raw realloc +
+  /// zero-fill of the appended region) would generalize to a future
+  /// trailing-field migration, but that would require bumping that constant to
+  /// the then-current size.
+  ///
+  /// The legacy account cannot be deserialized into `VaultConfig` (the trailing
+  /// Option is absent → AccountDidNotDeserialize) and a renamed struct would fail
+  /// the discriminator check, so `config` is a raw UncheckedAccount: the PDA is
+  /// verified by seeds+bump and the authority is read manually from bytes [8..40]
+  /// (the authority sits at the same offset in the legacy and current layout).
+  pub fn migrate_config(ctx: Context<MigrateConfig>) -> Result<()> {
+    let config = ctx.accounts.config.to_account_info();
+    let new_len = 8 + VaultConfig::INIT_SPACE;
+    let len = config.data_len();
+
+    // Accept only a legacy account (to migrate) or an already-current account
+    // (to no-op). Rejecting anything else up front also guarantees the [8..40]
+    // authority read below is in bounds (both accepted sizes are ≥ 40).
+    require!(
+      len == LEGACY_VAULT_CONFIG_LEN || len >= new_len,
+      VaultError::InvalidConfigAccount
+    );
+
+    // Authority gate FIRST — enforced on every valid path, including the no-op,
+    // so the instruction is uniformly authority-gated. Read manually because the
+    // legacy account cannot be deserialized into `VaultConfig`.
+    {
+      let data = config.try_borrow_data()?;
+      let stored_authority = data
+        .get(8..40)
+        .and_then(|s| Pubkey::try_from(s).ok())
+        .ok_or(VaultError::InvalidConfigAccount)?;
+      require_keys_eq!(stored_authority, ctx.accounts.authority.key(), VaultError::Unauthorized);
+    }
+
+    // Idempotent: already current → no-op. Fires after the authority gate and
+    // before any write, so a live `pending_authority` can never be clobbered.
+    if len >= new_len {
+      msg!("VaultConfig already current ({} bytes); no-op", len);
+      return Ok(());
+    }
+
+    // Top up the rent delta so the grown account stays rent-exempt.
+    let need = Rent::get()?
+      .minimum_balance(new_len)
+      .saturating_sub(config.lamports());
+    if need > 0 {
+      let cpi = CpiContext::new(
+        ctx.accounts.system_program.key(),
+        anchor_lang::system_program::Transfer {
+          from: ctx.accounts.authority.to_account_info(),
+          to: config.clone(),
+        },
+      );
+      anchor_lang::system_program::transfer(cpi, need)?;
+    }
+
+    // Grow, then explicitly zero the appended region so `pending_authority`
+    // decodes as `None` (byte 68 = 0x00) — independent of the runtime's resize
+    // zero-fill behavior; a non-zero byte 68 would decode as Some(garbage).
+    config.resize(new_len)?;
+    {
+      let mut data = config.try_borrow_mut_data()?;
+      data[LEGACY_VAULT_CONFIG_LEN..new_len].fill(0);
+    }
+
+    emit!(VaultConfigMigratedEvent {
+      authority: ctx.accounts.authority.key(),
+      new_len: new_len as u64,
+      timestamp: Clock::get()?.unix_timestamp,
+    });
+    Ok(())
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1468,6 +1545,20 @@ pub struct UpdateFee<'info> {
   pub authority: Signer<'info>,
 }
 
+#[derive(Accounts)]
+pub struct MigrateConfig<'info> {
+  /// CHECK: legacy-layout config is not deserializable into VaultConfig; the PDA
+  /// is verified by seeds+bump and the authority is verified manually in the
+  /// handler (bytes [8..40]). Owned by this program, so realloc is permitted.
+  #[account(mut, seeds = [VAULT_CONFIG_SEED], bump)]
+  pub config: UncheckedAccount<'info>,
+
+  #[account(mut)]
+  pub authority: Signer<'info>,
+
+  pub system_program: Program<'info, System>,
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Events
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1518,5 +1609,14 @@ pub struct FeeUpdatedEvent {
   pub authority: Pubkey,
   pub old_fee_bps: u16,
   pub new_fee_bps: u16,
+  pub timestamp: i64,
+}
+
+/// Emitted when `migrate_config` grows a legacy VaultConfig to the current
+/// layout. Lets off-chain tooling confirm the one-time migration on-chain.
+#[event]
+pub struct VaultConfigMigratedEvent {
+  pub authority: Pubkey,
+  pub new_len: u64,
   pub timestamp: i64,
 }

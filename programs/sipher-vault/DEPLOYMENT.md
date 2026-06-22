@@ -29,7 +29,7 @@ Deployment records and procedures for the `sipher_vault` Anchor program — a pr
 
 ## Instruction Inventory
 
-The program currently exposes **15 instructions** (9 original + 6 native-SOL track added in the universal-asset feature).
+The program currently exposes **19 instructions** (9 original + 6 native-SOL track + 3 authority-management (M1) + the `migrate_config` layout migration).
 
 ### Token-track instructions (original 9)
 
@@ -55,6 +55,15 @@ The program currently exposes **15 instructions** (9 original + 6 native-SOL tra
 | 13 | `refund_sol` | Return lamports after `refund_timeout` (depositor-signed); checked-lamport transfer from `SolVault` |
 | 14 | `authority_refund_sol` | Emergency authority-gated SOL refund |
 | 15 | `collect_fee_sol` | Sweep `SolFee` lamports to authority; preserves rent-exempt floor |
+
+### Admin & migration instructions
+
+| # | Instruction | Description |
+|---|-------------|-------------|
+| 16 | `update_authority` | Propose a new authority — step 1 of the two-step M1 transfer |
+| 17 | `accept_authority` | Accept a pending authority transfer — step 2; the proposed key must sign |
+| 18 | `update_fee` | Authority-only fee update, capped at `MAX_FEE_BPS` |
+| 19 | `migrate_config` | Authority-gated, idempotent **in-place** migration of a legacy 68-byte `VaultConfig` to the current 101-byte layout (appends `pending_authority = None`). See "Devnet Upgrade" below |
 
 > **SDK/relayer integrators:** native `withdraw_private_sol` sends lamports to a stealth system account. If
 > the stealth account is freshly created (zero balance), the receiving transaction must leave it at or above
@@ -117,22 +126,18 @@ emergency lever works before mainnet (PR-B1 Risk B2/B3).
 - Verified script: `programs/sipher-vault/scripts/set-paused.ts`
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
-### Devnet — Universal-Asset Upgrade (PENDING — to be filled in by RECTOR)
+### Devnet — B6 Hardening + Universal-Asset + `migrate_config` Redeploy (2026-06-22)
 
-Universal-asset feature branch adds native SOL support (6 new instructions, 9 → 15 total).
-Binary: `492536` bytes (Δ from `383144` — ~107 KB for two new account structs + 6 instruction handlers).
+In-place `BPFLoaderUpgradeable` upgrade of the **existing** program — B6 audit-hardening (#1192) + universal-asset native-SOL track + the new `migrate_config` instruction (#1212) — followed by `migrate_config` to grow the live `VaultConfig` 68 → 101 in place, then `create_sol_vault`. **Program ID and config PDA preserved** (reuse via `migrate_config`, NOT fresh accounts — this supersedes the obsolete "fresh accounts required" note; see "Devnet Upgrade" above).
 
-> **⚠️ If the B6 audit-hardening (M1/M2) is included in this redeploy, the
-> account layouts change and an in-place upgrade is NOT safe — see the breaking-change
-> warning under "Devnet Upgrade" below. Fresh accounts (new program ID or recreate)
-> are required.**
-
-- **Upgrade TX:** `[TODO — run scripts/upgrade-devnet.ts and paste TX signature here]`
-- **New deployed slot:** `[TODO — paste slot from upgrade-devnet.ts output]`
-- **SOL vault init TX:** `[TODO — run scripts/create-sol-vault.ts after redeploy and paste TX here]`
-- **SolVault PDA:** `[TODO — paste from create-sol-vault.ts output]`
-- **SolFee PDA:** `[TODO — paste from create-sol-vault.ts output]`
-- Binary size: `492536` bytes
+- **Binary:** `513176` bytes (`.so`); programdata extended `+138224` → `521413` bytes allocated (rent ~0.963 SOL, permanent).
+- **Upgrade TX:** `2SpAab9CgbQneAiNAszxSC5AKpBuviYKETxZxD28CdqceMTX7c5ZqWaptzHKfLLiFzhWikradr1RAwMfCy9oJiUb`
+- **New deployed slot:** `471134934` (was `460376111`).
+- **`migrate_config` TX:** `2eUimGuTYRU4Biy6A8jnTjLLpL4p89ccJKddCy2KdSyYzS583onav3HiTfQRwP84iA2n4j9PHK5uZGQsopjmr1xd` — `VaultConfig` `CpL4qy…` 68 → 101; verified fields preserved (authority `FGSkt8…`, fee 10 bps, refund_timeout 86400, total_deposits 2, total_depositors 1, bump 254) with `pending_authority = None` (byte 68 = 0x00, trailing zero-filled).
+- **`create_sol_vault` TX:** `3ZW7rBK35GK1YCTQjBw9icKuS7PzUUUxJECQ9e18YYD7XwreVtKLsgKz9wkKtzJgAfiaRHDFkuoG74ytzH66jVW4`
+- **SolVault PDA:** `8ZG46epBDrRbZ2oDneuemmSuQNNG3R58LhFo8Do2p6sq` (9 bytes)
+- **SolFee PDA:** `519L2NQN16H1fnN9iPu2r2ipmjPj156yWMPQumw8PkZ4` (9 bytes)
+- **Config PDA (post-migration):** `CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u` — 101 bytes, deserializes as current `VaultConfig`.
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
 ## Mainnet Deployments
@@ -156,22 +161,23 @@ cd ../sipher-vault
 Then run the suite:
 
 ```bash
-# All four test files (10 = classic SPL, 11 = Token-2022 allowlist,
-# 12 = native SOL, 13 = authority management)
-pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/{10,11,12,13}-*.ts'
+# All five test files (10 = classic SPL, 11 = Token-2022 allowlist,
+# 12 = native SOL, 13 = authority management, 14 = migrate_config)
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/{10,11,12,13,14}-*.ts'
 
 # Or individually:
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/10-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/11-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/12-*.ts'
 pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/13-*.ts'
+pnpm exec ts-mocha -p tsconfig.json -t 60000 'tests/sipher-vault/14-*.ts'
 ```
 
-Expected: **39 passing**, 0 failing.
+Expected: **46 passing**, 0 failing.
 
 ### Devnet Upgrade
 
-> **⚠️ BREAKING ACCOUNT-LAYOUT CHANGE in the B6 audit-hardening — an in-place upgrade across this boundary will BRICK the existing vault.**
+> **⚠️ BREAKING ACCOUNT-LAYOUT CHANGE in the B6 audit-hardening — an in-place upgrade MUST be followed by `migrate_config` (see resolution below), or the existing vault is bricked.**
 > The hardening adds `VaultConfig.pending_authority` (M1, +33 bytes) and removes
 > `DepositRecord.locked_amount` (M2, −8 bytes mid-struct), changing both struct
 > layouts. The existing devnet `VaultConfig` PDA
@@ -185,20 +191,24 @@ Expected: **39 passing**, 0 failing.
 >   `bump = deposit_record.bump` seeds check → that depositor's funds become
 >   unwithdrawable.
 >
-> There is **no migration/`realloc` instruction**, so `upgrade-devnet.ts`
-> (in-place `BPFLoaderUpgradeable`) is unsafe here. Bring the new-layout program
-> up against **fresh** accounts — deploy to a **new program ID** + fresh
-> `initialize`, or close/recreate the config + records first. **This is RECTOR's
-> deploy decision.** (Mainnet B7 is a fresh deploy with no pre-existing accounts
-> → unaffected. Verified against live devnet account sizes by the post-hardening
-> independent review.)
+> **Resolved by `migrate_config` (PR #1212).** The `VaultConfig` brick is fixed
+> by the `migrate_config` instruction, which grows the existing config PDA in
+> place (68 → 101 bytes, appending `pending_authority = None`) — so the **program
+> ID and config PDA (`CpL4qy…`) are preserved**; no new program ID or fresh
+> `initialize` is required. The safe devnet path is: `solana program extend` (the
+> B6 binary is larger than the current allocation) → in-place
+> `BPFLoaderUpgradeable` upgrade → run `migrate_config` (authority-signed) →
+> `create_sol_vault`. Legacy `DepositRecord` accounts are **not** migrated; on
+> devnet they are orphaned-but-harmless (new depositors derive fresh PDAs).
+> Mainnet B7 is a fresh deploy with no pre-existing accounts → no migration needed.
 
 > **Downstream error-code sync (B6 M2):** removing the inert `BalanceLocked`
 > variant renumbers the later `VaultError` codes (`UnsupportedMintExtension`
 > 6012→6011, `RentReserveViolation` 6013→6012). On redeploy, regenerate the
 > consuming `sipher` repo's committed IDL (`packages/sdk/src/idl/sipher_vault.json`)
 > and update any hardcoded error numbers (e.g. `scripts/devnet-beta-gate-check.ts`)
-> in lockstep — otherwise off-chain tooling will mislabel on-chain errors.
+> in lockstep — otherwise off-chain tooling will mislabel on-chain errors. PR #1212
+> additionally appends `InvalidConfigAccount` = 6014 (append-only — existing codes unchanged).
 
 Use the atomic upgrade script (only safe for layout-compatible upgrades):
 
