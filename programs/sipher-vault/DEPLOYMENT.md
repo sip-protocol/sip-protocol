@@ -35,7 +35,7 @@ The program currently exposes **19 instructions** (9 original + 6 native-SOL tra
 
 | # | Instruction | Description |
 |---|-------------|-------------|
-| 1 | `initialize` | Create `VaultConfig` PDA; set fee_bps, refund_timeout, authority |
+| 1 | `initialize` | Create `VaultConfig` PDA; set fee_tenths_bps, refund_timeout, authority |
 | 2 | `create_vault_token` | Create the per-mint `vault_token` PDA (classic SPL + Token-2022, fail-closed extension allowlist). Must be called before `deposit` |
 | 3 | `create_fee_token` | Create the per-mint `fee_token` PDA. Separate instruction — NOT invoked by `create_vault_token`; must be called before the first `withdraw_private` |
 | 4 | `deposit` | Deposit SPL tokens from depositor ATA into `vault_token` PDA |
@@ -62,7 +62,7 @@ The program currently exposes **19 instructions** (9 original + 6 native-SOL tra
 |---|-------------|-------------|
 | 16 | `update_authority` | Propose a new authority — step 1 of the two-step M1 transfer |
 | 17 | `accept_authority` | Accept a pending authority transfer — step 2; the proposed key must sign |
-| 18 | `update_fee` | Authority-only fee update, capped at `MAX_FEE_BPS` |
+| 18 | `update_fee` | Authority-only fee update, capped at `MAX_FEE_TENTHS_BPS` |
 | 19 | `migrate_config` | Authority-gated, idempotent **in-place** migration of a legacy 68-byte `VaultConfig` to the current 101-byte layout (appends `pending_authority = None`). See "Devnet Upgrade" below |
 
 > **SDK/relayer integrators:** native `withdraw_private_sol` sends lamports to a stealth system account. If
@@ -77,7 +77,7 @@ The program currently exposes **19 instructions** (9 original + 6 native-SOL tra
 
 - First devnet deployment of pre-CPI binary (commit `ca3a5a7`)
 - Config PDA: `CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u`
-- Config: 10 bps fee, 86400s refund timeout
+- Config: 7.5 bps fee (75 tenths-of-bps), 86400s refund timeout
 - Authority: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr` (devnet wallet)
 - Binary size: 353 KB (pre-CPI)
 
@@ -133,7 +133,7 @@ In-place `BPFLoaderUpgradeable` upgrade of the **existing** program — B6 audit
 - **Binary:** `513176` bytes (`.so`); programdata extended `+138224` → `521413` bytes allocated (rent ~0.963 SOL, permanent).
 - **Upgrade TX:** `2SpAab9CgbQneAiNAszxSC5AKpBuviYKETxZxD28CdqceMTX7c5ZqWaptzHKfLLiFzhWikradr1RAwMfCy9oJiUb`
 - **New deployed slot:** `471134934` (was `460376111`).
-- **`migrate_config` TX:** `2eUimGuTYRU4Biy6A8jnTjLLpL4p89ccJKddCy2KdSyYzS583onav3HiTfQRwP84iA2n4j9PHK5uZGQsopjmr1xd` — `VaultConfig` `CpL4qy…` 68 → 101; verified fields preserved (authority `FGSkt8…`, fee 10 bps, refund_timeout 86400, total_deposits 2, total_depositors 1, bump 254) with `pending_authority = None` (byte 68 = 0x00, trailing zero-filled).
+- **`migrate_config` TX:** `2eUimGuTYRU4Biy6A8jnTjLLpL4p89ccJKddCy2KdSyYzS583onav3HiTfQRwP84iA2n4j9PHK5uZGQsopjmr1xd` — `VaultConfig` `CpL4qy…` 68 → 101; verified fields preserved (authority `FGSkt8…`, fee 7.5 bps (75 tenths-of-bps), refund_timeout 86400, total_deposits 2, total_depositors 1, bump 254) with `pending_authority = None` (byte 68 = 0x00, trailing zero-filled).
 - **`create_sol_vault` TX:** `3ZW7rBK35GK1YCTQjBw9icKuS7PzUUUxJECQ9e18YYD7XwreVtKLsgKz9wkKtzJgAfiaRHDFkuoG74ytzH66jVW4`
 - **SolVault PDA:** `8ZG46epBDrRbZ2oDneuemmSuQNNG3R58LhFo8Do2p6sq` (9 bytes)
 - **SolFee PDA:** `519L2NQN16H1fnN9iPu2r2ipmjPj156yWMPQumw8PkZ4` (9 bytes)

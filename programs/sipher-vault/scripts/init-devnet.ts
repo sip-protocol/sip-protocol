@@ -47,7 +47,7 @@ async function main() {
   const discriminator = getInstructionDiscriminator('initialize')
   const data = Buffer.alloc(8 + 2 + 8) // discriminator + u16 + i64
   discriminator.copy(data, 0)
-  data.writeUInt16LE(100, 8)          // fee_tenths_bps = 100 (10 bps list price)
+  data.writeUInt16LE(75, 8)           // fee_tenths_bps = 75 (7.5 bps devnet rate)
   data.writeBigInt64LE(86400n, 10)    // refund_timeout = 86400
 
   const ix = new TransactionInstruction({
@@ -60,7 +60,7 @@ async function main() {
     data,
   })
 
-  console.log('Initializing vault (100 tenths-of-bps / 10 bps fee, 86400s timeout)...')
+  console.log('Initializing vault (75 tenths-of-bps / 7.5 bps fee, 86400s timeout)...')
   const tx = new Transaction().add(ix)
   const sig = await sendAndConfirmTransaction(connection, tx, [authority])
   console.log('TX:', sig)

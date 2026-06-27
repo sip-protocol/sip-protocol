@@ -77,7 +77,7 @@ async function main() {
   console.log('TX:', sig)
 
   // Verify by re-reading the config PDA. Layout:
-  //   8 disc + 32 authority + 2 fee_bps + 8 refund_timeout + 1 paused + ...
+  //   8 disc + 32 authority + 2 fee_tenths_bps + 8 refund_timeout + 1 paused + ...
   // → paused byte at offset 50.
   const account = await connection.getAccountInfo(configPDA)
   if (!account) throw new Error('Config PDA missing post-tx')
