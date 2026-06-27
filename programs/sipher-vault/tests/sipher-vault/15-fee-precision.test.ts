@@ -35,7 +35,6 @@ describe('15 · fee precision (7.5 bps)', function () {
 
   let ctx: ProgramTestContext
   let authority: Keypair
-  const [solVaultPda] = getSolVaultPDA(VAULT_PROGRAM_ID)
   const [solFeePda] = getSolFeePDA(VAULT_PROGRAM_ID)
 
   before(async function () {
