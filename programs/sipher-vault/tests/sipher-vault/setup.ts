@@ -24,7 +24,7 @@ export const SIP_CONFIG_SEED = Buffer.from('config')
 export const SIP_TRANSFER_RECORD_SEED = Buffer.from('transfer_record')
 
 // Program constants (must match constants.rs)
-export const MAX_FEE_BPS = 100
+export const MAX_FEE_TENTHS_BPS = 1000
 export const DEFAULT_REFUND_TIMEOUT = 86400
 
 // SIP Privacy program ID

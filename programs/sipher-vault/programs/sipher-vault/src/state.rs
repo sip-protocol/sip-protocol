@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 #[derive(InitSpace)]
 pub struct VaultConfig {
   pub authority: Pubkey,
-  pub fee_bps: u16,
+  pub fee_tenths_bps: u16, // unit = 0.1 bps; e.g. 75 = 7.5 bps
   pub refund_timeout: i64,
   pub paused: bool,
   pub total_deposits: u64,

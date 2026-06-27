@@ -4,7 +4,7 @@ import { SipherVault } from '../../target/types/sipher_vault'
 import { expect } from 'chai'
 import {
   getVaultConfigPDA,
-  MAX_FEE_BPS,
+  MAX_FEE_TENTHS_BPS,
   DEFAULT_REFUND_TIMEOUT,
 } from './setup'
 
@@ -17,13 +17,13 @@ describe('sipher-vault: initialize', () => {
   const [configPDA] = getVaultConfigPDA(program.programId)
 
   // ── Constraint test: runs BEFORE happy path (PDA doesn't exist yet) ────
-  // The require!(fee_bps <= MAX_FEE_BPS) check executes before the PDA
-  // init instruction, so this fails with FeeTooHigh, not "already in use".
+  // The require!(fee_tenths_bps <= MAX_FEE_TENTHS_BPS) check executes before
+  // the PDA init instruction, so this fails with FeeTooHigh, not "already in use".
 
-  it('rejects fee above MAX_FEE_BPS (101)', async () => {
+  it('rejects fee above MAX_FEE_TENTHS_BPS (1001)', async () => {
     try {
       await program.methods
-        .initialize(MAX_FEE_BPS + 1, new anchor.BN(3600))
+        .initialize(MAX_FEE_TENTHS_BPS + 1, new anchor.BN(3600))
         .accounts({
           authority: authority.publicKey,
         })
@@ -50,10 +50,10 @@ describe('sipher-vault: initialize', () => {
   // DEFAULT_REFUND_TIMEOUT fallback in the on-chain state.
 
   it('initializes with zero timeout, falls back to DEFAULT_REFUND_TIMEOUT', async () => {
-    const feeBps = 10 // 0.1%
+    const feeTenthsBps = 100 // 10 bps list price
 
     await program.methods
-      .initialize(feeBps, new anchor.BN(0))
+      .initialize(feeTenthsBps, new anchor.BN(0))
       .accounts({
         authority: authority.publicKey,
       })
@@ -63,7 +63,7 @@ describe('sipher-vault: initialize', () => {
     expect(config.authority.toString()).to.equal(
       authority.publicKey.toString(),
     )
-    expect(config.feeBps).to.equal(feeBps)
+    expect(config.feeTenthsBps).to.equal(feeTenthsBps)
     // refund_timeout=0 should fall back to DEFAULT_REFUND_TIMEOUT (86400)
     expect(config.refundTimeout.toNumber()).to.equal(DEFAULT_REFUND_TIMEOUT)
     expect(config.paused).to.equal(false)
@@ -72,14 +72,14 @@ describe('sipher-vault: initialize', () => {
     expect(config.bump).to.be.a('number')
   })
 
-  // ── Boundary test: fee at MAX_FEE_BPS ──────────────────────────────────
+  // ── Boundary test: fee at MAX_FEE_TENTHS_BPS ───────────────────────────
 
-  it('fee_bps at boundary (100) does not trigger FeeTooHigh', async () => {
-    // PDA already exists. If fee=100 were invalid, FeeTooHigh would fire
+  it('fee_tenths_bps at boundary (1000) does not trigger FeeTooHigh', async () => {
+    // PDA already exists. If fee=1000 were invalid, FeeTooHigh would fire
     // before the init check. The error must be "already in use" instead.
     try {
       await program.methods
-        .initialize(MAX_FEE_BPS, new anchor.BN(3600))
+        .initialize(MAX_FEE_TENTHS_BPS, new anchor.BN(3600))
         .accounts({
           authority: authority.publicKey,
         })

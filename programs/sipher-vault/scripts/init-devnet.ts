@@ -43,12 +43,12 @@ async function main() {
   }
 
   // Build initialize instruction data
-  // Discriminator + fee_bps(u16) + refund_timeout(i64)
+  // Discriminator + fee_tenths_bps(u16) + refund_timeout(i64)
   const discriminator = getInstructionDiscriminator('initialize')
   const data = Buffer.alloc(8 + 2 + 8) // discriminator + u16 + i64
   discriminator.copy(data, 0)
-  data.writeUInt16LE(10, 8)          // fee_bps = 10
-  data.writeBigInt64LE(86400n, 10)   // refund_timeout = 86400
+  data.writeUInt16LE(100, 8)          // fee_tenths_bps = 100 (10 bps list price)
+  data.writeBigInt64LE(86400n, 10)    // refund_timeout = 86400
 
   const ix = new TransactionInstruction({
     programId: PROGRAM_ID,
@@ -60,7 +60,7 @@ async function main() {
     data,
   })
 
-  console.log('Initializing vault (10bps fee, 86400s timeout)...')
+  console.log('Initializing vault (100 tenths-of-bps / 10 bps fee, 86400s timeout)...')
   const tx = new Transaction().add(ix)
   const sig = await sendAndConfirmTransaction(connection, tx, [authority])
   console.log('TX:', sig)
@@ -69,14 +69,14 @@ async function main() {
   const account = await connection.getAccountInfo(configPDA)
   if (account) {
     console.log('Vault initialized! Account size:', account.data.length, 'bytes')
-    // Parse: 8 discriminator + 32 authority + 2 fee_bps + 8 timeout + 1 paused + 8 deposits + 8 depositors + 1 bump
+    // Parse: 8 discriminator + 32 authority + 2 fee_tenths_bps + 8 timeout + 1 paused + 8 deposits + 8 depositors + 1 bump
     const d = account.data
     const authKey = new PublicKey(d.subarray(8, 40))
-    const feeBps = d.readUInt16LE(40)
+    const feeTenthsBps = d.readUInt16LE(40)
     const timeout = Number(d.readBigInt64LE(42))
     const paused = d[50] !== 0
     console.log('  Authority:', authKey.toString())
-    console.log('  Fee:', feeBps, 'bps')
+    console.log('  Fee:', feeTenthsBps, 'tenths-of-bps (=', feeTenthsBps / 10, 'bps)')
     console.log('  Timeout:', timeout, 's')
     console.log('  Paused:', paused)
   }

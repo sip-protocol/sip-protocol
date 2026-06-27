@@ -54,14 +54,14 @@ import {
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const FEE_BPS = 10         // 10 bps = 0.1%
+const FEE_TENTHS_BPS = 100 // 100 tenths-of-bps = 10 bps = 0.1%
 const REFUND_TIMEOUT = 5n  // 5-second timeout for fast test iteration
 
 const DEPOSIT_AMOUNT = 500_000n
 const WITHDRAW_AMOUNT = 200_000n  // partial withdrawal to leave a refundable balance
 
-// Expected fee on withdrawal: floor(WITHDRAW_AMOUNT * FEE_BPS / 10_000)
-const EXPECTED_FEE = WITHDRAW_AMOUNT * BigInt(FEE_BPS) / 10_000n
+// Expected fee on withdrawal: floor(WITHDRAW_AMOUNT * FEE_TENTHS_BPS / 100_000)
+const EXPECTED_FEE = WITHDRAW_AMOUNT * BigInt(FEE_TENTHS_BPS) / 100_000n
 const EXPECTED_NET = WITHDRAW_AMOUNT - EXPECTED_FEE
 
 // Mint space for classic SPL (82 bytes)
@@ -143,9 +143,9 @@ describe('10 · bankrun classic-SPL regression baseline', function () {
       ixSipPrivacyInitialize(authority.publicKey, 50), // 50 bps = sip_privacy default
     ], [authority])
 
-    // 5. Initialize vault (fee=10 bps, timeout=5s)
+    // 5. Initialize vault (fee=10 bps / 100 tenths-of-bps, timeout=5s)
     await sendIx(ctx, [
-      ixInitialize(authority.publicKey, FEE_BPS, REFUND_TIMEOUT),
+      ixInitialize(authority.publicKey, FEE_TENTHS_BPS, REFUND_TIMEOUT),
     ], [authority])
 
     // 6. Create vault token PDA + fee token PDA for the mint
@@ -186,11 +186,11 @@ describe('10 · bankrun classic-SPL regression baseline', function () {
 
   // ── it: VaultConfig initialized correctly ────────────────────────────────
 
-  it('VaultConfig reflects fee_bps and refund_timeout', async function () {
+  it('VaultConfig reflects fee_tenths_bps and refund_timeout', async function () {
     const cfgData = await getAccountData(ctx, configPda)
     const cfg = parseVaultConfig(cfgData)
 
-    assert.strictEqual(cfg.feeBps, FEE_BPS, 'fee_bps mismatch')
+    assert.strictEqual(cfg.feeTenthsBps, FEE_TENTHS_BPS, 'fee_tenths_bps mismatch')
     assert.strictEqual(cfg.refundTimeout, REFUND_TIMEOUT, 'refund_timeout mismatch')
     assert.strictEqual(cfg.paused, false, 'paused should be false')
     assert.strictEqual(cfg.totalDeposits, 1n, 'total_deposits should be 1')
