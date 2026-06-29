@@ -9,7 +9,6 @@ import { ProgramTestContext } from 'solana-bankrun'
 import { randomBytes } from 'crypto'
 
 import {
-  getSolVaultPDA,
   getSolFeePDA,
   getSipConfigPDA,
   getSipTransferRecordPDA,
@@ -92,5 +91,12 @@ describe('15 · fee precision (7.5 bps)', function () {
   it('floors the sub-lamport remainder (100_001 → 75)', async function () {
     const fee = await withdrawAndMeasureFee(100_001n) // 100_001 * 75 / 100_000 = 75.00075 → 75
     assert.strictEqual(fee, 75n)
+  })
+
+  it('collects a sub-bps fee where the old 1-bps floor would round to zero (5_000 → 3)', async function () {
+    // 5_000 * 75 / 100_000 = 3.75 → 3. The coarsest old whole-bps rate (1 bps) floors
+    // to 0 on this amount (5_000 / 10_000 = 0.5 → 0); tenths-of-bps still collects.
+    const fee = await withdrawAndMeasureFee(5_000n)
+    assert.strictEqual(fee, 3n)
   })
 })

@@ -14,7 +14,7 @@
 - Field: `fee_tenths_bps: u16`, same offset (40) — `VaultConfig` layout **unchanged**, **no `migrate_config`**.
 - `MAX_FEE_TENTHS_BPS = 1000` (1% cap); `DEFAULT_FEE_TENTHS_BPS = 100` (10 bps list price).
 - The rename is **breaking on purpose** — lean on `cargo`/`tsc`/tests for completeness; a missed site fails to compile or asserts wrong.
-- TS style: 2-space indent, **no semicolons**. Rust: `cargo fmt`.
+- TS style: 2-space indent, **no semicolons**. Rust: 2-space indent, **no `rustfmt`** (no rustfmt.toml; rustfmt would reformat to 4-space and blast the diff).
 - Build: `anchor build` (from `programs/sipher-vault/`). Bankrun gate: `pnpm test`. Full gate: `anchor test`.
 - One **GPG-signed** commit per task (`git commit -S`). **No AI attribution** in any commit/comment.
 - **OUT of scope** (do not touch): `sip-privacy` program (whole-bps, different program), EVM contracts. `@sipher/sdk` is a **separate downstream plan** (lands after this PR merges so it regenerates the IDL).

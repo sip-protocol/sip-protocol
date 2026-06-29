@@ -34,11 +34,22 @@ async function main() {
   console.log('Config PDA:', configPDA.toString())
   console.log('Authority:', authority.publicKey.toString())
 
-  // Check if already initialized
+  // Check if already initialized. Print the live config (not just size/owner) so
+  // the post-upgrade "verify fee_tenths_bps = 75" runbook step works — the config
+  // PDA always exists after the first deploy, so this branch is the common path.
   const existing = await connection.getAccountInfo(configPDA)
   if (existing) {
     console.log('Vault already initialized! Account size:', existing.data.length, 'bytes')
     console.log('Owner:', existing.owner.toString())
+    // Layout: 8 disc + 32 authority + 2 fee_tenths_bps + 8 timeout + 1 paused + ...
+    const d = existing.data
+    const feeTenthsBps = d.readUInt16LE(40)
+    const timeout = Number(d.readBigInt64LE(42))
+    const paused = d[50] !== 0
+    console.log('  Authority:', new PublicKey(d.subarray(8, 40)).toString())
+    console.log('  Fee:', feeTenthsBps, 'tenths-of-bps (=', feeTenthsBps / 10, 'bps)')
+    console.log('  Timeout:', timeout, 's')
+    console.log('  Paused:', paused)
     return
   }
 

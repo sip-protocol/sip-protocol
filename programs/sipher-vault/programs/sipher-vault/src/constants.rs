@@ -5,8 +5,10 @@ pub const DEPOSIT_RECORD_SEED: &[u8] = b"deposit_record";
 pub const VAULT_TOKEN_SEED: &[u8] = b"vault_token";
 pub const FEE_TOKEN_SEED: &[u8] = b"fee_token";
 pub const DEFAULT_REFUND_TIMEOUT: i64 = 86400;
-pub const DEFAULT_FEE_TENTHS_BPS: u16 = 100; // 10 bps list price
 pub const MAX_FEE_TENTHS_BPS: u16 = 1000; // 1% cap (1000 × 0.1 bps)
+/// Fee denominator. `fee = amount · fee_tenths_bps / FEE_TENTHS_BPS_DENOMINATOR`
+/// (unit = 0.1 bps → 1000 tenths-bps = 1% = the MAX_FEE_TENTHS_BPS cap).
+pub const FEE_TENTHS_BPS_DENOMINATOR: u128 = 100_000;
 
 pub const VAULT_SOL_SEED: &[u8] = b"vault_sol";
 pub const FEE_SOL_SEED: &[u8] = b"fee_sol";

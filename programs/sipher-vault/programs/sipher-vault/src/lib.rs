@@ -256,7 +256,7 @@ pub mod sipher_vault {
     let fee = (amount as u128)
       .checked_mul(ctx.accounts.config.fee_tenths_bps as u128)
       .ok_or(VaultError::MathOverflow)?
-      .checked_div(100_000)
+      .checked_div(FEE_TENTHS_BPS_DENOMINATOR)
       .ok_or(VaultError::MathOverflow)? as u64;
     let net_amount = amount
       .checked_sub(fee)
@@ -371,7 +371,7 @@ pub mod sipher_vault {
     let fee = (amount as u128)
       .checked_mul(ctx.accounts.config.fee_tenths_bps as u128)
       .ok_or(VaultError::MathOverflow)?
-      .checked_div(100_000)
+      .checked_div(FEE_TENTHS_BPS_DENOMINATOR)
       .ok_or(VaultError::MathOverflow)? as u64;
     let net = amount
       .checked_sub(fee)
