@@ -6,7 +6,7 @@
 //
 // Usage: cd programs/sipher-vault && pnpm exec tsx scripts/upgrade-devnet.ts
 import { execSync } from 'child_process'
-import { existsSync } from 'fs'
+import { existsSync, readFileSync } from 'fs'
 import { homedir } from 'os'
 
 const PROGRAM_ID = 'S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB'
@@ -45,19 +45,28 @@ async function main() {
     throw new Error(`Program keypair ID ${idFromKey} != expected ${PROGRAM_ID}`)
   }
 
+  // 1b. Sanity: the source declare_id! matches the deploy target. --ignore-keys
+  // (below) skips Anchor's keypair-vs-declare_id check, so this is the guard that the
+  // built .so's baked-in program ID is S1Phr5 — a wrong declare_id! (bad merge/typo)
+  // would otherwise build a binary that deploys "successfully" but is bricked.
+  const libSrc = readFileSync('programs/sipher-vault/src/lib.rs', 'utf-8')
+  const declaredId = libSrc.match(/declare_id!\("([^"]+)"\)/)?.[1]
+  if (declaredId !== PROGRAM_ID) {
+    throw new Error(`Source declare_id! ${declaredId ?? '(not found)'} != expected ${PROGRAM_ID}`)
+  }
+
   // 2. Build
-  // Note: `--no-idl` is required because anchor 0.30.1's IDL generator
-  // depends on `proc_macro2::Span::source_file()`, a nightly-only proc-macro
-  // API that has been removed from current host rustc (1.94+). The on-chain
-  // SBF binary builds correctly via Solana's pinned platform-tools toolchain;
-  // only the host-side IDL generation is affected.
-  //
-  // We deliberately skip `anchor clean` here: clean would wipe `target/idl/sipher_vault.json`
-  // (which downstream consumers like the agent SDK and UI depend on), and the `--no-idl`
-  // flag means we cannot regenerate it from this script. `anchor build` is incremental
-  // and reliable; a stale `.so` is not a realistic risk on a deploy script that already
-  // verifies the artifact's existence afterward.
-  run('anchor build --no-idl')
+  // `--no-idl`: skip IDL generation during deploy. `target/idl/` is gitignored (the
+  // SDK consumes a hand-synced copy in the sipher repo), so the deploy only needs the
+  // `.so`; regenerate the IDL on demand via `anchor build` / `anchor idl build` and
+  // re-sync downstream when the interface changes. Under Anchor 1.0.2 this is a speed
+  // choice, not the 0.30.1-era necessity (see DEPLOYMENT.md "Build note").
+  // `--ignore-keys`: skip Anchor's declare_id-vs-`target/deploy/<name>-keypair.json`
+  // check. On a fresh checkout or a git worktree that keypair is auto-generated and
+  // won't match `declare_id!`, aborting the build; the deploy pins the program ID via
+  // `--program-id` below and we assert the source `declare_id!` matches it above, so the
+  // program ID is authoritative regardless of the local keypair.
+  run('anchor build --no-idl --ignore-keys')
 
   if (!existsSync(SO_FILE)) {
     throw new Error(`Build artifact missing: ${SO_FILE}`)
