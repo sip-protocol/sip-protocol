@@ -819,7 +819,7 @@ solana program deploy target/deploy/sip_privacy.so \
 |---------|------------|------------|------|
 | **Devnet** | `S1Phr5rmDfkZTyLXzH5qUHeiqZS3Uf517SQzRbU4kHB` | `CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u` | 2026-03-31 |
 
-**Config:** Fee 10 bps, Refund timeout 86400s (24h), Authority `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr` (devnet wallet)
+**Config:** Fee 7.5 bps (`fee_tenths_bps = 75`; tenths-of-bps unit since the 2026-06-30 re-precision, #1213), Refund timeout 86400s (24h), Authority `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr` (devnet wallet)
 
 **Instructions (9):** `initialize`, `create_vault_token`, `create_fee_token`, `deposit`, `withdraw_private`, `refund`, `authority_refund`, `collect_fee`, `set_paused`
 

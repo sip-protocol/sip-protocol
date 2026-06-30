@@ -151,6 +151,8 @@ In-place `BPFLoaderUpgradeable` upgrade to the tenths-of-bps fee binary (#1213),
 - **Verified on-chain:** config PDA `CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u` (101 bytes), `fee_tenths_bps @ offset 40 = 75` (= 7.5 bps), via `scripts/update-fee.ts` + `scripts/init-devnet.ts` + direct account decode.
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
+> **Downstream IDL/SDK sync (pending):** this deploy renamed `VaultConfig.fee_bps` → `fee_tenths_bps` (same u16, offset 40) and used `--no-idl`, so the sipher repo's hand-synced IDL (`packages/sdk/src/idl/sipher_vault.json`) and any `feeBps`-presenting client code must be regenerated/updated for the rename before the `@sipher/sdk` republish. Off-chain tooling that reads the fee by Anchor field name (not raw offset) mislabels it until then.
+
 ## Mainnet Deployments
 
 _Not deployed. Mainnet deploy is gated on the self-audit completing (B6) — out of scope for this feature branch._
@@ -231,9 +233,11 @@ ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
 pnpm exec tsx scripts/upgrade-devnet.ts
 ```
 
-The script verifies the program keypair, runs `anchor build --no-idl` (incremental —
-preserves the IDL artifact), deploys via `BPFLoaderUpgradeable`, and prints the new
-deployed slot. Idempotent — running again redeploys.
+The script verifies the program keypair and the source `declare_id!`, runs
+`anchor build --no-idl --ignore-keys` (skips IDL regen during deploy and the
+declare_id-vs-local-keypair check — see the script comment), deploys via
+`BPFLoaderUpgradeable`, and prints the new deployed slot. Idempotent — running again
+redeploys.
 
 ### Initialize Native SOL Vault on Devnet
 
