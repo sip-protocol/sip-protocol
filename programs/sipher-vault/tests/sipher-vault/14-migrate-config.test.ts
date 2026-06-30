@@ -49,7 +49,7 @@ describe('14 · migrate_config (B6 VaultConfig layout migration)', () => {
 
   async function plantLegacy(opts: {
     authority: PublicKey
-    feeBps: number
+    feeTenthsBps: number
     refundTimeout: bigint
     paused: boolean
     totalDeposits: bigint
@@ -58,7 +58,7 @@ describe('14 · migrate_config (B6 VaultConfig layout migration)', () => {
     const d = Buffer.alloc(LEGACY_LEN)
     configDisc.copy(d, 0)
     opts.authority.toBuffer().copy(d, 8)
-    d.writeUInt16LE(opts.feeBps, 40)
+    d.writeUInt16LE(opts.feeTenthsBps, 40)
     d.writeBigInt64LE(opts.refundTimeout, 42)
     d.writeUInt8(opts.paused ? 1 : 0, 50)
     d.writeBigUInt64LE(opts.totalDeposits, 51)
@@ -99,14 +99,14 @@ describe('14 · migrate_config (B6 VaultConfig layout migration)', () => {
   }
 
   it('migrates a legacy 68-byte config → 101 bytes, fields preserved, pending=None', async () => {
-    await plantLegacy({ authority: authority.publicKey, feeBps: 10, refundTimeout: 86400n, paused: false, totalDeposits: 5n, totalDepositors: 3n })
+    await plantLegacy({ authority: authority.publicKey, feeTenthsBps: 10, refundTimeout: 86400n, paused: false, totalDeposits: 5n, totalDepositors: 3n })
     await sendIx(ctx, [ixMigrateConfig(authority.publicKey)], [authority])
 
     const data = await getAccountData(ctx, configPda)
     assert.strictEqual(data.length, NEW_LEN, 'account grew to new layout length')
     const cfg = parseVaultConfig(data)
     assert.ok(cfg.authority.equals(authority.publicKey))
-    assert.strictEqual(cfg.feeBps, 10)
+    assert.strictEqual(cfg.feeTenthsBps, 10)
     assert.strictEqual(cfg.refundTimeout, 86400n)
     assert.strictEqual(cfg.paused, false)
     assert.strictEqual(cfg.totalDeposits, 5n)
@@ -125,7 +125,7 @@ describe('14 · migrate_config (B6 VaultConfig layout migration)', () => {
     await sendIx(ctx, [ixMigrateConfig(authority.publicKey)], [authority])
     const cfg = parseVaultConfig(await getAccountData(ctx, configPda))
     assert.strictEqual(cfg.pendingAuthority, null, 'pending_authority still null after no-op')
-    assert.strictEqual(cfg.feeBps, 10)
+    assert.strictEqual(cfg.feeTenthsBps, 10)
     assert.strictEqual(cfg.totalDeposits, 0n)
     assert.strictEqual(cfg.totalDepositors, 0n)
   })
@@ -149,7 +149,7 @@ describe('14 · migrate_config (B6 VaultConfig layout migration)', () => {
   })
 
   it('rejects a non-authority signer (Unauthorized 6001/0x1771)', async () => {
-    await plantLegacy({ authority: authority.publicKey, feeBps: 10, refundTimeout: 86400n, paused: false, totalDeposits: 0n, totalDepositors: 0n })
+    await plantLegacy({ authority: authority.publicKey, feeTenthsBps: 10, refundTimeout: 86400n, paused: false, totalDeposits: 0n, totalDepositors: 0n })
     const attacker = Keypair.generate()
     await sendIx(ctx, [SystemProgram.transfer({ fromPubkey: authority.publicKey, toPubkey: attacker.publicKey, lamports: 5_000_000 })], [authority])
     await assertFails(
@@ -171,10 +171,10 @@ describe('14 · migrate_config (B6 VaultConfig layout migration)', () => {
   })
 
   it('migrated config is fully usable: update_fee succeeds afterward', async () => {
-    await plantLegacy({ authority: authority.publicKey, feeBps: 10, refundTimeout: 86400n, paused: false, totalDeposits: 0n, totalDepositors: 0n })
+    await plantLegacy({ authority: authority.publicKey, feeTenthsBps: 10, refundTimeout: 86400n, paused: false, totalDeposits: 0n, totalDepositors: 0n })
     await sendIx(ctx, [ixMigrateConfig(authority.publicKey)], [authority])
     await sendIx(ctx, [ixUpdateFee(authority.publicKey, 25)], [authority])
     const cfg = parseVaultConfig(await getAccountData(ctx, configPda))
-    assert.strictEqual(cfg.feeBps, 25, 'typed handlers accept the migrated account')
+    assert.strictEqual(cfg.feeTenthsBps, 25, 'typed handlers accept the migrated account')
   })
 })

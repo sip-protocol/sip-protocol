@@ -114,7 +114,7 @@ describe('sipher-vault: refund', () => {
 
     // ── Initialize vault (refund_timeout falls back to 86400) ────────────
     await program.methods
-      .initialize(10, new anchor.BN(0))
+      .initialize(100, new anchor.BN(0))
       .accounts({ authority: payer.publicKey })
       .rpc()
 

@@ -34,21 +34,32 @@ async function main() {
   console.log('Config PDA:', configPDA.toString())
   console.log('Authority:', authority.publicKey.toString())
 
-  // Check if already initialized
+  // Check if already initialized. Print the live config (not just size/owner) so
+  // the post-upgrade "verify fee_tenths_bps = 75" runbook step works — the config
+  // PDA always exists after the first deploy, so this branch is the common path.
   const existing = await connection.getAccountInfo(configPDA)
   if (existing) {
     console.log('Vault already initialized! Account size:', existing.data.length, 'bytes')
     console.log('Owner:', existing.owner.toString())
+    // Layout: 8 disc + 32 authority + 2 fee_tenths_bps + 8 timeout + 1 paused + ...
+    const d = existing.data
+    const feeTenthsBps = d.readUInt16LE(40)
+    const timeout = Number(d.readBigInt64LE(42))
+    const paused = d[50] !== 0
+    console.log('  Authority:', new PublicKey(d.subarray(8, 40)).toString())
+    console.log('  Fee:', feeTenthsBps, 'tenths-of-bps (=', feeTenthsBps / 10, 'bps)')
+    console.log('  Timeout:', timeout, 's')
+    console.log('  Paused:', paused)
     return
   }
 
   // Build initialize instruction data
-  // Discriminator + fee_bps(u16) + refund_timeout(i64)
+  // Discriminator + fee_tenths_bps(u16) + refund_timeout(i64)
   const discriminator = getInstructionDiscriminator('initialize')
   const data = Buffer.alloc(8 + 2 + 8) // discriminator + u16 + i64
   discriminator.copy(data, 0)
-  data.writeUInt16LE(10, 8)          // fee_bps = 10
-  data.writeBigInt64LE(86400n, 10)   // refund_timeout = 86400
+  data.writeUInt16LE(75, 8)           // fee_tenths_bps = 75 (7.5 bps devnet rate)
+  data.writeBigInt64LE(86400n, 10)    // refund_timeout = 86400
 
   const ix = new TransactionInstruction({
     programId: PROGRAM_ID,
@@ -60,7 +71,7 @@ async function main() {
     data,
   })
 
-  console.log('Initializing vault (10bps fee, 86400s timeout)...')
+  console.log('Initializing vault (75 tenths-of-bps / 7.5 bps fee, 86400s timeout)...')
   const tx = new Transaction().add(ix)
   const sig = await sendAndConfirmTransaction(connection, tx, [authority])
   console.log('TX:', sig)
@@ -69,14 +80,14 @@ async function main() {
   const account = await connection.getAccountInfo(configPDA)
   if (account) {
     console.log('Vault initialized! Account size:', account.data.length, 'bytes')
-    // Parse: 8 discriminator + 32 authority + 2 fee_bps + 8 timeout + 1 paused + 8 deposits + 8 depositors + 1 bump
+    // Parse: 8 discriminator + 32 authority + 2 fee_tenths_bps + 8 timeout + 1 paused + 8 deposits + 8 depositors + 1 bump
     const d = account.data
     const authKey = new PublicKey(d.subarray(8, 40))
-    const feeBps = d.readUInt16LE(40)
+    const feeTenthsBps = d.readUInt16LE(40)
     const timeout = Number(d.readBigInt64LE(42))
     const paused = d[50] !== 0
     console.log('  Authority:', authKey.toString())
-    console.log('  Fee:', feeBps, 'bps')
+    console.log('  Fee:', feeTenthsBps, 'tenths-of-bps (=', feeTenthsBps / 10, 'bps)')
     console.log('  Timeout:', timeout, 's')
     console.log('  Paused:', paused)
   }

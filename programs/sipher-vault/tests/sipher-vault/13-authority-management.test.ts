@@ -24,13 +24,13 @@ import {
   assertFails,
   VAULT_PROGRAM_ID,
 } from './bankrun-helpers'
-import { getVaultConfigPDA, MAX_FEE_BPS } from './setup'
+import { getVaultConfigPDA, MAX_FEE_TENTHS_BPS } from './setup'
 
 describe('13 · authority management (M1: two-step transfer + update_fee)', () => {
   let ctx: ProgramTestContext
   let authority: Keypair
 
-  const FEE_BPS = 10
+  const FEE_TENTHS_BPS = 100
   const REFUND_TIMEOUT = 86400n
 
   // Anchor custom errors start at 6000.
@@ -40,7 +40,7 @@ describe('13 · authority management (M1: two-step transfer + update_fee)', () =
   beforeEach(async () => {
     ctx = await startVault()
     authority = ctx.payer
-    await sendIx(ctx, [ixInitialize(authority.publicKey, FEE_BPS, REFUND_TIMEOUT)], [authority])
+    await sendIx(ctx, [ixInitialize(authority.publicKey, FEE_TENTHS_BPS, REFUND_TIMEOUT)], [authority])
   })
 
   async function readConfig() {
@@ -124,7 +124,7 @@ describe('13 · authority management (M1: two-step transfer + update_fee)', () =
   it('update_fee → authority sets a new fee within the cap', async () => {
     await sendIx(ctx, [ixUpdateFee(authority.publicKey, 50)], [authority])
     const cfg = await readConfig()
-    assert.strictEqual(cfg.feeBps, 50, 'fee_bps should be updated')
+    assert.strictEqual(cfg.feeTenthsBps, 50, 'fee_tenths_bps should be updated')
   })
 
   it('update_fee → rejects a non-authority (Unauthorized)', async () => {
@@ -136,9 +136,9 @@ describe('13 · authority management (M1: two-step transfer + update_fee)', () =
     )
   })
 
-  it('update_fee → rejects a fee above MAX_FEE_BPS (FeeTooHigh)', async () => {
+  it('update_fee → rejects a fee above MAX_FEE_TENTHS_BPS (FeeTooHigh)', async () => {
     await assertFails(
-      () => sendIx(ctx, [ixUpdateFee(authority.publicKey, MAX_FEE_BPS + 1)], [authority]),
+      () => sendIx(ctx, [ixUpdateFee(authority.publicKey, MAX_FEE_TENTHS_BPS + 1)], [authority]),
       ['feetoohigh', '1777'],
     )
   })
@@ -160,6 +160,6 @@ describe('13 · authority management (M1: two-step transfer + update_fee)', () =
     // New authority can.
     await sendIx(ctx, [ixUpdateFee(newAuth.publicKey, 25)], [newAuth])
     const cfg = await readConfig()
-    assert.strictEqual(cfg.feeBps, 25, 'the promoted authority should control the fee')
+    assert.strictEqual(cfg.feeTenthsBps, 25, 'the promoted authority should control the fee')
   })
 })

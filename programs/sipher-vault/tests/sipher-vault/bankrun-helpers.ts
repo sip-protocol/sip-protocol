@@ -198,7 +198,7 @@ export function parseDepositRecord(d: Buffer): {
  *
  * Layout (post-discriminator):
  *   authority:         Pubkey  (32)
- *   fee_bps:           u16     (2)
+ *   fee_tenths_bps:    u16     (2)
  *   refund_timeout:    i64     (8)
  *   paused:            bool    (1)
  *   total_deposits:    u64            (8)
@@ -208,7 +208,7 @@ export function parseDepositRecord(d: Buffer): {
  */
 export function parseVaultConfig(d: Buffer): {
   authority: PublicKey
-  feeBps: number
+  feeTenthsBps: number
   refundTimeout: bigint
   paused: boolean
   totalDeposits: bigint
@@ -218,7 +218,7 @@ export function parseVaultConfig(d: Buffer): {
 } {
   let o = 8 // skip 8-byte Anchor discriminator
   const authority = new PublicKey(d.subarray(o, o += 32))
-  const feeBps = d.readUInt16LE(o); o += 2
+  const feeTenthsBps = d.readUInt16LE(o); o += 2
   const refundTimeout = d.readBigInt64LE(o); o += 8
   const paused = d.readUInt8(o) !== 0; o += 1
   const totalDeposits = d.readBigUInt64LE(o); o += 8
@@ -230,7 +230,7 @@ export function parseVaultConfig(d: Buffer): {
   if (o < d.length && d.readUInt8(o) === 1) {
     pendingAuthority = new PublicKey(d.subarray(o + 1, o + 33))
   }
-  return { authority, feeBps, refundTimeout, paused, totalDeposits, totalDepositors, bump, pendingAuthority }
+  return { authority, feeTenthsBps, refundTimeout, paused, totalDeposits, totalDepositors, bump, pendingAuthority }
 }
 
 /**
@@ -257,7 +257,7 @@ export function parseSipConfig(d: Buffer): { totalTransfers: bigint } {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * initialize(fee_bps: u16, refund_timeout: i64)
+ * initialize(fee_tenths_bps: u16, refund_timeout: i64)
  *
  * Accounts (Initialize):
  *   config         mut, PDA
@@ -266,14 +266,14 @@ export function parseSipConfig(d: Buffer): { totalTransfers: bigint } {
  */
 export function ixInitialize(
   authority: PublicKey,
-  feeBps: number,
+  feeTenthsBps: number,
   refundTimeout: bigint,
 ): TransactionInstruction {
   const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
 
   const data = Buffer.concat([
     disc('initialize'),
-    u16le(feeBps),
+    u16le(feeTenthsBps),
     i64le(refundTimeout),
   ])
 
@@ -666,6 +666,8 @@ export function ixWithdrawPrivateSol(
 /**
  * sip_privacy::initialize(fee_bps: u16) — creates the Config PDA.
  * Must be called once before any CPI from withdraw_private.
+ * NOTE: sip_privacy uses whole bps (not tenths); the param is kept as a
+ * plain number here — callers pass e.g. 50 meaning 50 bps.
  *
  * Accounts (Initialize):
  *   config         mut, PDA   seeds=[b"config"]
@@ -674,13 +676,13 @@ export function ixWithdrawPrivateSol(
  */
 export function ixSipPrivacyInitialize(
   authority: PublicKey,
-  feeBps: number,
+  sipFeeBps: number,
 ): TransactionInstruction {
   const [sipConfigPda] = getSipConfigPDA()
 
   const data = Buffer.concat([
     disc('initialize'),
-    u16le(feeBps),
+    u16le(sipFeeBps),
   ])
 
   return new TransactionInstruction({
@@ -870,7 +872,7 @@ export function ixAcceptAuthority(newAuthority: PublicKey): TransactionInstructi
 }
 
 /**
- * update_fee(new_fee_bps: u16) — authority-only fee update, capped at MAX_FEE_BPS.
+ * update_fee(new_fee_tenths_bps: u16) — authority-only fee update, capped at MAX_FEE_TENTHS_BPS.
  *
  * Accounts (UpdateFee):
  *   config    mut, PDA  has_one = authority
@@ -878,10 +880,10 @@ export function ixAcceptAuthority(newAuthority: PublicKey): TransactionInstructi
  */
 export function ixUpdateFee(
   authority: PublicKey,
-  newFeeBps: number,
+  newFeeTenthsBps: number,
 ): TransactionInstruction {
   const [configPda] = getVaultConfigPDA(VAULT_PROGRAM_ID)
-  const data = Buffer.concat([disc('update_fee'), u16le(newFeeBps)])
+  const data = Buffer.concat([disc('update_fee'), u16le(newFeeTenthsBps)])
 
   return new TransactionInstruction({
     programId: VAULT_PROGRAM_ID,

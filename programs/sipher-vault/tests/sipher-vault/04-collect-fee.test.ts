@@ -27,10 +27,10 @@ import {
 // Collect fee tests use anchor-bankrun for full isolation.
 //
 // The test flow:
-//   1. Initialize vault with 10 bps fee
+//   1. Initialize vault with 10 bps fee (100 tenths-of-bps)
 //   2. Create vault_token + fee_token PDAs
 //   3. Deposit tokens
-//   4. withdraw_private to generate fees (fee = amount * 10 / 10000)
+//   4. withdraw_private to generate fees (fee = amount * 100 / 100000)
 //   5. collect_fee to extract accumulated fees
 //   6. Test authority-only access control
 //   7. Test empty fee account rejection
@@ -55,11 +55,11 @@ describe('sipher-vault: collect_fee', () => {
   let sipConfigPDA: PublicKey
   let sipTransferCounter: number // tracks total_transfers for PDA derivation
 
-  const FEE_BPS = 10 // 0.1%
+  const FEE_TENTHS_BPS = 100 // 10 bps list price
   const DEPOSIT_AMOUNT = 1_000_000
   const WITHDRAW_AMOUNT = 100_000
-  // fee = 100_000 * 10 / 10_000 = 100
-  const EXPECTED_FEE = Math.floor((WITHDRAW_AMOUNT * FEE_BPS) / 10_000)
+  // fee = 100_000 * 100 / 100_000 = 100
+  const EXPECTED_FEE = Math.floor((WITHDRAW_AMOUNT * FEE_TENTHS_BPS) / 100_000)
   const EXPECTED_NET = WITHDRAW_AMOUNT - EXPECTED_FEE
   const MINT_SUPPLY = 10_000_000
 
@@ -175,9 +175,9 @@ describe('sipher-vault: collect_fee', () => {
       await provider.context.banksClient.processTransaction(initSipTx)
     }
 
-    // ── Initialize vault (fee=10bps, timeout=86400) ─────────────────────
+    // ── Initialize vault (fee=10bps / 100 tenths-of-bps, timeout=86400) ──
     await program.methods
-      .initialize(FEE_BPS, new anchor.BN(0))
+      .initialize(FEE_TENTHS_BPS, new anchor.BN(0))
       .accounts({ authority: payer.publicKey })
       .rpc()
 
@@ -264,7 +264,7 @@ describe('sipher-vault: collect_fee', () => {
     const authorityBalanceBefore = await getTokenBalance(provider, authorityAta)
 
     expect(feeBalanceBefore).to.equal(EXPECTED_FEE)
-    expect(EXPECTED_FEE).to.equal(100) // 100_000 * 10 / 10_000
+    expect(EXPECTED_FEE).to.equal(100) // 100_000 * 100 / 100_000
 
     // Warp slot to get a fresh blockhash
     const clock = await provider.context.banksClient.getClock()

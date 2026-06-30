@@ -103,6 +103,16 @@ async function main() {
   totalTransfersLeBytes.writeBigUInt64LE(totalTransfers, 0)
   console.log('sip_privacy total_transfers:', totalTransfers.toString())
 
+  // Read live vault fee_tenths_bps from on-chain config (offset 40 = 8 disc + 32 authority).
+  // Used below to assert the fee_token delta robustly without hard-coding the rate.
+  const vaultConfigInfo = await conn.getAccountInfo(vaultConfigPda)
+  if (!vaultConfigInfo) {
+    throw new Error('vault config PDA not found')
+  }
+  // VaultConfig layout: 8 (disc) + 32 (authority) + 2 (fee_tenths_bps) + …
+  const feeTenthsBps = vaultConfigInfo.data.readUInt16LE(8 + 32)
+  console.log('vault fee_tenths_bps:', feeTenthsBps, `(${feeTenthsBps / 10} bps)`)
+
   const [sipTransferRecordPda] = PublicKey.findProgramAddressSync(
     [SIP_TRANSFER_RECORD_SEED, wallet.publicKey.toBuffer(), totalTransfersLeBytes],
     SIP_PRIVACY_PROGRAM_ID
@@ -230,13 +240,13 @@ async function main() {
   const feeAfter = await conn.getTokenAccountBalance(feeTokenPda)
   const feeAfterAmount = BigInt(feeAfter.value.amount)
   const feeDelta = feeAfterAmount - feeBeforeAmount
-  const expectedFee = WITHDRAW_LAMPORTS * 10n / 10_000n // 10 bps
+  const expectedFee = WITHDRAW_LAMPORTS * BigInt(feeTenthsBps) / 100_000n
   console.log('fee_token wSOL after:', feeAfterAmount.toString(), 'lamports (Δ', feeDelta.toString(), ')')
   if (feeDelta !== expectedFee) {
-    console.error(`FAIL — fee_token delta ${feeDelta} != expected ${expectedFee} (10 bps of ${WITHDRAW_LAMPORTS})`)
+    console.error(`FAIL — fee_token delta ${feeDelta} != expected ${expectedFee} (${feeTenthsBps / 10} bps of ${WITHDRAW_LAMPORTS})`)
     process.exit(1)
   }
-  console.log(`fee_token Δ matches expected ${expectedFee} lamports (10 bps of ${WITHDRAW_LAMPORTS})`)
+  console.log(`fee_token Δ matches expected ${expectedFee} lamports (${feeTenthsBps / 10} bps of ${WITHDRAW_LAMPORTS})`)
 
   console.log('\n✓ Devnet CPI E2E PASSED.')
   console.log({

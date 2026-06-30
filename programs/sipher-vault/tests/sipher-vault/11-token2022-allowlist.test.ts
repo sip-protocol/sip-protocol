@@ -41,7 +41,7 @@ const UNSUPPORTED_MINT_EXTENSION_CODE = 6011
 // Hex representation for log/message matching
 const UNSUPPORTED_MINT_EXTENSION_HEX = (UNSUPPORTED_MINT_EXTENSION_CODE).toString(16) // '177b'
 
-const FEE_BPS = 10
+const FEE_TENTHS_BPS = 100
 const REFUND_TIMEOUT = 86400n // 24h — not relevant for these tests
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ describe('11 · Token-2022 extension allowlist (fail-closed)', function () {
     authority = ctx.payer
 
     await sendIx(ctx, [
-      ixInitialize(authority.publicKey, FEE_BPS, REFUND_TIMEOUT),
+      ixInitialize(authority.publicKey, FEE_TENTHS_BPS, REFUND_TIMEOUT),
     ], [authority])
   })
 

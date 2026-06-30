@@ -49,7 +49,7 @@ import {
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const FEE_BPS = 10
+const FEE_TENTHS_BPS = 100
 const REFUND_TIMEOUT = 5n // 5-second timeout for fast test iteration
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -72,9 +72,9 @@ describe('12 · native SOL vault track', function () {
     ctx = await startVault()
     authority = ctx.payer // funded with 1,000,000,000 SOL by bankrun
 
-    // 1. Initialize vault config (fee=10 bps, timeout=5s)
+    // 1. Initialize vault config (fee=10 bps / 100 tenths-of-bps, timeout=5s)
     await sendIx(ctx, [
-      ixInitialize(authority.publicKey, FEE_BPS, REFUND_TIMEOUT),
+      ixInitialize(authority.publicKey, FEE_TENTHS_BPS, REFUND_TIMEOUT),
     ], [authority])
 
     // 2. Create the native-SOL vault + fee PDAs
@@ -214,7 +214,7 @@ describe('12 · native SOL vault track', function () {
   const ENCRYPTED_AMOUNT_TOO_LONG_CODE = 6013
   const ENCRYPTED_AMOUNT_TOO_LONG_HEX = ENCRYPTED_AMOUNT_TOO_LONG_CODE.toString(16) // '177d'
 
-  const FEE_DENOM = 10_000n
+  const FEE_DENOM = 100_000n
 
   // Dedicated withdraw depositor — funded once in a guarded helper below.
   const wd = Keypair.generate()
@@ -257,7 +257,7 @@ describe('12 · native SOL vault track', function () {
 
     const depositAmount = 1_000_000n
     const withdrawAmount = 500_000n
-    const expectedFee = (withdrawAmount * BigInt(FEE_BPS)) / FEE_DENOM // floor → 500
+    const expectedFee = (withdrawAmount * BigInt(FEE_TENTHS_BPS)) / FEE_DENOM // floor → 500
     const expectedNet = withdrawAmount - expectedFee                   // 499_500
 
     // Deposit 1_000_000 from the dedicated withdraw depositor.
@@ -802,10 +802,10 @@ describe('12 · native SOL vault track', function () {
   it('collect_fee_sol → drains all collectable lamports to authority, sol_fee left at rent_min', async function () {
     await ensureFeeCollectorSetup()
 
-    // Accrue a fee: deposit + withdraw. Fee = 10 bps of 1_000_000 = 1_000 lamports (floor div).
+    // Accrue a fee: deposit + withdraw. Fee = 100 tenths-bps of 1_000_000 = 1_000 lamports (floor div).
     const depositAmt = 5_000_000n
     const withdrawAmt = 1_000_000n
-    const expectedFee = (withdrawAmt * BigInt(FEE_BPS)) / FEE_DENOM // 500 lamports
+    const expectedFee = (withdrawAmt * BigInt(FEE_TENTHS_BPS)) / FEE_DENOM // 1000 lamports
 
     await sendIx(ctx, [ixDepositSol(feeCollector.publicKey, depositAmt)], [feeCollector])
 

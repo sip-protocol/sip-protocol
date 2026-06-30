@@ -14,7 +14,7 @@
 //! - `collect_fee` — Authority-only token-fee withdrawal
 //! - `collect_fee_sol` — Authority-only native-SOL fee withdrawal (above rent floor)
 //! - `update_authority` / `accept_authority` — Two-step authority transfer
-//! - `update_fee` — Authority-only fee update (capped at MAX_FEE_BPS)
+//! - `update_fee` — Authority-only fee update (capped at MAX_FEE_TENTHS_BPS)
 
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program;
@@ -72,14 +72,14 @@ pub mod sipher_vault {
   /// Create the vault config PDA. Called once per deployment.
   pub fn initialize(
     ctx: Context<Initialize>,
-    fee_bps: u16,
+    fee_tenths_bps: u16,
     refund_timeout: i64,
   ) -> Result<()> {
-    require!(fee_bps <= MAX_FEE_BPS, VaultError::FeeTooHigh);
+    require!(fee_tenths_bps <= MAX_FEE_TENTHS_BPS, VaultError::FeeTooHigh);
 
     let config = &mut ctx.accounts.config;
     config.authority = ctx.accounts.authority.key();
-    config.fee_bps = fee_bps;
+    config.fee_tenths_bps = fee_tenths_bps;
     config.refund_timeout = if refund_timeout > 0 { refund_timeout } else { DEFAULT_REFUND_TIMEOUT };
     config.paused = false;
     config.total_deposits = 0;
@@ -87,7 +87,7 @@ pub mod sipher_vault {
     config.bump = ctx.bumps.config;
     config.pending_authority = None;
 
-    msg!("Vault initialized: fee={}bps, timeout={}s", fee_bps, refund_timeout);
+    msg!("Vault initialized: fee={} tenths-bps, timeout={}s", fee_tenths_bps, refund_timeout);
     Ok(())
   }
 
@@ -254,9 +254,9 @@ pub mod sipher_vault {
 
     // 2. Compute fee
     let fee = (amount as u128)
-      .checked_mul(ctx.accounts.config.fee_bps as u128)
+      .checked_mul(ctx.accounts.config.fee_tenths_bps as u128)
       .ok_or(VaultError::MathOverflow)?
-      .checked_div(10_000)
+      .checked_div(FEE_TENTHS_BPS_DENOMINATOR)
       .ok_or(VaultError::MathOverflow)? as u64;
     let net_amount = amount
       .checked_sub(fee)
@@ -333,7 +333,7 @@ pub mod sipher_vault {
   /// of the program-owned `SolVault` PDA (no system CPI — the source is PDA-owned):
   ///   1. Guards: not paused, amount > 0.
   ///   2. Debit-first: reduce `DepositRecord.balance` before moving any lamports.
-  ///   3. Fee split: `fee = amount · fee_bps / 10_000`, `net = amount − fee`.
+  ///   3. Fee split: fee = amount · fee_tenths_bps / 100_000, net = amount − fee.
   ///   4. Checked lamport mutation: compute every new balance with checked ops
   ///      (BPF release WRAPS on `+=`/`-=`, which would be a vault drain), enforce
   ///      the rent-reserve guard on the vault debit, THEN assign.
@@ -369,9 +369,9 @@ pub mod sipher_vault {
 
     // 2. Compute fee + net (checked).
     let fee = (amount as u128)
-      .checked_mul(ctx.accounts.config.fee_bps as u128)
+      .checked_mul(ctx.accounts.config.fee_tenths_bps as u128)
       .ok_or(VaultError::MathOverflow)?
-      .checked_div(10_000)
+      .checked_div(FEE_TENTHS_BPS_DENOMINATOR)
       .ok_or(VaultError::MathOverflow)? as u64;
     let net = amount
       .checked_sub(fee)
@@ -639,7 +639,7 @@ pub mod sipher_vault {
   }
 
   /// Authority-only: drain lamports above the rent-exempt minimum from the native
-  /// SOL fee PDA (`sol_fee`). Fees accrue during `withdraw_private_sol` (fee_bps
+  /// SOL fee PDA (`sol_fee`). Fees accrue during `withdraw_private_sol` (fee_tenths_bps
   /// per withdrawal). Pass `amount = 0` to collect ALL collectable lamports.
   ///
   /// Safety: Uses the Task-7 checked lamport mutation pattern — every new balance
@@ -731,17 +731,17 @@ pub mod sipher_vault {
     Ok(())
   }
 
-  /// Update the protocol fee (basis points). Authority-only, capped at
-  /// MAX_FEE_BPS. Lets the authority adjust the fee without a redeploy.
-  pub fn update_fee(ctx: Context<UpdateFee>, new_fee_bps: u16) -> Result<()> {
-    require!(new_fee_bps <= MAX_FEE_BPS, VaultError::FeeTooHigh);
-    let old_fee_bps = ctx.accounts.config.fee_bps;
-    ctx.accounts.config.fee_bps = new_fee_bps;
-    msg!("Fee updated: {} bps", new_fee_bps);
+  /// Update the protocol fee (tenths-of-bps). Authority-only, capped at
+  /// MAX_FEE_TENTHS_BPS. Lets the authority adjust the fee without a redeploy.
+  pub fn update_fee(ctx: Context<UpdateFee>, new_fee_tenths_bps: u16) -> Result<()> {
+    require!(new_fee_tenths_bps <= MAX_FEE_TENTHS_BPS, VaultError::FeeTooHigh);
+    let old_fee_tenths_bps = ctx.accounts.config.fee_tenths_bps;
+    ctx.accounts.config.fee_tenths_bps = new_fee_tenths_bps;
+    msg!("Fee updated: {} tenths-bps", new_fee_tenths_bps);
     emit!(FeeUpdatedEvent {
       authority: ctx.accounts.authority.key(),
-      old_fee_bps,
-      new_fee_bps,
+      old_fee_tenths_bps,
+      new_fee_tenths_bps,
       timestamp: Clock::get()?.unix_timestamp,
     });
     Ok(())
@@ -1607,8 +1607,8 @@ pub struct AuthorityUpdatedEvent {
 #[event]
 pub struct FeeUpdatedEvent {
   pub authority: Pubkey,
-  pub old_fee_bps: u16,
-  pub new_fee_bps: u16,
+  pub old_fee_tenths_bps: u16,
+  pub new_fee_tenths_bps: u16,
   pub timestamp: i64,
 }
 
