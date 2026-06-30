@@ -46,18 +46,15 @@ async function main() {
   }
 
   // 2. Build
-  // Note: `--no-idl` is required because anchor 0.30.1's IDL generator
-  // depends on `proc_macro2::Span::source_file()`, a nightly-only proc-macro
-  // API that has been removed from current host rustc (1.94+). The on-chain
-  // SBF binary builds correctly via Solana's pinned platform-tools toolchain;
-  // only the host-side IDL generation is affected.
-  //
-  // We deliberately skip `anchor clean` here: clean would wipe `target/idl/sipher_vault.json`
-  // (which downstream consumers like the agent SDK and UI depend on), and the `--no-idl`
-  // flag means we cannot regenerate it from this script. `anchor build` is incremental
-  // and reliable; a stale `.so` is not a realistic risk on a deploy script that already
-  // verifies the artifact's existence afterward.
-  run('anchor build --no-idl')
+  // `--no-idl`: skip IDL regeneration during deploy so the committed
+  // `target/idl/sipher_vault.json` (downstream consumers — the agent SDK, UI —
+  // depend on it) stays stable; regenerate it intentionally via `anchor build` /
+  // `anchor test` when the interface changes, not as a side effect of deploying.
+  // `--ignore-keys`: skip Anchor's declare_id-vs-`target/deploy/<name>-keypair.json`
+  // check. On a fresh checkout or a git worktree that keypair is auto-generated and
+  // won't match `declare_id!`, aborting the build; the deploy pins the program ID via
+  // `--program-id` below, so the source `declare_id!` is the authoritative ID.
+  run('anchor build --no-idl --ignore-keys')
 
   if (!existsSync(SO_FILE)) {
     throw new Error(`Build artifact missing: ${SO_FILE}`)

@@ -140,6 +140,17 @@ In-place `BPFLoaderUpgradeable` upgrade of the **existing** program — B6 audit
 - **Config PDA (post-migration):** `CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u` — 101 bytes, deserializes as current `VaultConfig`.
 - Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
 
+### Devnet — Fee Re-Precision Upgrade (2026-06-30)
+
+In-place `BPFLoaderUpgradeable` upgrade to the tenths-of-bps fee binary (#1213), then `update_fee(75)` to reset the live fee 10 → 75 (7.5 bps) — run back-to-back to close the semantic-reset window. **Program ID and config PDA preserved.**
+
+- **Binary:** deployed via `scripts/upgrade-devnet.ts`; programdata `521368` bytes (within the `521413` allocated on 2026-06-22 — no extend needed).
+- **Upgrade TX:** `3STyKUKErpNLaDtFVs1mnKtYpa8bAhTHF17kwkd6eKhKKRY2DHXC4UomRFmsiDF6FvdeHX1poqiaHEoXVFv9kri9`
+- **New deployed slot:** `472907461` (was `471134934`).
+- **`update_fee(75)` TX:** `4vPtP4W8B8KFKeXHnWjWoux8NhdnF1ohJVu5DGWBdyEiajnUhNoS73UPQRRCEKHnb4SvooUKgqvWwDkeonFuxb78` — `fee_tenths_bps` 10 → 75.
+- **Verified on-chain:** config PDA `CpL4qyHFJYkU5WKdcjTJUu52fYFzjrvHZo4fjPp9T76u` (101 bytes), `fee_tenths_bps @ offset 40 = 75` (= 7.5 bps), via `scripts/update-fee.ts` + `scripts/init-devnet.ts` + direct account decode.
+- Authority signed: `FGSkt8MwXH83daNNW8ZkoqhL1KLcLoZLcdGJz84BWWr`
+
 ## Mainnet Deployments
 
 _Not deployed. Mainnet deploy is gated on the self-audit completing (B6) — out of scope for this feature branch._
