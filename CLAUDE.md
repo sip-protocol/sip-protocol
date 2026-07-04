@@ -717,7 +717,7 @@ sip-protocol/sip-protocol     # This repo (core SDK monorepo)
 
 ## Deployment Topology
 
-> **VPS → Vercel migration COMPLETE + decommissioned (2026-06-14).** All 5 web properties (docs, blog, cdn, sip-app, sip-website) serve from **Vercel** (Git-integration auto-deploy). Their VPS counterparts on reclabs3 were torn down (containers, nginx sites, certs removed) after their 7-day rollback buffers. Only **sipher** + **sip-umami** remain on the VPS. Migration/decommission detail: `VERCEL_MIGRATION_HANDOFF.md` (repo root, untracked).
+> **VPS → Vercel migration COMPLETE + decommissioned (2026-06-14).** All 5 web properties (docs, blog, cdn, sip-app, sip-website) serve from **Vercel** (Git-integration auto-deploy). Their VPS counterparts on reclabs3 were torn down (containers, nginx sites, certs removed) after their 7-day rollback buffers. Only **sipher** + **sip-umami** remain on the VPS. Migration/decommission detail: `~/Documents/secret/strategy/sip-protocol/VERCEL_MIGRATION_HANDOFF.md` (archived out of repo 2026-07-04).
 
 ### On Vercel (scope `rectors-projects` — push to `main` auto-deploys)
 
