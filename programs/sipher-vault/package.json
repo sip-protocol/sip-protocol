@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
-    "@solana/spl-token": "^0.4.9",
+    "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.95.0"
   },
   "devDependencies": {
@@ -17,7 +17,7 @@
     "mocha": "^10.0.0",
     "solana-bankrun": "^0.4.0",
     "ts-mocha": "^10.0.0",
-    "tsx": "^4.21.0",
+    "tsx": "^4.23.1",
     "typescript": "^6.0.3"
   },
   "pnpm": {

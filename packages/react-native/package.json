@@ -42,7 +42,7 @@
     "react": "^18.0.0",
     "react-native": ">=0.71.0",
     "@solana/web3.js": "^1.87.0",
-    "@solana/spl-token": "^0.4.0"
+    "@solana/spl-token": "^0.4.15"
   },
   "peerDependenciesMeta": {
     "react-native-keychain": {
@@ -59,17 +59,17 @@
     }
   },
   "devDependencies": {
-    "@solana/spl-token": "^0.4.0",
+    "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.87.0",
-    "@testing-library/react-native": "^14.0.0",
-    "@types/node": "^26.0.0",
+    "@testing-library/react-native": "^14.0.1",
+    "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
     "@types/react-native": "^0.73.0",
     "react": "^19.2.7",
     "react-native": "^0.86.0",
     "tsup": "^8.0.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.10"
   },
   "keywords": [
     "sip",
