@@ -308,7 +308,7 @@ export function encodeAnnouncementCallData(
   )
 
   // Encode metadata bytes
-  let metadataEncoded = ''
+  let metadataEncoded: string
   if (metadata) {
     const metadataBytes = metadata.slice(2)
     const metadataLength = (metadataBytes.length / 2).toString(16).padStart(64, '0')

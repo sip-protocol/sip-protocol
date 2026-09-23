@@ -425,7 +425,8 @@ export async function createProxyAgent(
     if ((error as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND') {
       throw new Error(
         `Proxy agent dependencies not installed. ` +
-        `Run: npm install socks-proxy-agent https-proxy-agent`
+        `Run: npm install socks-proxy-agent https-proxy-agent`,
+        { cause: error }
       )
     }
     throw error

@@ -217,7 +217,7 @@ export async function scanForPayments(
   } catch (err) {
     // M10 FIX: Remove console.error, throw proper error
     const message = err instanceof Error ? err.message : String(err)
-    throw new Error(`Failed to scan for payments: ${message}`)
+    throw new Error(`Failed to scan for payments: ${message}`, { cause: err })
   }
 
   return results

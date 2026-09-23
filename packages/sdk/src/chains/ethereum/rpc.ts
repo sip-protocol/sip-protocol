@@ -817,7 +817,7 @@ export class EthereumRpcClient {
 
         // Don't retry on abort
         if (lastError.name === 'AbortError') {
-          throw new Error(`Request timeout after ${timeout}ms`)
+          throw new Error(`Request timeout after ${timeout}ms`, { cause: error })
         }
 
         // Wait before retry

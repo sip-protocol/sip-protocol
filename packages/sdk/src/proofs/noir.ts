@@ -847,7 +847,7 @@ export class NoirProofProvider implements ProofProvider {
     this.ensureReady()
 
     // Select the appropriate backend based on proof type
-    let backend: UltraHonkBackend | null = null
+    let backend: UltraHonkBackend | null
 
     switch (proof.type) {
       case 'funding':

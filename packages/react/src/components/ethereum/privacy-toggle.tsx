@@ -625,7 +625,7 @@ export function EthereumPrivacyToggle({
       const levels: EthereumPrivacyLevel[] = ['public', 'stealth', 'compliant']
       const currentIndex = levels.indexOf(currentLevel)
 
-      let newIndex = currentIndex
+      let newIndex: number
 
       switch (event.key) {
         case 'ArrowRight':

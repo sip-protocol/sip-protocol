@@ -184,7 +184,7 @@ export async function sendPrivateSPLTransfer(
   const transaction = new Transaction()
 
   // Check if stealth ATA exists
-  let stealthATAExists = false
+  let stealthATAExists: boolean
   try {
     await getAccount(connection, stealthATA)
     stealthATAExists = true

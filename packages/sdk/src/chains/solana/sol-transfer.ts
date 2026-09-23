@@ -250,7 +250,6 @@ export async function estimateSOLTransfer(
 ): Promise<SOLTransferEstimate> {
   const baseFee = ESTIMATED_TX_FEE_LAMPORTS
   let rentBuffer = 0n
-  let stealthAccountExists = false
 
   // Check if stealth account exists
   const { stealthAddress } = generateEd25519StealthAddress(recipientMetaAddress)
@@ -258,7 +257,7 @@ export async function estimateSOLTransfer(
   const stealthPubkey = new PublicKey(stealthAddressBase58)
 
   const accountInfo = await connection.getAccountInfo(stealthPubkey)
-  stealthAccountExists = accountInfo !== null
+  const stealthAccountExists = accountInfo !== null
 
   if (!stealthAccountExists) {
     rentBuffer = STEALTH_ACCOUNT_BUFFER

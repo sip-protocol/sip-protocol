@@ -22,7 +22,7 @@
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
     "build": "tsup src/server.ts src/routes/index.ts --format cjs --dts",
-    "lint": "eslint --ext .ts src/",
+    "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "test": "vitest"

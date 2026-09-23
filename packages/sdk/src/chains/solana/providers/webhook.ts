@@ -644,7 +644,7 @@ async function processRawTransaction(
     }
 
     // Check if this is our payment (may throw for invalid curve points)
-    let isOurs = false
+    let isOurs: boolean
     try {
       isOurs = checkEd25519StealthAddress(
         stealthAddressToCheck,
