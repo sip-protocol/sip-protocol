@@ -1,0 +1,6 @@
+{
+	"node-option": ["import=tsx"],
+	"extension": ["ts"],
+	"spec": "tests/sipher-vault/{10,11,12,13,14,15}-*.ts",
+	"timeout": 1000000
+}

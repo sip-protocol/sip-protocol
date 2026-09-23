@@ -24,7 +24,7 @@ import {
   getVaultConfigPDA,
   getSipConfigPDA,
   getSipTransferRecordPDA,
-} from './setup'
+} from './setup.js'
 
 import {
   VAULT_PROGRAM_ID,
@@ -43,7 +43,7 @@ import {
   parseDepositRecord,
   parseVaultConfig,
   parseSipConfig,
-} from './bankrun-helpers'
+} from './bankrun-helpers.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants

@@ -33,7 +33,7 @@ import {
   getSipTransferRecordPDA,
   getSolVaultPDA,
   getSolFeePDA,
-} from './setup'
+} from './setup.js'
 import { assert } from 'chai'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ export function i64le(n: bigint): Buffer {
  * sip_privacy (from tests/fixtures/sip_privacy.so, resolved by name).
  *
  * The Anchor workspace root is '.', which startAnchor resolves relative to
- * the cwd at runtime (programs/sipher-vault when running with ts-mocha from
+ * the cwd at runtime (programs/sipher-vault when running with mocha from
  * the Anchor project root).
  */
 export async function startVault(): Promise<ProgramTestContext> {

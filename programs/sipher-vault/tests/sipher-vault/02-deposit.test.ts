@@ -8,7 +8,7 @@ import {
   getVaultTokenPDA,
   setupTestMint,
   setupTokenAccount,
-} from './setup'
+} from './setup.js'
 
 describe('sipher-vault: deposit', () => {
   const provider = anchor.AnchorProvider.env()

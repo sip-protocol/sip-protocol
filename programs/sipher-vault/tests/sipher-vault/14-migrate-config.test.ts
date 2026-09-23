@@ -18,8 +18,8 @@ import {
   parseVaultConfig,
   assertFails,
   VAULT_PROGRAM_ID,
-} from './bankrun-helpers'
-import { getVaultConfigPDA } from './setup'
+} from './bankrun-helpers.js'
+import { getVaultConfigPDA } from './setup.js'
 
 const LEGACY_LEN = 68
 const NEW_LEN = 101

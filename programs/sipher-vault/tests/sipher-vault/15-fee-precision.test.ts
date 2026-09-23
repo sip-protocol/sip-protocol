@@ -12,7 +12,7 @@ import {
   getSolFeePDA,
   getSipConfigPDA,
   getSipTransferRecordPDA,
-} from './setup'
+} from './setup.js'
 import {
   VAULT_PROGRAM_ID,
   startVault,
@@ -24,7 +24,7 @@ import {
   ixSipPrivacyInitialize,
   getAccountData,
   parseSipConfig,
-} from './bankrun-helpers'
+} from './bankrun-helpers.js'
 
 const FEE_TENTHS_BPS = 75 // 7.5 bps
 const REFUND_TIMEOUT = 5n

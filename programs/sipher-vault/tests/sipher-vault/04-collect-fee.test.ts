@@ -21,7 +21,7 @@ import {
   getSipConfigPDA,
   getSipTransferRecordPDA,
   SIP_PRIVACY_PROGRAM_ID,
-} from './setup'
+} from './setup.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Collect fee tests use anchor-bankrun for full isolation.

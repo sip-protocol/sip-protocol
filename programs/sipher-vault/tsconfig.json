@@ -1,21 +1,21 @@
 {
   "compilerOptions": {
-    "types": ["mocha", "chai"],
+    "types": ["mocha", "node"],
     "typeRoots": ["./node_modules/@types"],
-    "lib": ["es2015"],
-    "module": "commonjs",
-    "target": "es6",
+    "lib": ["es2020"],
+    "module": "es2022",
+    "target": "es2020",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "ignoreDeprecations": "6.0",
+    "moduleResolution": "bundler",
+    "strict": false,
     "rootDir": ".",
     "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": ".",
-    "paths": {
-      "@project/*": ["./programs/*/src"]
-    }
+    "outDir": "./dist"
   },
-  "include": ["tests/**/*.ts"]
+  "include": [
+    "tests/sipher-vault/1*-*.ts",
+    "tests/sipher-vault/setup.ts",
+    "tests/sipher-vault/bankrun-helpers.ts"
+  ]
 }

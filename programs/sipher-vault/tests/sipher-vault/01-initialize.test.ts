@@ -6,7 +6,7 @@ import {
   getVaultConfigPDA,
   MAX_FEE_TENTHS_BPS,
   DEFAULT_REFUND_TIMEOUT,
-} from './setup'
+} from './setup.js'
 
 describe('sipher-vault: initialize', () => {
   const provider = anchor.AnchorProvider.env()

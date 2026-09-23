@@ -29,8 +29,8 @@ import {
 } from '@solana/spl-token'
 import { ProgramTestContext } from 'solana-bankrun'
 
-import { ixInitialize, ixCreateVaultToken, ixCreateFeeToken, sendIx, startVault, VAULT_PROGRAM_ID } from './bankrun-helpers'
-import { getVaultTokenPDA } from './setup'
+import { ixInitialize, ixCreateVaultToken, ixCreateFeeToken, sendIx, startVault, VAULT_PROGRAM_ID } from './bankrun-helpers.js'
+import { getVaultTokenPDA } from './setup.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants

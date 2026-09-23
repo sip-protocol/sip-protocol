@@ -18,7 +18,7 @@ import {
   getDepositRecordPDA,
   getVaultTokenPDA,
   DEFAULT_REFUND_TIMEOUT,
-} from './setup'
+} from './setup.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Refund tests use anchor-bankrun to control the Clock sysvar.

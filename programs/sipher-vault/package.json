@@ -1,8 +1,9 @@
 {
   "name": "sipher-vault-tests",
   "private": true,
+  "type": "module",
   "scripts": {
-    "test": "ts-mocha -p ./tsconfig.json -t 1000000 \"tests/sipher-vault/{10,11,12,13,14,15}-*.ts\""
+    "test": "mocha"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
@@ -10,13 +11,13 @@
     "@solana/web3.js": "^1.99.0"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.0",
+    "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.0",
+    "@types/node": "^26.6.2",
     "anchor-bankrun": "^0.5.0",
-    "chai": "^4.3.0",
-    "mocha": "^10.0.0",
+    "chai": "^6.2.2",
+    "mocha": "^11.7.6",
     "solana-bankrun": "^0.4.0",
-    "ts-mocha": "^10.0.0",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3"
   },
