@@ -23,8 +23,8 @@ import {
   parseVaultConfig,
   assertFails,
   VAULT_PROGRAM_ID,
-} from './bankrun-helpers'
-import { getVaultConfigPDA, MAX_FEE_TENTHS_BPS } from './setup'
+} from './bankrun-helpers.js'
+import { getVaultConfigPDA, MAX_FEE_TENTHS_BPS } from './setup.js'
 
 describe('13 · authority management (M1: two-step transfer + update_fee)', () => {
   let ctx: ProgramTestContext

@@ -28,7 +28,7 @@ import {
   getFeeTokenPDA,
   getSipConfigPDA,
   getSipTransferRecordPDA,
-} from './setup'
+} from './setup.js'
 
 import {
   VAULT_PROGRAM_ID,
@@ -48,7 +48,7 @@ import {
   ixRefund,
   ixCollectFee,
   ixSipPrivacyInitialize,
-} from './bankrun-helpers'
+} from './bankrun-helpers.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
