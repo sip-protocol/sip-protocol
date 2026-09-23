@@ -1,20 +1,24 @@
 {
   "license": "ISC",
+  "type": "module",
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
-    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
+    "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
+    "test": "mocha"
   },
   "dependencies": {
-    "@coral-xyz/anchor": "^0.32.1"
+    "@anchor-lang/core": "^1.0.2",
+    "@solana/web3.js": "^1.99.0"
   },
   "devDependencies": {
-    "chai": "^4.3.4",
-    "mocha": "^11.7.6",
-    "ts-mocha": "^10.0.0",
     "@types/bn.js": "^5.1.0",
-    "@types/chai": "^4.3.0",
-    "@types/mocha": "^9.0.0",
-    "typescript": "^5.7.3",
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.6.2",
+    "chai": "^6.2.2",
+    "mocha": "^11.7.6",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
     "prettier": "^3.8.4"
   },
   "overrides": {

@@ -1,11 +1,6 @@
-import * as anchor from '@coral-xyz/anchor'
-import { Program, AnchorError } from '@coral-xyz/anchor'
-import {
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  LAMPORTS_PER_SOL,
-} from '@solana/web3.js'
+import * as anchor from '@anchor-lang/core'
+import { Program, AnchorError } from '@anchor-lang/core'
+import { Keypair, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { expect } from 'chai'
 import { SipPrivacy } from '../target/types/sip_privacy'
 
@@ -118,9 +113,7 @@ describe('sip-privacy', () => {
       const tx = await program.methods
         .initialize(TEST_FEE_BPS)
         .accounts({
-          config: configPda,
           authority: authority.publicKey,
-          systemProgram: SystemProgram.programId,
         })
         .rpc()
 
@@ -142,9 +135,7 @@ describe('sip-privacy', () => {
         await program.methods
           .initialize(100)
           .accounts({
-            config: configPda,
             authority: authority.publicKey,
-            systemProgram: SystemProgram.programId,
           })
           .rpc()
         expect.fail('Should have thrown')
@@ -162,7 +153,6 @@ describe('sip-privacy', () => {
       await program.methods
         .updateFee(newFee)
         .accounts({
-          config: configPda,
           authority: authority.publicKey,
         })
         .rpc()
@@ -176,7 +166,6 @@ describe('sip-privacy', () => {
         await program.methods
           .updateFee(1001) // 10.01%
           .accounts({
-            config: configPda,
             authority: authority.publicKey,
           })
           .rpc()
@@ -192,7 +181,6 @@ describe('sip-privacy', () => {
       await program.methods
         .setPaused(true)
         .accounts({
-          config: configPda,
           authority: authority.publicKey,
         })
         .rpc()
@@ -204,7 +192,6 @@ describe('sip-privacy', () => {
       await program.methods
         .setPaused(false)
         .accounts({
-          config: configPda,
           authority: authority.publicKey,
         })
         .rpc()
@@ -220,7 +207,6 @@ describe('sip-privacy', () => {
         await program.methods
           .setPaused(true)
           .accounts({
-            config: configPda,
             authority: wrongAuthority.publicKey,
           })
           .signers([wrongAuthority])
@@ -241,7 +227,6 @@ describe('sip-privacy', () => {
       await program.methods
         .updateFee(0)
         .accounts({
-          config: configPda,
           authority: authority.publicKey,
         })
         .rpc()
@@ -284,12 +269,9 @@ describe('sip-privacy', () => {
           actualAmount,
         )
         .accounts({
-          config: configPda,
-          transferRecord: transferRecordPda,
           sender: sender.publicKey,
           stealthAccount: stealthKeypair.publicKey,
           feeCollector: feeCollector.publicKey,
-          systemProgram: SystemProgram.programId,
         })
         .signers([sender])
         .rpc()
@@ -332,7 +314,6 @@ describe('sip-privacy', () => {
       await program.methods
         .setPaused(true)
         .accounts({
-          config: configPda,
           authority: authority.publicKey,
         })
         .rpc()
@@ -361,12 +342,9 @@ describe('sip-privacy', () => {
             new anchor.BN(0.1 * LAMPORTS_PER_SOL),
           )
           .accounts({
-            config: configPda,
-            transferRecord: transferRecordPda,
             sender: sender.publicKey,
             stealthAccount: stealthKeypair.publicKey,
             feeCollector: feeCollector.publicKey,
-            systemProgram: SystemProgram.programId,
           })
           .signers([sender])
           .rpc()
@@ -382,7 +360,6 @@ describe('sip-privacy', () => {
       await program.methods
         .setPaused(false)
         .accounts({
-          config: configPda,
           authority: authority.publicKey,
         })
         .rpc()
@@ -417,12 +394,9 @@ describe('sip-privacy', () => {
             new anchor.BN(0.1 * LAMPORTS_PER_SOL),
           )
           .accounts({
-            config: configPda,
-            transferRecord: transferRecordPda,
             sender: sender.publicKey,
             stealthAccount: stealthKeypair.publicKey,
             feeCollector: feeCollector.publicKey,
-            systemProgram: SystemProgram.programId,
           })
           .signers([sender])
           .rpc()
@@ -610,12 +584,9 @@ describe('sip-privacy', () => {
           new anchor.BN(0.05 * LAMPORTS_PER_SOL),
         )
         .accounts({
-          config: configPda,
-          transferRecord: transferRecordPda,
           sender: sender.publicKey,
           stealthAccount: claimStealthKeypair.publicKey,
           feeCollector: feeCollector.publicKey,
-          systemProgram: SystemProgram.programId,
         })
         .signers([sender])
         .rpc()
@@ -643,12 +614,9 @@ describe('sip-privacy', () => {
             await program.methods
               .claimTransfer(nullifier, createMockProof())
               .accounts({
-                config: configPda,
                 transferRecord: transfer.publicKey,
-                nullifierRecord: nullifierPda,
                 stealthAccount: transfer.account.stealthRecipient,
                 recipient: recipient.publicKey,
-                systemProgram: SystemProgram.programId,
               })
               .signers([recipient])
               .rpc()
@@ -697,7 +665,7 @@ describe('sip-privacy', () => {
         )
 
         const listener = program.addEventListener(
-          'ShieldedTransferEvent',
+          'shieldedTransferEvent',
           (event) => {
             clearTimeout(timeout)
             program.removeEventListener(listener)
@@ -717,12 +685,9 @@ describe('sip-privacy', () => {
           new anchor.BN(0.01 * LAMPORTS_PER_SOL),
         )
         .accounts({
-          config: configPda,
-          transferRecord: transferRecordPda,
           sender: sender.publicKey,
           stealthAccount: newStealthKeypair.publicKey,
           feeCollector: feeCollector.publicKey,
-          systemProgram: SystemProgram.programId,
         })
         .signers([sender])
         .rpc()
@@ -776,12 +741,9 @@ describe('sip-privacy', () => {
           new anchor.BN(0.01 * LAMPORTS_PER_SOL),
         )
         .accounts({
-          config: configPda,
-          transferRecord: transferRecordPda,
           sender: sender.publicKey,
           stealthAccount: newStealthKeypair.publicKey,
           feeCollector: feeCollector.publicKey,
-          systemProgram: SystemProgram.programId,
         })
         .signers([sender])
         .rpc()
@@ -824,12 +786,9 @@ describe('sip-privacy', () => {
             new anchor.BN(0.01 * LAMPORTS_PER_SOL),
           )
           .accounts({
-            config: configPda,
-            transferRecord: transferRecordPda,
             sender: sender.publicKey,
             stealthAccount: newStealthKeypair.publicKey,
             feeCollector: feeCollector.publicKey,
-            systemProgram: SystemProgram.programId,
           })
           .signers([sender])
           .rpc()
@@ -847,7 +806,6 @@ describe('sip-privacy', () => {
       await program.methods
         .updateFee(100)
         .accounts({
-          config: configPda,
           authority: authority.publicKey,
         })
         .rpc()
@@ -893,12 +851,9 @@ describe('sip-privacy', () => {
           actualAmount,
         )
         .accounts({
-          config: configPda,
-          transferRecord: transferRecordPda,
           sender: sender.publicKey,
           stealthAccount: newStealthKeypair.publicKey,
           feeCollector: feeCollector.publicKey,
-          systemProgram: SystemProgram.programId,
         })
         .signers([sender])
         .rpc()

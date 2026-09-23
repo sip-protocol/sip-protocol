@@ -1,0 +1,6 @@
+{
+	"node-option": ["import=tsx"],
+	"extension": ["ts"],
+	"spec": "tests/**/*.ts",
+	"timeout": 1000000
+}

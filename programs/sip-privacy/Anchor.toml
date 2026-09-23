@@ -18,9 +18,13 @@ sip_privacy = "S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at"
 [registry]
 url = "https://api.apr.dev"
 
+[[test.genesis]]
+address = "S1PMFspo4W6BYKHWkHNF7kZ3fnqibEXg3LQjxepS9at"
+program = "target/deploy/sip_privacy.so"
+
 [provider]
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "pnpm ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
+test = "pnpm exec mocha"
