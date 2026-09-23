@@ -993,7 +993,7 @@ export class BrowserNoirProvider implements ProofProvider {
   async verifyProof(proof: ZKProof): Promise<boolean> {
     this.ensureReady()
 
-    let backend: UltraHonkBackend | null = null
+    let backend: UltraHonkBackend | null
 
     switch (proof.type) {
       case 'funding':

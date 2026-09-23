@@ -398,7 +398,7 @@ export class MultiWalletPrivacyAdapter extends PrivacyEthereumWalletAdapter {
     } catch (error) {
       // Handle user rejection
       if ((error as { code?: number }).code === 4001) {
-        throw new Error('User rejected connection request')
+        throw new Error('User rejected connection request', { cause: error })
       }
       throw error
     }

@@ -283,7 +283,7 @@ export class ShieldedTransactionBuilder {
     }
 
     // 2. ATA creation (if needed)
-    let needsAtaCreation = false
+    let needsAtaCreation: boolean
     try {
       const accountInfo = await this.connection.getAccountInfo(stealthATA)
       needsAtaCreation = accountInfo === null

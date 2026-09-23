@@ -181,7 +181,7 @@ export class SurveillanceAnalyzer {
       } catch (error) {
         clearTimeout(timeoutId)
         if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error('Helius API request timed out after 30 seconds')
+          throw new Error('Helius API request timed out after 30 seconds', { cause: error })
         }
         throw error
       }
@@ -196,7 +196,6 @@ export class SurveillanceAnalyzer {
       const data = (await response.json()) as HeliusTransaction[]
 
       if (data.length === 0) {
-        hasMore = false
         break
       }
 

@@ -388,7 +388,7 @@ export function PrivacyToggle({
       const levels: PrivacyLevel[] = ['off', 'shielded', 'compliant']
       const currentIndex = levels.indexOf(currentLevel)
 
-      let newIndex = currentIndex
+      let newIndex: number
 
       switch (event.key) {
         case 'ArrowRight':

@@ -395,7 +395,7 @@ export class StealthScanner {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
-      throw new Error(`Historical scan failed: ${message}`)
+      throw new Error(`Historical scan failed: ${message}`, { cause: err })
     }
   }
 
