@@ -23,6 +23,9 @@
   },
   "overrides": {
     "serialize-javascript": "^7.0.5",
-    "ws": "^8.20.1"
+    "ws": "^8.20.1",
+    "@anchor-lang/core": {
+      "toml": ">=4.2.0"
+    }
   }
 }
