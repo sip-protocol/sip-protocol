@@ -35,14 +35,19 @@ jobs:
 
       - name: Create Release Pull Request or Publish
         id: changesets
-        uses: changesets/action@v2
+        # changesets/action v2 requires Changesets CLI v3; this repo pins
+        # @changesets/cli ^2.31.0, so the v2 action hard-fails on every run
+        # ("Changesets CLI v2 is not supported"). v1 is the documented
+        # compatible pairing. Follow-up: migrate to CLI v3, then re-adopt v2.
+        uses: changesets/action@v1
         with:
-          version-script: pnpm run version
-          publish-script: pnpm run release
-          pr-title: 'chore: release packages'
-          commit-message: 'chore: release packages'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version: pnpm run version
+          publish: pnpm run release
+          title: 'chore: release packages'
+          commit: 'chore: release packages'
         env:
+          # Org restricts GITHUB_TOKEN for PR creation; falls back if unset
+          GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Sync changelog to docs
