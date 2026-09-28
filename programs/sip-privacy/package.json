@@ -19,7 +19,7 @@
     "mocha": "^11.7.6",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
-    "prettier": "^3.8.4"
+    "prettier": "^3.9.9"
   },
   "overrides": {
     "serialize-javascript": "^7.0.5",
