@@ -407,7 +407,7 @@ library Honk {
 
     struct Proof {
         // Pairing point object
-        Fr[PAIRING_POINTS_SIZE] pairingPointObject;
+        Fr[16] pairingPointObject;
         // Free wires
         G1Point w1;
         G1Point w2;
@@ -420,18 +420,18 @@ library Honk {
         G1Point lookupReadTags;
         G1Point lookupInverses;
         // Sumcheck
-        Fr[BATCHED_RELATION_PARTIAL_LENGTH][CONST_PROOF_SIZE_LOG_N] sumcheckUnivariates;
-        Fr[NUMBER_OF_ENTITIES] sumcheckEvaluations;
+        Fr[8][28] sumcheckUnivariates;
+        Fr[41] sumcheckEvaluations;
         // Shplemini
-        G1Point[CONST_PROOF_SIZE_LOG_N - 1] geminiFoldComms;
-        Fr[CONST_PROOF_SIZE_LOG_N] geminiAEvaluations;
+        G1Point[27] geminiFoldComms;
+        Fr[28] geminiAEvaluations;
         G1Point shplonkQ;
         G1Point kzgQuotient;
     }
 
     struct ZKProof {
         // Pairing point object
-        Fr[PAIRING_POINTS_SIZE] pairingPointObject;
+        Fr[16] pairingPointObject;
         // Commitments to wire polynomials
         G1Point w1;
         G1Point w2;
@@ -446,15 +446,15 @@ library Honk {
         G1Point[3] libraCommitments;
         // Sumcheck
         Fr libraSum;
-        Fr[ZK_BATCHED_RELATION_PARTIAL_LENGTH][CONST_PROOF_SIZE_LOG_N] sumcheckUnivariates;
-        Fr[NUMBER_OF_ENTITIES] sumcheckEvaluations;
+        Fr[9][28] sumcheckUnivariates;
+        Fr[41] sumcheckEvaluations;
         Fr libraEvaluation;
         // ZK
         G1Point geminiMaskingPoly;
         Fr geminiMaskingEval;
         // Shplemini
-        G1Point[CONST_PROOF_SIZE_LOG_N - 1] geminiFoldComms;
-        Fr[CONST_PROOF_SIZE_LOG_N] geminiAEvaluations;
+        G1Point[27] geminiFoldComms;
+        Fr[28] geminiAEvaluations;
         Fr[4] libraPolyEvals;
         G1Point shplonkQ;
         G1Point kzgQuotient;
@@ -465,11 +465,11 @@ library Honk {
 struct ZKTranscript {
     // Oink
     Honk.RelationParameters relationParameters;
-    Fr[NUMBER_OF_ALPHAS] alphas;
-    Fr[CONST_PROOF_SIZE_LOG_N] gateChallenges;
+    Fr[27] alphas;
+    Fr[28] gateChallenges;
     // Sumcheck
     Fr libraChallenge;
-    Fr[CONST_PROOF_SIZE_LOG_N] sumCheckUChallenges;
+    Fr[28] sumCheckUChallenges;
     // Shplemini
     Fr rho;
     Fr geminiR;
@@ -582,7 +582,7 @@ library ZKTranscriptLib {
     function generateAlphaChallenges(Fr previousChallenge, Honk.ZKProof memory proof)
         internal
         pure
-        returns (Fr[NUMBER_OF_ALPHAS] memory alphas, Fr nextPreviousChallenge)
+        returns (Fr[27] memory alphas, Fr nextPreviousChallenge)
     {
         // Generate the original sumcheck alpha 0 by hashing zPerm and zLookup
         uint256[5] memory alpha0;
@@ -606,7 +606,7 @@ library ZKTranscriptLib {
     function generateGateChallenges(Fr previousChallenge, uint256 logN)
         internal
         pure
-        returns (Fr[CONST_PROOF_SIZE_LOG_N] memory gateChallenges, Fr nextPreviousChallenge)
+        returns (Fr[28] memory gateChallenges, Fr nextPreviousChallenge)
     {
         previousChallenge = FrLib.fromBytes32(keccak256(abi.encodePacked(Fr.unwrap(previousChallenge))));
         (gateChallenges[0],) = splitChallenge(previousChallenge);
@@ -634,10 +634,10 @@ library ZKTranscriptLib {
     function generateSumcheckChallenges(Honk.ZKProof memory proof, Fr prevChallenge, uint256 logN)
         internal
         pure
-        returns (Fr[CONST_PROOF_SIZE_LOG_N] memory sumcheckChallenges, Fr nextPreviousChallenge)
+        returns (Fr[28] memory sumcheckChallenges, Fr nextPreviousChallenge)
     {
         for (uint256 i = 0; i < logN; i++) {
-            Fr[ZK_BATCHED_RELATION_PARTIAL_LENGTH + 1] memory univariateChal;
+            Fr[10] memory univariateChal;
             univariateChal[0] = prevChallenge;
 
             for (uint256 j = 0; j < ZK_BATCHED_RELATION_PARTIAL_LENGTH; j++) {
@@ -656,7 +656,7 @@ library ZKTranscriptLib {
         pure
         returns (Fr rho, Fr nextPreviousChallenge)
     {
-        uint256[NUMBER_OF_ENTITIES + 9] memory rhoChallengeElements;
+        uint256[50] memory rhoChallengeElements;
         rhoChallengeElements[0] = Fr.unwrap(prevChallenge);
         uint256 i;
         for (i = 1; i <= NUMBER_OF_ENTITIES; i++) {
@@ -826,12 +826,12 @@ library RelationsLib {
     Fr internal constant GRUMPKIN_CURVE_B_PARAMETER_NEGATED = Fr.wrap(17); // -(-17)
 
     function accumulateRelationEvaluations(
-        Fr[NUMBER_OF_ENTITIES] memory purportedEvaluations,
+        Fr[41] memory purportedEvaluations,
         Honk.RelationParameters memory rp,
-        Fr[NUMBER_OF_ALPHAS] memory alphas,
+        Fr[27] memory alphas,
         Fr powPartialEval
     ) internal pure returns (Fr accumulator) {
-        Fr[NUMBER_OF_SUBRELATIONS] memory evaluations;
+        Fr[28] memory evaluations;
 
         // Accumulate all relations in Ultra Honk - each with varying number of subrelations
         accumulateArithmeticRelation(purportedEvaluations, evaluations, powPartialEval);
@@ -853,7 +853,7 @@ library RelationsLib {
      * the relation checking code being cluttered with uint256 type casting, which is often a different colour in code
      * editors, and thus is noisy.
      */
-    function wire(Fr[NUMBER_OF_ENTITIES] memory p, WIRE _wire) internal pure returns (Fr) {
+    function wire(Fr[41] memory p, WIRE _wire) internal pure returns (Fr) {
         return p[uint256(_wire)];
     }
 
@@ -864,8 +864,8 @@ library RelationsLib {
      */
 
     function accumulateArithmeticRelation(
-        Fr[NUMBER_OF_ENTITIES] memory p,
-        Fr[NUMBER_OF_SUBRELATIONS] memory evals,
+        Fr[41] memory p,
+        Fr[28] memory evals,
         Fr domainSep
     ) internal pure {
         // Relation 0
@@ -894,9 +894,9 @@ library RelationsLib {
     }
 
     function accumulatePermutationRelation(
-        Fr[NUMBER_OF_ENTITIES] memory p,
+        Fr[41] memory p,
         Honk.RelationParameters memory rp,
-        Fr[NUMBER_OF_SUBRELATIONS] memory evals,
+        Fr[28] memory evals,
         Fr domainSep
     ) internal pure {
         Fr grand_product_numerator;
@@ -940,9 +940,9 @@ library RelationsLib {
     }
 
     function accumulateLogDerivativeLookupRelation(
-        Fr[NUMBER_OF_ENTITIES] memory p,
+        Fr[41] memory p,
         Honk.RelationParameters memory rp,
-        Fr[NUMBER_OF_SUBRELATIONS] memory evals,
+        Fr[28] memory evals,
         Fr domainSep
     ) internal pure {
         Fr write_term;
@@ -987,8 +987,8 @@ library RelationsLib {
     }
 
     function accumulateDeltaRangeRelation(
-        Fr[NUMBER_OF_ENTITIES] memory p,
-        Fr[NUMBER_OF_SUBRELATIONS] memory evals,
+        Fr[41] memory p,
+        Fr[28] memory evals,
         Fr domainSep
     ) internal pure {
         Fr minus_one = ZERO - ONE;
@@ -1059,8 +1059,8 @@ library RelationsLib {
     }
 
     function accumulateEllipticRelation(
-        Fr[NUMBER_OF_ENTITIES] memory p,
-        Fr[NUMBER_OF_SUBRELATIONS] memory evals,
+        Fr[41] memory p,
+        Fr[28] memory evals,
         Fr domainSep
     ) internal pure {
         EllipticParams memory ep;
@@ -1147,9 +1147,9 @@ library RelationsLib {
     }
 
     function accumulateMemoryRelation(
-        Fr[NUMBER_OF_ENTITIES] memory p,
+        Fr[41] memory p,
         Honk.RelationParameters memory rp,
-        Fr[NUMBER_OF_SUBRELATIONS] memory evals,
+        Fr[28] memory evals,
         Fr domainSep
     ) internal pure {
         MemParams memory ap;
@@ -1328,8 +1328,8 @@ library RelationsLib {
     }
 
     function accumulateNnfRelation(
-        Fr[NUMBER_OF_ENTITIES] memory p,
-        Fr[NUMBER_OF_SUBRELATIONS] memory evals,
+        Fr[41] memory p,
+        Fr[28] memory evals,
         Fr domainSep
     ) internal pure {
         NnfParams memory ap;
@@ -1424,8 +1424,8 @@ library RelationsLib {
     }
 
     function accumulatePoseidonExternalRelation(
-        Fr[NUMBER_OF_ENTITIES] memory p,
-        Fr[NUMBER_OF_SUBRELATIONS] memory evals,
+        Fr[41] memory p,
+        Fr[28] memory evals,
         Fr domainSep
     ) internal pure {
         PoseidonExternalParams memory ep;
@@ -1480,8 +1480,8 @@ library RelationsLib {
     }
 
     function accumulatePoseidonInternalRelation(
-        Fr[NUMBER_OF_ENTITIES] memory p,
-        Fr[NUMBER_OF_SUBRELATIONS] memory evals,
+        Fr[41] memory p,
+        Fr[28] memory evals,
         Fr domainSep
     ) internal pure {
         PoseidonInternalParams memory ip;
@@ -1521,8 +1521,8 @@ library RelationsLib {
     }
 
     function scaleAndBatchSubrelations(
-        Fr[NUMBER_OF_SUBRELATIONS] memory evaluations,
-        Fr[NUMBER_OF_ALPHAS] memory subrelationChallenges
+        Fr[28] memory evaluations,
+        Fr[27] memory subrelationChallenges
     ) internal pure returns (Fr accumulator) {
         accumulator = evaluations[0];
 
@@ -1574,9 +1574,9 @@ library CommitmentSchemeLib {
     // Compute the evaluations Aₗ(r^{2ˡ}) for l = 0, ..., m-1
 
     function computeFoldPosEvaluations(
-        Fr[CONST_PROOF_SIZE_LOG_N] memory sumcheckUChallenges,
+        Fr[28] memory sumcheckUChallenges,
         Fr batchedEvalAccumulator,
-        Fr[CONST_PROOF_SIZE_LOG_N] memory geminiEvaluations,
+        Fr[28] memory geminiEvaluations,
         Fr[] memory geminiEvalChallengePowers,
         uint256 logSize
     ) internal view returns (Fr[] memory) {
@@ -1645,7 +1645,7 @@ function negateInplace(Honk.G1Point memory point) pure returns (Honk.G1Point mem
  * @return lhs
  * @return rhs
  */
-function convertPairingPointsToG1(Fr[PAIRING_POINTS_SIZE] memory pairingPoints)
+function convertPairingPointsToG1(Fr[16] memory pairingPoints)
     pure
     returns (Honk.G1Point memory lhs, Honk.G1Point memory rhs)
 {
@@ -1683,7 +1683,7 @@ function convertPairingPointsToG1(Fr[PAIRING_POINTS_SIZE] memory pairingPoints)
  * @return recursionSeparator The recursion separator - generated from hashing the above.
  */
 function generateRecursionSeparator(
-    Fr[PAIRING_POINTS_SIZE] memory proofPairingPoints,
+    Fr[16] memory proofPairingPoints,
     Honk.G1Point memory accLhs,
     Honk.G1Point memory accRhs
 ) pure returns (Fr recursionSeparator) {
@@ -1971,7 +1971,7 @@ abstract contract BaseZKHonkVerifier is IVerifier {
 
     function computePublicInputDelta(
         bytes32[] memory publicInputs,
-        Fr[PAIRING_POINTS_SIZE] memory pairingPointObject,
+        Fr[16] memory pairingPointObject,
         Fr beta,
         Fr gamma,
         uint256 offset
@@ -2014,7 +2014,7 @@ abstract contract BaseZKHonkVerifier is IVerifier {
 
         // We perform sumcheck reductions over log n rounds ( the multivariate degree )
         for (uint256 round; round < $LOG_N; ++round) {
-            Fr[ZK_BATCHED_RELATION_PARTIAL_LENGTH] memory roundUnivariate = proof.sumcheckUnivariates[round];
+            Fr[9] memory roundUnivariate = proof.sumcheckUnivariates[round];
             Fr totalSum = roundUnivariate[0] + roundUnivariate[1];
             if (totalSum != roundTargetSum) revert SumcheckFailed();
 
@@ -2042,12 +2042,12 @@ abstract contract BaseZKHonkVerifier is IVerifier {
     }
 
     // Return the new target sum for the next sumcheck round
-    function computeNextTargetSum(Fr[ZK_BATCHED_RELATION_PARTIAL_LENGTH] memory roundUnivariates, Fr roundChallenge)
+    function computeNextTargetSum(Fr[9] memory roundUnivariates, Fr roundChallenge)
         internal
         view
         returns (Fr targetSum)
     {
-        Fr[ZK_BATCHED_RELATION_PARTIAL_LENGTH] memory BARYCENTRIC_LAGRANGE_DENOMINATORS = [
+        Fr[9] memory BARYCENTRIC_LAGRANGE_DENOMINATORS = [
             Fr.wrap(0x0000000000000000000000000000000000000000000000000000000000009d80),
             Fr.wrap(0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593efffec51),
             Fr.wrap(0x00000000000000000000000000000000000000000000000000000000000005a0),
@@ -2068,7 +2068,7 @@ abstract contract BaseZKHonkVerifier is IVerifier {
             numeratorValue = numeratorValue * (roundChallenge - Fr.wrap(i));
         }
 
-        Fr[ZK_BATCHED_RELATION_PARTIAL_LENGTH] memory denominatorInverses;
+        Fr[9] memory denominatorInverses;
         for (uint256 i = 0; i < ZK_BATCHED_RELATION_PARTIAL_LENGTH; ++i) {
             denominatorInverses[i] = FrLib.invert(BARYCENTRIC_LAGRANGE_DENOMINATORS[i] * (roundChallenge - Fr.wrap(i)));
         }
@@ -2331,19 +2331,19 @@ abstract contract BaseZKHonkVerifier is IVerifier {
     }
 
     struct SmallSubgroupIpaIntermediates {
-        Fr[SUBGROUP_SIZE] challengePolyLagrange;
+        Fr[256] challengePolyLagrange;
         Fr challengePolyEval;
         Fr lagrangeFirst;
         Fr lagrangeLast;
         Fr rootPower;
-        Fr[SUBGROUP_SIZE] denominators; // this has to disappear
+        Fr[256] denominators; // this has to disappear
         Fr diff;
     }
 
     function checkEvalsConsistency(
-        Fr[LIBRA_EVALUATIONS] memory libraPolyEvals,
+        Fr[4] memory libraPolyEvals,
         Fr geminiR,
-        Fr[CONST_PROOF_SIZE_LOG_N] memory uChallenges,
+        Fr[28] memory uChallenges,
         Fr libraEval
     ) internal view returns (bool check) {
         Fr one = Fr.wrap(1);
