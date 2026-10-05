@@ -14,12 +14,12 @@
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^26.6.2",
-    "chai": "^6.2.2",
+    "@types/node": "^26.6.4",
+    "chai": "^6.3.0",
     "mocha": "^11.7.6",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
-    "prettier": "^3.8.4"
+    "prettier": "^3.9.9"
   },
   "overrides": {
     "serialize-javascript": "^7.0.5",
