@@ -81,7 +81,7 @@
     "@sip-protocol/types": "^0.2.2",
     "@solana-program/compute-budget": "^0.18.1",
     "@solana-program/system": "^0.14.1",
-    "@solana/compat": "^6.10.0",
+    "@solana/compat": "^8.3.0",
     "@solana/kit": "^6.10.0",
     "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.99.0",
